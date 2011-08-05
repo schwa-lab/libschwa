@@ -1,0 +1,188 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
+namespace schwa { namespace tokens {
+
+struct Tokenizer::State {
+public:
+  int cs; // current state of the FSA
+  const char *ts; // beginning of the current match (first character)
+  const char *te; // end of the current match (one past last char)
+  int act; // last pattern matched (for back tracking)
+
+  const char *n1;
+  const char *n2;
+  int suffix;
+
+	bool in_document;
+	bool in_heading;
+	bool in_paragraph;
+  bool in_list;
+  bool in_item;
+	bool in_sentence;
+
+  bool seen_terminator;
+  bool in_double_quotes;
+  bool in_single_quotes;
+
+  State(void)
+    : cs(0), ts(0), te(0), act(0), n1(0), n2(0), suffix(0),
+      in_document(false), in_heading(false), in_paragraph(false),
+      in_list(false), in_item(false), in_sentence(false),
+      seen_terminator(false),
+      in_double_quotes(false), in_single_quotes(false){}
+
+  offset_type len(void) const { return te - ts; }
+
+  void add(Type type, Stream &dest, const char *norm = 0){
+    dest.add(type, ts, 0, te - ts, norm ? norm : n1);
+    n1 = n2 = 0;
+    suffix = 0;
+  }
+
+  void split(Type type1, Type type2, Stream &dest, const char *norm1 = 0, const char *norm2 = 0){
+    const char *split = te - suffix;
+    dest.add(type1, ts, 0, split - ts, norm1 ? norm1 : n1);
+    dest.add(type2, split, 0, te - split, norm2 ? norm2 : n2);
+    n1 = n2 = 0;
+    suffix = 0;
+  }
+
+	void flush_sentence(Stream &dest){
+		if(seen_terminator)
+			end_sentence(dest);
+		seen_terminator = false;
+	}
+
+	void begin_document(Stream &dest){
+		in_document = true;
+		dest.begin_document();
+
+		in_double_quotes = false;
+		in_single_quotes = false;
+
+    seen_terminator = false;
+
+    in_item = false;
+    in_list = false;
+		in_heading = false;
+		in_paragraph = false;
+		in_sentence = false;
+  }
+
+ 	void begin_paragraph(Stream &dest){
+    end_paragraph(dest);
+
+		in_paragraph = true;
+    in_single_quotes = false;
+    in_double_quotes = false;
+
+		dest.begin_paragraph();
+	}
+
+	void ensure_paragraph(Stream &dest){
+		if(in_paragraph)
+			return;
+
+		begin_paragraph(dest);
+	}
+
+ 	void begin_sentence(Stream &dest){
+		if(!in_heading && !in_list)
+			ensure_paragraph(dest);
+
+		in_sentence = true;
+		seen_terminator = false;
+		dest.begin_sentence();
+	}
+
+	void ensure_sentence(Stream &dest){
+		if(in_sentence)
+			return;
+
+		begin_sentence(dest);
+	}
+
+	void end_sentence(Stream &dest){
+		if(!in_sentence)
+			return;
+
+		dest.end_sentence();
+    seen_terminator = false;
+		in_sentence = false;
+	}
+
+  void end_paragraph(Stream &dest){
+		if(!in_paragraph)
+			return;
+
+		end_sentence(dest);
+
+		dest.end_paragraph();
+
+    in_single_quotes = false;
+    in_double_quotes = false;
+		in_paragraph = false;
+  }
+
+	void end_document(Stream &dest){
+		end_paragraph(dest);
+		dest.end_document();
+
+		in_document = false;
+	}
+
+ 	void begin_list(Stream &dest){
+    end_list(dest);
+
+		in_list = true;
+    in_single_quotes = false;
+    in_double_quotes = false;
+
+		dest.begin_list();
+	}
+
+	void ensure_list(Stream &dest){
+		if(in_list)
+			return;
+
+		begin_list(dest);
+	}
+
+  void end_list(Stream &dest){
+		if(!in_list)
+			return;
+
+    end_item(dest);
+		dest.end_list();
+
+    in_single_quotes = false;
+    in_double_quotes = false;
+		in_list = false;
+  }
+
+ 	void begin_item(Stream &dest){
+    end_item(dest);
+    ensure_list(dest);
+
+		in_item = true;
+		dest.begin_item();
+	}
+
+	void ensure_item(Stream &dest){
+		if(in_item)
+			return;
+
+		begin_list(dest);
+	}
+
+	void end_item(Stream &dest){
+		if(!in_item)
+			return;
+
+    end_sentence(dest);
+		dest.end_item();
+		in_item = false;
+	}
+};
+
+} }

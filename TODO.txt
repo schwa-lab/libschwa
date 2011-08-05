@@ -1,0 +1,10 @@
+* handle the end apostrophe on plural possessives (currently treated as an open quote)
+* handle ambiguous sentence terminators by looking at the capitalisation of the next word
+* handle $US111.111 (currently $ US111. 111 not $US 111.111)
+* handle nasty cases like O'Connor's (the apostrophe gets a double count)
+* handle contractions with 'n (like rock'n'roll but with spaces)
+* handling sentence ending abbreviations with a period (mainly a.m. and p.m. are problems in death notices) [smh062 etc.]
+* numbered lists [smh053]
+* range values (years, times, ...)
+* closing parentheses after the sentence termination [smh057], and longer [smh063]
+* strange float separation on decimal place [smh058]
