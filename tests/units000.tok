@@ -1,1 +1,29 @@
-100 m 123.5 m 0.5 m -1.8 m .
+Metres : 100 m 123.5 m , 0.5 m -1.8 m .
+Inches : 1 in 2.5 in , 0.65 in -9 in .
+Feet : 6 ft 5.5 ft , 0.3 ft -9 ft .
+Yards : 4 yd 95.4 yd -0.5 yd , 1 yd !
+Miles : 1.5 mi -2 mi ; `` 123 mi '' -- 2 mi .
+Millimetres : 10 mm ` 1.5 mm ' 1024 mm ?
+Centimetres : 100 cm 1.5 cm -2 cm .
+Kilometres : 20 km 2.9 km -- 3.1 km .
+Area / Vol : 5 cm2 2 cm^2 4.5 m^3 -5 in^2 ; 1.9 mi^3 !
+Area / Vol : 8 cu cm -1 sq m 10 cc .
+Area / Vol : -1.5 cu. cm , 254 sq. m .
+Metres / second : 3 m/s 1.5 m/s 3 ms-1 1.5 ms-1 .
+Kilometres / hour : 4 km/h 7.5 kmh-1 10 kmph -2 km/hr !
+Miles / hour : 99 mph 88 mi/h -5 mih-1 ; 2 mih 3 mi/hr .
+Liquid volume : 100 mL 5 L 2.4 gal 47 fl oz .
+Liquid volume : 10 pt 5 qt , 100 mil !
+Weight : 2 g 2.9 g : 100 mg 20 kg ` 1.5 kg ' 5,000 T .
+Weight : 5 lbs 3.5 lb 11 oz `` 10 dr '' 4 cwt 3 ton .
+Bits / bytes : 10 kb 1 kB 75 KB 128 kbit ; 100 Mb , -2 mb 1.5 MB 8 Mbit 22 MBit 4 mbit .
+Bits / bytes : 750 Gb 500 GB 4 gb 1 Gbit 5 GBit 1.9 gbit 2 TB 2 Tb 1.5 tb .
+Misc : 1000 bps 600 dpi .
+Bandwidth : 10 kb/s 128 MB/s 0.5 TB/s .
+Temperature : 100 C 0 F 273.15 K .
+Temperature degrees : 10 °C -5 °C 220 °F , 32.5 °F .
+Frequency : 440 Hz 100 kHz 100 KHz 8 MHz 2.4 GHz .
+Pressure : 110,000 Pa 100 hPa ; 1.5 kPa 110 psi .
+Misc : 80 db 80 dB 8000 rpm 10000 RPM .
+Period : 10 s 100 ms 100 μs 1.5 us 20 ns 1 h 5 min .
+Period : 2 hr 2 hrs 5 mins 2 sec 5 secs 10 yr 10 yrs 1 mth 1 mnth 5 mths .
