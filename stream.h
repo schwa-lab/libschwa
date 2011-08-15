@@ -1,11 +1,13 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
-namespace schwa { namespace tokens {
+namespace schwa { namespace token {
 
 class Stream {
 public:
   virtual void add(Type type, const char *raw, offset_type begin, offset_type len,
                    const char *norm = 0) = 0;
+
+  virtual void error(const char *raw, offset_type begin, offset_type len) = 0;
 
   virtual void begin_sentence(void){}
 	virtual void end_sentence(void){}

@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
-namespace schwa { namespace tokens {
+namespace schwa { namespace token {
 
 typedef int64_t offset_type;
 

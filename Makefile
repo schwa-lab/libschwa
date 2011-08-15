@@ -18,7 +18,7 @@ test_tokenizer: $(OBJECTS) Makefile
 tokenizer.cc: tokenizer.rl rules/*.rl Makefile
 	$(RAGEL) -G2 -o $@ $<
 
-tokenizer.o: tokenizer.cc tokens.h stream.h tokenizer.h state.h
+tokenizer.o: tokenizer.cc token.h stream.h tokenizer.h state.h
 test_tokenizer.o: test_tokenizer.cc *.h streams/*.h
 
 experiment: experiment.o Makefile

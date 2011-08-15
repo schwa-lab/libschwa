@@ -4,6 +4,7 @@
   machine tokenizer;
 
   access s.;
+  action FAIRFAX { true }
 
   include "actions.rl";
   include "rules/unicode.rl";
@@ -13,17 +14,23 @@
   include "rules/contractions.rl";
   include "rules/abbreviations.rl";
   include "rules/numbers.rl";
+  include "rules/date_time.rl";
   include "rules/units.rl";
   include "rules/web.rl";
   include "rules/html.rl";
   include "rules/main.rl";
-
 }%%
+
+#include <iostream>
+#include <sstream>
 
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/scoped_array.hpp>
 
-#include "tokens.h"
+#include "source.h"
+#include "sources/istream.h"
+
+#include "token.h"
 #include "stream.h"
 #include "tokenizer.h"
 #include "state.h"
@@ -31,7 +38,7 @@
 using namespace std;
 using namespace boost;
 
-namespace schwa { namespace tokens {
+namespace schwa { namespace token {
 
 %% write data nofinal;
 
@@ -60,14 +67,20 @@ Tokenizer::punct_(Type type, Stream &dest, State &state, const char *norm) const
 }
 
 void
-Tokenizer::end_punct_(Type type, Stream &dest, State &state, const char *norm) const {
+Tokenizer::end_(Type type, Stream &dest, State &state, const char *norm) const {
   token_(type, dest, state, norm);
 }
 
 void
 Tokenizer::split_(Type type1, Type type2, Stream &dest, State &state,
                   const char *norm1, const char *norm2) const {
-  state.flush_sentence(dest);
+  if(state.seen_terminator){
+    // need to make this work better for UTF8
+    if(type1 == WORD && (isupper(*state.ts) || isdigit(*state.ts)))
+      state.flush_sentence(dest);
+    else
+      state.seen_terminator = false;
+  }
   state.ensure_sentence(dest);
   state.split(type1, type2, dest, norm1, norm2);
 }
@@ -75,25 +88,30 @@ Tokenizer::split_(Type type1, Type type2, Stream &dest, State &state,
 void
 Tokenizer::terminator_(Stream &dest, State &state, const char *norm) const {
   state.seen_terminator = true;
-  end_punct_(TERMINATOR, dest, state, norm);
+  end_(TERMINATOR, dest, state, norm);
 }
 
 void
-Tokenizer::single_quote_(Stream &dest, State &state) const {
-  if(state.in_single_quotes){
-    end_punct_(QUOTE, dest, state, "'");
+Tokenizer::error_(Stream &dest, State &state) const {
+  state.error(dest);
+}
+
+void
+Tokenizer::single_quote_(Stream &dest, State &state, const char *eof) const {
+  if(state.in_single_quotes || state.te == eof || !isalnum(*state.te)){
+    end_(QUOTE, dest, state, "'");
     state.in_single_quotes = false;
     return;
   }
-
+     
   punct_(QUOTE, dest, state, "`");
   state.in_single_quotes = true;
 }
 
 void
-Tokenizer::double_quote_(Stream &dest, State &state) const {
+Tokenizer::double_quote_(Stream &dest, State &state, const char *eof) const {
   if(state.in_double_quotes){
-    end_punct_(QUOTE, dest, state, "''");
+    end_(QUOTE, dest, state, "''");
     state.in_double_quotes = false;
     return;
   }
@@ -110,7 +128,7 @@ Tokenizer::open_single_quote_(Stream &dest, State &state) const {
 
 void
 Tokenizer::close_single_quote_(Stream &dest, State &state) const {
-  end_punct_(QUOTE, dest, state, "'");
+  end_(QUOTE, dest, state, "'");
   state.in_single_quotes = false;
 }
 
@@ -122,7 +140,7 @@ Tokenizer::open_double_quote_(Stream &dest, State &state) const {
 
 void
 Tokenizer::close_double_quote_(Stream &dest, State &state) const {
-  end_punct_(QUOTE, dest, state, "''");
+  end_(QUOTE, dest, state, "''");
   state.in_double_quotes = false;
 }
 
@@ -175,9 +193,27 @@ Tokenizer::dash_or_item_(Stream &dest, State &state) const {
     state.begin_item(dest);
 }
 
+void
+Tokenizer::number_or_item_(Stream &dest, State &state) const {
+  if(state.in_sentence){
+    split_(NUMBER, PUNCTUATION, dest, state);
+    state.seen_terminator = true;
+  }else
+    state.begin_item(dest);
+}
+
+bool
+Tokenizer::die_(std::ostream &msg) const {
+  throw TokenError(dynamic_cast<std::ostringstream &>(msg).str());
+  return false;
+}
+
 bool
 Tokenizer::tokenize_(Stream &dest, State &s, const char *&n1, const char *&n2,
-                     const char *p, const char *pe, const char *eof) const {
+                     const char *p, const char *pe, const char *eof,
+                     int errors) const {
+  std::ostringstream msg;
+
   %% write exec;
 
   if(s.cs == tokenizer_error)
@@ -187,7 +223,7 @@ Tokenizer::tokenize_(Stream &dest, State &s, const char *&n1, const char *&n2,
 }
 
 bool
-Tokenizer::tokenize(Stream &dest, const char *data, offset_type len) const {
+Tokenizer::tokenize(Stream &dest, const char *data, offset_type len, int errors) const {
   State s;
 
   %% write init;
@@ -196,14 +232,17 @@ Tokenizer::tokenize(Stream &dest, const char *data, offset_type len) const {
   const char *pe = data + len;
   const char *eof = pe;
 
+  s.offset = p;
   s.begin_document(dest);
-  bool result = tokenize_(dest, s, s.n1, s.n2, p, pe, eof);
-  s.end_document(dest);
-  return result;
+  bool finished = tokenize_(dest, s, s.n1, s.n2, p, pe, eof, errors);
+  if(finished)
+    s.end_document(dest);
+  return finished;
 }
 
 bool
-Tokenizer::tokenize(Stream &dest, std::istream &in, size_t buffer_size) const {
+Tokenizer::tokenize(Stream &dest, Source &src, size_t buffer_size, int errors) const {
+  std::ostringstream msg;
   // code based on Ragel Guide, version 6.7, Figure 6.2
   State s;
 
@@ -211,7 +250,10 @@ Tokenizer::tokenize(Stream &dest, std::istream &in, size_t buffer_size) const {
 
   scoped_array<char> scoped_buffer(new char[buffer_size]);
   char *buffer = scoped_buffer.get();
+  if(!buffer)
+    return die_(msg << "could not allocate a buffer of size " << buffer_size);
 
+  s.offset = buffer;
   s.begin_document(dest);
 
   bool done = false;
@@ -219,11 +261,10 @@ Tokenizer::tokenize(Stream &dest, std::istream &in, size_t buffer_size) const {
   while(!done){
     size_t space = buffer_size - have;
     if(space == 0)
-      return false;
+      return die_(msg << "current token (e.g. a HTML script element) is larger than buffer size of " << buffer_size);
 
     char *p = buffer + have;
-    in.read(p, space);
-    size_t nread = in.gcount();
+    size_t nread = src.read(p, space);
     char *pe = p + nread;
 
     char *eof = 0;
@@ -232,18 +273,19 @@ Tokenizer::tokenize(Stream &dest, std::istream &in, size_t buffer_size) const {
       done = true;
     }
 
-    if(!tokenize_(dest, s, s.n1, s.n2, p, pe, eof))
+    if(!tokenize_(dest, s, s.n1, s.n2, p, pe, eof, errors))
       return false;
 
     if(s.ts == 0)
       have = 0;
     else {
-      /* There is a prefix to preserve, shift it over. */
       have = pe - s.ts;
       memmove(buffer, s.ts, have);
       s.te = buffer + (s.te - s.ts);
       s.ts = buffer;
     }
+
+    s.offset -= (buffer_size - have);
   }
 
   s.end_document(dest);
@@ -252,15 +294,30 @@ Tokenizer::tokenize(Stream &dest, std::istream &in, size_t buffer_size) const {
 }
 
 bool
-Tokenizer::tokenize(Stream &dest, const std::string &data) const {
-  return tokenize(dest, data.data(), data.size());
+Tokenizer::tokenize(Stream &dest, const char *data, int errors) const {
+  return tokenize(dest, data, strlen(data), errors);
 }
 
 bool
-Tokenizer::tokenize(Stream &dest, const char *filename) const {
-  iostreams::mapped_file file(filename);
+Tokenizer::tokenize(Stream &dest, const std::string &data, int errors) const {
+  return tokenize(dest, data.data(), data.size(), errors);
+}
 
-  return tokenize(dest, file.data(), file.size());
+bool
+Tokenizer::tokenize_stream(Stream &dest, std::istream &in, size_t buffer_size, int errors) const {
+  IStreamSource src(in);
+  return tokenize(dest, src, buffer_size, errors);
+}
+
+bool
+Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, int errors) const {
+  std::ostringstream msg;
+
+  iostreams::mapped_file file(filename);
+  if(!file)
+    return die_(msg << "could not open file " << filename << " for reading with mmap");
+
+  return tokenize(dest, file.data(), file.size(), errors);
 }
 
 } }

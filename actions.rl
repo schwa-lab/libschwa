@@ -11,5 +11,7 @@
   action s6 { s.suffix += 6; }
   action s7 { s.suffix += 7; }
   action s8 { s.suffix += 8; }
+  action s9 { s.suffix += 9; }
+  action s10 { s.suffix += 10; }
 
 }%%

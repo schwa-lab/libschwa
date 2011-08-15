@@ -3,7 +3,9 @@
 #include <string>
 #include <iostream>
 
-#include "tokens.h"
+#include "source.h"
+
+#include "token.h"
 #include "stream.h"
 #include "tokenizer.h"
 
@@ -15,14 +17,14 @@ using namespace schwa;
 
 int
 main(int argc, char **argv){
-	tokens::Tokenizer tokenizer;
+	token::Tokenizer tokenizer;
 
 	if(argc != 1){
-		tokens::DebugTextStream debug_stream(cout);
-		tokenizer.tokenize(debug_stream, cin, 10240);
+		token::DebugTextStream debug_stream(cout);
+		tokenizer.tokenize_stream(debug_stream, cin, 10240);
 	}else{
-		tokens::TextStream text_stream(cout);
-		tokenizer.tokenize(text_stream, cin, 10240);
+		token::TextStream text_stream(cout);
+		tokenizer.tokenize_stream(text_stream, cin, 10240);
 	}
 
 	return 0;

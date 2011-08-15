@@ -1,10 +1,24 @@
-* handle the end apostrophe on plural possessives (currently treated as an open quote)
-* handle ambiguous sentence terminators by looking at the capitalisation of the next word
-* handle $US111.111 (currently $ US111. 111 not $US 111.111)
-* handle nasty cases like O'Connor's (the apostrophe gets a double count)
+DONE * handle the end apostrophe on plural possessives (currently treated as an open quote)
+  - using a hack to check whether the next character is a whitespace or not
+  - would prefer a solution where transitions to whitespace worked rather than a lookahead
+    not quite clear how to do that yet in Ragel
+
+DONE * handle ambiguous sentence terminators by looking at the capitalisation of the next word
+  - was only failing when the next word is a contraction
+
+DONE * handle $US111.111 (currently $ US111. 111 not $US 111.111)
+  - must remember that regular expressions in Ragel don't support +
+
+DONE * handle nasty cases like O'Connor's (the apostrophe gets a double count)
+  - the workaround is not very pretty since it involves compiling out apostrophes, but it works
+
 * handle contractions with 'n (like rock'n'roll but with spaces)
 * handling sentence ending abbreviations with a period (mainly a.m. and p.m. are problems in death notices) [smh062 etc.]
 * numbered lists [smh053]
 * range values (years, times, ...)
-* closing parentheses after the sentence termination [smh057], and longer [smh063]
-* strange float separation on decimal place [smh058]
+
+DONE * closing parentheses after the sentence termination [smh057], and longer [smh063]
+  - added more punctuation characters to end_punct_ calls (end parentheses, comma, ...)
+
+DONE * strange float separation on decimal place [smh058]
+  - not a bug, the original file actually has these separated (chess story?)

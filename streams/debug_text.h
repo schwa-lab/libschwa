@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
-namespace schwa { namespace tokens {
+namespace schwa { namespace token {
 
 class DebugTextStream: public Stream {
 protected:
@@ -30,6 +30,12 @@ public:
 		else
 			(out_ << COLOURS[i++ % NCOLOURS]).write(raw, len) << OFF;
 	}
+
+  virtual void error(const char *raw, offset_type begin, offset_type len){
+    if(!new_sentence_)
+      out_ << ' ';
+    (out_ << "<error>").write(raw, len) << "</error>";
+  }
 
   virtual void begin_sentence(void){
     out_ << "<s>";

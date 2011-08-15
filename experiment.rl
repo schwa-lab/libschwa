@@ -20,10 +20,11 @@
 
   single_quote = ("'" | "&#39;" | "&apos;" );
   single_quote_capture = ("'" @r1 | "&#39;" @r5 | "&apos;" @r6);
+  letter = alpha | alpha "'" alpha;
 
   cant = "can" single_quote_capture "t" @r2;
   cans = "cans";
-  can_poss = "can" single_quote_capture "s" @r1;
+  can_poss = letter+ single_quote_capture "s" @r1;
   oclock = "o" single_quote "clock" @r5;
 
   main := |*
