@@ -42,8 +42,8 @@
     dash => { dash_or_item_(dest, s); };
 #    [1-9][0-9]* "." => { number_or_item_(dest, s); };
 
-    (space | other_ws)+ | newline => ignore;
-    newline {2,} => { sep_text_paragraph_(dest, s); };
+    (space - newline | other_ws)+ | newline => ignore;
+    newline{2,} => { sep_text_paragraph_(dest, s); };
 
     open_p_tag => { begin_html_paragraph_(dest, s); };
     close_p_tag => { end_html_paragraph_(dest, s); };
