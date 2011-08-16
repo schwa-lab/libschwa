@@ -77,7 +77,7 @@
     date_abbrev | state | addr => word;
 
     org | abbrev | lines | dollars | numbers | date_time => word;
-    uri | host_name | email_address => word;
+    uri | host_name | email_address | twitter_username | hash_tag => word;
     default => word;
 
     any => catchall;

@@ -70,4 +70,15 @@
 
 	uri = (uri_scheme uri_body+) -- (any* uri_sub_delim);
 
+  # Twitter usernames and hash tags - but not the full spec for now
+  # for instance, we are missing foreign characters (e.g. accents)
+  # https://github.com/mzsanford/twitter-text-conformance
+  # http://engineering.twitter.com/2010/02/introducing-open-source-twitter-text.html
+
+  # unicode U+FF03
+  unicode_ff03 = 0xef 0xbc 0x83 | "&#65283;" | "&#xff03;"i;
+
+  twitter_username = "@" [A-Za-z0-9_]{1,15};
+  hash_tag = ("#" | unicode_ff03) [A-Za-z0-9_]+;
+
 }%%
