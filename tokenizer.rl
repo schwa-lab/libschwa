@@ -18,6 +18,7 @@
   include "rules/units.rl";
   include "rules/web.rl";
   include "rules/html.rl";
+  include "rules/emoticons.rl";
   include "rules/main.rl";
 }%%
 
