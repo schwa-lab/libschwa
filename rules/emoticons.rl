@@ -10,14 +10,17 @@
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_4.htm
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_5.htm
 
+  # still need to add more from:
+  # http://messenger.yahoo.com/features/emoticons/
+
 	emo_smile = ">:]"|":-)"|":)"|":o)"|":]"|":3"|":c)"|":>"|"=]"|"8)"|"=)"|":}"|":^)"|":-{)"|":-{)}"|":-}"|":->";
-  emo_laugh = ">:D"|":-D"|":D"|"8-D"|"8D"|"x-D"|"xD"|"X-D"|"XD"|"=-D"|"=D"|"=-3"|"=3"|":^D"|"=^D"|"^^^";
-  emo_cry = ":'("|";*("|"T.T"|"T_T"|"Y.Y"|"Y_Y"|":~-("|":\'"|":\'("|":\'-("|":.("|":,(";
+  emo_laugh = ">:D"|":-D"|":D"|"8-D"|"8D"|"x-D"|"xD"|"X-D"|"XD"|"=-D"|"=D"|"=-3"|"=3"|":^D"|"=^D"|"^^^"|":))"|"=))";
+  emo_cry = ":'("|";*("|"T.T"|"T_T"|"Y.Y"|"Y_Y"|":~-("|":\'"|":\'("|":\'-("|":.("|":,("|":((";
   emo_frown = ">:["|":-("|":("|":^("|":-c"|":c"|":-<"|":<"|":-["|":["|":{"|">.>"|"<.<"|">.<";
   emo_sad = "D:<"|"D:"|"D8"|"D;"|"D="|"DX"|"v.v"|"D-':"|"=("|":e";
   emo_lick = ":-9";
-  # includes raised eyebrow
-  emo_wink = ">;]"|";-)"|";)"|"*-)"|"*)"|";-]"|";]"|";D"|">;->"|";-D"|"`:-)";
+  # includes raised eyebrow and batting eyelashes
+  emo_wink = ">;]"|";-)"|";)"|"*-)"|"*)"|";-]"|";]"|";D"|">;->"|";-D"|"`:-)"|";;)";
   emo_tongue = ">:p"i|":-p"i|":^P"i|":p"i|"x-p"i|"xp"i|"=p"i|":-Þ"|":Þ"|":-b"|":b"|":-r"|";p"i|"8-p"i;
   emo_surprise = ">:o"i|":-o"i|":o"i|"°o°"i|"8-o"i|"=O"|":C";
   emo_skeptical = ">:\\"|">:/"|":-/"|":-."|":/"|":\\"|"=/"|"=\\"|":S";
@@ -31,10 +34,10 @@
   emo_high5 = "o/\o"|"^5";
   emo_rose = "@}-;-'---";
   emo_cap = "d:-)"|"qB-)";
-  emo_angry = "D:<"|">:("|">:-C"|">:C"|">:O"|"D-:<"|">:-("|":-@[1]"|";("|"`_´"|"D<"|":-||"|":-Q"|"~ :-(";
+  emo_angry = "D:<"|">:("|">:-C"|">:C"|">:O"|"D-:<"|">:-("|":-@[1]"|";("|"`_´"|"D<"|":-||"|":-Q"|"~ :-("|"x("i;
   emo_kiss = ":-*"|":*"|":-{}"|"=^*"|"|-<>"|":-><";
   # includes broken hearts
-  emo_heart = "</3"|"<3"|"<3" "3"+;
+  emo_heart = "</3"|"<3"|"<3" "3"+|"=((";
   # includes joy etc
   emo_wave = "\o/"|"*\o/*"|"\o"|"o/"|"\^_^/";
   # includes drunk etc
@@ -43,7 +46,7 @@
   # includes bored, yawning
   emo_sleep = "|-("|"|-O"|"|-|"|"|^o";
   emo_flame = "~:-("|"~="|"~=="|"~~:-("|"~~:[";
-  emo_misc = ":&"|":u"|":3"|">.<"|":-V"|":-Y"|"?("|"?-("|"]:->"|"]:-)"|"~:o"|"*-)";
+  emo_misc = ":&"|":u"|":3"|">.<"|":-V"|":-Y"|"?("|"?-("|"]:->"|"]:-)"|"~:o"|"*-)"|":\">"|"#:-S"|":-B"|"X_X"|":-SS";
 
   emo0 = emo_smile | emo_laugh | emo_cry | emo_frown | emo_sad | emo_lick;
   emo1 = emo_wink | emo_tongue | emo_surprise | emo_skeptical | emo_straight;
