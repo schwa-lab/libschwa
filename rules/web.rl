@@ -29,7 +29,7 @@
 	# (http://tools.ietf.org/html/rfc1035 page 8)
 
   domain_name_label = alpha+ ( (alnum | "-")* alnum )?;
-  domain_name = domain_name_label ("." domain_name_label)+ top_level_domain;
+  domain_name = domain_name_label ("." domain_name_label)* top_level_domain;
 
 	# IP address
 	ip_byte = "0"? [0-9]{1,2} | "1" [0-9]{1,2} | "2" [0-4][0-9] | "25" [0-5];
@@ -37,7 +37,7 @@
 
 	host_name = domain_name | ip_address;
 
-  email_address = email_username "@" host_name;
+  email_address = email_username "@" (host_name | domain_name_label);
 
 	# URI schemes: http://en.wikipedia.org/wiki/URI_scheme
 	# URI schemes: http://www.iana.org/assignments/uri-schemes.html

@@ -1,6 +1,7 @@
+*~
 *.pyc
 *.o
 tokenizer.cc
 experiment.cc
 python/build
-*~
+python/schwa/token.so
