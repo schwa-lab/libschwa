@@ -104,7 +104,7 @@ Tokenizer::single_quote_(Stream &dest, State &state, const char *eof) const {
     state.in_single_quotes = false;
     return;
   }
-     
+
   punct_(QUOTE, dest, state, "`");
   state.in_single_quotes = true;
 }
@@ -169,7 +169,6 @@ void
 Tokenizer::begin_html_list_(Stream &dest, State &state) const {
   state.begin_list(dest);
 }
-
 
 void
 Tokenizer::end_html_list_(Stream &dest, State &state) const {

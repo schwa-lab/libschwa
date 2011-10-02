@@ -131,6 +131,7 @@ public:
 
   void end_document(Stream &dest){
     end_paragraph(dest);
+    end_list(dest);
     dest.end_document();
 
     in_document = false;

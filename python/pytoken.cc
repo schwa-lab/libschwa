@@ -43,90 +43,88 @@ typedef struct {
 
 token::PyStream *
 pyobj2dest(PyObject *dest, bool normalise){
-	if((void *)dest == (void *)&PyString_Type)
-		return new token::PyBytesStream(normalise);
-	else if((void *)dest == (void *)&PyUnicode_Type)
-		return new token::PyUnicodeStream(normalise);
-	else if((void *)dest == (void *)&PyList_Type)
-		return new token::PyListStream();
-	else if((void *)dest == (void *)&PyTuple_Type)
-		return new token::PyTupleStream();
-	else if(PyCallable_Check(dest))
-		return new token::PyCallFuncStream(dest);
-	else
-		return new token::PyCallObjectStream(dest);
+  if((void *)dest == (void *)&PyString_Type)
+    return new token::PyBytesStream(normalise);
+  else if((void *)dest == (void *)&PyUnicode_Type)
+    return new token::PyUnicodeStream(normalise);
+  else if((void *)dest == (void *)&PyList_Type)
+    return new token::PyListStream();
+  else if((void *)dest == (void *)&PyTuple_Type)
+    return new token::PyTupleStream();
+  else if(PyCallable_Check(dest))
+    return new token::PyCallFuncStream(dest);
+  else
+    return new token::PyCallObjectStream(dest);
 }
 
 PyObject *
 PyTokenizer_tokenize(PyTokenizer *self, PyObject *args, PyObject *kwargs){
   token::Tokenizer &tok = self->tokenizer;
 
-	PyObject *pysrc = 0;
-	PyObject *pydest = (PyObject *)&PyString_Type;
-	const char *filename = 0;
+  PyObject *pysrc = 0;
+  PyObject *pydest = (PyObject *)&PyString_Type;
+  const char *filename = 0;
 
   long buffer_size = token::BUFFER_SIZE;
   long errors = token::ERROR_SKIP;
-	long normalise = 1;
-	long use_mmap = 0;
+  long normalise = 1;
+  long use_mmap = 0;
 
-	static const char *kwlist[] = {"source", "dest", "filename",
-																 "buffer_size", "errors", "normalise", "mmap", 0};
+  static const char *kwlist[] = {"source", "dest", "filename",
+                                 "buffer_size", "errors", "normalise", "mmap", 0};
   if(!PyArg_ParseTupleAndKeywords(args, kwargs, "|OOsllll:tokenize", (char **)kwlist,
-																	&pysrc, &pydest, &filename,
-																	&buffer_size, &errors, &normalise, &use_mmap))
+                                  &pysrc, &pydest, &filename,
+                                  &buffer_size, &errors, &normalise, &use_mmap))
     return 0;
 
-	if(!pysrc && !filename)
-		return PyErr_Format(PyExc_TypeError,
-			"tokenize() requires either a source or filename argument");
+  if(!pysrc && !filename)
+    return PyErr_Format(PyExc_TypeError, "tokenize() requires either a source or filename argument");
 
-	if(pysrc && PyUnicode_Check(pysrc))
-		return PyErr_Format(PyExc_TypeError,
-	    "tokenize() does not accept unicode objects, use unicode.encode('utf-8')");
+  if(pysrc && PyUnicode_Check(pysrc))
+    return PyErr_Format(PyExc_TypeError, "tokenize() does not accept unicode objects, use unicode.encode('utf-8')");
 
   if(buffer_size <= 0)
-    return PyErr_Format(PyExc_ValueError,
-		  "tokenize() buffer_size must be positive, %ld given", buffer_size);
+    return PyErr_Format(PyExc_ValueError, "tokenize() buffer_size must be positive, %ld given", buffer_size);
 
-	if(errors < token::ERROR_SKIP || errors > token::ERROR_THROW)
-    return PyErr_Format(PyExc_ValueError,
-      "tokenize() unknown bad byte error handler, %ld given", errors);
+  if(errors < token::ERROR_SKIP || errors > token::ERROR_THROW)
+    return PyErr_Format(PyExc_ValueError, "tokenize() unknown bad byte error handler, %ld given", errors);
 
   try {
-		boost::scoped_ptr<token::PyStream> dest(pyobj2dest(pydest, normalise));
-		if(filename){
-			if(use_mmap){
-				try{
-					tok.tokenize_mmap(*dest, filename, errors);
-				}catch (boost::exception &e){
-					return PyErr_Format(PyExc_IOError,
+    boost::scoped_ptr<token::PyStream> dest(pyobj2dest(pydest, normalise));
+    if(filename){
+      if(use_mmap){
+        try{
+          tok.tokenize_mmap(*dest, filename, errors);
+        }catch (boost::exception &e){
+          return PyErr_Format(PyExc_IOError,
             "tokenize() could not open file '%s' for reading with mmap", filename);
-				}
-			}else{
-				std::ifstream stream(filename);
-				if(!stream)
-					return PyErr_Format(PyExc_IOError,
+        }
+      }else{
+        std::ifstream stream(filename);
+        if(!stream)
+          return PyErr_Format(PyExc_IOError,
             "tokenize() could not open file '%s' for reading", filename);
-				tok.tokenize_stream(*dest, stream, static_cast<token::offset_type>(buffer_size), errors);
-			}
-		}else if(PyObject_CheckBuffer(pysrc)){
-			Py_buffer buffer;
-			if(PyObject_GetBuffer(pysrc, &buffer, PyBUF_SIMPLE) != 0)
-				return PyErr_Format(PyExc_ValueError, "tokenize() only supports simple buffer objects");
-			tok.tokenize(*dest, (char *)buffer.buf,
-									 static_cast<token::offset_type>(buffer.len), errors);
-		}else if(PyFile_Check(pysrc)){
-			PyFileSource src(pysrc);
-			tok.tokenize(*dest, src, buffer_size, errors);
-		}
+        tok.tokenize_stream(*dest, stream, static_cast<token::offset_type>(buffer_size), errors);
+      }
+    }
+    else if(PyObject_CheckBuffer(pysrc)){
+      Py_buffer buffer;
+      if(PyObject_GetBuffer(pysrc, &buffer, PyBUF_SIMPLE) != 0)
+        return PyErr_Format(PyExc_ValueError, "tokenize() only supports simple buffer objects");
+      tok.tokenize(*dest, (char *)buffer.buf, static_cast<token::offset_type>(buffer.len), errors);
+      PyBuffer_Release(&buffer);
+    }
+    else if(PyFile_Check(pysrc)){
+      PyFileSource src(pysrc);
+      tok.tokenize(*dest, src, buffer_size, errors);
+    }
 
-		return dest->get();
+    return dest->get();
   } catch(token::TokenError &e){
     PyErr_SetString(TokenError, e.what());
     return 0;
   } catch(PyRaise &e){
-		return 0;
+    return 0;
   }
 }
 
