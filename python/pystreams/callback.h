@@ -5,7 +5,7 @@ namespace schwa { namespace token {
 class PyCallObjectStream: public PyStream {
 protected:
   PyObject *obj;
-  
+
   void call(const char *method){
     if(!PyObject_HasAttrString(obj, method))
       return;
@@ -13,8 +13,9 @@ protected:
     if(!PyObject_CallMethod(obj, (char *)method, 0))
       throw PyRaise();
   }
+
 public:
-	PyCallObjectStream(PyObject *obj)
+  PyCallObjectStream(PyObject *obj)
     : obj(obj){
     Py_INCREF(obj);
   }
@@ -34,11 +35,11 @@ public:
     if(norm)
       res = PyObject_CallMethod(obj, (char *)"add", (char *)"ns#s", pybegin, raw, pylen, norm);
     else
-			res = PyObject_CallMethod(obj, (char *)"add", (char *)"ns#", pybegin, raw, pylen);
-	}
+      res = PyObject_CallMethod(obj, (char *)"add", (char *)"ns#", pybegin, raw, pylen);
+  }
 
   PyObject *get(void){
-		Py_RETURN_NONE;
+    Py_RETURN_NONE;
   }
 
   virtual void error(const char *raw, offset_type begin, offset_type len){
@@ -52,10 +53,10 @@ public:
   }
 
   void begin_sentence(void){ call("begin_sentence"); }
-	void end_sentence(void){ call("end_sentence"); }
+  void end_sentence(void){ call("end_sentence"); }
 
   void begin_paragraph(void){ call("begin_paragraph"); }
-	void end_paragraph(void){ call("end_paragraph"); }
+  void end_paragraph(void){ call("end_paragraph"); }
 
   void begin_heading(int depth){
     if(!PyObject_HasAttrString(obj, "begin_heading"))
@@ -77,19 +78,21 @@ public:
   virtual void end_item(void){ call("end_item"); }
 
   virtual void begin_document(void){ call("begin_document"); }
-	virtual void end_document(void){ call("end_document"); }
+  virtual void end_document(void){ call("end_document"); }
 };
+
 
 class PyCallFuncStream: public PyStream {
 protected:
   PyObject *func;
-  
+
   void call(const char *type){
     if(!PyObject_CallFunction(func, (char *)"s", type))
       throw PyRaise();
   }
+
 public:
-	PyCallFuncStream(PyObject *func)
+  PyCallFuncStream(PyObject *func)
     : func(func){
     Py_INCREF(func);
   }
@@ -106,11 +109,11 @@ public:
     if(norm)
       res = PyObject_CallFunction(func, (char *)"sns#s", "token", pybegin, raw, pylen, norm);
     else
-			res = PyObject_CallFunction(func, (char *)"sns#", "token", pybegin, raw, pylen);
-	}
+      res = PyObject_CallFunction(func, (char *)"sns#", "token", pybegin, raw, pylen);
+  }
 
   PyObject *get(void){
-		Py_RETURN_NONE;
+    Py_RETURN_NONE;
   }
 
   virtual void error(const char *raw, offset_type begin, offset_type len){
@@ -121,10 +124,10 @@ public:
   }
 
   void begin_sentence(void){ call("begin_sentence"); }
-	void end_sentence(void){ call("end_sentence"); }
+  void end_sentence(void){ call("end_sentence"); }
 
   void begin_paragraph(void){ call("begin_paragraph"); }
-	void end_paragraph(void){ call("end_paragraph"); }
+  void end_paragraph(void){ call("end_paragraph"); }
 
   void begin_heading(int depth){
     PyObject_CallFunction(func, (char *)"si", "begin_heading", depth);
@@ -140,7 +143,7 @@ public:
   virtual void end_item(void){ call("end_item"); }
 
   virtual void begin_document(void){ call("begin_document"); }
-	virtual void end_document(void){ call("end_document"); }
+  virtual void end_document(void){ call("end_document"); }
 };
 
 } }
