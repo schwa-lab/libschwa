@@ -131,7 +131,47 @@ PyTokenizer_tokenize(PyTokenizer *self, PyObject *args, PyObject *kwargs){
 }
 
 static PyMethodDef PyTokenizer_methods[] = {
-  {"tokenize", (PyCFunction)PyTokenizer_tokenize, METH_VARARGS | METH_KEYWORDS, "tokenize"},
+  {"tokenize", (PyCFunction)PyTokenizer_tokenize, METH_VARARGS | METH_KEYWORDS, 
+"Identifies paragraph, sentence and token boundaries in (English) text or HTML,\n\
+using a rule-based lexer.\n\
+\n\
+Arguments:\n\
+  \n\
+  source: a string in UTF-8 or a file to tokenize\n\
+\n\
+  dest: the output method, one of the following Python types:\n\
+    - str (default): outputs a UTF-8 string with '\\n\\n', '\\n' and ' ' as\n\
+      paragraph, sentence and token delimiters respectively\n\
+    - unicode: like str, but with UTF-8 decoded\n\
+    - list: outputs a list of paragraphs, each containing a list of sentences,\n\
+      each containing a list of (offset, raw_token, [normalised_token]) tuples\n\
+    or:\n\
+    - any other callable: makes callbacks with arguments\n\
+      (emit_type, offset, raw, norm)\n\
+    - any other object: calls methods named according to emit_type when present\n\
+\n\
+    Offset is a byte offset into the input string.\n\
+    Emit types are:\n\
+      begin_{document,paragraph,sentence,heading,list,item},\n\
+      end_{document,paragraph,sentence,heading,list,item},\n\
+      token and error\n\
+\n\
+  filename: the path to a file to use instead of source\n\
+\n\
+  buffer_size: \n\
+\n\
+  errors: a method for dealing with bad byte sequences, may be one of:\n\
+    - ERROR_SKIP (default): ignores errors\n\
+    - ERROR_CALL: emits ('error', offset, bytes)\n\
+    - ERROR_THROW: throws a TokenError\n\
+\n\
+  normalise: a boolean (default True) indicating whether to perform\n\
+  normalisation on the output (such as directed quotes, all dashes as --, and *\n\
+  to indicate list items). Only applies when dest is str or unicode.\n\
+\n\
+  mmap: a boolean (default False) indicating whether to process the file\n\
+  memory-mapped, when the filename argument is used."
+  },
   {0}  /* Sentinel */
 };
 
