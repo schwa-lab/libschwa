@@ -74,7 +74,7 @@
     cont_misc | acron | title => word;
     symbols => punct;
     end_punct => end;
-    emoticon => punct;
+#    emoticon => punct;
     date_abbrev | state | addr => word;
 
     org | abbrev | lines | dollars | numbers | date_time => word;
