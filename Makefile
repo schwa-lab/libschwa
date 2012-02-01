@@ -1,19 +1,32 @@
-CC=/sw/bin/gcc-4
-CFLAGS=-O3 -Wall -I/usr/local/include
-LDFLAGS=-L/usr/local/lib -lboost_iostreams
+SCHWA = /n/schwafs/home/schwa
 
-CXX=/sw/bin/g++-4
-CXXFLAGS=$(CFLAGS)
+CC = gcc
+CFLAGS = -O3 -Wall -Wextra -I$(SCHWA)/include
+LDFLAGS = -L$(SCHWA)/lib -lboost_iostreams
 
-LEX=flex
-LFLAGS=-Cfa -8 -p -v -s -b -B
+CXX = g++
+CXXFLAGS = $(CFLAGS)
 
-RAGEL=ragel
+LEX = flex
+LFLAGS = -Cfa -8 -p -v -s -b -B
+
+RAGEL = $(SCHWA)/bin/ragel
 
 OBJECTS = test_tokenizer.o tokenizer.o
+BINARIES = test_tokenizer experiment
+
+.PHONY: all clean
+
+
+all: test_tokenizer
+
+clean:
+	-rm -f experiment.cc tokenizer.cc
+	-rm -f $(OBJECTS)
+	-rm -f $(BINARIES)
 
 test_tokenizer: $(OBJECTS) Makefile
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $(LDFLAGS)
 
 tokenizer.cc: tokenizer.rl rules/*.rl Makefile
 	$(RAGEL) -G2 -o $@ $<

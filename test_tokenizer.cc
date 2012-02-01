@@ -16,7 +16,7 @@ using namespace std;
 using namespace schwa;
 
 int
-main(int argc, char **argv){
+main(int argc, char **){
 	token::Tokenizer tokenizer;
 
 	if(argc != 1){
