@@ -20,5 +20,17 @@ Collection::remove_doc(const Document *const doc) {
   return false;
 }
 
+
+std::ostream &
+Collection::serialize(std::ostream &out) const {
+  msgpack::packer<std::ostream> packer(out);
+  std::cerr << "Collection::serialize begin" << std::endl;
+  packer.pack_array(_docs.size());
+  for (auto &doc : _docs)
+    doc->serialize(out);
+  std::cerr << "Collection::serialize end" << std::endl;
+  return out;
+}
+
 }
 }
