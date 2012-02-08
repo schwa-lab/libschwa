@@ -11,11 +11,5 @@ SHARED_LIB_LDFLAGS = -dynamiclib
 TEST_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 TEST_LDFLAGS = -lboost_unit_test_framework
 
-PYAPI_VERSION = 3.1
-PYAPI_INCLUDE = -isystem /Library/Frameworks/Python.framework/Versions/$(PYAPI_VERSION)/include/python$(PYAPI_VERSION)
-PYAPI_LIB = -Llib -ldocrep -L/Library/Frameworks/Python.framework/Versions/$(PYAPI_VERSION)/lib -lpython$(PYAPI_VERSION) -lboost_python3
-PYAPI_CXXFLAGS = $(PYAPI_INCLUDE)
-PYAPI_LDFLAGS = -bundle $(PYAPI_LIB)
-
 include Makefile.targets
 -include Makefile.depends

@@ -1,26 +1,15 @@
-INCLUDE = -Isrc/include -isystem ext/include
-LIBS = -Lext/lib -lboost_system -lboost_filesystem -lboost_regex
+INCLUDE = -Iinclude -isystem ext/include
+LIBS = -Lext/lib -lmsgpack
 DEFINES =
 
 CXX = g++
-CXXFLAGS = -g -O0 -Wall -Wextra -Werror -fno-strict-aliasing -fPIC $(INCLUDE) $(DEFINES)
+CXXFLAGS = -std=c++0x -g -O0 -Wall -Wextra -Werror -Weffc++ -fPIC $(INCLUDE) $(DEFINES)
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
 
-RAGEL = ~schwa/bin/ragel
-
-OS_SPECIFIC = src/lib/schwa/os/colour_linux.o src/lib/schwa/os/time_linux.o
-
 TEST_CXXFLAGS = -DBOOST_TEST_DYN_LINK
 TEST_LDFLAGS = -lboost_unit_test_framework
 
-PYAPI_VERSION = python3.1
-PYAPI_INCLUDE = -I/usr/include/$(PYAPI_VERSION)
-PYAPI_LIB = -Llib -ldocrep -l$(PYAPI_VERSION) -lboost_python3
-PYAPI_CXXFLAGS = $(PYAPI_INCLUDE)
-PYAPI_LDFLAGS = -shared $(PYAPI_LIB)
-
 include Makefile.targets
 -include Makefile.depends
-
