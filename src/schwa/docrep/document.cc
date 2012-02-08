@@ -31,5 +31,19 @@ Document::remove_token(const Token *const token) {
   return false;
 }
 
+
+std::ostream &
+Document::serialize(std::ostream &out) const {
+  msgpack::packer<std::ostream> packer(out);
+  std::cerr << "Document::serialize begin" << std::endl;
+  packer.pack_raw(_nbytes);
+  packer.pack_raw_body(_bytes, _nbytes);
+  packer.pack_array(_tokens.size());
+  for (auto &token : _tokens)
+    token->serialize(out);
+  std::cerr << "Document::serialize end" << std::endl;
+  return out;
+}
+
 }
 }
