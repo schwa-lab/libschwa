@@ -1,0 +1,5 @@
+Makefile
+Makefile.depends
+ext
+*.o
+*.h.gch

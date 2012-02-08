@@ -1,0 +1,34 @@
+BINARIES = bin/test bin/drcat
+
+DOCREP_OBJECTS = src/schwa/docrep/token.o src/schwa/docrep/span.o src/schwa/docrep/document.o src/schwa/docrep/collection.o
+
+.PHONY: all clean depends wc
+
+all: $(BINARIES)
+
+clean:
+	find src -name "*.gch" -exec rm -f {} \;
+	find src -name "*.o" -exec rm -f {} \;
+	find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
+	-rm -f $(BINARIES) $(TEST_BINARIES)
+
+depends:
+	scripts/depends "$(CXX) -MM $(CXXFLAGS) $(PYAPI_INCLUDE)" `find . -name '*.cc'` > Makefile.depends
+
+wc:
+	find src -name "*.cc" -or -name "*.hpp" | grep -v ^src/test/ | xargs wc -l
+
+
+# -------------------------------------------------------------------------------
+# C++ base targets
+# -------------------------------------------------------------------------------
+%.h.gch: %.h
+	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
+
+bin/test: main/test.o $(DOCREP_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+bin/drcat: main/drcat.o $(DOCREP_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+
