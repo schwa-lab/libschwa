@@ -1,5 +1,3 @@
-#include <msgpack.hpp>
-
 namespace schwa {
   namespace docrep {
 
@@ -8,12 +6,16 @@ namespace schwa {
       std::map<std::string, msgpack::object> _map;
 
     public:
+      Token(void) : _map() { }
+
       void add(const std::string &name, const msgpack::object &value);
 
       std::ostream &debug(std::ostream &out) const;
 
-      std::istream &unserialize(std::istream &in);
+      WireIStream &unserialize(WireIStream &in);
       std::ostream &serialize(std::ostream &out) const;
+
+      bool operator ==(const Token &o) const { return _map == o._map; }
     };
 
 

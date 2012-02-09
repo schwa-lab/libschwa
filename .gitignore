@@ -3,3 +3,4 @@ Makefile.depends
 ext
 *.o
 *.h.gch
+.*.swp

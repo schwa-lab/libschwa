@@ -1,4 +1,4 @@
-#include <schwa/docrep.hpp>
+#include <schwa/docrep.h>
 
 namespace schwa {
 namespace docrep {

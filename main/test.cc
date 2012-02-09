@@ -1,8 +1,8 @@
-#include <schwa/std.hpp>
-//#include <schwa/pool.hpp>
-//#include <schwa/hash.hpp>
-//#include <schwa/hashtable.hpp>
-#include <schwa/docrep.hpp>
+#include <schwa/std.h>
+//#include <schwa/pool.h>
+//#include <schwa/hash.h>
+//#include <schwa/hashtable.h>
+#include <schwa/docrep.h>
 
 int
 main(void) {
@@ -20,9 +20,12 @@ main(void) {
   std::cerr << "switching!" << std::endl;
 
   std::ifstream fin("/tmp/test.msgpack");
+  schwa::docrep::WireIStream in(fin);
   schwa::docrep::Token t2;
-  t2.unserialize(fin);
-  fin.close();
+  t2.unserialize(in);
+
+  std::cout << "eof? " << in.eof() << std::endl;
+  std::cout << "==? " << (t1 == t2) << std::endl;
 
   return 0;
 }

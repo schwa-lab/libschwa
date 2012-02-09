@@ -1,6 +1,6 @@
 BINARIES = bin/test bin/drcat
 
-DOCREP_OBJECTS = src/schwa/docrep/token.o src/schwa/docrep/span.o src/schwa/docrep/document.o src/schwa/docrep/collection.o
+DOCREP_OBJECTS = src/schwa/docrep/token.o src/schwa/docrep/span.o src/schwa/docrep/document.o src/schwa/docrep/collection.o src/schwa/docrep/wire_istream.o
 
 .PHONY: all clean depends wc
 
@@ -16,7 +16,7 @@ depends:
 	scripts/depends "$(CXX) -MM $(CXXFLAGS) $(PYAPI_INCLUDE)" `find . -name '*.cc'` > Makefile.depends
 
 wc:
-	find src -name "*.cc" -or -name "*.hpp" | grep -v ^src/test/ | xargs wc -l
+	find src -name "*.cc" -or -name "*.h" | grep -v ^src/test/ | xargs wc -l
 
 
 # -------------------------------------------------------------------------------

@@ -1,5 +1,4 @@
-#include <schwa/std.hpp>
-#include <schwa/docrep.hpp>
+#include <schwa/docrep.h>
 
 namespace schwa { namespace docrep {
 
@@ -22,24 +21,27 @@ Token::serialize(std::ostream &out) const {
 }
 
 
-std::istream &
-Token::unserialize(std::istream &in) {
-  msgpack::unpacker unpacker;
+WireIStream &
+Token::unserialize(WireIStream &in) {
 
-  while (in) {
-    std::cerr << "Looping..." << std::endl;
-    unpacker.reserve_buffer(32 * 1024);
-    std::streamsize read = in.readsome(unpacker.buffer(), unpacker.buffer_capacity());
-    std::cerr << "read in " << read << std::endl;
-    if (read == 0)
-      break;
-    unpacker.buffer_consumed(read);
+  msgpack::object obj(in.get());
+  std::cerr << obj << std::endl;
+  if (obj.type != msgpack::type::MAP)
+    throw new DeserializeException();
 
-    msgpack::unpacked result;
-    while (unpacker.next(&result)) {
-      msgpack::object obj = result.get();
-    }
+  const uint32_t size = obj.via.map.size;
+  msgpack::object_kv *values = obj.via.map.ptr;
+  std::cerr << size << " " << values << std::endl;
+  for (uint32_t i = 0; i != size; ++i) {
+    std::cerr << "i=" << i << std::endl;
+    if (values[i].key.type != msgpack::type::RAW)
+      throw new DeserializeException();
+    std::string key;
+    values[i].key.convert(&key);
+    _map[key] = values[i].val;
   }
+
+  in.next();
 
   std::cerr << "Token::unserialize has " << _map.size() << " objects" << std::endl;
   return in;

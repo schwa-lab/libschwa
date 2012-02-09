@@ -12,7 +12,7 @@ namespace schwa {
       Document &operator =(const Document &) = delete;
 
     public:
-      Document(const char *bytes, const uint32_t nbytes) : _bytes(bytes), _nbytes(nbytes) { }
+      Document(const char *bytes, const uint32_t nbytes) : _bytes(bytes), _nbytes(nbytes), _tokens(), _spans() { }
       ~Document(void);
 
       size_t add_token(Token *tok);
