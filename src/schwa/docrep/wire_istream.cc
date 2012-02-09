@@ -8,7 +8,7 @@ WireIStream::_next(void) {
   _has_next = _unpacker.next(&_result);
   std::cerr << "WireIStream::_next _has_next=" << _has_next << std::endl;
   if (!_has_next) {
-    const auto read = _in.readsome(_unpacker.buffer(), _unpacker.buffer_capacity());
+    const std::streamsize read = _in.readsome(_unpacker.buffer(), _unpacker.buffer_capacity());
     std::cerr << "WireIStream::_next read=" << read << std::endl;
     if (read == 0)
       _eof = true;

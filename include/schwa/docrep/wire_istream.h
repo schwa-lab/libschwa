@@ -15,8 +15,8 @@ namespace schwa {
 
       void _next(void);
 
-      WireIStream(const WireIStream &) = delete;
-      WireIStream &operator =(const WireIStream &) = delete;
+      WireIStream(const WireIStream &);
+      WireIStream &operator =(const WireIStream &);
 
     public:
       WireIStream(std::istream &in) : _in(in), _unpacker(), _result(), _has_next(false), _eof(false) {

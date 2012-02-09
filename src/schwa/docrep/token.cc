@@ -13,9 +13,9 @@ Token::serialize(std::ostream &out) const {
   msgpack::packer<std::ostream> packer(out);
   std::cerr << "Token::serialize writing " << _map.size() << " objects" << std::endl;
   packer.pack_map(_map.size());
-  for (auto &pair : _map) {
-    packer.pack(pair.first);
-    packer.pack(pair.second);
+  for (std::map<std::string, msgpack::object>::const_iterator it(_map.begin()); it != _map.end(); ++it) {
+    packer.pack(it->first);
+    packer.pack(it->second);
   }
   return out;
 }

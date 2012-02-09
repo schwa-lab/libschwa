@@ -1,7 +1,7 @@
 #include <schwa/std.h>
-//#include <schwa/pool.h>
-//#include <schwa/hash.h>
-//#include <schwa/hashtable.h>
+#include <schwa/pool.h>
+#include <schwa/hash.h>
+#include <schwa/hashtable.h>
 #include <schwa/docrep.h>
 
 int

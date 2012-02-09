@@ -6,10 +6,10 @@ namespace docrep {
 
 Document::~Document(void) {
   delete [] _bytes;
-  for (auto it(_tokens.begin()); it != _tokens.end(); ++it)
+  for (std::vector<Token *>::iterator it(_tokens.begin()); it != _tokens.end(); ++it)
     delete *it;
-  for (auto it(_spans.begin()); it != _spans.end(); ++it)
-    for (auto it2(it->second.begin()); it2 != it->second.end(); ++it2)
+  for (std::map<std::string, std::vector<Span *> >::iterator it(_spans.begin()); it != _spans.end(); ++it)
+    for (std::vector<Span *>::iterator it2(it->second.begin()); it2 != it->second.end(); ++it2)
       delete *it2;
 }
 
@@ -23,7 +23,7 @@ Document::add_token(Token *const token) {
 
 bool
 Document::remove_token(const Token *const token) {
-  for (auto it(_tokens.begin()); it != _tokens.end(); ++it)
+  for (std::vector<Token *>::iterator it(_tokens.begin()); it != _tokens.end(); ++it)
     if (*it == token) {
       _tokens.erase(it);
       return true;
@@ -39,8 +39,8 @@ Document::serialize(std::ostream &out) const {
   packer.pack_raw(_nbytes);
   packer.pack_raw_body(_bytes, _nbytes);
   packer.pack_array(_tokens.size());
-  for (auto &token : _tokens)
-    token->serialize(out);
+  for (std::vector<Token *>::const_iterator it(_tokens.begin()); it != _tokens.end(); ++it)
+    (*it)->serialize(out);
   std::cerr << "Document::serialize end" << std::endl;
   return out;
 }
