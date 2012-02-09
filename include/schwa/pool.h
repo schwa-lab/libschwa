@@ -27,7 +27,7 @@ namespace schwa {
     char *
     alloc(const size_t size) {
       if (size + _current > _end)
-        return nullptr;
+        return 0;
       char *result = _current;
       _current += size;
       return result;
@@ -65,10 +65,10 @@ namespace schwa {
 
     ~Pool(void) {
       delete _current;
-      for (auto &arena : _used)
-        delete arena;
-      for (auto &arena : _unused)
-        delete arena;
+      for (MemoryArenas::iterator it(_used.begin()); it != _used.end(); ++it)
+        delete *it;
+      for (MemoryArenas::iterator it(_unused.begin()); it != _unused.end(); ++it)
+        delete *it;
     }
 
     // allocate size bytes from the Pool
@@ -127,8 +127,8 @@ namespace schwa {
       _current->clear();
 
       _unused.insert(_unused.end(), _used.begin(), _used.end());
-      for (auto &arena : _used)
-        arena->clear();
+      for (MemoryArenas::iterator it(_used.begin()); it != _used.end(); ++it)
+        (*it)->clear();
       _used.resize(0);
     }
 
@@ -143,18 +143,18 @@ namespace schwa {
     size_t
     size(void) const {
       size_t nbytes = _current->size();
-      for (auto &arena : _used)
-        nbytes += arena->size();
-      for (auto &arena : _unused)
-        nbytes += arena->size();
+      for (MemoryArenas::const_iterator it(_used.begin()); it != _used.end(); ++it)
+        nbytes += (*it)->size();
+      for (MemoryArenas::const_iterator it(_unused.begin()); it != _unused.end(); ++it)
+        nbytes += (*it)->size();
       return nbytes;
     }
 
     size_t
     used(void) const {
       size_t nbytes = _current->used();
-      for (auto &arena : _used)
-        nbytes += arena->used();
+      for (MemoryArenas::const_iterator it(_used.begin()); it != _used.end(); ++it)
+        nbytes += (*it)->used();
       return nbytes;
     }
 

@@ -12,7 +12,7 @@ Collection::add_doc(Document *const doc) {
 
 bool
 Collection::remove_doc(const Document *const doc) {
-  for (auto it(_docs.begin()); it != _docs.end(); ++it)
+  for (std::vector<Document *>::iterator it(_docs.begin()); it != _docs.end(); ++it)
     if (*it == doc) {
       _docs.erase(it);
       return true;
@@ -26,8 +26,8 @@ Collection::serialize(std::ostream &out) const {
   msgpack::packer<std::ostream> packer(out);
   std::cerr << "Collection::serialize begin" << std::endl;
   packer.pack_array(_docs.size());
-  for (auto &doc : _docs)
-    doc->serialize(out);
+  for (std::vector<Document *>::const_iterator it(_docs.begin()); it != _docs.end(); ++it)
+    (*it)->serialize(out);
   std::cerr << "Collection::serialize end" << std::endl;
   return out;
 }

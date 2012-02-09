@@ -3,7 +3,7 @@ LIBS = -Lext/lib -lmsgpack
 DEFINES =
 
 CXX = g++
-CXXFLAGS = -std=c++0x -g -O0 -Wall -Wextra -Werror -Weffc++ -fPIC $(INCLUDE) $(DEFINES)
+CXXFLAGS = -g -O0 -Wall -Wextra -Werror -Weffc++ -fPIC $(INCLUDE) $(DEFINES)
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared

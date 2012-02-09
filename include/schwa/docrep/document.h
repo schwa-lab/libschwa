@@ -6,10 +6,10 @@ namespace schwa {
       const char *const _bytes;
       const uint32_t _nbytes;
       std::vector<Token *> _tokens;
-      std::map<std::string, std::vector<Span *>> _spans;
+      std::map<std::string, std::vector<Span *> > _spans;
 
-      Document(const Document &) = delete;
-      Document &operator =(const Document &) = delete;
+      Document(const Document &);
+      Document &operator =(const Document &);
 
     public:
       Document(const char *bytes, const uint32_t nbytes) : _bytes(bytes), _nbytes(nbytes), _tokens(), _spans() { }
