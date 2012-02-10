@@ -1,6 +1,10 @@
 BINARIES = bin/test bin/drcat
 
+CONFIG_OBJECTS = src/schwa/config/node.o src/schwa/config/option.o src/schwa/config/config.o
+HASHTABLE_OBJECTS =
 DOCREP_OBJECTS = src/schwa/docrep/token.o src/schwa/docrep/span.o src/schwa/docrep/document.o src/schwa/docrep/collection.o src/schwa/docrep/wire_istream.o
+
+OBJECTS = $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(PORT_OBJECTS)
 
 .PHONY: all clean depends wc
 
@@ -25,10 +29,10 @@ wc:
 %.h.gch: %.h
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
-bin/test: main/test.o $(DOCREP_OBJECTS)
+bin/test: main/test.o $(OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-bin/drcat: main/drcat.o $(DOCREP_OBJECTS)
+bin/drcat: main/drcat.o $(OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 
