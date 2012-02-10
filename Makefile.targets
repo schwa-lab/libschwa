@@ -1,10 +1,13 @@
 BINARIES = bin/test bin/drcat
 
+BASE_OBJECTS = src/schwa/licence.o src/schwa/version.o
+CLUSTER_OBJECTS = src/schwa/cluster/no_mpi.o
 CONFIG_OBJECTS = src/schwa/config/node.o src/schwa/config/option.o src/schwa/config/config.o
-HASHTABLE_OBJECTS =
 DOCREP_OBJECTS = src/schwa/docrep/token.o src/schwa/docrep/span.o src/schwa/docrep/document.o src/schwa/docrep/collection.o src/schwa/docrep/wire_istream.o
+HASHTABLE_OBJECTS =
+UTILS_OBJECTS = src/schwa/utils/escape.o
 
-OBJECTS = $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(PORT_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 
 .PHONY: all clean depends wc
 
@@ -17,7 +20,7 @@ clean:
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	scripts/depends "$(CXX) -MM $(CXXFLAGS) $(PYAPI_INCLUDE)" `find . -name '*.cc'` > Makefile.depends
+	scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find . -name '*.cc' | grep -v src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 wc:
 	find src -name "*.cc" -or -name "*.h" | grep -v ^src/test/ | xargs wc -l
