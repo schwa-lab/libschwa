@@ -1,6 +1,6 @@
-#include <schwa/std.h>
+#include <schwa/base.h>
+#include <schwa/config.h>
 #include <schwa/pool.h>
-#include <schwa/hash.h>
 #include <schwa/hashtable.h>
 #include <schwa/docrep.h>
 
