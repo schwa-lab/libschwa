@@ -7,7 +7,7 @@ std::ostream &
 write_array(std::ostream &out, const ArrayObject &arr) {
   if (arr.size <= 15)
     out.put(static_cast<unsigned char>(header::ARRAY_FIXED | arr.size));
-  else if (arr.size <= 65535) {
+  else if (arr.size <= std::numeric_limits<uint16_t>::max()) {
     out.put(header::ARRAY_16);
     write_raw_uint16(out, arr.size);
   }
@@ -25,7 +25,7 @@ std::ostream &
 write_map(std::ostream &out, const MapObject &map) {
   if (map.size <= 15)
     out.put(static_cast<unsigned char>(header::MAP_FIXED | map.size));
-  else if (map.size <= 65535) {
+  else if (map.size <= std::numeric_limits<uint16_t>::max()) {
     out.put(header::MAP_16);
     write_raw_uint16(out, map.size);
   }
