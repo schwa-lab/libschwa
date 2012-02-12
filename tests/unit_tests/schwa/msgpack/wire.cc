@@ -109,12 +109,12 @@ BOOST_AUTO_TEST_CASE(write_raw_32_signed) {
 // -8436114578613100000 = 1000 1010 1110 1100 1110 0110 0111 1100 1011 1001 0100 0101 1010 0010 0010 0000
 BOOST_AUTO_TEST_CASE(write_raw_64_unsigned) {
   #define BYTES (0x75, (0x13, (0x19, (0x83, (0x46, (0xBA, (0x5D, (0xE0, BOOST_PP_NIL))))))))
-  BYTES_TEST(mp::write_raw_64(ss, static_cast<uint64_t>(8436114578613100000)), BYTES);
+  BYTES_TEST(mp::write_raw_64(ss, static_cast<uint64_t>(8436114578613100000ULL)), BYTES);
   #undef BYTES
 }
 BOOST_AUTO_TEST_CASE(write_raw_64_signed) {
   #define BYTES (0x8A, (0xEC, (0xE6, (0x7C, (0xB9, (0x45, (0xA2, (0x20, BOOST_PP_NIL))))))))
-  BYTES_TEST(mp::write_raw_64(ss, static_cast<int64_t>(-8436114578613100000)), BYTES);
+  BYTES_TEST(mp::write_raw_64(ss, static_cast<int64_t>(-8436114578613100000ULL)), BYTES);
   #undef BYTES
 }
 
@@ -185,16 +185,16 @@ BOOST_AUTO_TEST_CASE(write_uint_32) {
   #undef BYTES
 
   #define BYTES (mp::header::UINT_32, (0xFF, (0xFF, (0xFF, (0xFF, BOOST_PP_NIL)))))
-  BYTES_TEST(mp::write_uint(ss, 4294967295), BYTES);
+  BYTES_TEST(mp::write_uint(ss, 4294967295U), BYTES);
   #undef BYTES
 }
 BOOST_AUTO_TEST_CASE(write_uint_64) {
   #define BYTES (mp::header::UINT_64, (0x00, (0x00, (0x00, (0x01, (0x00, (0x00, (0x00, (0x00, BOOST_PP_NIL)))))))))
-  BYTES_TEST(mp::write_uint(ss, 4294967296), BYTES);
+  BYTES_TEST(mp::write_uint(ss, 4294967296ULL), BYTES);
   #undef BYTES
 
   #define BYTES (mp::header::UINT_64, (0x75, (0x13, (0x19, (0x83, (0x46, (0xBA, (0x5D, (0xE0, BOOST_PP_NIL)))))))))
-  BYTES_TEST(mp::write_uint(ss, static_cast<uint64_t>(8436114578613100000)), BYTES);
+  BYTES_TEST(mp::write_uint(ss, static_cast<uint64_t>(8436114578613100000ULL)), BYTES);
   #undef BYTES
 
   #define BYTES (mp::header::UINT_64, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, BOOST_PP_NIL)))))))))
