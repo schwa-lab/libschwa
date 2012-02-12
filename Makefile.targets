@@ -1,4 +1,4 @@
-BINARIES = bin/test bin/drcat
+BINARIES = bin/test
 
 BASE_OBJECTS = src/schwa/licence.o src/schwa/version.o
 CLUSTER_OBJECTS = src/schwa/cluster/no_mpi.o
@@ -19,8 +19,8 @@ TEST_BINARIES = $(UNIT_TEST_BINARY)
 all: $(BINARIES)
 
 clean:
-	find src -name "*.gch" -exec rm -f {} \;
-	find src -name "*.o" -exec rm -f {} \;
+	find . -name "*.gch" -exec rm -f {} \;
+	find . -name "*.o" -exec rm -f {} \;
 	find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
@@ -49,7 +49,7 @@ bin/drcat: main/drcat.o $(OBJECTS)
 # Testing
 # -------------------------------------------------------------------------------
 tests/unit_tests/%.o: tests/unit_tests/%.cc
-	$(CXX) $(CXXFLAGS) $(TEST_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(TEST_CXXFLAGS) -c -o $@ $<
 
 # TODO should use shared lib rather than linking directly to the .o files
 $(UNIT_TEST_BINARY): $(BASE_OBJECTS) $(MSGPACK_OBJECTS) $(UNIT_TEST_OBJECTS)

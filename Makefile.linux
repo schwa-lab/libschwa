@@ -2,13 +2,15 @@ INCLUDE = -Iinclude -isystem ext/include
 LIBS = -Lext/lib
 DEFINES =
 
+BASE_CXXFLAGS = -g -O0 -fPIC $(INCLUDE) $(DEFINES)
+
 CXX = g++
-CXXFLAGS = -g -O0 -Wall -Wextra -Werror -Weffc++ -fPIC $(INCLUDE) $(DEFINES)
+CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -Werror -Weffc++
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
 
-TEST_CXXFLAGS = -DBOOST_TEST_DYN_LINK
+TEST_CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -DBOOST_TEST_DYN_LINK
 TEST_LDFLAGS = -lboost_unit_test_framework
 
 PORT_OBJECTS = src/schwa/port/unix.o src/schwa/port/unix_common.o src/schwa/port/colour.o
