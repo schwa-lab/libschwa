@@ -66,6 +66,7 @@ write_object(std::ostream &out, const Object &obj) {
   case TYPE_MAP:
     return write_map(out, obj.via._map);
   };
+  return out;
 };
 
 
