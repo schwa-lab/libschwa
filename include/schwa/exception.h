@@ -21,7 +21,7 @@ namespace schwa {
     const std::string uri;
     const int line;
 
-    IOException(const std::string &msg) : Exception(msg), line(0) { }
+    IOException(const std::string &msg) : Exception(msg), uri(), line(0) { }
     IOException(const std::string &msg, const std::string &uri, int line=0) : Exception(msg), uri(uri), line(line) { }
     IOException(const IOException &other) : Exception(other), uri(other.uri), line(other.line) { }
     virtual ~IOException(void) throw() { }
@@ -35,7 +35,7 @@ namespace schwa {
 
     ConfigError(const std::string &msg, const std::string &option) throw() : IOException(msg), option(option) { }
     ConfigError(const std::string &msg, const std::string &option, const std::string &uri, int line=0) : IOException(msg, uri, line), option(option) { }
-    ConfigError(const std::string &msg, const std::string &uri, int line) : IOException(msg, uri, line) { }
+    ConfigError(const std::string &msg, const std::string &uri, int line) : IOException(msg, uri, line), option() { }
     ConfigError(const ConfigError &other, const std::string &option) : IOException(other), option(option) { }
 
     virtual ~ConfigError(void) throw() { }

@@ -207,7 +207,8 @@ BOOST_AUTO_TEST_CASE(write_uint_64) {
 // write_array
 BOOST_AUTO_TEST_CASE(write_array_fixed) {
   {
-    mp::Object items[1] = { {mp::TYPE_BOOLEAN, {._bool=true}} };
+    mp::Object items[1];
+    items[0].type = mp::TYPE_BOOLEAN; items[0].via._bool = true;
     mp::ArrayObject array = {1, items};
     #define BYTES (0x91, (mp::header::TRUE, BOOST_PP_NIL))
     BYTES_TEST(mp::write_array(ss, array), BYTES);
@@ -295,7 +296,7 @@ BOOST_AUTO_TEST_CASE(write_array_16) {
 
 
 // ----------------------------------------------------------------------------
-// write_array
+// write_raw
 BOOST_AUTO_TEST_CASE(write_raw_fixed) {
   uint8_t expected[32];
   {
