@@ -293,4 +293,32 @@ BOOST_AUTO_TEST_CASE(write_array_16) {
   }
 }
 
+
+// ----------------------------------------------------------------------------
+// write_array
+BOOST_AUTO_TEST_CASE(write_raw_fixed) {
+  uint8_t expected[32];
+  {
+    size_t e = 0;
+    char data[] = {0xC4};
+    mp::RawObject raw = {1, data};
+    expected[e++] = 0xA1;
+    expected[e++] = 0xC4;
+    std::stringstream ss;
+    mp::write_raw(ss, raw);
+    BOOST_CHECK( compare_bytes(ss.str(), expected, e) );
+  }
+  {
+    size_t e = 0;
+    char data[31] = {0x8A, 0xAD, 0x00, 0x6D, 0xD, 0x37, 0x77, 0xDA, 0xC2, 0x99, 0xB6, 0xD8, 0x34, 0xD2, 0x9A, 0xB, 0x10, 0x68, 0xF2, 0xDE, 0x48, 0x2C, 0xF1, 0x9C, 0xCA, 0xC3, 0x93, 0xF, 0x70, 0x44, 0xAD};
+    mp::RawObject raw = {31, data};
+    expected[e++] = 0xBF;
+    std::memcpy(expected + 1, data, 31);
+    e += 31;
+    std::stringstream ss;
+    mp::write_raw(ss, raw);
+    BOOST_CHECK( compare_bytes(ss.str(), expected, e) );
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
