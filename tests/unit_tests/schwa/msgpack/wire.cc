@@ -18,6 +18,41 @@
 
 namespace mp = schwa::msgpack;
 
+template <typename OUT>
+static OUT &
+print_bytes(OUT &out, const uint8_t *bytes, const size_t size) {
+  out << "{";
+  for (size_t i = 0; i != size; ++i) {
+    if (i != 0)
+      out << ",";
+    out<< "0x" << std::hex << static_cast<unsigned int>(bytes[i]);
+  }
+  return out << "}";
+}
+
+static boost::test_tools::predicate_result
+compare_bytes(const std::string &str, const uint8_t *expected, const size_t size) {
+  if (str.size() != size) {
+    boost::test_tools::predicate_result res(false);
+    res.message() << "Different sizes [" << str.size() << " != " << size << "]\n";
+    if (size <= 80) {
+      res.message() << "expected="; print_bytes(res.message(), expected, size) << "\n";
+      res.message() << "     got="; print_bytes(res.message(), reinterpret_cast<const uint8_t *>(str.c_str()), str.size());
+    }
+    return res;
+  }
+  for (size_t i = 0; i != size; ++i) {
+    if (static_cast<uint8_t>(str[i]) != expected[i]) {
+      boost::test_tools::predicate_result res(false);
+      res.message() << "Byte " << i << " differs [" << static_cast<unsigned int>(static_cast<uint8_t>(str[i])) << " != " << static_cast<unsigned int>(expected[i]) << "]\n";
+      res.message() << "expected="; print_bytes(res.message(), expected, size) << "\n";
+      res.message() << "     got="; print_bytes(res.message(), reinterpret_cast<const uint8_t *>(str.c_str()), str.size());
+      return res;
+    }
+  }
+  return true;
+}
+
 
 BOOST_AUTO_TEST_SUITE(schwa_msgpack_wire)
 
@@ -168,5 +203,94 @@ BOOST_AUTO_TEST_CASE(write_uint_64) {
 }
 
 
+// ----------------------------------------------------------------------------
+// write_array
+BOOST_AUTO_TEST_CASE(write_array_fixed) {
+  {
+    mp::Object items[1] = { {mp::TYPE_BOOLEAN, {._bool=true}} };
+    mp::ArrayObject array = {1, items};
+    #define BYTES (0x91, (mp::header::TRUE, BOOST_PP_NIL))
+    BYTES_TEST(mp::write_array(ss, array), BYTES);
+    #undef BYTES
+  }
+  {
+    uint8_t expected[1024];
+    size_t e = 0;
+    expected[e++] = 0x9F;
+    mp::Object items[15];
+    for (size_t i = 0; i != 15; ++i) {
+      if (i % 6) {
+        items[i].type = mp::TYPE_NIL;
+        expected[e++] = mp::header::NIL;
+      }
+      else if (i % 4) {
+        items[i].type = mp::TYPE_BOOLEAN;
+        if (i % 8) {
+          items[i].via._bool = true;
+          expected[e++] = mp::header::TRUE;
+        }
+        else {
+          items[i].via._bool = false;
+          expected[e++] = mp::header::FALSE;
+        }
+      }
+      else {
+        items[i].type = mp::TYPE_UINT;
+        items[i].via._uint = i;
+        expected[e++] = static_cast<uint8_t>(i);
+      }
+    }
+    mp::ArrayObject array = {15, items};
+    std::stringstream ss;
+    mp::write_array(ss, array);
+    BOOST_CHECK( compare_bytes(ss.str(), expected, e) );
+  }
+}
+BOOST_AUTO_TEST_CASE(write_array_16) {
+  uint8_t expected[4 * 1024 * 1024];
+  {
+    size_t e = 0;
+    expected[e++] = mp::header::ARRAY_16;
+    expected[e++] = 0x00;
+    expected[e++] = 0x10;
+    mp::Object items[16];
+    for (size_t i = 0; i != 16; ++i) {
+      items[i].type = mp::TYPE_UINT;
+      items[i].via._uint = i;
+      expected[e++] = static_cast<uint8_t>(i);
+    }
+    mp::ArrayObject array = {16, items};
+    std::stringstream ss;
+    mp::write_array(ss, array);
+    BOOST_CHECK( compare_bytes(ss.str(), expected, e) );
+  }
+  {
+    size_t e = 0;
+    expected[e++] = mp::header::ARRAY_16;
+    expected[e++] = 0xFF;
+    expected[e++] = 0xFF;
+    mp::Object items[65535];
+    for (size_t i = 0; i != 65535; ++i) {
+      items[i].type = mp::TYPE_UINT;
+      items[i].via._uint = i;
+      if (i <= 127)
+        expected[e++] = static_cast<uint8_t>(i);
+      else if (i <= 255) {
+        expected[e++] = mp::header::UINT_8;
+        expected[e++] = static_cast<uint8_t>(i);
+      }
+      else {
+        const uint8_t *x = reinterpret_cast<const uint8_t *>(&i);
+        expected[e++] = mp::header::UINT_16;
+        expected[e++] = x[1];
+        expected[e++] = x[0];
+      }
+    }
+    mp::ArrayObject array = {65535, items};
+    std::stringstream ss;
+    mp::write_array(ss, array);
+    BOOST_CHECK( compare_bytes(ss.str(), expected, e) );
+  }
+}
 
 BOOST_AUTO_TEST_SUITE_END()
