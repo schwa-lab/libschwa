@@ -221,27 +221,15 @@ namespace schwa {
     }
 
     inline std::ostream &
-    write_float(std::ostream &out, const float _x) {
-      const uint32_t x = *reinterpret_cast<const uint32_t *>(&_x);
+    write_float(std::ostream &out, const float x) {
       out.put(header::FLOAT);
-      out.put(static_cast<unsigned char>((x >> 24) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 16) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 8) & 0xFF));
-      return out.put(static_cast<unsigned char>(x & 0xFF));
+      return write_raw_32(out, x);
     }
 
     inline std::ostream &
-    write_double(std::ostream &out, const double _x) {
-      const uint64_t x = *reinterpret_cast<const uint64_t *>(&_x);
+    write_double(std::ostream &out, const double x) {
       out.put(header::DOUBLE);
-      out.put(static_cast<unsigned char>((x >> 56) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 48) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 40) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 32) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 24) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 16) & 0xFF));
-      out.put(static_cast<unsigned char>((x >> 8) & 0xFF));
-      return out.put(static_cast<unsigned char>(x & 0xFF));
+      return write_raw_64(out, x);
     }
 
   }

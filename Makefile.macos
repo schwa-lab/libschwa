@@ -1,5 +1,5 @@
-INCLUDE = -Iinclude -isystem ext/include
-LIBS = -Lext/lib -lmsgpack
+INCLUDE = -I include -isystem ext/include
+LIBS = -L ext/lib
 DEFINES =
 
 CXX = clang++

@@ -1,5 +1,5 @@
 INCLUDE = -Iinclude -isystem ext/include
-LIBS = -Lext/lib -lmsgpack
+LIBS = -Lext/lib
 DEFINES =
 
 CXX = g++
