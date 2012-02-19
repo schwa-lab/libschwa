@@ -1,6 +1,7 @@
 Makefile
 Makefile.depends
 ext
-*.o
-*.h.gch
 .*.swp
+*.h.gch
+*.o
+*.pyc
