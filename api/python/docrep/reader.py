@@ -35,13 +35,16 @@ class Streamer(object):
     self._types = {}
     plurals = {}
     for k in self._read_types:
+      print k, k in self._reg_types
       if k not in self._reg_types:
-        fields = dict((name, Field(name)) for name in self._read_types[k]['fields'])
+        fields = dict((name, Field(name)) for name in self._read_types[k][2])
         klass = type(k, (Annotation, ), fields)
         self._types[k] = klass
         plurals[k] = pluralise(k)
       else:
         self._types[k] = self._reg_types[k]
+        print self._read_types[k]
+        self._types[k]._update_fields(self._read_types[k][2])
         if hasattr(self._reg_types[k], '_docrep_plural'):
           plurals[k] = self._reg_types[k]._docrep_plural
         else:
@@ -52,13 +55,17 @@ class Streamer(object):
     self._doc = self._doc_klass()
 
     # read the instances
-    ngroups = self._up.unpack()
-    for i in xrange(ngroups):
+    for i in xrange(len(self._read_types)):
       name = self._up.unpack()
+      print 'name', name
       klass = self._types[name]
       nbytes = self._up.unpack()
+      print 'nbytes', nbytes
       objs = []
-      for msg_obj in self._up.unpack():
+      msg_objs = self._up.unpack()
+      print 'msg_objs', msg_objs
+      #for msg_obj in self._up.unpack():
+      for msg_obj in msg_objs:
         if name == 'Token':
           if 'norm' in msg_obj and 'raw' not in msg_obj:
             msg_obj['raw'] = msg_obj['norm']
@@ -66,7 +73,7 @@ class Streamer(object):
             msg_obj['end'] = msg_obj['begin'] + msg_obj['_length']
         values = {}
         for idx, val in msg_obj.iteritems():
-          key = self._read_types[name]['fields'][idx]
+          key = self._read_types[name][2][idx]
           if key in klass._docrep_fields:
             key = klass._docrep_fields[key].name
           values[key] = val
