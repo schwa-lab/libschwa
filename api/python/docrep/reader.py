@@ -85,8 +85,6 @@ class Streamer(object):
           if mode == MODE_TOKEN:
             if 'norm' in msg_obj and 'raw' not in msg_obj:
               msg_obj['raw'] = msg_obj['norm']
-            if 'bytes_begin' in msg_obj and 'bytes_length' in msg_obj and 'bytes_end' not in msg_obj:
-              msg_obj['bytes_end'] = msg_obj['bytes_begin'] + msg_obj['bytes_length']
 
           values = {}
           for idx, val in msg_obj.iteritems():
