@@ -44,13 +44,8 @@ class Base(object):
       self._docrep_set[idx] = True
     self.__dict__[key] = val
 
-  # TODO
   @classmethod
   def _update_fields(klass, fields):
-    # fields: ('name',)
-    # klass._docrep_fields: {'name': <Field instance>}
-    # klass._docrep_ofields = ['name']
-    # klass._docrep_ofields_inv = {'name': idx}
     old_fields = set(klass._docrep_fields)
     new_fields = set(fields)
     for field in new_fields - old_fields:
@@ -62,6 +57,19 @@ class Base(object):
 
 class Annotation(Base):
   __metaclass__ = AnnotationMetaclass
+
+
+class Token(Annotation):
+  begin = Field()
+  end   = Field()
+  raw   = Field()
+  norm  = Field()
+
+  def __repr__(self):
+    return self.norm
+
+  def __str__(self):
+    return self.norm
 
 
 class Document(Base):

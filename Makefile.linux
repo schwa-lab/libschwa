@@ -5,7 +5,7 @@ DEFINES =
 BASE_CXXFLAGS = -g -O0 -fPIC $(INCLUDE) $(DEFINES)
 
 CXX = g++
-CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -Werror -Weffc++
+CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -Werror
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
