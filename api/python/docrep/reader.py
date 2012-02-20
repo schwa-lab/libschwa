@@ -1,5 +1,6 @@
 import msgpack
 
+from .constants import *
 from .fields import Field
 from .meta import Annotation
 from .utils import pluralise
@@ -32,53 +33,78 @@ class Streamer(object):
       self._doc = None
       return
 
+    # do initial decoding of read types
     self._types = {}
     plurals = {}
-    for k in self._read_types:
-      print k, k in self._reg_types
-      if k not in self._reg_types:
-        fields = dict((name, Field(name)) for name in self._read_types[k][2])
-        klass = type(k, (Annotation, ), fields)
-        self._types[k] = klass
-        plurals[k] = pluralise(k)
+    for name, mode, nelem, fields, ptrs in self._read_types:
+      if name not in self._reg_types:
+        new_fields = dict((name, Field(name)) for name in fields)
+        klass = type(name, (Annotation, ), new_fields)
+        self._types[name] = klass
       else:
-        self._types[k] = self._reg_types[k]
-        print self._read_types[k]
-        self._types[k]._update_fields(self._read_types[k][2])
-        if hasattr(self._reg_types[k], '_docrep_plural'):
-          plurals[k] = self._reg_types[k]._docrep_plural
-        else:
-          plurals[k] = pluralise(k)
+        klass = self._reg_types[name]
+        klass._update_fields(fields)
+        self._types[name] = klass
 
+      if mode != MODE_DOCUMENT:
+        if hasattr(klass, '_docrep_plural'):
+          plurals[name] = klass._docrep_plural
+        else:
+          plurals[name] = pluralise(klass._docrep_name)
+
+    # decode the pointers
+    for name, _, _, fields, ptrs in self._read_types:
+      for k, v in ptrs.iteritems():
+        field = self._types[name]._docrep_fields[fields[k]]
+        field.pointer_to = self._types[self._read_types[v][0]]
+
+    # instantiate a document
     if self._doc_klass is None:
       self._doc_klass = type('Document', (), dict((plurals[k], []) for k in self._types))
     self._doc = self._doc_klass()
 
     # read the instances
     for i in xrange(len(self._read_types)):
-      name = self._up.unpack()
-      print 'name', name
-      klass = self._types[name]
+      type_id = self._up.unpack()
       nbytes = self._up.unpack()
-      print 'nbytes', nbytes
-      objs = []
-      msg_objs = self._up.unpack()
-      print 'msg_objs', msg_objs
-      #for msg_obj in self._up.unpack():
-      for msg_obj in msg_objs:
-        if name == 'Token':
-          if 'norm' in msg_obj and 'raw' not in msg_obj:
-            msg_obj['raw'] = msg_obj['norm']
-          if 'begin' in msg_obj and '_length' in msg_obj and 'end' not in msg_obj:
-            msg_obj['end'] = msg_obj['begin'] + msg_obj['_length']
-        values = {}
+
+      name, mode, nelem, fields, ptrs = self._read_types[type_id]
+      klass = self._types[name]
+
+      if mode == MODE_DOCUMENT:
+        msg_obj = self._up.unpack()
         for idx, val in msg_obj.iteritems():
-          key = self._read_types[name][2][idx]
-          if key in klass._docrep_fields:
-            key = klass._docrep_fields[key].name
-          values[key] = val
-        objs.append(self._types[name](**values))
-      setattr(self._doc, plurals[name], objs)
+          field = fields[idx]
+          if field in klass._docrep_fields:
+            field = klass._docrep_fields[field].name
+          setattr(self._doc, field, val)
+
+      elif mode == MODE_TOKEN or mode == MODE_ANNOTATION:
+        objs = [None]*nelem
+        for i, msg_obj in enumerate(self._up.unpack()):
+          if mode == MODE_TOKEN:
+            if 'norm' in msg_obj and 'raw' not in msg_obj:
+              msg_obj['raw'] = msg_obj['norm']
+            if 'bytes_begin' in msg_obj and 'bytes_length' in msg_obj and 'bytes_end' not in msg_obj:
+              msg_obj['bytes_end'] = msg_obj['bytes_begin'] + msg_obj['bytes_length']
+
+          values = {}
+          for idx, val in msg_obj.iteritems():
+            field = klass._docrep_fields[fields[idx]]
+            if field.pointer_to is not None:
+              if val == -1:
+                val = None
+              else:
+                to_type = [k for k, v in self._types.iteritems() if v == field.pointer_to][0]
+                val = getattr(self._doc, plurals[to_type])[val]
+            values[field.name] = val
+          objs[i] = klass(**values)
+
+        setattr(self._doc, plurals[name], objs)
+
+      else:
+        raise ValueError('Invalid "mode" value ' + str(mode))
+
 
 
 
@@ -97,7 +123,7 @@ class Reader(object):
     if not issubclass(klass, Annotation):
       raise ValueError('You cannot register a class which does not subclass docrep.Annotation')
     if name is None:
-      name = klass.__name__.split('.')[-1]
+      name = klass._docrep_name
     self._reg_types[name] = klass
 
   def stream(self, istream):

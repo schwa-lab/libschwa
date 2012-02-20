@@ -12,15 +12,12 @@ class DocrepMetaclass(type):
         if v.name is None:
           v.name = k
 
-    ofields = list(fields)
-    ofields_inv = dict((v, i) for i, v in enumerate(ofields))
-
     for k in fields:
       attrs[k] = None
     klass = super(DocrepMetaclass, mklass).__new__(mklass, name, bases, attrs)
+    klass._docrep_name = name.split('.')[-1]
     klass._docrep_fields = fields
-    klass._docrep_ofields = ofields
-    klass._docrep_ofields_inv = ofields_inv
+    klass._update_fields(())
     return klass
 
 
@@ -34,9 +31,7 @@ class DocumentMetaclass(DocrepMetaclass):
     return super(DocumentMetaclass, mklass).__new__(mklass, name, bases, attrs, AnnotationField)
 
 
-class Annotation(object):
-  __metaclass__ = AnnotationMetaclass
-
+class Base(object):
   def __init__(self, **kwargs):
     self._docrep_set = [False] * len(self._docrep_fields)
     for k, v in kwargs.iteritems():
@@ -49,12 +44,27 @@ class Annotation(object):
       self._docrep_set[idx] = True
     self.__dict__[key] = val
 
+  # TODO
   @classmethod
   def _update_fields(klass, fields):
-    print '_update_ofields', klass, fields
+    # fields: ('name',)
+    # klass._docrep_fields: {'name': <Field instance>}
+    # klass._docrep_ofields = ['name']
+    # klass._docrep_ofields_inv = {'name': idx}
+    old_fields = set(klass._docrep_fields)
+    new_fields = set(fields)
+    for field in new_fields - old_fields:
+      klass._docrep_fields[field] = Field(field)
+
+    klass._docrep_ofields = list(klass._docrep_fields)
+    klass._docrep_ofields_inv = dict((v, i) for i, v in enumerate(klass._docrep_ofields))
 
 
-class Document(object):
+class Annotation(Base):
+  __metaclass__ = AnnotationMetaclass
+
+
+class Document(Base):
   __metaclass__ = DocumentMetaclass
 
 

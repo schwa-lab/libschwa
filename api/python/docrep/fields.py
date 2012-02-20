@@ -1,9 +1,10 @@
 
 class Field(object):
-  __slots__ = ('name', )
+  __slots__ = ('name', 'pointer_to')
 
-  def __init__(self, name=None):
+  def __init__(self, name=None, pointer_to=None):
     self.name = name
+    self.pointer_to = pointer_to
 
 
 class AnnotationField(object):
