@@ -1,39 +1,49 @@
-from .fields import AnnotationField, Field
+from .fields import Annotations, Field
+
+__all__ = ['Annotation', 'Document', 'Token']
+
 
 class DocrepMetaclass(type):
-  def __new__(mklass, name, bases, attrs, field_klass):
+  def __new__(mklass, klass_name, bases, attrs, add_annotations):
+    annotations = {}
     fields = {}
     for base in bases:
+      if hasattr(base, '_docrep_annotations'):
+        annotations.update(base._docrep_annotations)
       if hasattr(base, '_docrep_fields'):
         fields.update(base._docrep_fields)
-    for k, v in attrs.iteritems():
-      if isinstance(v, field_klass):
-        fields[k] = v
-        if v.name is None:
-          v.name = k
+    for name, field in attrs.iteritems():
+      if isinstance(field, Annotations):
+        annotations[name] = field
+      elif isinstance(field, Field):
+        if field.name is None:
+          field.name = name
+        fields[field.name] = field
 
-    for k in fields:
-      attrs[k] = None
-    klass = super(DocrepMetaclass, mklass).__new__(mklass, name, bases, attrs)
-    klass._docrep_name = name.split('.')[-1]
+    klass = super(DocrepMetaclass, mklass).__new__(mklass, klass_name, bases, attrs)
+    klass._docrep_name = klass_name.split('.')[-1]
     klass._docrep_fields = fields
+    if add_annotations:
+      klass._docrep_annotations = annotations
     klass._update_fields(())
     return klass
 
 
 class AnnotationMetaclass(DocrepMetaclass):
-  def __new__(mklass, name, bases, attrs):
-    return super(AnnotationMetaclass, mklass).__new__(mklass, name, bases, attrs, Field)
+  def __new__(mklass, klass_name, bases, attrs):
+    return super(AnnotationMetaclass, mklass).__new__(mklass, klass_name, bases, attrs, False)
 
 
 class DocumentMetaclass(DocrepMetaclass):
-  def __new__(mklass, name, bases, attrs):
-    return super(DocumentMetaclass, mklass).__new__(mklass, name, bases, attrs, AnnotationField)
+  def __new__(mklass, klass_name, bases, attrs):
+    return super(DocumentMetaclass, mklass).__new__(mklass, klass_name, bases, attrs, True)
 
 
 class Base(object):
   def __init__(self, **kwargs):
     self._docrep_set = [False] * len(self._docrep_fields)
+    for name in self._docrep_fields:
+      self.__dict__[name] = None
     for k, v in kwargs.iteritems():
       if k in self._docrep_fields:
         setattr(self, k, v)
@@ -59,6 +69,14 @@ class Annotation(Base):
   __metaclass__ = AnnotationMetaclass
 
 
+class Document(Base):
+  __metaclass__ = DocumentMetaclass
+  def __init__(self, **kwargs):
+    for name in self._docrep_annotations:
+      self.__dict__[name] = []
+    super(Document, self).__init__(**kwargs)
+
+
 class Token(Annotation):
   begin = Field()
   end   = Field()
@@ -66,13 +84,8 @@ class Token(Annotation):
   norm  = Field()
 
   def __repr__(self):
-    return self.norm
+    return 'Token({0!r})'.format(self.norm)
 
   def __str__(self):
     return self.norm
-
-
-class Document(Base):
-  __metaclass__ = DocumentMetaclass
-
 
