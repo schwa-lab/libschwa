@@ -8,28 +8,32 @@ from .meta import Document, Token
 
 __all__ = ['Writer']
 
+
 class Type(object):
-  __slots__ = ('number', 'klass', 'name', 'mode', 'fields', 'pointers', 'plural', 'nelem')
-  def __init__(self, number, klass, plural=None, nelem=0):
+  __slots__ = ('number', 'klass', 'name', 'mode', 'sfields', 'pointers', 'plural', 'nelem')
+
+  def __init__(self, number, klass, nelem=0):
     self.number = number
-    self.klass = klass
-    self.name = klass._docrep_name
-    self.plural = plural
-    self.nelem = nelem
+    self.klass  = klass
+    self.name   = klass._docrep_name
+    self.plural = klass._docrep_plural
+    self.nelem  = nelem
     if issubclass(klass, Document):
       self.mode = MODE_DOCUMENT
     elif issubclass(klass, Token):
       self.mode = MODE_TOKEN
     else:
       self.mode = MODE_ANNOTATION
-    self.fields = klass._docrep_ofields
+    self.sfields = klass._docrep_osfields
     self.pointers = {}
-    for name, field in klass._docrep_fields.iteritems():
-      if isinstance(field, Field) and field.pointer_to is not None:
-        self.pointers[name] = field.pointer_to
+    for py_name, field in klass._docrep_fields.iteritems():
+      if field.pointer_to is not None:
+        self.pointers[py_name] = field.pointer_to
 
 
 class Writer(object):
+  __slots__ = ('_ostream', '_packer', '_klass_names')
+
   def __init__(self, ostream):
     self._ostream = ostream
     self._packer = msgpack.Packer()
@@ -46,7 +50,7 @@ class Writer(object):
     types = {}
     types[doc.__class__] = Type(len(types), doc.__class__)
     for name, annotations in doc._docrep_annotations.iteritems():
-      types[annotations.klass] = Type(len(types), annotations.klass, name, len(getattr(doc, name)))
+      types[annotations.klass] = Type(len(types), annotations.klass, len(getattr(doc, name)))
 
     # ensure we have one Document and one Token type
     doc_klass = tok_klass = None
@@ -66,22 +70,22 @@ class Writer(object):
 
     # construct the header
     header = []
-    for k, v in types.iteritems():
-      t = [None, None, None, None, {}]
-      t[0] = self._klass_names.get(k, k._docrep_name)
-      t[1] = v.mode
-      t[2] = 0 if v.mode == MODE_DOCUMENT else v.nelem
-      t[3] = v.fields
-      for field, to_type in v.pointers.iteritems():
-        t[4][k._docrep_ofields_inv[field]] = types[to_type].number
-      header.append(t)
+    for klass, t in types.iteritems():
+      x = [None, None, None, None, {}]
+      x[0] = self._klass_names.get(klass, klass._docrep_name)
+      x[1] = t.mode
+      x[2] = 0 if t.mode == MODE_DOCUMENT else t.nelem
+      x[3] = t.sfields
+      for py_name, to_type in t.pointers.iteritems():
+        x[4][klass.sidx_for_pyname(py_name)] = types[to_type].number
+      header.append(x)
     self._pack(header)
 
     # discover the field numbers for the four core Token attributes
-    tok_begin = tok_klass._docrep_ofields_inv['begin']
-    tok_end   = tok_klass._docrep_ofields_inv['end']
-    tok_norm  = tok_klass._docrep_ofields_inv['norm']
-    tok_raw   = tok_klass._docrep_ofields_inv['raw']
+    tok_begin = tok_klass.sidx_for_pyname('begin')
+    tok_end   = tok_klass.sidx_for_pyname('end')
+    tok_norm  = tok_klass.sidx_for_pyname('norm')
+    tok_raw   = tok_klass.sidx_for_pyname('raw')
 
     # write out each of the annotation sets
     for t in types.itervalues():
@@ -116,18 +120,17 @@ class Writer(object):
 
   def _msgpack_annotation(self, obj, doc, types):
     msg_obj = {}
-    for i, name in enumerate(obj._docrep_ofields):
-      if not obj._docrep_set[i]:
+    for py_name, field in obj._docrep_fields.iteritems():
+      if py_name not in obj._docrep_is_set:
         continue
-      ptr_to = obj._docrep_fields[name].pointer_to
-      val = getattr(obj, name)
-      if ptr_to is not None:
+      val = getattr(obj, py_name)
+      if field.pointer_to is not None:
         if val is None:
           val = -1
         else:
-          val = getattr(doc, types[ptr_to].plural).index(val)
+          val = getattr(doc, types[field.pointer_to].plural).index(val)
       elif isinstance(val, unicode):
         val = val.encode('utf-8')
-      msg_obj[i] = val
+      msg_obj[obj.sidx_for_pyname(py_name)] = val
     return msg_obj
 
