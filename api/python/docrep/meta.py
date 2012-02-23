@@ -1,122 +1,131 @@
-from .fields import Annotations, Field
+from .exceptions import DependencyException
+from .fields import Annotations, BaseField, Field
 from .utils import pluralise
 
 __all__ = ['Annotation', 'Document', 'Token']
 
 
-class DocrepMetaclass(type):
+class DocrepMeta(type):
   def __new__(mklass, klass_name, bases, attrs, add_annotations):
     meta = attrs.get('Meta', None)
 
     # construct the class
-    klass = super(DocrepMetaclass, mklass).__new__(mklass, klass_name, bases, attrs)
-    klass._docrep_name = klass_name.split('.')[-1]
+    klass = super(DocrepMeta, mklass).__new__(mklass, klass_name, bases, attrs)
+    klass._dr_name = klass_name.split('.')[-1]
 
-    # discover the Field and Annotations instances
-    annotations, fields, fields_s2py = {}, {}, {}
+    # discover the BaseField and Annotations instances
+    annotations, fields = {}, {}
     for base in bases:
-      if hasattr(base, '_docrep_annotations'):
-        annotations.update(base._docrep_annotations)
-      if hasattr(base, '_docrep_fields'):
-        fields.update(base._docrep_fields)
-        fields_s2py.update(base._docrep_fields_s2py)
+      if hasattr(base, '_dr_annotations'):
+        annotations.update(base._dr_annotations)
+      if hasattr(base, '_dr_fields'):
+        fields.update(base._dr_fields)
     for name, field in attrs.iteritems():
       if isinstance(field, Annotations):
         annotations[name] = field
-      elif isinstance(field, Field):
-        if field.name is None:
-          field.name = name
+      elif isinstance(field, BaseField):
+        if field.sname is None:
+          field.sname = name
         fields[name] = field
-        fields_s2py[field.name] = name
 
     # adds the Field and Annotation information appropriately
-    klass._docrep_fields = fields
-    klass._docrep_fields_s2py = fields_s2py
+    klass._dr_fields = fields
     if add_annotations:
-      klass._docrep_annotations = annotations
+      klass._dr_annotations = annotations
 
     # add the plural name
     if hasattr(meta, 'plural'):
-      klass._docrep_plural = meta.plural
+      klass._dr_plural = meta.plural
     else:
-      klass._docrep_plural = pluralise(klass._docrep_name)
+      klass._dr_plural = pluralise(klass._dr_name)
 
-    # ordered stream field attributes
-    klass._docrep_osfields = list(sorted(klass._docrep_fields_s2py))
-    klass._docrep_osfields_inv = dict((v, i) for i, v in enumerate(klass._docrep_osfields))
+    # set the dependency requirements flag
+    klass._dr_fulfilled = False
+
     return klass
 
 
-class AnnotationMetaclass(DocrepMetaclass):
-  def __new__(mklass, klass_name, bases, attrs):
-    return super(AnnotationMetaclass, mklass).__new__(mklass, klass_name, bases, attrs, False)
+class AnnotationMeta(DocrepMeta):
+  reg     = {} # { name : ( sorted(attrs), klass) }
+  unbound = {} # { name : [ (Field, klass) ] }
+
+  def __new__(mklass, name, bases, attrs):
+    # create and register the class
+    klass = super(AnnotationMeta, mklass).__new__(mklass, name, bases, attrs, False)
+    fields = tuple(sorted(klass._dr_fields))
+
+    # check if we have cached this class
+    if name in mklass.reg:
+      f, k = mklass.reg[name]
+      if fields != f:
+        raise ValueError('Cannot register two Annotation types {0!r} with the same name but with different fields ({1} != {2})'.format(name, f, fields))
+      print 'returning cached class {0}: {1}'.format(name, k)
+      del klass
+      return k
+
+    # register the class
+    mklass.reg[name] = (fields, klass)
+    print 'registering', name
+
+    # update the dependency fulfilled information for the class
+    for field in klass._dr_fields.itervalues():
+      if not field.is_fulfilled():
+        dep = field.get_dependency()
+        if dep in mklass.reg:
+          _, k = mklass.reg[dep]
+          field.set_dependency(k)
+        else:
+          if dep not in mklass.unbound:
+            mklass.unbound[dep] = []
+          mklass.unbound[dep].append( (field, klass) )
+    klass.update_fulfilled()
+
+    # update fields which depend on this newly created class
+    if name in mklass.unbound:
+      for field, k in mklass.unbound[name]:
+        field.set_dependency(klass)
+        k.update_fulfilled()
+      del mklass.unbound[name]
+
+    return klass
 
 
-class DocumentMetaclass(DocrepMetaclass):
-  def __new__(mklass, klass_name, bases, attrs):
-    return super(DocumentMetaclass, mklass).__new__(mklass, klass_name, bases, attrs, True)
+class DocumentMeta(DocrepMeta):
+  def __new__(mklass, name, bases, attrs):
+    return super(DocumentMeta, mklass).__new__(mklass, name, bases, attrs, True)
 
 
 class Base(object):
   def __init__(self, **kwargs):
-    self._docrep_is_set = set()
-    for name in self._docrep_fields:
-      self.__dict__[name] = None
+    if not self._dr_fulfilled:
+      raise DependencyException('Cannot instantiate a class with unfilled dependencies')
+
+    for name, field in self._dr_fields.iteritems():
+      self.__dict__[name] = field.default()
     for k, v in kwargs.iteritems():
-      if k in self._docrep_fields:
+      if k in self._dr_fields:
         setattr(self, k, v)
 
-  def __setattr__(self, key, val):
-    if key in self._docrep_fields:
-      self._docrep_is_set.add(key)
-    self.__dict__[key] = val
-
   @classmethod
-  def sidx_for_pyname(klass, py_name):
-    return klass._docrep_osfields_inv[klass._docrep_fields[py_name].name]
-
-  @classmethod
-  def pyname_for_sidx(klass, sidx):
-    return klass._docrep_fields_s2py[klass._docrep_osfields[sidx]]
-
-  @classmethod
-  def update_osfields(klass, osfields):
-    osfields = list(osfields)
-    old_osfields = set(klass._docrep_osfields)
-    new_osfields = set(osfields)
-
-    for field in new_osfields - old_osfields:
-      klass._docrep_fields[field] = Field(field)
-      klass._docrep_fields_s2py[field] = field
-    for field in old_osfields - new_osfields:
-      osfields.append(field)
-
-    klass._docrep_osfields = osfields
-    klass._docrep_osfields_inv = dict((v, i) for i, v in enumerate(osfields))
+  def update_fulfilled(klass):
+    for field in klass._dr_fields.itervalues():
+      if not field.is_fulfilled():
+        klass._dr_fulfilled = False
+        break
+    else:
+      klass._dr_fulfilled = True
 
 
 class Annotation(Base):
-  __metaclass__ = AnnotationMetaclass
+  __metaclass__ = AnnotationMeta
+
 
 
 class Document(Base):
-  __metaclass__ = DocumentMetaclass
+  __metaclass__ = DocumentMeta
 
   def __init__(self, **kwargs):
-    for name in self._docrep_annotations:
-      self.__dict__[name] = []
+    for name, annotations in self._dr_annotations.iteritems():
+      self.__dict__[name] = annotations.default()
     super(Document, self).__init__(**kwargs)
-
-
-class Token(Annotation):
-  begin = Field()
-  end   = Field()
-  raw   = Field()
-  norm  = Field()
-
-  def __repr__(self):
-    return 'Token({0!r})'.format(self.norm)
-
-  def __str__(self):
-    return self.norm
 
