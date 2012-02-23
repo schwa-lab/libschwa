@@ -1,4 +1,4 @@
-from .fields import Annotations, Field, Pointer
-from .meta   import Annotation, Document, Token
+from .fields import *
+from .meta   import Annotation, Document
 from .reader import Reader
 from .writer import Writer

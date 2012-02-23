@@ -4,7 +4,7 @@ import msgpack
 
 from .constants import *
 from .fields import Annotations, Field
-from .meta import Document, Token
+from .meta import Document
 
 __all__ = ['Writer']
 

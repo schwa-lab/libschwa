@@ -7,14 +7,35 @@ from .meta import Annotation, Document
 __all__ = ['Reader']
 
 
-class Streamer(object):
-  __slots__ = ('_read_types', '_reg_types', '_up', '_doc', '_doc_klass')
+class Type(object):
+  __slots__ = ('klass', 'sfields')
 
-  def __init__(self, reg_types, doc_klass, istream):
-    self._reg_types = reg_types
-    self._up = msgpack.Unpacker(istream)
-    self._doc = None
+  def __init__(self, klass):
+    self.klass = klass
+    self.sfields = list(f.sname for f in klass._docrep_fields.itervalues())
+
+  @property
+  def name(self):
+    return self.klass._docrep_name
+
+  @property
+  def plural(self):
+    return self.klass._docrep_plural
+
+
+
+class Reader(object):
+  __slots__ = ('_doc_klass', '_static_types', '_unpacker', '_doc')
+
+  def __init__(self, doc_klass=None):
     self._doc_klass = doc_klass
+    self._static_types = {}
+    if doc_klass:
+      if not issubclass(doc_klass, Document):
+        raise ValueError('"doc_klass" must be a subclass of Document')
+      for a in doc_klass._docrep_annotations.itervalues():
+        self._static_types
+
 
   def __iter__(self):
     return self
@@ -25,13 +46,23 @@ class Streamer(object):
       raise StopIteration()
     return self._doc
 
+  def stream(self, istream):
+    self._unpacker = msgpack.Unpacker(istream)
+    return self
+
+  def _unpack(self):
+    obj = self._unpack.unpack()
+    print '[unpack] {0!r}'.format(obj)
+    return obj
+
   def _read_doc(self):
-    self._read_types = self._up.unpack()
-    if self._read_types is None:
+    # attempt to read the header
+    header = self._unpack()
+    if header is None:
       self._doc = None
       return
 
-    # do initial decoding of read types
+    # decode the header into Python types
     types = {} # { stream class name : klass }
     tok_klass = None
     for klass_name, mode, nelem, fields, ptrs in self._read_types:
@@ -106,27 +137,4 @@ class Streamer(object):
       else:
         raise ValueError('Invalid "mode" value ' + str(mode))
 
-
-
-
-class Reader(object):
-  __slots__ = ('_reg_types', '_doc_klass')
-
-  def __init__(self, doc_klass=None, *args, **kwargs):
-    self._reg_types = {}
-    self._doc_klass = doc_klass
-    for v in args:
-      self.reg(v)
-    for k, v in kwargs.iteritems():
-      self.reg(v, k)
-
-  def reg(self, klass, name=None):
-    if not issubclass(klass, Annotation):
-      raise ValueError('You cannot register a class which does not subclass docrep.Annotation')
-    if name is None:
-      name = klass._docrep_name
-    self._reg_types[name] = klass
-
-  def stream(self, istream):
-    return Streamer(self._reg_types, self._doc_klass, istream)
 
