@@ -1,12 +1,12 @@
 
-__all__ = ['Field', 'Pointer', 'Pointers', 'Range', 'Annotations', 'Singleton']
+__all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Range', 'BaseAnnotationsField', 'Annotations', 'Singleton']
 
 
 class BaseField(object):
   __slots__ = ('sname', )
 
   def __init__(self, **kwargs):
-    self.sname = kwargs.get('name')
+    self.sname = kwargs.get('sname')
 
   def default(self):
     raise NotImplementedError
@@ -21,8 +21,14 @@ class BaseField(object):
     raise NotImplementedError
 
 
+# =============================================================================
+# =============================================================================
 
-class Field(BaseField):
+class BaseAnnotationField(BaseField):
+  pass
+
+
+class Field(BaseAnnotationField):
   def default(self):
     return None
 
@@ -30,7 +36,7 @@ class Field(BaseField):
     return True
 
 
-class Pointer(BaseField):
+class Pointer(BaseAnnotationField):
   __slots__ = ('klass_name', 'via', 'is_collection', '_klass')
 
   def __init__(self, klass_name, **kwargs):
@@ -62,7 +68,7 @@ class Pointers(Pointer):
     return []
 
 
-class Range(BaseField):
+class Range(BaseAnnotationField):
   __slots__ = ('klass_name', 'via', '_klass')
 
   def __init__(self, klass_name=None, **kwargs):
@@ -92,31 +98,29 @@ class Range(BaseField):
 # =============================================================================
 # =============================================================================
 
-class BaseAnnotations(object):
-  __slots__ = ('sname', )
-
-  def __init__(self, **kwargs):
-    self.sname = kwargs.get('name')
-
-  def default(self):
-    raise NotImplementedError
-
-  def is_fulfilled(self):
-    raise NotImplementedError
+class BaseAnnotationsField(BaseField):
+  pass
 
 
-class Annotations(BaseAnnotations):
+class Annotations(BaseAnnotationsField):
   __slots__ = ('klass_name', '_klass')
 
   def __init__(self, klass_name, **kwargs):
     super(Annotations, self).__init__(**kwargs)
     self.klass_name = klass_name
+    self._klass = None
 
   def default(self):
     return []
 
   def is_fulfilled(self):
     return self._klass is not None
+
+  def get_dependency(self):
+    return self.klass_name
+
+  def set_dependency(self, klass):
+    self._klass = klass
 
 
 class Singleton(Annotations):
