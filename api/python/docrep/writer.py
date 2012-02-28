@@ -3,113 +3,103 @@ import cStringIO
 import msgpack
 
 from .constants import *
-from .fields import Annotations, Field
+from .fields import *
 from .meta import Document
 
 __all__ = ['Writer']
 
 
 class Type(object):
-  __slots__ = ('number', 'klass', 'name', 'mode', 'sfields', 'pointers', 'plural', 'nelem')
+  __slots__ = ('klass', 'number', 'nelem', 'plural', 'name', 'fields', 'pyname2index', 'is_meta', 'is_singleton')
 
-  def __init__(self, number, klass, nelem=0):
-    self.number = number
+  def __init__(self, klass, sname, number, nelem, plural, is_meta=False, is_singleton=False):
     self.klass  = klass
-    self.name   = klass._docrep_name
-    self.plural = klass._docrep_plural
+    self.number = number
     self.nelem  = nelem
-    if issubclass(klass, Document):
-      self.mode = MODE_DOCUMENT
-    elif issubclass(klass, Token):
-      self.mode = MODE_TOKEN
-    else:
-      self.mode = MODE_ANNOTATION
-    self.sfields = klass._docrep_osfields
-    self.pointers = {}
-    for py_name, field in klass._docrep_fields.iteritems():
-      if field.pointer_to is not None:
-        self.pointers[py_name] = field.pointer_to
+    self.name   = sname or self.klass._dr_name
+    self.plural = plural
+    self.fields = []
+    self.pyname2index = {}
+    self.is_meta = is_meta
+    self.is_singleton = is_singleton
+
+    for pyname, field in self.klass._dr_fields.iteritems():
+      self.pyname2index[pyname] = len(self.fields)
+      f = {}
+      f[FIELD_TYPE_NAME] = field.sname or pyname
+      if isinstance(field, Pointer):
+        f[FIELD_TYPE_POINTER_TO] = field._klass
+      elif isinstance(field, Range):
+        f[FIELD_TYPE_IS_RANGE] = True
+        if field._klass is not None:
+          f[FIELD_TYPE_POINTER_TO] = field._klass
+      self.fields.append(f)
+
+  def pyname_to_index(self, pyname):
+    return self.pyname2index[pyname]
+
 
 
 class Writer(object):
-  __slots__ = ('_ostream', '_packer', '_klass_names')
+  __slots__ = ('_ostream', '_packer')
 
   def __init__(self, ostream):
     self._ostream = ostream
-    self._packer = msgpack.Packer()
-    self._klass_names = {}
-
-  def reg(self, klass, name):
-    self._klass_names[klass] = name
+    self._packer  = msgpack.Packer()
 
   def write_doc(self, doc):
     if not isinstance(doc, Document):
       raise ValueError('You can only stream instances of docrep.Document')
 
     # find all of the types defined
-    types = {}
-    types[doc.__class__] = Type(len(types), doc.__class__)
-    for name, annotations in doc._docrep_annotations.iteritems():
-      types[annotations.klass] = Type(len(types), annotations.klass, len(getattr(doc, name)))
+    types = {} # { klass : Type }
+    types[doc.__class__] = Type(doc.__class__, '__meta__', len(types), 0, None, is_meta=True)
+    for name, annotations in doc._dr_annotations.iteritems():
+      t = Type(annotations._klass, annotations.sname, len(types), 0, name)
+      if isinstance(annotations, Singleton):
+        t.is_singleton = True
+      else:
+        t.nelem = len(getattr(doc, name))
+      types[annotations._klass] = t
 
-    # ensure we have one Document and one Token type
-    doc_klass = tok_klass = None
-    for t in types.itervalues():
-      if t.mode == MODE_DOCUMENT:
-        if doc_klass is not None:
-          raise ValueError('Two subclasses of Document found ({0} and {1})'.format(doc_klass, klass))
-        doc_klass = t.klass
-      elif t.mode == MODE_TOKEN:
-        if tok_klass is not None:
-          raise ValueError('Two subclasses of Token found ({0} and {1})'.format(tok_klass, klass))
-        tok_klass = t.klass
-    if doc_klass is None:
-      raise ValueError('No subclass of Document found')
-    if tok_klass is None:
-      raise ValueError('No subclass of Token found')
+    # run along each of the Annotations and update the _dr_index attributes
+    for name, annotations in doc._dr_annotations.iteritems():
+      val = getattr(doc, name)
+      if isinstance(annotations, Singleton):
+        if val:
+          val._dr_index = 0
+      else:
+        for i, obj in enumerate(val):
+          obj._dr_index = i
 
     # construct the header
     header = []
     for klass, t in types.iteritems():
-      x = [None, None, None, None, {}]
-      x[0] = self._klass_names.get(klass, klass._docrep_name)
-      x[1] = t.mode
-      x[2] = 0 if t.mode == MODE_DOCUMENT else t.nelem
-      x[3] = t.sfields
-      for py_name, to_type in t.pointers.iteritems():
-        x[4][klass.sidx_for_pyname(py_name)] = types[to_type].number
+      x = [t.name, t.nelem, []]
+      for field in t.fields:
+        f = field.copy()
+        ptr_klass = f.get(FIELD_TYPE_POINTER_TO)
+        if ptr_klass is not None:
+          f[FIELD_TYPE_POINTER_TO] = types[ptr_klass].number
+        x[2].append(f)
       header.append(x)
     self._pack(header)
-
-    # discover the field numbers for the four core Token attributes
-    tok_begin = tok_klass.sidx_for_pyname('begin')
-    tok_end   = tok_klass.sidx_for_pyname('end')
-    tok_norm  = tok_klass.sidx_for_pyname('norm')
-    tok_raw   = tok_klass.sidx_for_pyname('raw')
 
     # write out each of the annotation sets
     for t in types.itervalues():
       tmp = cStringIO.StringIO()
 
-      if t.mode == MODE_DOCUMENT:
-        self._pack(self._msgpack_annotation(doc, doc, types), tmp)
-
-      elif t.mode == MODE_TOKEN or t.mode == MODE_ANNOTATION:
+      if t.is_meta:
+        self._pack(self._serialize(doc, t), tmp)
+      elif t.is_singleton:
+        self._pack(self._serialize(getattr(doc, t.plural), t), tmp)
+      else:
         msg_objs = []
         for obj in getattr(doc, t.plural):
-          msg_obj = self._msgpack_annotation(obj, doc, types)
-          if t.mode == MODE_TOKEN:
-            if tok_norm in msg_obj and tok_raw in msg_obj and msg_obj[tok_norm] == msg_obj[tok_raw]:
-              del msg_obj[tok_raw]
-            if tok_begin in msg_obj and tok_end in msg_obj:
-              msg_obj[tok_end] = msg_obj[tok_end] - msg_obj[tok_begin] + 1
-          msg_objs.append(msg_obj)
+          msg_objs.append(self._serialize(obj, t))
         self._pack(msg_objs, tmp)
 
-      else:
-        raise ValueError('Invalid "mode" value ' + str(mode))
-
-      self._pack(types[t.klass].number)
+      self._pack(t.number)
       self._pack(len(tmp.getvalue()))
       self._ostream.write(tmp.getvalue())
 
@@ -118,19 +108,23 @@ class Writer(object):
       out = self._ostream
     out.write(self._packer.pack(obj))
 
-  def _msgpack_annotation(self, obj, doc, types):
+  def _serialize(self, obj, t):
+    def swizzle(obj):
+      if not hasattr(obj, '_dr_index'):
+        raise ValueError('Cannot serialize a pointer to an object which is not managed by an Annotations')
+      return obj._dr_index
+
     msg_obj = {}
-    for py_name, field in obj._docrep_fields.iteritems():
-      if py_name not in obj._docrep_is_set:
+    for pyname, field in obj._dr_fields.iteritems():
+      val = getattr(obj, pyname)
+      if val is None:
         continue
-      val = getattr(obj, py_name)
-      if field.pointer_to is not None:
-        if val is None:
-          val = -1
-        else:
-          val = getattr(doc, types[field.pointer_to].plural).index(val)
+      if isinstance(field, Pointer):
+        val = swizzle(val)
+      elif isinstance(field, Range) and field._klass:
+        val = map(swizzle, val)
       elif isinstance(val, unicode):
         val = val.encode('utf-8')
-      msg_obj[obj.sidx_for_pyname(py_name)] = val
+      msg_obj[t.pyname_to_index(pyname)] = val
     return msg_obj
 
