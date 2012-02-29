@@ -1,41 +1,27 @@
 import msgpack
 
 from .constants import *
-from .fields import Annotations, Field
+from .fields import *
+from .io import *
 from .meta import Annotation, Document
 
 __all__ = ['Reader']
 
 
-class Type(object):
-  __slots__ = ('klass', 'sfields')
-
-  def __init__(self, klass):
-    self.klass = klass
-    self.sfields = list(f.sname for f in klass._docrep_fields.itervalues())
-
-  @property
-  def name(self):
-    return self.klass._docrep_name
-
-  @property
-  def plural(self):
-    return self.klass._docrep_plural
-
-
-
 class Reader(object):
-  __slots__ = ('_doc_klass', '_static_types', '_unpacker', '_doc')
+  __slots__ = ('_doc_klass', '_types', '_by_sname', '_unpacker', '_doc')
 
   def __init__(self, doc_klass=None):
     self._doc_klass = doc_klass
-    self._static_types = {}
+    self._types = {}    # { klass : Type }
+    self._by_sname = {} # { str : Type }
     if doc_klass:
       if not issubclass(doc_klass, Document):
         raise ValueError('"doc_klass" must be a subclass of Document')
-      for a in doc_klass._docrep_annotations.itervalues():
-        self._static_types
-
+      self._types = types_from_doc(doc)
+      for t in self._types.itervalues():
+        self._by_sname[t.sname] = t
+    print self._types, self._by_sname
 
   def __iter__(self):
     return self
@@ -51,90 +37,159 @@ class Reader(object):
     return self
 
   def _unpack(self):
-    obj = self._unpack.unpack()
-    print '[unpack] {0!r}'.format(obj)
+    obj = self._unpacker.unpack()
+    #print '[unpack] {0!r}'.format(obj)
     return obj
 
   def _read_doc(self):
     # attempt to read the header
-    header = self._unpack()
+    header = self._unpack() # [ ( name, nelem, [ { field_key : field_val } ] ) ]
     if header is None:
       self._doc = None
       return
+    print 'header', header
 
-    # decode the header into Python types
-    types = {} # { stream class name : klass }
-    tok_klass = None
-    for klass_name, mode, nelem, fields, ptrs in self._read_types:
-      if klass_name in self._reg_types:
-        klass = self._reg_types[klass_name]
-        klass.update_osfields(fields)
+    # decode the header
+    meta_num, meta_fields = -1, None
+    by_num = []
+    for klass_name, klass_nelem, klass_fields in header:
+      # decode the fields
+      fields = {}
+      for klass_field in klass_fields:
+        name = klass_field[FIELD_TYPE_NAME]
+        ptr  = klass_field.get(FIELD_TYPE_POINTER_TO)
+        rng  = klass_field.get(FIELD_TYPE_IS_RANGE)
+        if rng:
+          f = Range(sname=name)
+          f._klass = ptr
+        elif ptr:
+          f = Pointer('', sname=name)
+          f._klass = ptr
+        else:
+          f = Field(sname=name)
+        fields[name] = f
+
+      if klass_name == '__meta__':
+        meta_num = len(by_num)
+        meta_fields = fields
+        if klass_name in self._by_sname:
+          t = self._by_sname[klass_name]
+        else:
+          t = Type(None, klass_name, 0, is_meta=True)
+      elif klass_name in self._by_sname:
+        t = self._by_sname[klass_name]
+        t.klass.load_read_fields(fields)
       else:
-        new_fields = dict((name, Field(name)) for name in fields)
-        klass = type(klass_name, (Annotation, ), new_fields)
-      types[klass_name] = klass
-      if mode == MODE_TOKEN:
-        if tok_klass is not None:
-          raise ValueError('Two Token annotation types found ({0} and {1})'.format(tok_klass, klass))
-        tok_klass = klass
-    if tok_klass is None:
-      raise ValueError('No Token annotation type found')
+        klass = type(klass_name, (Annotation, ), fields)
+        t = Type(klass, klass_name, 0)
+
+      t.nelem  = klass_nelem
+      t.number = len(by_num)
+      if t.klass:
+        self._types[t.klass] = t
+      self._by_sname[t.name] = t
+      by_num.append(t)
+
+    if meta_num == -1:
+      raise ValueError('Invalid stream: could not find a __meta__ annotation type')
+
+    # read in the instantiations
+    instantiations = [None] * len(by_num)
+    for _ in xrange(len(by_num)):
+      klass_num = self._unpack()
+      nbytes    = self._unpack()
+      msg_objs  = self._unpack()
+
+      t = by_num[klass_num]
+      print 'reading annotations:', klass_num, t
+      if t.is_meta:
+        instantiations[meta_num] = msg_objs
+      elif isinstance(msg_objs, dict):
+        t.is_singleton = True
+        obj = self._unserialize(msg_objs, t)
+        instantiations[t.number] = obj
+      else:
+        objs = [None] * t.nelem
+        for i, msg_obj in enumerate(msg_objs):
+          obj = self._unserialize(msg_obj, t)
+          obj._dr_index = i
+          objs[i] = obj
+        instantiations[t.number] = objs
 
     # decode the pointers
-    for klass_name, _, _, sfields, ptrs in self._read_types:
-      for sidx, type_idx in ptrs.iteritems():
-        klass = types[klass_name]
-        field = klass._docrep_fields[klass.pyname_for_sidx(sidx)]
-        field.pointer_to = types[self._read_types[type_idx][0]]
+    for t in by_num:
+      if t.is_meta:
+        fields = meta_fields
+      else:
+        fields = t.klass._dr_fields
+
+      # update the _klass attributes on the Field instances
+      for pyname, field in fields.iteritems():
+        if isinstance(field, Pointer) or (isinstance(field, Range) and field._klass):
+          klass = by_num[field._klass].klass
+          field._klass_name = klass._dr_name
+          field._klass = klass
+
+        if isinstance(field, Pointer) and not field.is_collection:
+          if t.is_singleton:
+            objs = (instantiations[t.number], )
+          else:
+            objs = instantiations[t.number]
+          for obj in objs:
+            if isinstance(obj, (tuple, list)):
+              fields[pyname] = Pointers(field._klass, via=field.via)
+
+      # update the annotation instances
+      if t.is_singleton or t.is_meta:
+        objs = (instantiations[t.number], )
+      else:
+        objs = instantiations[t.number]
+
+      for pyname, field in fields.iteritems():
+        # convert pointer integer offsets into object references
+        if isinstance(field, Pointer):
+          pt = self._types[field._klass]
+          items = instantiations[pt.number]
+          for obj in objs:
+            val = getattr(obj, pyname)
+            if val is not None:
+              if field.is_collection:
+                val = map(lambda p: unswizzle_ptr(p, items), val)
+              else:
+                val = unswizzle_ptr(val, items)
+              setattr(obj, pyname, val)
+
+        # convert ranges into Python slice objects
+        if isinstance(field, Range):
+          for obj in objs:
+            r = getattr(obj, pyname)
+            if r is not None:
+              if len(r) != 2:
+                raise ValueError('Length of a Range instance is not 2! (is {0})'.format(len(r)))
+              setattr(obj, pyname, slice(r[0], r[1]))
+
 
     # instantiate a document
     if self._doc_klass is None:
-      attrs = dict((k._docrep_plural, Annotations(k)) for k in types.itervalues())
-      self._doc_klass = type('Document', (Document, ), attrs)
+      doc_fields = {}
+      # add the annotation types
+      for t in self._types.itervalues():
+        name = t.plural or t.klass._dr_plural
+        if t.is_singleton:
+          doc_fields[name] = Singleton(t.klass, sname=t.name)
+        else:
+          doc_fields[name] = Annotations(t.klass, sname=t.name)
+      # add the metadata fields
+      doc_fields.update(meta_fields)
+      self._doc_klass = type('Document', (Document, ), doc_fields)
+      print doc_fields
+      print self._doc_klass
     self._doc = self._doc_klass()
 
-    # discover the field numbers for the four core Token attributes
-    tok_begin = tok_klass.sidx_for_pyname('begin')
-    tok_end   = tok_klass.sidx_for_pyname('end')
-    tok_norm  = tok_klass.sidx_for_pyname('norm')
-    tok_raw   = tok_klass.sidx_for_pyname('raw')
 
-    # read the instances
-    for i in xrange(len(self._read_types)):
-      type_idx = self._up.unpack()
-      nbytes   = self._up.unpack()
-
-      klass_name, mode, nelem, sfields, ptrs = self._read_types[type_idx]
-      klass = types[klass_name]
-
-      if mode == MODE_DOCUMENT:
-        msg_obj = self._up.unpack()
-        for sidx, val in msg_obj.iteritems():
-          pyname = klass.pyname_for_sidx(sidx)
-          setattr(self._doc, pyname, val)
-
-      elif mode == MODE_TOKEN or mode == MODE_ANNOTATION:
-        objs = [None]*nelem
-        for i, msg_obj in enumerate(self._up.unpack()):
-          if mode == MODE_TOKEN:
-            if tok_raw not in msg_obj and tok_norm in msg_obj:
-              msg_obj[tok_raw] = msg_obj[tok_norm]
-            if tok_begin in msg_obj and tok_end in msg_obj:
-              msg_obj[tok_end] = msg_obj[tok_end] + msg_obj[tok_begin] - 1
-          values = {}
-          for sidx, val in msg_obj.iteritems():
-            pyname = klass.pyname_for_sidx(sidx)
-            if sidx in ptrs:
-              if val == -1:
-                val = None
-              else:
-                to_type = types[self._read_types[ptrs[sidx]][0]]
-                val = getattr(self._doc, to_type._docrep_plural)[val]
-            values[pyname] = val
-          objs[i] = klass(**values)
-        setattr(self._doc, klass._docrep_plural, objs)
-
-      else:
-        raise ValueError('Invalid "mode" value ' + str(mode))
-
+  def _unserialize(self, obj, t):
+    vals = {}
+    for index, val in obj.iteritems():
+      vals[t.index_to_pyname(index)] = val
+    return t.klass(**vals)
 

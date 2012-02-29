@@ -2,7 +2,7 @@ from .exceptions import DependencyException
 from .fields import *
 from .utils import pluralise
 
-__all__ = ['Annotation', 'Document', 'Token']
+__all__ = ['AnnotationMeta', 'Annotation', 'Document', 'Token']
 
 
 class DocrepMeta(type):
@@ -21,11 +21,13 @@ class DocrepMeta(type):
         fields.update(base._dr_fields)
     for name, field in attrs.iteritems():
       if isinstance(field, BaseField):
-        if field.sname is None:
-          field.sname = name
         if isinstance(field, BaseAnnotationsField):
+          if field.sname is None:
+            field.sname = field.klass_name
           annotations[name] = field
         elif isinstance(field, BaseAnnotationField):
+          if field.sname is None:
+            field.sname = name
           fields[name] = field
 
     # adds the Field and Annotation information appropriately
@@ -97,12 +99,17 @@ class AnnotationMeta(DocrepMeta):
     return klass
 
 
+  def cached(mklass, klass_name):
+    x = mklass.reg.get(klass_name)
+    return x and x[0]
+
+
 class Base(object):
   __metaclass__ = AnnotationMeta
 
   def __init__(self, **kwargs):
     if not self._dr_fulfilled:
-      raise DependencyException('Cannot instantiate a class with unfilled dependencies')
+      raise DependencyException('Cannot instantiate class {0!r} with unfilled dependencies'.format(self.__class__.__name__))
 
     for name, field in self._dr_fields.iteritems():
       self.__dict__[name] = field.default()
@@ -114,17 +121,27 @@ class Base(object):
 
   @classmethod
   def update_fulfilled(klass):
+    print '[update_fulfilled] {0!r}'.format(klass)
     fulfilled = True
-    for field in klass._dr_fields.itervalues():
+    for name, field in klass._dr_fields.iteritems():
       if not field.is_fulfilled():
+        print '[update_fulfilled] unfulfilled {0!r}'.format(name)
         fulfilled = False
         break
     if fulfilled:
-      for field in klass._dr_annotations.itervalues():
+      for name, field in klass._dr_annotations.iteritems():
         if not field.is_fulfilled():
+          print '[update_fulfilled] unfulfilled', name, field, field.klass_name, field._klass
           fulfilled = False
           break
     klass._dr_fulfilled = fulfilled
+
+  @classmethod
+  def load_read_fields(klass, fields):
+    a = frozenset(klass._dr_fields)
+    b = frozenset(fields)
+    for name in a ^ b:
+      klass._dr_fields[name] = fields[name]
 
 
 class Annotation(Base):
