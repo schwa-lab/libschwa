@@ -107,8 +107,12 @@ class Annotations(BaseAnnotationsField):
 
   def __init__(self, klass_name, **kwargs):
     super(Annotations, self).__init__(**kwargs)
-    self.klass_name = klass_name
-    self._klass = None
+    if isinstance(klass_name, (str, unicode)):
+      self.klass_name = klass_name
+      self._klass = None
+    else:
+      self.klass_name = klass_name._dr_name
+      self._klass = klass_name
 
   def default(self):
     return []
