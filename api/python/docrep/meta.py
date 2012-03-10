@@ -57,14 +57,19 @@ class AnnotationMeta(DocrepMeta):
   unbound = {} # { name : [ (Field, klass) ] }
 
   def __new__(mklass, klass_name, bases, attrs):
-    # create and register the class
     klass = super(AnnotationMeta, mklass).__new__(mklass, klass_name, bases, attrs)
+    AnnotationMeta.register(klass)
+    return klass
+
+
+  @staticmethod
+  def register(klass):
     fields = tuple(sorted(klass._dr_fields.keys() + klass._dr_annotations.keys()))
     name = klass._dr_name
 
     # check if we have cached this class
-    if name in mklass.reg:
-      f, k = mklass.reg[name]
+    if name in AnnotationMeta.reg:
+      f, k = AnnotationMeta.reg[name]
       if fields != f:
         raise ValueError('Cannot register two Annotation types {0!r} with the same name but with different fields ({1} != {2})'.format(name, f, fields))
       print 'returning cached class {0}: {1}'.format(name, k)
@@ -72,7 +77,7 @@ class AnnotationMeta(DocrepMeta):
       return k
 
     # register the class
-    mklass.reg[name] = (fields, klass)
+    AnnotationMeta.reg[name] = (fields, klass)
     print 'registering', name
 
     # update the dependency fulfilled information for the class
@@ -80,27 +85,26 @@ class AnnotationMeta(DocrepMeta):
       for field in getattr(klass, field_set).itervalues():
         if not field.is_fulfilled():
           dep = field.get_dependency()
-          if dep in mklass.reg:
-            _, k = mklass.reg[dep]
+          if dep in AnnotationMeta.reg:
+            _, k = AnnotationMeta.reg[dep]
             field.set_dependency(k)
           else:
-            if dep not in mklass.unbound:
-              mklass.unbound[dep] = []
-            mklass.unbound[dep].append( (field, klass) )
+            if dep not in AnnotationMeta.unbound:
+              AnnotationMeta.unbound[dep] = []
+            AnnotationMeta.unbound[dep].append( (field, klass) )
     klass.update_fulfilled()
 
     # update fields which depend on this newly created class
-    if name in mklass.unbound:
-      for f, k in mklass.unbound[name]:
+    if name in AnnotationMeta.unbound:
+      for f, k in AnnotationMeta.unbound[name]:
         f.set_dependency(klass)
         k.update_fulfilled()
-      del mklass.unbound[name]
-
-    return klass
+      del AnnotationMeta.unbound[name]
 
 
-  def cached(mklass, klass_name):
-    x = mklass.reg.get(klass_name)
+  @staticmethod
+  def cached(klass_name):
+    x = AnnotationMeta.reg.get(klass_name)
     return x and x[0]
 
 
@@ -137,7 +141,7 @@ class Base(object):
     klass._dr_fulfilled = fulfilled
 
   @classmethod
-  def load_read_fields(klass, fields):
+  def update_fields(klass, fields):
     a = frozenset(klass._dr_fields)
     b = frozenset(fields)
     for name in a ^ b:
