@@ -19,10 +19,11 @@ import docrep
       #yield self.tokens[i]
 
 
-with open('/n/schwafs/home/tim/repos/docrep/api/python/eng.testa.docrep', 'rb') as f:
+with open('eng.testa.docrep', 'rb') as f:
   reader = docrep.Reader()
   for doc in reader.stream(f):
     print doc.filename, len(doc.tokens), len(doc.sentences)
+    print [t.raw for t in doc.tokens[doc.sentences[0].span]]
     #for sent in doc.sentences:
       #print list(doc.token_range(sent.token_begin, sent.token_end))
     #print
