@@ -1,3 +1,4 @@
+from .collections import AnnotationsList
 
 __all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Range', 'BaseAnnotationsField', 'Annotations', 'Singleton']
 
@@ -65,7 +66,7 @@ class Pointers(Pointer):
     super(Pointers, self).__init__(klass_name, **kwargs)
 
   def default(self):
-    return []
+    return AnnotationsList()
 
 
 class Range(BaseAnnotationField):
@@ -115,7 +116,7 @@ class Annotations(BaseAnnotationsField):
       self._klass = klass_name
 
   def default(self):
-    return []
+    return AnnotationsList()
 
   def is_fulfilled(self):
     return self._klass is not None

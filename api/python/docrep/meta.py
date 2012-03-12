@@ -105,7 +105,7 @@ class AnnotationMeta(DocrepMeta):
   @staticmethod
   def cached(klass_name):
     x = AnnotationMeta.reg.get(klass_name)
-    return x and x[0]
+    return x and x[1]
 
 
 class Base(object):
