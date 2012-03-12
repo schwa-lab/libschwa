@@ -57,10 +57,12 @@ class WireField(object):
           self._dr_field = Range(sname=self._name)
       elif self.is_pointer():
         klass_name = WireType.by_number[self._pointer_num].name()
+        klass = AnnotationMeta.cached(klass_name)
+        v = klass_name if klass is None else klass
         if self.is_collection():
-          self._dr_field = Pointers(klass_name, sname=self._name)
+          self._dr_field = Pointers(v, sname=self._name)
         else:
-          self._dr_field = Pointer(klass_name, sname=self._name)
+          self._dr_field = Pointer(v, sname=self._name)
       else:
         self._dr_field = Field(sname=self._name)
     return self._dr_field
@@ -146,19 +148,13 @@ class WireType(object):
 
 
 class Reader(object):
-  __slots__ = ('_doc_klass', '_types', '_by_sname', '_unpacker', '_doc')
+  __slots__ = ('_doc_klass', '_unpacker', '_doc')
 
   def __init__(self, doc_klass=None):
     self._doc_klass = doc_klass
-    self._types = {}    # { klass : Type }
-    self._by_sname = {} # { str : Type }
     if doc_klass:
       if not issubclass(doc_klass, Document):
         raise ValueError('"doc_klass" must be a subclass of Document')
-      self._types = types_from_doc(doc)
-      for t in self._types.itervalues():
-        self._by_sname[t.sname] = t
-    print self._types, self._by_sname
 
   def __iter__(self):
     return self

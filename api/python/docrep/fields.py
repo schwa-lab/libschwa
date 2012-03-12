@@ -42,10 +42,14 @@ class Pointer(BaseAnnotationField):
 
   def __init__(self, klass_name, **kwargs):
     super(Pointer, self).__init__(**kwargs)
-    self.klass_name = klass_name.encode('utf-8')
+    if isinstance(klass_name, (str, unicode)):
+      self.klass_name = klass_name.encode('utf-8')
+      self._klass = None
+    else:
+      self.klass_name = klass_name._dr_name
+      self._klass = klass_name
     self.via = kwargs.get('via')
     self.is_collection = kwargs.get('is_collection', False)
-    self._klass = None
 
   def default(self):
     return None
@@ -109,7 +113,7 @@ class Annotations(BaseAnnotationsField):
   def __init__(self, klass_name, **kwargs):
     super(Annotations, self).__init__(**kwargs)
     if isinstance(klass_name, (str, unicode)):
-      self.klass_name = klass_name
+      self.klass_name = klass_name.encode('utf-8')
       self._klass = None
     else:
       self.klass_name = klass_name._dr_name
