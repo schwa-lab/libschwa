@@ -140,8 +140,10 @@ class WireType(object):
 
   def instantiate_instances(self):
     klass = self.klass()
+    s2p = klass._dr_s2p
     for i in self._instances:
-      yield klass(**i)
+      vals = dict((s2p[k], v) for k, v in i.iteritems())
+      yield klass(**vals)
 
   def get_pointer_fields(self):
     return [f for f in self._fields if f.is_pointer() and not f.is_range()]
@@ -171,7 +173,6 @@ class Reader(object):
 
   def _unpack(self):
     obj = self._unpacker.unpack()
-    #print '[unpack] {0!r}'.format(obj)
     return obj
 
   def _read_doc(self):
@@ -180,7 +181,6 @@ class Reader(object):
     if header is None:
       self._doc = None
       return
-    print 'header', header
 
     # decode the header
     wire_types, wire_meta = [], None
@@ -191,13 +191,6 @@ class Reader(object):
       wire_types.append(t)
       if t.is_meta:
         wire_meta = t
-
-    print '<'*10
-    for t in wire_types:
-      print t.name()
-      for f in t.fields():
-        print '  ', f.name(), f.is_range(), f.is_pointer(), f.pointer_num()
-    print '>'*10
 
     # decode each of the annotation sets
     for _ in xrange(len(wire_types)):
@@ -224,14 +217,12 @@ class Reader(object):
       if not t.is_meta:
         klass = Singleton if t.is_singleton else Annotations
         annotations[t.collection_name()] = klass(t.klass())
-    print 'annotations', annotations
 
     # add the Document fields
     doc_fields = annotations.copy()
     if wire_meta:
       for f in wire_meta.fields():
         doc_fields[f.name()] = f.dr_field()
-    print 'doc_fields', doc_fields
 
     # create or update the Document class
     if self._doc_klass is None:
@@ -249,7 +240,6 @@ class Reader(object):
     if wire_meta:
       doc_vals = wire_meta.get_instance()
     self._doc = self._doc_klass(**doc_vals)
-    print 'self._doc', self._doc
 
     # instantiate all of the objects
     klass2collection_name = {}

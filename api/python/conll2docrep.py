@@ -44,6 +44,7 @@ def read_pipefile(file, filename):
           doc.tokens += tokens
           b = doc.tokens.index(tokens[0])
           e = doc.tokens.index(tokens[-1])
+          print 'creating sentence', tokens
           doc.sentences.append(Sentence(span=slice(b, e + 1), span2=[tokens[0], tokens[-1]]))
         elif c == ' ':
           assert state == IN_NE

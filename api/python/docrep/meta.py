@@ -13,12 +13,11 @@ class DocrepMeta(type):
     klass = super(DocrepMeta, mklass).__new__(mklass, klass_name, bases, attrs)
 
     # discover the BaseAnnotationField and BaseAnnotationsField instances
-    annotations, fields = {}, {}
+    annotations, fields, s2p = {}, {}, {}
     for base in bases:
-      if hasattr(base, '_dr_annotations'):
-        annotations.update(base._dr_annotations)
-      if hasattr(base, '_dr_fields'):
-        fields.update(base._dr_fields)
+      annotations.update(getattr(base, '_dr_annotations', {}))
+      fields.update(getattr(base, '_dr_fields', {}))
+      s2p.update(getattr(base, '_dr_s2p', {}))
     for name, field in attrs.iteritems():
       if isinstance(field, BaseField):
         if isinstance(field, BaseAnnotationsField):
@@ -29,10 +28,12 @@ class DocrepMeta(type):
           if field.sname is None:
             field.sname = name
           fields[name] = field
+          s2p[field.sname] = name
 
     # adds the Field and Annotation information appropriately
-    klass._dr_fields = fields
-    klass._dr_annotations = annotations
+    klass._dr_fields = fields            # { pyname : Field }
+    klass._dr_annotations = annotations  # { pyname : Annotations }
+    klass._dr_s2p = s2p                  # { sname : pyname }
 
     # add the name
     if hasattr(meta, 'name'):
@@ -125,27 +126,28 @@ class Base(object):
 
   @classmethod
   def update_fulfilled(klass):
-    print '[update_fulfilled] {0!r}'.format(klass)
     fulfilled = True
     for name, field in klass._dr_fields.iteritems():
       if not field.is_fulfilled():
-        print '[update_fulfilled] unfulfilled {0!r}'.format(name)
         fulfilled = False
         break
     if fulfilled:
       for name, field in klass._dr_annotations.iteritems():
         if not field.is_fulfilled():
-          print '[update_fulfilled] unfulfilled', name, field, field.klass_name, field._klass
           fulfilled = False
           break
     klass._dr_fulfilled = fulfilled
 
   @classmethod
   def update_fields(klass, fields):
-    a = frozenset(klass._dr_fields)
+    """
+    @param fields { sname : Field }
+    """
+    a = frozenset(klass._dr_s2p)
     b = frozenset(fields)
     for name in a ^ b:
       klass._dr_fields[name] = fields[name]
+      klass._dr_s2p[name] = name
 
 
 class Annotation(Base):
