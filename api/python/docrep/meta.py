@@ -73,13 +73,11 @@ class AnnotationMeta(DocrepMeta):
       f, k = AnnotationMeta.reg[name]
       if fields != f:
         raise ValueError('Cannot register two Annotation types {0!r} with the same name but with different fields ({1} != {2})'.format(name, f, fields))
-      print 'returning cached class {0}: {1}'.format(name, k)
       del klass
       return k
 
     # register the class
     AnnotationMeta.reg[name] = (fields, klass)
-    print 'registering', name
 
     # update the dependency fulfilled information for the class
     for field_set in ('_dr_fields', '_dr_annotations'):
@@ -140,9 +138,6 @@ class Base(object):
 
   @classmethod
   def update_fields(klass, fields):
-    """
-    @param fields { sname : Field }
-    """
     a = frozenset(klass._dr_s2p)
     b = frozenset(fields)
     for name in a ^ b:
