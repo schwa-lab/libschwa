@@ -1,22 +1,22 @@
 #!/usr/bin/env python
-import docrep
+from schwa import dr
 
-class Sentence(docrep.Annotation):
-  span2 = docrep.Pointers('Token')
-  span = docrep.Range('Token')
+class Sentence(dr.Annotation):
+  span2 = dr.Pointers('Token')
+  span = dr.Range('Token')
 
-class Token(docrep.Token):
-  pos = docrep.Field(sname='gold_pos')
-  ne  = docrep.Field(sname='gold_ne')
+class Token(dr.Token):
+  pos = dr.Field(sname='gold_pos')
+  ne  = dr.Field(sname='gold_ne')
 
-class Foo(docrep.Annotation):
-  bar = docrep.Field()
+class Foo(dr.Annotation):
+  bar = dr.Field()
 
-class Document(docrep.Document):
-  filename  = docrep.Field()
-  foo       = docrep.Singleton('Foo')
-  tokens    = docrep.Annotations('Token')
-  sentences = docrep.Annotations('Sentence')
+class Document(dr.Document):
+  filename  = dr.Field()
+  foo       = dr.Singleton('Foo')
+  tokens    = dr.Annotations('Token')
+  sentences = dr.Annotations('Sentence')
 
 
 def read_pipefile(file, filename):
@@ -44,7 +44,6 @@ def read_pipefile(file, filename):
           doc.tokens += tokens
           b = doc.tokens.index(tokens[0])
           e = doc.tokens.index(tokens[-1])
-          print 'creating sentence', tokens
           doc.sentences.append(Sentence(span=slice(b, e + 1), span2=[tokens[0], tokens[-1]]))
         elif c == ' ':
           assert state == IN_NE
@@ -79,7 +78,7 @@ if __name__ == '__main__':
 
   with open(sys.argv[1], 'rU') as fin:
     with open(sys.argv[2], 'wb') as fout:
-      writer = docrep.Writer(fout)
+      writer = dr.Writer(fout)
       for doc in read_pipefile(fin, sys.argv[1]):
         #print doc.filename, len(doc.tokens), len(doc.sentences)
         doc.foo = Foo()
