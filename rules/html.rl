@@ -7,6 +7,9 @@
   close_p_tag = "</p" any* :>> ">";
   sep_p_tag = "<p" space* "/>";
 
+  open_h_tag = "<h" [1-9] any* :>> ">";
+  close_h_tag = "</h" [1-9] any* :>> ">";
+
   open_ul_tag = "<ul" any* :>> ">";
   close_ul_tag = "</ul" any* :>> ">";
 
