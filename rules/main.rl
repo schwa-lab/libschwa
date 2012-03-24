@@ -62,6 +62,7 @@
     letter+ cont_suffix => contraction;
 
     (letter+ "."? possessive) - abbrev_decade => { split_(WORD, POSSESSIVE, dest, s); };
+    possessive => { word_(POSSESSIVE, dest, s); }; # always capture 's
 
     (numbers units) - abbrev_decade => { split_(NUMBER, UNIT, dest, s); };
     time_ambiguous meridian => { split_(NUMBER, UNIT, dest, s); };
