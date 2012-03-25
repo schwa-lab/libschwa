@@ -154,6 +154,10 @@ class Document(Base):
   class Meta:
     name = 'schwa.BaseDocument'
 
+  def ready(self):
+    """ Hook called after a Document and all its Annotations are loaded. """
+    pass
+
 
 class Token(Annotation):
   span = Range()
