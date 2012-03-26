@@ -12,8 +12,7 @@ public:
 	DebugTextStream(std::ostream &out)
 		: out_(out), new_sentence_(true){}
 
-  virtual void add(Type type, const char *raw, offset_type begin,
-									 offset_type len, const char *norm = 0){
+  virtual void add(Type, const char *raw, offset_type, offset_type len, const char *norm = 0){
     const static int NCOLOURS = 7;
 		const static char *const COLOURS[] = {
 			"\033[0;31m", "\033[0;32m", "\033[1;33m", "\033[1;34m",
@@ -31,7 +30,7 @@ public:
 			(out_ << COLOURS[i++ % NCOLOURS]).write(raw, len) << OFF;
 	}
 
-  virtual void error(const char *raw, offset_type begin, offset_type len){
+  virtual void error(const char *raw, offset_type, offset_type len){
     if(!new_sentence_)
       out_ << ' ';
     (out_ << "<error>").write(raw, len) << "</error>";
