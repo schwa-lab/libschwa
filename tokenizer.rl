@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-
+// vim: ft=ragel:
 %%{
   machine tokenizer;
 
@@ -104,13 +104,14 @@ Tokenizer::single_quote_(Stream &dest, State &state, const char *eof) const {
     state.in_single_quotes = false;
     return;
   }
-     
+
   punct_(QUOTE, dest, state, "`");
   state.in_single_quotes = true;
 }
 
 void
 Tokenizer::double_quote_(Stream &dest, State &state, const char *eof) const {
+  static_cast<void>(eof);
   if(state.in_double_quotes){
     end_(QUOTE, dest, state, "''");
     state.in_double_quotes = false;
@@ -170,7 +171,6 @@ Tokenizer::begin_html_list_(Stream &dest, State &state) const {
   state.begin_list(dest);
 }
 
-
 void
 Tokenizer::end_html_list_(Stream &dest, State &state) const {
   state.end_list(dest);
@@ -210,9 +210,8 @@ Tokenizer::die_(std::ostream &msg) const {
 }
 
 bool
-Tokenizer::tokenize_(Stream &dest, State &s, const char *&n1, const char *&n2,
-                     const char *p, const char *pe, const char *eof,
-                     int errors) const {
+Tokenizer::tokenize_(Stream &dest, State &s, const char *&n1, const char *&n2, const char *p, const char *pe, const char *eof, int errors) const {
+  static_cast<void>(eof);
   std::ostringstream msg;
 
   %% write exec;

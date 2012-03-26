@@ -1,4 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+// vim: ft=ragel:
 
 %%{
   machine tokenizer;
