@@ -42,8 +42,8 @@ public:
 
 	virtual void end_paragraph(void){}
 
-  virtual void begin_heading(int depth){}
-  virtual void end_heading(int depth){}
+  virtual void begin_heading(int depth){ begin_paragraph(); }
+  virtual void end_heading(int depth){ end_paragraph(); }
 
   virtual void begin_list(void){ begin_paragraph(); }
   virtual void end_list(void){}

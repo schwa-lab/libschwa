@@ -74,6 +74,16 @@ public:
     in_sentence = false;
   }
 
+  void begin_heading(Stream &dest, int depth) {
+	end_paragraph(dest);
+
+	in_heading = true;
+    in_single_quotes = false;
+    in_double_quotes = false;
+
+	dest.begin_heading(depth);
+  }
+
   void begin_paragraph(Stream &dest){
     end_paragraph(dest);
 
@@ -127,6 +137,20 @@ public:
     in_single_quotes = false;
     in_double_quotes = false;
     in_paragraph = false;
+  }
+
+  void end_heading(Stream &dest, int depth){
+    if(!in_heading)
+      return;
+
+    end_sentence(dest);
+
+	// FIXME: ensure consistent depth
+    dest.end_heading(depth);
+
+    in_single_quotes = false;
+    in_double_quotes = false;
+    in_heading = false;
   }
 
   void end_document(Stream &dest){

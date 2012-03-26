@@ -166,6 +166,16 @@ Tokenizer::end_html_paragraph_(Stream &dest, State &state) const {
 }
 
 void
+Tokenizer::begin_html_heading_(Stream &dest, State &state) const {
+  state.begin_heading(dest, strtol(state.ts + 2 /* <h */, NULL, 10));
+}
+
+void
+Tokenizer::end_html_heading_(Stream &dest, State &state) const {
+  state.end_heading(dest, strtol(state.ts + 3 /* </h */, NULL, 10));
+}
+
+void
 Tokenizer::begin_html_list_(Stream &dest, State &state) const {
   state.begin_list(dest);
 }

@@ -49,8 +49,8 @@
     close_p_tag => { end_html_paragraph_(dest, s); };
     sep_p_tag => { sep_html_paragraph_(dest, s); };
 
-    open_h_tag => { begin_html_paragraph_(dest, s); };
-    close_h_tag => { end_html_paragraph_(dest, s); };
+    open_h_tag => { begin_html_heading_(dest, s); };
+    close_h_tag => { end_html_heading_(dest, s); };
 
     open_ul_tag | open_ol_tag => { begin_html_list_(dest, s); };
     close_ul_tag | close_ol_tag => { end_html_list_(dest, s); };

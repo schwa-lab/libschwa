@@ -56,6 +56,9 @@ protected:
   void begin_html_paragraph_(Stream &dest, State &state) const;
   void end_html_paragraph_(Stream &dest, State &state) const;
 
+  void begin_html_heading_(Stream &dest, State &state) const;
+  void end_html_heading_(Stream &dest, State &state) const;
+
   void begin_html_list_(Stream &dest, State &state) const;
   void end_html_list_(Stream &dest, State &state) const;
   void begin_html_item_(Stream &dest, State &state) const;

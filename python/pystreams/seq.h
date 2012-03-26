@@ -49,8 +49,8 @@ public:
     sentences_.resize(0);
   }
 
-  virtual void begin_heading(int depth){}
-  virtual void end_heading(int depth){}
+  virtual void begin_heading(int depth){ begin_paragraph(); }
+  virtual void end_heading(int depth){ end_paragraph(); }
 
   virtual void begin_list(void){}
   virtual void end_list(void){
