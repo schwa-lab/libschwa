@@ -112,7 +112,7 @@ class Base(object):
 
   def __init__(self, **kwargs):
     if not self._dr_fulfilled:
-      raise DependencyException('Cannot instantiate class {0!r} with unfilled dependencies'.format(self.__class__.__name__))
+      raise DependencyException('Cannot instantiate class {0!r} with unfilled dependencies {1!r}'.format(self.__class__.__name__, list(self.find_unfulfilled())))
 
     for name, field in self._dr_fields.iteritems():
       self.__dict__[name] = field.default()
@@ -123,18 +123,18 @@ class Base(object):
       setattr(self, k, v)
 
   @classmethod
-  def update_fulfilled(klass):
-    fulfilled = True
+  def find_unfulfilled(klass):
+    """Returns an unfulfilled field where available, otherwise None"""
     for name, field in klass._dr_fields.iteritems():
       if not field.is_fulfilled():
-        fulfilled = False
-        break
-    if fulfilled:
-      for name, field in klass._dr_annotations.iteritems():
-        if not field.is_fulfilled():
-          fulfilled = False
-          break
-    klass._dr_fulfilled = fulfilled
+        yield name
+    for name, field in klass._dr_annotations.iteritems():
+      if not field.is_fulfilled():
+        yield name
+
+  @classmethod
+  def update_fulfilled(klass):
+    klass._dr_fulfilled = not any(klass.find_unfulfilled())
 
   @classmethod
   def update_fields(klass, fields):
