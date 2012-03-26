@@ -7,8 +7,9 @@ class PyTextStream: public PyStream {
 protected:
   std::ostringstream out_;
   TextStream delegate_;
+
 public:
-	PyTextStream(bool normalise)
+  PyTextStream(bool normalise)
     : delegate_(out_, normalise){}
   virtual ~PyTextStream(void){}
 
@@ -20,17 +21,17 @@ public:
   virtual void add(Type type, const char *raw, offset_type begin,
                    offset_type len, const char *norm = 0){
     delegate_.add(type, raw, begin, len, norm);
-	}
+  }
 
   virtual void error(const char *raw, offset_type begin, offset_type len){
     delegate_.error(raw, begin, len);
   }
 
   virtual void begin_sentence(void){ delegate_.begin_sentence(); }
-	virtual void end_sentence(void){ delegate_.end_sentence(); }
+  virtual void end_sentence(void){ delegate_.end_sentence(); }
 
   virtual void begin_paragraph(void){ delegate_.begin_paragraph(); }
-	virtual void end_paragraph(void){ delegate_.end_paragraph(); }
+  virtual void end_paragraph(void){ delegate_.end_paragraph(); }
 
   virtual void begin_heading(int depth){ delegate_.begin_heading(depth); }
   virtual void end_heading(int depth){ delegate_.end_heading(depth); }
@@ -42,18 +43,20 @@ public:
   virtual void end_item(void){ delegate_.end_item(); }
 
   virtual void begin_document(void){ delegate_.begin_document(); }
-	virtual void end_document(void){ delegate_.end_document(); }
+  virtual void end_document(void){ delegate_.end_document(); }
 };
+
 
 class PyBytesStream: public PyTextStream {
 public:
-	PyBytesStream(bool normalise): PyTextStream(normalise){}
+  PyBytesStream(bool normalise): PyTextStream(normalise){}
   virtual ~PyBytesStream(void){}
 };
 
+
 class PyUnicodeStream: public PyTextStream {
 public:
-	PyUnicodeStream(bool normalise): PyTextStream(normalise){}
+  PyUnicodeStream(bool normalise): PyTextStream(normalise){}
   virtual ~PyUnicodeStream(void){}
 
   virtual PyObject *get(void){
