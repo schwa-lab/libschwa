@@ -278,3 +278,6 @@ class Reader(object):
             new = collection[old]
           setattr(obj, f.name(), new)
 
+    # Call post-reading hook.
+    self._doc.ready()
+
