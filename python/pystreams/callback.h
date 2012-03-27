@@ -6,8 +6,16 @@ class PyCallObjectStream: public PyStream {
 protected:
   PyObject *obj;
 
+  bool is_handled(const char* method) {
+    if(PyObject_HasAttrString(obj, method))
+      return true;
+    if(PyObject_HasAttrString(obj, "unhandled"))
+      PyObject_CallMethod(obj, (char *)"unhandled", (char *)"s", method);
+    return false;
+  }
+
   void call(const char *method){
-    if(!PyObject_HasAttrString(obj, method))
+    if(!is_handled(method))
       return;
 
     if(!PyObject_CallMethod(obj, (char *)method, 0))
@@ -25,7 +33,7 @@ public:
 
   void add(Type type, const char *raw, offset_type begin,
            offset_type len, const char *norm = 0){
-    if(!PyObject_HasAttrString(obj, "add"))
+    if(!is_handled("add"))
       return;
 
     Py_ssize_t pybegin = begin;
@@ -43,7 +51,7 @@ public:
   }
 
   virtual void error(const char *raw, offset_type begin, offset_type len){
-    if(!PyObject_HasAttrString(obj, "error"))
+    if(!is_handled("error"))
       return;
 
     Py_ssize_t pybegin = begin;
@@ -59,13 +67,13 @@ public:
   void end_paragraph(void){ call("end_paragraph"); }
 
   void begin_heading(int depth){
-    if(!PyObject_HasAttrString(obj, "begin_heading"))
+    if(!is_handled("begin_heading"))
       return;
 
     PyObject_CallMethod(obj, (char *)"begin_heading", (char *)"i", depth);
   }
   void end_heading(int depth){
-    if(!PyObject_HasAttrString(obj, "end_heading"))
+    if(!is_handled("end_heading"))
       return;
 
     PyObject_CallMethod(obj, (char *)"end_heading", (char *)"i", depth);
