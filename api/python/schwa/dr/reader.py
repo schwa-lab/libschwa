@@ -262,10 +262,11 @@ class Reader(object):
     # update the pointers
     for t in wire_types:
       if t.is_meta:
-        continue
-      objs = getattr(self._doc, t.collection_name())
-      if t.is_singleton:
-        objs = (objs, )
+        objs = [self._doc]
+      else:
+        objs = getattr(self._doc, t.collection_name())
+        if t.is_singleton:
+          objs = (objs, )
 
       for obj in objs:
         for f in t.get_pointer_fields():
