@@ -122,7 +122,7 @@ class Base(object):
     for k, v in kwargs.iteritems():
       setattr(self, k, v)
 
-  FIELD_MSG_TEMPLATE = 'Field "{0}" which refers to class name "{1}"'
+  FIELD_MSG_TEMPLATE = 'Field {0!r} which refers to class name {1!r}'
   @classmethod
   def find_unfulfilled(klass):
     """Returns an unfulfilled field where available, otherwise None"""
@@ -148,7 +148,11 @@ class Base(object):
     a = frozenset(klass._dr_s2p)
     b = frozenset(fields)
     for name in b - a:
-      klass._dr_fields[name] = fields[name]
+      field = fields[name]
+      if isinstance(field, Annotations):
+        klass._dr_annotations[name] = field
+      else:
+        klass._dr_fields[name] = field
       klass._dr_s2p[name] = name
 
 
