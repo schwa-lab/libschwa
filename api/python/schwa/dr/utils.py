@@ -1,3 +1,4 @@
+# vim: set ts=2 et:
 
 __all__ = ['to_lower', 'pluralise']
 

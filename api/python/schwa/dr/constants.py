@@ -1,5 +1,4 @@
-
-#MODE_DOCUMENT, MODE_TOKEN, MODE_ANNOTATION = range(3)
+# vim: set ts=2 et:
 
 FIELD_TYPE_NAME       = 0
 FIELD_TYPE_POINTER_TO = 1
