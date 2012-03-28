@@ -122,15 +122,22 @@ class Base(object):
     for k, v in kwargs.iteritems():
       setattr(self, k, v)
 
+  FIELD_MSG_TEMPLATE = 'Field "{0}" which refers to class name "{1}"'
   @classmethod
   def find_unfulfilled(klass):
     """Returns an unfulfilled field where available, otherwise None"""
     for name, field in klass._dr_fields.iteritems():
       if not field.is_fulfilled():
-        yield name
+        if hasattr(field, 'klass_name'):
+            yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
+        else:
+            yield name
     for name, field in klass._dr_annotations.iteritems():
       if not field.is_fulfilled():
-        yield name
+        if hasattr(field, 'klass_name'):
+            yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
+        else:
+            yield name
 
   @classmethod
   def update_fulfilled(klass):
