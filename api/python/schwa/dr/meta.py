@@ -147,7 +147,7 @@ class Base(object):
   def update_fields(klass, fields):
     a = frozenset(klass._dr_s2p)
     b = frozenset(fields)
-    for name in a ^ b:
+    for name in b - a:
       klass._dr_fields[name] = fields[name]
       klass._dr_s2p[name] = name
 
