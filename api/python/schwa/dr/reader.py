@@ -1,3 +1,4 @@
+# vim: set ts=2 et:
 import msgpack
 
 from .constants import *
@@ -143,7 +144,7 @@ class WireType(object):
     s2p = klass._dr_s2p
     for i in self._instances:
       vals = dict((s2p[k], v) for k, v in i.iteritems())
-      yield klass(**vals)
+      yield klass.from_wire(**vals)
 
   def get_pointer_fields(self):
     return [f for f in self._fields if f.is_pointer() and not f.is_range()]
@@ -255,8 +256,7 @@ class Reader(object):
       else:
         collection = getattr(self._doc, t.collection_name())
         collection.clear()
-        objs = t.instantiate_instances()
-        for obj in objs:
+        for obj in t.instantiate_instances():
           collection.append(obj)
 
     # update the pointers
@@ -281,6 +281,6 @@ class Reader(object):
             new = collection[old]
           setattr(obj, f.name(), new)
 
-    # Call post-reading hook.
+    # call post-reading hook.
     self._doc.ready()
 

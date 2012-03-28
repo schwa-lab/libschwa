@@ -1,3 +1,4 @@
+# vim: set ts=2 et:
 from .collections import AnnotationsList
 
 __all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Range', 'BaseAnnotationsField', 'Annotations', 'Singleton']

@@ -1,3 +1,4 @@
+# vim: set ts=2 et:
 import cStringIO
 
 import msgpack
@@ -79,6 +80,8 @@ class Writer(object):
     msg_obj = {}
     for pyname, field in obj._dr_fields.iteritems():
       val = getattr(obj, pyname)
+      if hasattr(field, 'to_wire'):
+        val = field.to_wire(val)
       if val is None:
         continue
       if isinstance(field, Pointer):
