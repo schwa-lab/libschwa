@@ -1,3 +1,4 @@
+# vim: set ts=2 et:
 
 class AnnotationsList(object):
   __slots__ = ('_items', '_klass')
