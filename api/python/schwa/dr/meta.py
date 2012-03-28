@@ -1,3 +1,4 @@
+# vim: set ts=2 et:
 from .exceptions import DependencyException
 from .fields import *
 from .utils import pluralise
@@ -112,7 +113,7 @@ class Base(object):
 
   def __init__(self, **kwargs):
     if not self._dr_fulfilled:
-      raise DependencyException('Cannot instantiate class {0!r} with unfilled dependencies {1!r}'.format(self.__class__.__name__, list(self.find_unfulfilled())))
+      raise DependencyException('Cannot instantiate class {0!r} with unfilled dependencies {1!r}'.format(self._dr_name, list(self.find_unfulfilled())))
 
     for name, field in self._dr_fields.iteritems():
       self.__dict__[name] = field.default()
@@ -122,6 +123,14 @@ class Base(object):
     for k, v in kwargs.iteritems():
       setattr(self, k, v)
 
+  @classmethod
+  def from_wire(klass, **kwargs):
+    for k, v in kwargs.iteritems():
+      f = klass._dr_fields.get(k, None)
+      if hasattr(f, 'from_wire'):
+        kwargs[k] = f.from_wire(v)
+    return klass(**kwargs)
+
   FIELD_MSG_TEMPLATE = 'Field {0!r} which refers to class name {1!r}'
   @classmethod
   def find_unfulfilled(klass):
@@ -129,15 +138,15 @@ class Base(object):
     for name, field in klass._dr_fields.iteritems():
       if not field.is_fulfilled():
         if hasattr(field, 'klass_name'):
-            yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
+          yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
         else:
-            yield name
+          yield name
     for name, field in klass._dr_annotations.iteritems():
       if not field.is_fulfilled():
         if hasattr(field, 'klass_name'):
-            yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
+          yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
         else:
-            yield name
+          yield name
 
   @classmethod
   def update_fulfilled(klass):
@@ -158,12 +167,12 @@ class Base(object):
 
 class Annotation(Base):
   class Meta:
-    name = 'schwa.BaseAnnotation'
+    name = 'schwa.dr.Annotation'
 
 
 class Document(Base):
   class Meta:
-    name = 'schwa.BaseDocument'
+    name = 'schwa.dr.Document'
 
   def ready(self):
     """ Hook called after a Document and all its Annotations are loaded. """
