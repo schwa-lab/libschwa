@@ -14,6 +14,8 @@ class Writer(object):
   __slots__ = ('_ostream', '_packer')
 
   def __init__(self, ostream):
+    if not hasattr(ostream, 'write'):
+        raise TypeError('"ostream" must have a write attr.')
     self._ostream = ostream
     self._packer  = msgpack.Packer()
 
