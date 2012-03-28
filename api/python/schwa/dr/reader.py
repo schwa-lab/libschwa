@@ -273,6 +273,8 @@ class Reader(object):
           klass = f.dr_field()._klass
           collection = getattr(self._doc, klass2collection_name[klass])
           old = getattr(obj, f.name())
+          if old is None:
+            continue
           if f.is_collection():
             new = [collection[i] for i in old]
           else:
