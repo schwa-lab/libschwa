@@ -1,9 +1,10 @@
 
 class AnnotationsList(object):
-  __slots__ = ('_items', )
+  __slots__ = ('_items', '_klass')
 
-  def __init__(self):
+  def __init__(self, klass):
     self._items = []
+    self._klass = klass
 
   def __iadd__(self, other):
     for obj in other:
@@ -35,4 +36,9 @@ class AnnotationsList(object):
 
   def index(self, item):
     return self._items.index(item)
+
+  def create(self, **kwargs):
+    obj = self._klass(**kwargs)
+    self.append(obj)
+    return obj
 
