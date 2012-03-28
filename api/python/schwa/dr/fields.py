@@ -70,7 +70,8 @@ class Pointers(Pointer):
     super(Pointers, self).__init__(klass_name, **kwargs)
 
   def default(self):
-    return AnnotationsList()
+    assert self._klass is not None
+    return AnnotationsList(self._klass)
 
 
 class Range(BaseAnnotationField):
@@ -120,7 +121,8 @@ class Annotations(BaseAnnotationsField):
       self._klass = klass_name
 
   def default(self):
-    return AnnotationsList()
+    assert self._klass is not None
+    return AnnotationsList(self._klass)
 
   def is_fulfilled(self):
     return self._klass is not None
