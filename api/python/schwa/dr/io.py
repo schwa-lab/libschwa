@@ -1,7 +1,8 @@
+# vim: set ts=2 et:
 from .constants import *
 from .fields import *
 
-__all__ = ['Type', 'swizzle_ptr', 'types_from_doc', 'unswizzle_ptr']
+__all__ = ['Type', 'swizzle_ptr', 'types_from_doc']
 
 
 class Type(object):
@@ -65,11 +66,4 @@ def swizzle_ptr(ptr):
   if not hasattr(ptr, '_dr_index'):
     raise ValueError('Cannot serialize a pointer to an object which is not managed by an Annotations')
   return ptr._dr_index
-
-
-def unswizzle_ptr(ptr, items):
-  if ptr is not None:
-    ptr = items[ptr]
-  return ptr
-
 
