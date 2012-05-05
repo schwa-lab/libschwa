@@ -1,10 +1,10 @@
 # vim: set ts=2 et:
 from .collections import StoreList
 
-__all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Slice', 'BaseStore', 'Store', 'Singleton']
+__all__ = ['BaseAttr', 'BaseField', 'Field', 'Pointer', 'Pointers', 'Slice', 'BaseStore', 'Store', 'Singleton']
 
 
-class BaseField(object):
+class BaseAttr(object):
   __slots__ = ('serial', )
 
   def __init__(self, **kwargs):
@@ -28,11 +28,11 @@ class BaseField(object):
 
 # =============================================================================
 # =============================================================================
-class BaseAnnotationField(BaseField):
+class BaseField(BaseAttr):
   pass
 
 
-class Field(BaseAnnotationField):
+class Field(BaseField):
   def default(self):
     return None
 
@@ -40,7 +40,7 @@ class Field(BaseAnnotationField):
     return True
 
 
-class Pointer(BaseAnnotationField):
+class Pointer(BaseField):
   __slots__ = ('klass_name', 'via', 'is_collection', '_klass')
 
   def __init__(self, klass_name, **kwargs):
@@ -77,7 +77,7 @@ class Pointers(Pointer):
     return StoreList(self._klass)
 
 
-class Slice(BaseAnnotationField):
+class Slice(BaseField):
   __slots__ = ('klass_name', 'via', '_klass')
 
   def __init__(self, klass_name=None, **kwargs):
@@ -106,15 +106,15 @@ class Slice(BaseAnnotationField):
 
 # =============================================================================
 # =============================================================================
-class BaseStore(BaseField):
+class BaseStore(BaseAttr):
   def is_collection(self):
     return True
 
 
 class Store(BaseStore):
   """
-  A Store houses BaseAnnotationField instances. For a BaseAnnotationField to be
-  serialised, it needs to be placed into a Store.
+  A Store houses BaseField instances. For a BaseField to be serialised, it needs
+  to be placed into a Store.
   """
   __slots__ = ('klass_name', '_klass')
 
