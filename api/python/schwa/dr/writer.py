@@ -4,7 +4,7 @@ import cStringIO
 import msgpack
 
 from .constants import FIELD_TYPE_POINTER_TO
-from .fields import Pointer, Range, Singleton
+from .fields import Pointer, Range
 from .io import swizzle_ptr, types_from_doc
 from .meta import Document
 
@@ -22,20 +22,20 @@ class Writer(object):
 
   def write_doc(self, doc):
     if not isinstance(doc, Document):
-      raise ValueError('You can only stream instances of docrep.Document')
+      raise ValueError('You can only stream instances of Document')
 
     # find all of the types defined
     types = types_from_doc(doc)  # { klass : Type }
 
-    # run along each of the Annotations and update the _dr_index attributes
-    for name, annotations in doc._dr_annotations.iteritems():
+    # run along each of the Stores and update the _dr_index attributes
+    for name, store in doc._dr_stores.iteritems():
       val = getattr(doc, name)
-      if isinstance(annotations, Singleton):
-        if val:
-          val._dr_index = 0
-      else:
+      if store.is_collection():
         for i, obj in enumerate(val):
           obj._dr_index = i
+      else:
+        if val:
+          val._dr_index = 0
 
     # construct the header
     header = [None] * len(types)

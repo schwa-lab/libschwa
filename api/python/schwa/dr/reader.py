@@ -2,7 +2,7 @@
 import msgpack
 
 from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_RANGE
-from .fields import Annotations, Field, Pointer, Pointers, Range, Singleton
+from .fields import Field, Pointer, Pointers, Range, Singleton, Store
 from .meta import AnnotationMeta, Annotation, Document
 from .utils import to_lower
 
@@ -52,19 +52,19 @@ class WireField(object):
       if self.is_range():
         if self.is_pointer():
           klass_name = WireType.by_number[self._pointer_num].name()
-          self._dr_field = Range(klass_name, sname=self._name)
+          self._dr_field = Range(klass_name, serial=self._name)
         else:
-          self._dr_field = Range(sname=self._name)
+          self._dr_field = Range(serial=self._name)
       elif self.is_pointer():
         klass_name = WireType.by_number[self._pointer_num].name()
         klass = AnnotationMeta.cached(klass_name)
         v = klass_name if klass is None else klass
         if self.is_collection():
-          self._dr_field = Pointers(v, sname=self._name)
+          self._dr_field = Pointers(v, serial=self._name)
         else:
-          self._dr_field = Pointer(v, sname=self._name)
+          self._dr_field = Pointer(v, serial=self._name)
       else:
-        self._dr_field = Field(sname=self._name)
+        self._dr_field = Field(serial=self._name)
     return self._dr_field
 
 
@@ -110,7 +110,7 @@ class WireType(object):
     self._fields.append(field)
 
   def add_instance(self, obj):
-    instance = {}  # { sname : val }
+    instance = {}  # { serial : val }
     for f in self._fields:
       val = obj.get(f.number())
       if val is not None:
@@ -133,7 +133,7 @@ class WireType(object):
       self._klass = klass
     return self._klass
 
-  def collection_name(self):
+  def store_name(self):
     if self.is_singleton:
       return to_lower(self._name)
     return self._klass._dr_plural
@@ -212,14 +212,14 @@ class Reader(object):
     for t in wire_types:
       if not t.is_meta:
         t.klass()
-    annotations = {}
+    stores = {}
     for t in wire_types:
       if not t.is_meta:
-        klass = Singleton if t.is_singleton else Annotations
-        annotations[t.collection_name()] = klass(t.klass())
+        klass = Singleton if t.is_singleton else Store
+        stores[t.store_name()] = klass(t.klass())
 
     # add the Document fields
-    doc_fields = annotations.copy()
+    doc_fields = stores.copy()
     if wire_meta:
       for f in wire_meta.fields():
         doc_fields[f.name()] = f.dr_field()
@@ -242,42 +242,42 @@ class Reader(object):
     self._doc = self._doc_klass(**doc_vals)
 
     # instantiate all of the objects
-    klass2collection_name = {}
+    klass2store_name = {}
     for t in wire_types:
       if t.is_meta:
         continue
-      klass2collection_name[t.klass()] = t.collection_name()
+      klass2store_name[t.klass()] = t.store_name()
 
       if t.is_singleton:
         objs = list(t.instantiate_instances())
         assert len(objs) == 1
-        setattr(self._doc, t.collection_name(), objs[0])
+        setattr(self._doc, t.store_name(), objs[0])
       else:
-        collection = getattr(self._doc, t.collection_name())
-        collection.clear()
+        store = getattr(self._doc, t.store_name())
+        store.clear()
         for obj in t.instantiate_instances():
-          collection.append(obj)
+          store.append(obj)
 
     # update the pointers
     for t in wire_types:
       if t.is_meta:
         objs = [self._doc]
       else:
-        objs = getattr(self._doc, t.collection_name())
+        objs = getattr(self._doc, t.store_name())
         if t.is_singleton:
           objs = (objs, )
 
       for obj in objs:
         for f in t.get_pointer_fields():
           klass = f.dr_field()._klass
-          collection = getattr(self._doc, klass2collection_name[klass])
+          store = getattr(self._doc, klass2store_name[klass])
           old = getattr(obj, f.name())
           if old is None:
             continue
           if f.is_collection():
-            new = [collection[i] for i in old]
+            new = [store[i] for i in old]
           else:
-            new = collection[old]
+            new = store[old]
           setattr(obj, f.name(), new)
 
     # call post-reading hook.

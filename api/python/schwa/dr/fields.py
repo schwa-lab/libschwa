@@ -1,16 +1,19 @@
 # vim: set ts=2 et:
-from .collections import AnnotationsList
+from .collections import StoreList
 
-__all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Range', 'BaseAnnotationsField', 'Annotations', 'Singleton']
+__all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Range', 'BaseStore', 'Store', 'Singleton']
 
 
 class BaseField(object):
-  __slots__ = ('sname', )
+  __slots__ = ('serial', )
 
   def __init__(self, **kwargs):
-    self.sname = kwargs.get('sname')
+    self.serial = kwargs.get('serial')
 
   def default(self):
+    """
+    Returns the default value for this type when it is instantiated.
+    """
     raise NotImplementedError
 
   def is_fulfilled(self):
@@ -71,7 +74,7 @@ class Pointers(Pointer):
 
   def default(self):
     assert self._klass is not None
-    return AnnotationsList(self._klass)
+    return StoreList(self._klass)
 
 
 class Range(BaseAnnotationField):
@@ -103,15 +106,20 @@ class Range(BaseAnnotationField):
 
 # =============================================================================
 # =============================================================================
-class BaseAnnotationsField(BaseField):
-  pass
+class BaseStore(BaseField):
+  def is_collection(self):
+    return True
 
 
-class Annotations(BaseAnnotationsField):
+class Store(BaseStore):
+  """
+  A Store houses BaseAnnotationField instances. For a BaseAnnotationField to be
+  serialised, it needs to be placed into a Store.
+  """
   __slots__ = ('klass_name', '_klass')
 
   def __init__(self, klass_name, **kwargs):
-    super(Annotations, self).__init__(**kwargs)
+    super(Store, self).__init__(**kwargs)
     if isinstance(klass_name, (str, unicode)):
       self.klass_name = klass_name.encode('utf-8')
       self._klass = None
@@ -121,7 +129,7 @@ class Annotations(BaseAnnotationsField):
 
   def default(self):
     assert self._klass is not None
-    return AnnotationsList(self._klass)
+    return StoreList(self._klass)
 
   def is_fulfilled(self):
     return self._klass is not None
@@ -133,6 +141,9 @@ class Annotations(BaseAnnotationsField):
     self._klass = klass
 
 
-class Singleton(Annotations):
+class Singleton(Store):
   def default(self):
     return None
+
+  def is_collection(self):
+    return False

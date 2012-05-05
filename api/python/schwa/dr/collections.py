@@ -1,7 +1,8 @@
 # vim: set ts=2 et:
+__all__ = ['StoreList']
 
 
-class AnnotationsList(object):
+class StoreList(object):
   __slots__ = ('_items', '_klass')
 
   def __init__(self, klass):
@@ -23,7 +24,7 @@ class AnnotationsList(object):
     return len(self._items)
 
   def __repr__(self):
-    return 'AnnotationsList({0!r})'.format(self._items)
+    return 'StoreList({0!r})'.format(self._items)
 
   def __str__(self):
     return str(self._items)

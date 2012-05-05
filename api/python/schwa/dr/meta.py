@@ -1,6 +1,6 @@
 # vim: set ts=2 et:
 from .exceptions import DependencyException
-from .fields import Annotations, BaseAnnotationField, BaseAnnotationsField, BaseField, Field, Range
+from .fields import BaseAnnotationField, BaseField, BaseStore, Field, Range
 from .utils import pluralise
 
 __all__ = ['AnnotationMeta', 'Annotation', 'Document', 'Token']
@@ -13,28 +13,28 @@ class DocrepMeta(type):
     # construct the class
     klass = super(DocrepMeta, mklass).__new__(mklass, klass_name, bases, attrs)
 
-    # discover the BaseAnnotationField and BaseAnnotationsField instances
-    annotations, fields, s2p = {}, {}, {}
+    # discover the BaseAnnotationField and BaseStore instances
+    stores, fields, s2p = {}, {}, {}
     for base in bases:
-      annotations.update(getattr(base, '_dr_annotations', {}))
+      stores.update(getattr(base, '_dr_stores', {}))
       fields.update(getattr(base, '_dr_fields', {}))
       s2p.update(getattr(base, '_dr_s2p', {}))
     for name, field in attrs.iteritems():
       if isinstance(field, BaseField):
-        if isinstance(field, BaseAnnotationsField):
-          if field.sname is None:
-            field.sname = field.klass_name
-          annotations[name] = field
+        if isinstance(field, BaseStore):
+          if field.serial is None:
+            field.serial = field.klass_name
+          stores[name] = field
         elif isinstance(field, BaseAnnotationField):
-          if field.sname is None:
-            field.sname = name
+          if field.serial is None:
+            field.serial = name
           fields[name] = field
-          s2p[field.sname] = name
+          s2p[field.serial] = name
 
-    # adds the Field and Annotation information appropriately
-    klass._dr_fields = fields            # { pyname : Field }
-    klass._dr_annotations = annotations  # { pyname : Annotations }
-    klass._dr_s2p = s2p                  # { sname : pyname }
+    # adds the Field and Store information appropriately
+    klass._dr_fields = fields  # { pyname : Field }
+    klass._dr_stores = stores  # { pyname : Store }
+    klass._dr_s2p = s2p        # { serial : pyname }
 
     # add the name
     if hasattr(meta, 'name'):
@@ -65,7 +65,7 @@ class AnnotationMeta(DocrepMeta):
 
   @staticmethod
   def register(klass):
-    fields = tuple(sorted(klass._dr_fields.keys() + klass._dr_annotations.keys()))
+    fields = tuple(sorted(klass._dr_fields.keys() + klass._dr_stores.keys()))
     name = klass._dr_name
 
     # check if we have cached this class
@@ -79,7 +79,7 @@ class AnnotationMeta(DocrepMeta):
     AnnotationMeta.reg[name] = (fields, klass)
 
     # update the dependency fulfilled information for the class
-    for field_set in ('_dr_fields', '_dr_annotations'):
+    for field_set in ('_dr_fields', '_dr_stores'):
       for field in getattr(klass, field_set).itervalues():
         if not field.is_fulfilled():
           dep = field.get_dependency()
@@ -114,8 +114,8 @@ class Base(object):
 
     for name, field in self._dr_fields.iteritems():
       self.__dict__[name] = field.default()
-    for name, annotations in self._dr_annotations.iteritems():
-      self.__dict__[name] = annotations.default()
+    for name, store in self._dr_stores.iteritems():
+      self.__dict__[name] = store.default()
 
     for k, v in kwargs.iteritems():
       setattr(self, k, v)
@@ -132,17 +132,19 @@ class Base(object):
 
   @classmethod
   def find_unfulfilled(klass):
-    """Returns an unfulfilled field where available, otherwise None"""
+    """
+    Returns an unfulfilled field where available, otherwise None
+    """
     for name, field in klass._dr_fields.iteritems():
       if not field.is_fulfilled():
         if hasattr(field, 'klass_name'):
           yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
         else:
           yield name
-    for name, field in klass._dr_annotations.iteritems():
-      if not field.is_fulfilled():
-        if hasattr(field, 'klass_name'):
-          yield klass.FIELD_MSG_TEMPLATE.format(name, field.klass_name)
+    for name, store in klass._dr_stores.iteritems():
+      if not store.is_fulfilled():
+        if hasattr(store, 'klass_name'):
+          yield klass.FIELD_MSG_TEMPLATE.format(name, store.klass_name)
         else:
           yield name
 
@@ -156,8 +158,8 @@ class Base(object):
     b = frozenset(fields)
     for name in b - a:
       field = fields[name]
-      if isinstance(field, Annotations):
-        klass._dr_annotations[name] = field
+      if isinstance(field, BaseStore):
+        klass._dr_stores[name] = field
       else:
         klass._dr_fields[name] = field
       klass._dr_s2p[name] = name
@@ -173,7 +175,9 @@ class Document(Base):
     name = 'schwa.dr.Document'
 
   def ready(self):
-    """ Hook called after a Document and all its Annotations are loaded. """
+    """
+    Hook called after a Document and all its Stores are loaded.
+    """
     pass
 
 
@@ -183,7 +187,7 @@ class Token(Annotation):
   norm = Field()
 
   class Meta:
-    name = 'schwa.BaseToken'
+    name = 'schwa.dr.Token'
 
   def __repr__(self):
     return 'Token({0!r})'.format(self.norm)
