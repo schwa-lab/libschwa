@@ -4,6 +4,7 @@ Tests ensuring that what is written out is identical to what is read in.
 from unittest import TestCase
 
 from schwa import dr
+
 from testutil import write_x_read_y, write_read
 
 
@@ -20,7 +21,7 @@ class Annot(dr.Annotation):
 
 
 class DocWithAnnotsAndPointer(dr.Document):
-  annots = dr.Annotations('Annot')
+  annots = dr.Store('Annot')
   special_annot = dr.Pointer('Annot')
 
 

@@ -3,6 +3,7 @@ import datetime
 import unittest
 
 from schwa import dr
+
 from testutil import write_read
 
 
@@ -12,7 +13,7 @@ class Event(dr.Annotation):
 
 
 class Doc(dr.Document):
-  events = dr.Annotations('Event')
+  events = dr.Store('Event')
 
 
 class DateTimeTest(unittest.TestCase):
@@ -27,4 +28,3 @@ class DateTimeTest(unittest.TestCase):
     self.assertIsNotNone(doc2.events[0].date)
     self.assertIsNone(doc2.events[1].date)
     self.assertEqual(doc1.events[0].date, doc2.events[0].date)
-
