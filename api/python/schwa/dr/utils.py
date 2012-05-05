@@ -1,9 +1,9 @@
 # vim: set ts=2 et:
-
-__all__ = ['to_lower', 'pluralise']
+__all__ = ['pluralise', 'to_lower']
 
 VOWELS = set('aeiou')
 CONSONANTS = set('bcdfghjklmnpqrstvwxyz')
+
 
 def to_lower(name):
   word = []
@@ -24,4 +24,3 @@ def pluralise(name):
     return word[:-1] + 'ies'
   else:
     return word + 's'
-

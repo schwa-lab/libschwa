@@ -3,9 +3,9 @@ import cStringIO
 
 import msgpack
 
-from .constants import *
-from .fields import *
-from .io import *
+from .constants import FIELD_TYPE_POINTER_TO
+from .fields import Pointer, Range, Singleton
+from .io import swizzle_ptr, types_from_doc
 from .meta import Document
 
 __all__ = ['Writer']
@@ -20,13 +20,12 @@ class Writer(object):
     self._ostream = ostream
     self._packer  = msgpack.Packer()
 
-
   def write_doc(self, doc):
     if not isinstance(doc, Document):
       raise ValueError('You can only stream instances of docrep.Document')
 
     # find all of the types defined
-    types = types_from_doc(doc) # { klass : Type }
+    types = types_from_doc(doc)  # { klass : Type }
 
     # run along each of the Annotations and update the _dr_index attributes
     for name, annotations in doc._dr_annotations.iteritems():
@@ -69,12 +68,10 @@ class Writer(object):
       self._pack(len(tmp.getvalue()))
       self._ostream.write(tmp.getvalue())
 
-
   def _pack(self, obj, out=None):
     if out is None:
       out = self._ostream
     out.write(self._packer.pack(obj))
-
 
   def _serialize(self, obj, t):
     msg_obj = {}
@@ -95,4 +92,3 @@ class Writer(object):
         val = val.encode('utf-8')
       msg_obj[t.pyname_to_index(pyname)] = val
     return msg_obj
-

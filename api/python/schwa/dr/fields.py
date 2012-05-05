@@ -25,7 +25,6 @@ class BaseField(object):
 
 # =============================================================================
 # =============================================================================
-
 class BaseAnnotationField(BaseField):
   pass
 
@@ -104,7 +103,6 @@ class Range(BaseAnnotationField):
 
 # =============================================================================
 # =============================================================================
-
 class BaseAnnotationsField(BaseField):
   pass
 
@@ -138,4 +136,3 @@ class Annotations(BaseAnnotationsField):
 class Singleton(Annotations):
   def default(self):
     return None
-

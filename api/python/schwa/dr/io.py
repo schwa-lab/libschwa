@@ -1,6 +1,6 @@
 # vim: set ts=2 et:
-from .constants import *
-from .fields import *
+from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_RANGE
+from .fields import Pointer, Range, Singleton
 
 __all__ = ['Type', 'swizzle_ptr', 'types_from_doc']
 
@@ -34,7 +34,6 @@ class Type(object):
             f[FIELD_TYPE_POINTER_TO] = field._klass
         self.fields.append(f)
 
-
   def __repr__(self):
     return 'Type({0!r})'.format(self.name)
 
@@ -50,7 +49,7 @@ class Type(object):
 
 def types_from_doc(doc):
   # find all of the types defined
-  types = {} # { klass : Type }
+  types = {}  # { klass : Type }
   types[doc.__class__] = Type(doc.__class__, '__meta__', len(types), is_meta=True)
   for name, annotations in doc._dr_annotations.iteritems():
     t = Type(annotations._klass, annotations.sname, len(types), 0, name)
@@ -66,4 +65,3 @@ def swizzle_ptr(ptr):
   if not hasattr(ptr, '_dr_index'):
     raise ValueError('Cannot serialize a pointer to an object which is not managed by an Annotations')
   return ptr._dr_index
-

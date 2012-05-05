@@ -1,11 +1,10 @@
 # vim: set ts=2 et:
 import msgpack
 
-from .constants import *
-from .fields import *
-from .io import *
+from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_RANGE
+from .fields import Annotations, Field, Pointer, Pointers, Range, Singleton
 from .meta import AnnotationMeta, Annotation, Document
-from .utils import *
+from .utils import to_lower
 
 __all__ = ['Reader']
 
@@ -111,7 +110,7 @@ class WireType(object):
     self._fields.append(field)
 
   def add_instance(self, obj):
-    instance = {} # { sname : val }
+    instance = {}  # { sname : val }
     for f in self._fields:
       val = obj.get(f.number())
       if val is not None:
@@ -178,7 +177,7 @@ class Reader(object):
 
   def _read_doc(self):
     # attempt to read the header
-    header = self._unpack() # [ ( name, nelem, [ { field_key : field_val } ] ) ]
+    header = self._unpack()  # [ ( name, nelem, [ { field_key : field_val } ] ) ]
     if header is None:
       self._doc = None
       return
@@ -196,7 +195,7 @@ class Reader(object):
     # decode each of the annotation sets
     for _ in xrange(len(wire_types)):
       klass_num = self._unpack()
-      nbytes    = self._unpack()
+      self._unpack()  # nbytes (unused here)
       blob      = self._unpack()
       t = wire_types[klass_num]
 
@@ -283,4 +282,3 @@ class Reader(object):
 
     # call post-reading hook.
     self._doc.ready()
-
