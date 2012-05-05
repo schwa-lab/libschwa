@@ -1,6 +1,6 @@
 # vim: set ts=2 et:
-from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_RANGE
-from .fields import Pointer, Range
+from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_SLICE
+from .fields import Pointer, Slice
 
 __all__ = ['Type', 'swizzle_ptr', 'types_from_doc']
 
@@ -28,8 +28,8 @@ class Type(object):
         f[FIELD_TYPE_NAME] = field.serial or pyname
         if isinstance(field, Pointer):
           f[FIELD_TYPE_POINTER_TO] = field._klass
-        elif isinstance(field, Range):
-          f[FIELD_TYPE_IS_RANGE] = True
+        elif isinstance(field, Slice):
+          f[FIELD_TYPE_IS_SLICE] = True
           if field._klass is not None:
             f[FIELD_TYPE_POINTER_TO] = field._klass
         self.fields.append(f)

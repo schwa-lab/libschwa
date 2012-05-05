@@ -1,8 +1,8 @@
 # vim: set ts=2 et:
 import msgpack
 
-from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_RANGE
-from .fields import Field, Pointer, Pointers, Range, Singleton, Store
+from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_SLICE
+from .fields import Field, Pointer, Pointers, Singleton, Slice, Store
 from .meta import AnnotationMeta, Annotation, Document
 from .utils import to_lower
 
@@ -16,7 +16,7 @@ class WireField(object):
     self._number = number
     self._name = field[FIELD_TYPE_NAME]
     self._pointer_num = field.get(FIELD_TYPE_POINTER_TO)
-    self._is_range = FIELD_TYPE_IS_RANGE in field
+    self._is_range = FIELD_TYPE_IS_SLICE in field
     self._is_collection = False
     self._dr_field = None
 
@@ -52,9 +52,9 @@ class WireField(object):
       if self.is_range():
         if self.is_pointer():
           klass_name = WireType.by_number[self._pointer_num].name()
-          self._dr_field = Range(klass_name, serial=self._name)
+          self._dr_field = Slice(klass_name, serial=self._name)
         else:
-          self._dr_field = Range(serial=self._name)
+          self._dr_field = Slice(serial=self._name)
       elif self.is_pointer():
         klass_name = WireType.by_number[self._pointer_num].name()
         klass = AnnotationMeta.cached(klass_name)

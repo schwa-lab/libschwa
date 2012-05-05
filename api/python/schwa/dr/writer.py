@@ -4,7 +4,7 @@ import cStringIO
 import msgpack
 
 from .constants import FIELD_TYPE_POINTER_TO
-from .fields import Pointer, Range
+from .fields import Pointer, Slice
 from .io import swizzle_ptr, types_from_doc
 from .meta import Document
 
@@ -86,7 +86,7 @@ class Writer(object):
           val = map(swizzle_ptr, val)
         else:
           val = swizzle_ptr(val)
-      elif isinstance(field, Range):
+      elif isinstance(field, Slice):
         val = (val.start, val.stop)
       elif isinstance(val, unicode):
         val = val.encode('utf-8')
