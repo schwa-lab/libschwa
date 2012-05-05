@@ -1,6 +1,6 @@
 # vim: set ts=2 et:
 from .exceptions import DependencyException
-from .fields import BaseAnnotationField, BaseField, BaseStore, Field, Range
+from .fields import BaseAnnotationField, BaseField, BaseStore, Field, Slice
 from .utils import pluralise
 
 __all__ = ['AnnotationMeta', 'Annotation', 'Document', 'Token']
@@ -182,7 +182,7 @@ class Document(Base):
 
 
 class Token(Annotation):
-  span = Range()
+  span = Slice()
   raw  = Field()
   norm = Field()
 

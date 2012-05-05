@@ -1,7 +1,7 @@
 # vim: set ts=2 et:
 from .collections import StoreList
 
-__all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Range', 'BaseStore', 'Store', 'Singleton']
+__all__ = ['BaseField', 'BaseAnnotationField', 'Field', 'Pointer', 'Pointers', 'Slice', 'BaseStore', 'Store', 'Singleton']
 
 
 class BaseField(object):
@@ -77,11 +77,11 @@ class Pointers(Pointer):
     return StoreList(self._klass)
 
 
-class Range(BaseAnnotationField):
+class Slice(BaseAnnotationField):
   __slots__ = ('klass_name', 'via', '_klass')
 
   def __init__(self, klass_name=None, **kwargs):
-    super(Range, self).__init__(**kwargs)
+    super(Slice, self).__init__(**kwargs)
     self.klass_name = klass_name and klass_name.encode('utf-8')
     self.via = kwargs.get('via')
     self._klass = None
