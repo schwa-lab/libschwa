@@ -1,5 +1,5 @@
 # vim: set ts=2 et:
-from .fields import *
+from .fields import Field
 
 __all__ = ['DateTimeField']
 
@@ -13,5 +13,3 @@ class DateTimeField(Field):
   def from_wire(self, value):
     import dateutil.parser
     return dateutil.parser.parse(value)
-
-

@@ -1,6 +1,6 @@
 # vim: set ts=2 et:
 from .exceptions import DependencyException
-from .fields import *
+from .fields import Annotations, BaseAnnotationField, BaseAnnotationsField, BaseField, Field, Range
 from .utils import pluralise
 
 __all__ = ['AnnotationMeta', 'Annotation', 'Document', 'Token']
@@ -55,14 +55,13 @@ class DocrepMeta(type):
 
 
 class AnnotationMeta(DocrepMeta):
-  reg     = {} # { name : ( sorted(attrs), klass) }
-  unbound = {} # { name : [ (Field, klass) ] }
+  reg     = {}  # { name : ( sorted(attrs), klass) }
+  unbound = {}  # { name : [ (Field, klass) ] }
 
   def __new__(mklass, klass_name, bases, attrs):
     klass = super(AnnotationMeta, mklass).__new__(mklass, klass_name, bases, attrs)
     AnnotationMeta.register(klass)
     return klass
-
 
   @staticmethod
   def register(klass):
@@ -74,7 +73,6 @@ class AnnotationMeta(DocrepMeta):
       f, k = AnnotationMeta.reg[name]
       if fields != f:
         raise ValueError('Cannot register two Annotation types {0!r} with the same name but with different fields ({1} != {2})'.format(name, f, fields))
-      del klass
       return k
 
     # register the class
@@ -91,7 +89,7 @@ class AnnotationMeta(DocrepMeta):
           else:
             if dep not in AnnotationMeta.unbound:
               AnnotationMeta.unbound[dep] = []
-            AnnotationMeta.unbound[dep].append( (field, klass) )
+            AnnotationMeta.unbound[dep].append((field, klass))
     klass.update_fulfilled()
 
     # update fields which depend on this newly created class
@@ -100,7 +98,6 @@ class AnnotationMeta(DocrepMeta):
         f.set_dependency(klass)
         k.update_fulfilled()
       del AnnotationMeta.unbound[name]
-
 
   @staticmethod
   def cached(klass_name):
@@ -132,6 +129,7 @@ class Base(object):
     return klass(**kwargs)
 
   FIELD_MSG_TEMPLATE = 'Field {0!r} which refers to class name {1!r}'
+
   @classmethod
   def find_unfulfilled(klass):
     """Returns an unfulfilled field where available, otherwise None"""
@@ -192,4 +190,3 @@ class Token(Annotation):
 
   def __str__(self):
     return self.norm
-

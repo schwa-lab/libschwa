@@ -1,5 +1,6 @@
 # vim: set ts=2 et:
 
+
 class AnnotationsList(object):
   __slots__ = ('_items', '_klass')
 
@@ -42,4 +43,3 @@ class AnnotationsList(object):
     obj = self._klass(**kwargs)
     self.append(obj)
     return obj
-
