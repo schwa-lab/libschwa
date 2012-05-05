@@ -60,7 +60,7 @@ class AnnotationMeta(DocrepMeta):
 
   def __new__(mklass, klass_name, bases, attrs):
     klass = super(AnnotationMeta, mklass).__new__(mklass, klass_name, bases, attrs)
-    AnnotationMeta.register(klass)
+    klass = AnnotationMeta.register(klass)
     return klass
 
   @staticmethod
@@ -98,6 +98,8 @@ class AnnotationMeta(DocrepMeta):
         f.set_dependency(klass)
         k.update_fulfilled()
       del AnnotationMeta.unbound[name]
+
+    return klass
 
   @staticmethod
   def cached(klass_name):
