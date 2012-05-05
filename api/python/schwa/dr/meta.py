@@ -1,6 +1,6 @@
 # vim: set ts=2 et:
 from .exceptions import DependencyException
-from .fields import BaseAnnotationField, BaseField, BaseStore, Field, Slice
+from .fields import BaseAttr, BaseField, BaseStore, Field, Slice
 from .utils import pluralise
 
 __all__ = ['AnnotationMeta', 'Annotation', 'Document', 'Token']
@@ -13,23 +13,23 @@ class DocrepMeta(type):
     # construct the class
     klass = super(DocrepMeta, mklass).__new__(mklass, klass_name, bases, attrs)
 
-    # discover the BaseAnnotationField and BaseStore instances
+    # discover the BaseField and BaseStore instances
     stores, fields, s2p = {}, {}, {}
     for base in bases:
       stores.update(getattr(base, '_dr_stores', {}))
       fields.update(getattr(base, '_dr_fields', {}))
       s2p.update(getattr(base, '_dr_s2p', {}))
-    for name, field in attrs.iteritems():
-      if isinstance(field, BaseField):
-        if isinstance(field, BaseStore):
-          if field.serial is None:
-            field.serial = field.klass_name
-          stores[name] = field
-        elif isinstance(field, BaseAnnotationField):
-          if field.serial is None:
-            field.serial = name
-          fields[name] = field
-          s2p[field.serial] = name
+    for name, attr in attrs.iteritems():
+      if isinstance(attr, BaseAttr):
+        if isinstance(attr, BaseStore):
+          if attr.serial is None:
+            attr.serial = attr.klass_name
+          stores[name] = attr
+        elif isinstance(attr, BaseField):
+          if attr.serial is None:
+            attr.serial = name
+          fields[name] = attr
+          s2p[attr.serial] = name
 
     # adds the Field and Store information appropriately
     klass._dr_fields = fields  # { pyname : Field }
