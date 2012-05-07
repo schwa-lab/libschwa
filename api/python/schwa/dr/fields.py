@@ -5,10 +5,11 @@ __all__ = ['BaseAttr', 'BaseField', 'Field', 'Pointer', 'Pointers', 'Slice', 'Ba
 
 
 class BaseAttr(object):
-  __slots__ = ('serial', )
+  __slots__ = ('serial', 'help')
 
   def __init__(self, **kwargs):
     self.serial = kwargs.get('serial')
+    self.help = kwargs.get('help')
 
   def default(self):
     """
@@ -41,7 +42,7 @@ class Field(BaseField):
 
 
 class Pointer(BaseField):
-  __slots__ = ('klass_name', 'via', 'is_collection', '_klass')
+  __slots__ = ('klass_name', 'store', 'is_collection', '_klass')
 
   def __init__(self, klass_name, **kwargs):
     super(Pointer, self).__init__(**kwargs)
@@ -51,7 +52,7 @@ class Pointer(BaseField):
     else:
       self.klass_name = klass_name._dr_name
       self._klass = klass_name
-    self.via = kwargs.get('via')
+    self.store = kwargs.get('store')
     self.is_collection = kwargs.get('is_collection', False)
 
   def default(self):
@@ -78,12 +79,12 @@ class Pointers(Pointer):
 
 
 class Slice(BaseField):
-  __slots__ = ('klass_name', 'via', '_klass')
+  __slots__ = ('klass_name', 'store', '_klass')
 
   def __init__(self, klass_name=None, **kwargs):
     super(Slice, self).__init__(**kwargs)
     self.klass_name = klass_name and klass_name.encode('utf-8')
-    self.via = kwargs.get('via')
+    self.store = kwargs.get('store')
     self._klass = None
 
   def default(self):

@@ -1,4 +1,6 @@
 # vim: set ts=2 et:
+import StringIO
+
 from .exceptions import DependencyException
 from .fields import BaseAttr, BaseField, BaseStore, Field, Slice
 from .utils import pluralise
@@ -51,11 +53,29 @@ class DocrepMeta(type):
     # add the dependency requirements fulfilled flag
     klass._dr_fulfilled = False
 
+    # construct the docstring for the class
+    doc = StringIO.StringIO()
+    write_doc = False
+    if klass.__doc__:
+      doc.write(klass.__doc__ + '\n')
+      write_doc = True
+    doc.write('Docrep members for this class:\n')
+    for name, field in sorted(klass._dr_fields.items()):
+      doc.write('* ')
+      doc.write(name)
+      if field.help:
+        doc.write(': ')
+        doc.write(field.help)
+        write_doc = True
+      doc.write('\n')
+    if write_doc:
+      klass.__doc__ = doc.getvalue()
+
     return klass
 
 
 class AnnotationMeta(DocrepMeta):
-  reg     = {}  # { name : ( sorted(attrs), klass) }
+  reg     = {}  # { name : (sorted(attrs), klass) }
   unbound = {}  # { name : [ (Field, klass) ] }
 
   def __new__(mklass, klass_name, bases, attrs):

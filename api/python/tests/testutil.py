@@ -1,3 +1,4 @@
+# vim: set ts=2 et:
 from StringIO import StringIO
 
 from schwa import dr
