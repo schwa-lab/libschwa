@@ -16,16 +16,13 @@ class Writer(object):
 
   def __init__(self, ostream):
     if not hasattr(ostream, 'write'):
-        raise TypeError('"ostream" must have a write attr.')
+        raise TypeError('"ostream" must have a write attr')
     self._ostream = ostream
-    self._packer  = msgpack.Packer()
+    self._packer = msgpack.Packer()
 
   def write_doc(self, doc):
     if not isinstance(doc, Document):
       raise ValueError('You can only stream instances of Document')
-
-    # find all of the types defined
-    types = types_from_doc(doc)  # { klass : Type }
 
     # run along each of the Stores and update the _dr_index attributes
     for name, store in doc._dr_stores.iteritems():
@@ -33,30 +30,42 @@ class Writer(object):
       if store.is_collection():
         for i, obj in enumerate(val):
           obj._dr_index = i
-      else:
-        if val:
-          val._dr_index = 0
+      elif val:
+        val._dr_index = 0
 
-    # construct the header
+    # find all of the types defined
+    types = types_from_doc(doc)  # { klass : Type }
+
+    # construct the klasses header
     header = [None] * len(types)
     for klass, t in types.iteritems():
-      x = [t.name, t.nelem, []]
+      fields = []
       for field in t.fields:
         f = field.copy()
         ptr_klass = f.get(FIELD_TYPE_POINTER_TO)
         if ptr_klass is not None:
           f[FIELD_TYPE_POINTER_TO] = types[ptr_klass].number
-        x[2].append(f)
-      header[t.number] = x
+        fields.append(f)
+      header[t.number] = (t.name(), fields)
+    self._pack(header)
+
+    # construct the stores header
+    header = []
+    for pyname, store in doc._dr_stores.iteritems():
+      name = store.serial or pyname
+      klass_id = types[store._klass].number
+      nelem = 0 if not store.is_collection() else len(getattr(doc, pyname))
+      header.append((name, klass_id, nelem))
     self._pack(header)
 
     # write out each of the annotation sets
-    for t in types.itervalues():
+    for pyname, store in doc._dr_stores.iteritems():
+      t = types[store._klass]
       tmp = cStringIO.StringIO()
 
       if t.is_meta:
         self._pack(self._serialize(doc, t), tmp)
-      elif t.is_singleton:
+      elif store.is_collection():
         self._pack(self._serialize(getattr(doc, t.plural), t), tmp)
       else:
         msg_objs = []
