@@ -58,22 +58,26 @@ class Writer(object):
       header.append((name, klass_id, nelem))
     self._pack(header)
 
+    # write out the document itself
+    tmp = cStringIO.StringIO()
+    self._pack(self._serialize(doc, t), tmp)
+    self._pack(len(tmp.getvalue()))
+    self._ostream.write(tmp.getvalue())
+
     # write out each of the annotation sets
     for pyname, store in doc._dr_stores.iteritems():
       t = types[store._klass]
       tmp = cStringIO.StringIO()
 
-      if t.is_meta:
-        self._pack(self._serialize(doc, t), tmp)
-      elif store.is_collection():
-        self._pack(self._serialize(getattr(doc, t.plural), t), tmp)
-      else:
+      if store.is_collection():
         msg_objs = []
-        for obj in getattr(doc, t.plural):
+        for obj in getattr(doc, pyname):
           msg_objs.append(self._serialize(obj, t))
         self._pack(msg_objs, tmp)
+      else:
+        msg_obj = self._serialize(getattr(doc, pyname), t)
+        self._pack(msg_obj, tmp)
 
-      self._pack(t.number)
       self._pack(len(tmp.getvalue()))
       self._ostream.write(tmp.getvalue())
 
@@ -83,6 +87,12 @@ class Writer(object):
     out.write(self._packer.pack(obj))
 
   def _serialize(self, obj, t):
+    """
+    Returns a Python object which represents the serialised form of object obj,
+    which is of type t. The return value can be passed directly to the msgpack
+    serialisation process -- it contains only values which msgpack can directly
+    serialise.
+    """
     msg_obj = {}
     for pyname, field in obj._dr_fields.iteritems():
       val = getattr(obj, pyname)

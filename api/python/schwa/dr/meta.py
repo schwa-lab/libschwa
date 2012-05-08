@@ -25,7 +25,7 @@ class DocrepMeta(type):
       if isinstance(attr, BaseAttr):
         if isinstance(attr, BaseStore):
           if attr.serial is None:
-            attr.serial = attr.klass_name
+            attr.serial = name
           stores[name] = attr
         elif isinstance(attr, BaseField):
           if attr.serial is None:
@@ -175,16 +175,18 @@ class Base(object):
     klass._dr_fulfilled = not any(klass.find_unfulfilled())
 
   @classmethod
-  def update_fields(klass, fields):
-    a = frozenset(klass._dr_s2p)
-    b = frozenset(fields)
-    for name in b - a:
-      field = fields[name]
-      if isinstance(field, BaseStore):
-        klass._dr_stores[name] = field
+  def update_attrs(klass, attrs):
+    for attr, val in attrs.iteritems():
+      if hasattr(klass, attr):
+        kval = getattr(klass, attr)
+        if not isinstance(kval, BaseAttr) or (isinstance(kval, BaseStore) and isinstance(val, BaseField)) or (isinstance(kval, BaseField) and isinstance(val, BaseStore)):
+          raise AttributeError('Cannot overwrite attr {0!r} of class {1!r} of different type ({2!r})'.format(attr, klass, kval))
       else:
-        klass._dr_fields[name] = field
-      klass._dr_s2p[name] = name
+        if isinstance(val, BaseStore):
+          klass._dr_stores[attr] = val
+        else:
+          klass._dr_fields[attr] = val
+        klass._dr_s2p[attr] = attr
 
 
 class Annotation(Base):
