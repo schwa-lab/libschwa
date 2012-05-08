@@ -35,6 +35,8 @@ class Type(object):
     return self.name()
 
   def name(self):
+    if self.is_meta:
+      return '__meta__'
     return self.klass._dr_name
 
   def pyname_to_index(self, pyname):
