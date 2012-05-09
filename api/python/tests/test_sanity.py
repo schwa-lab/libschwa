@@ -20,6 +20,7 @@ class DocWithoutFields(dr.Document):
 
 class DocWithField(dr.Document):
   field = dr.Field()
+
   class Meta:
     name = 'test_sanity.DocWithField'
 
@@ -27,24 +28,25 @@ class DocWithField(dr.Document):
 class DocWithAnnotsAndPointer(dr.Document):
   annots = dr.Store(Annot)
   special_annot = dr.Pointer(Annot)
+
   class Meta:
     name = 'test_sanity.DocWithAnnotsAndPointer'
 
 
-#class SameModelTests(TestCase):
-  #def test_pointer(self):
-    #doc = DocWithAnnotsAndPointer()
-    #doc.annots.create()
-    #doc.special_annot = doc.annots[0]
-    #doc = write_read(doc)
-    #self.assertIs(doc.special_annot, doc.annots[0])
+class SameModelTests(TestCase):
+  def test_pointer(self):
+    doc = DocWithAnnotsAndPointer()
+    doc.annots.create()
+    doc.special_annot = doc.annots[0]
+    doc = write_read(doc)
+    self.assertIs(doc.special_annot, doc.annots[0])
 
-  #def test_null_pointer(self):
-    #doc = DocWithAnnotsAndPointer()
-    #doc.annots.create()
-    #doc.special_annot = None
-    #doc = write_read(doc)
-    #self.assertIsNone(doc.special_annot)
+  def test_null_pointer(self):
+    doc = DocWithAnnotsAndPointer()
+    doc.annots.create()
+    doc.special_annot = None
+    doc = write_read(doc)
+    self.assertIsNone(doc.special_annot)
 
 
 class DifferentModelTests(TestCase):

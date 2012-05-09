@@ -20,6 +20,7 @@ class FieldWithDefault(dr.Field):
 
 class DocWithDefaultField(dr.Document):
   field = FieldWithDefault()
+
   class Meta:
     name = 'test_fields.DocWithDefaultField'
 
