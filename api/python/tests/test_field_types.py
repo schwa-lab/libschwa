@@ -11,9 +11,15 @@ class Event(dr.Annotation):
   name = dr.Field()
   date = dr.DateTimeField()
 
+  class Meta:
+    name = 'test_field_types.Event'
+
 
 class Doc(dr.Document):
-  events = dr.Store('Event')
+  events = dr.Store(Event)
+
+  class Meta:
+    name = 'test_field_types.Doc'
 
 
 class DateTimeTest(unittest.TestCase):

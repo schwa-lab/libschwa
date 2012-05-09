@@ -3,7 +3,6 @@ import StringIO
 
 from .exceptions import DependencyException
 from .fields import BaseAttr, BaseField, BaseStore, Field, Slice
-from .utils import pluralise
 
 __all__ = ['AnnotationMeta', 'Annotation', 'Document', 'Token']
 
@@ -43,12 +42,6 @@ class DocrepMeta(type):
       klass._dr_name = meta.name
     else:
       klass._dr_name = klass_name.split('.')[-1]
-
-    # add the plural name
-    if hasattr(meta, 'plural'):
-      klass._dr_plural = meta.plural
-    else:
-      klass._dr_plural = pluralise(klass._dr_name)
 
     # add the dependency requirements fulfilled flag
     klass._dr_fulfilled = False
@@ -176,11 +169,17 @@ class Base(object):
 
   @classmethod
   def update_attrs(klass, attrs):
-    for attr, val in attrs.iteritems():
+    def _check(attr):
       if hasattr(klass, attr):
         kval = getattr(klass, attr)
         if not isinstance(kval, BaseAttr) or (isinstance(kval, BaseStore) and isinstance(val, BaseField)) or (isinstance(kval, BaseField) and isinstance(val, BaseStore)):
           raise AttributeError('Cannot overwrite attr {0!r} of class {1!r} of different type ({2!r})'.format(attr, klass, kval))
+
+    for attr, val in attrs.iteritems():
+      _check(attr)
+      if attr in klass._dr_s2p:
+        attr = klass._dr_s2p[attr]
+        _check(attr)
       else:
         if isinstance(val, BaseStore):
           klass._dr_stores[attr] = val
