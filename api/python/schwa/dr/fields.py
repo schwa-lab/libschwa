@@ -83,9 +83,16 @@ class Slice(BaseField):
 
   def __init__(self, klass_name=None, **kwargs):
     super(Slice, self).__init__(**kwargs)
-    self.klass_name = klass_name and klass_name.encode('utf-8')
+    if klass_name is None:
+      self.klass_name = None
+      self._klass = None
+    elif isinstance(klass_name, (str, unicode)):
+      self.klass_name = klass_name.encode('utf-8')
+      self._klass = None
+    else:
+      self.klass_name = klass_name._dr_name
+      self._klass = klass_name
     self.store = kwargs.get('store')
-    self._klass = None
 
   def default(self):
     return None
