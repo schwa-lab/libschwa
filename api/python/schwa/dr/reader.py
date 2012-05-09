@@ -4,7 +4,6 @@ import msgpack
 from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_SLICE
 from .fields import Field, Pointer, Pointers, Singleton, Slice, Store
 from .meta import AnnotationMeta, Annotation, Document
-from .utils import to_lower
 
 __all__ = ['Reader']
 
@@ -29,7 +28,7 @@ def serialised_instance_to_dict(obj, wire_type):
 
 
 class WireStore(object):
-  __slots__ = ('name', 'nelem', 'wire_type', 'is_collection', '_instances')
+  __slots__ = ('name', 'nelem', 'wire_type', 'is_collection', '_instances', 'store')
 
   def __init__(self, name, nelem, wire_type):
     self.name = name
@@ -37,6 +36,7 @@ class WireStore(object):
     self.wire_type = wire_type
     self.is_collection = True
     self._instances = []
+    self.store = None
 
   def add_instance(self, obj):
     instance = serialised_instance_to_dict(obj, self.wire_type)
@@ -51,12 +51,12 @@ class WireStore(object):
 
 
 class WireField(object):
-  __slots__ = ('number', 'name', 'pointer_num', 'is_range', 'is_collection', '_dr_field')
+  __slots__ = ('number', 'name', 'pointer_to', 'is_range', 'is_collection', '_dr_field')
 
   def __init__(self, number, field):
     self.number = number
     self.name = field[FIELD_TYPE_NAME]
-    self.pointer_num = field.get(FIELD_TYPE_POINTER_TO)
+    self.pointer_to = field.get(FIELD_TYPE_POINTER_TO)
     self.is_range = FIELD_TYPE_IS_SLICE in field
     self.is_collection = False
     self._dr_field = None
@@ -69,31 +69,31 @@ class WireField(object):
 
   @property
   def is_pointer(self):
-    return self.pointer_num is not None
+    return self.pointer_to is not None
 
   def dr_field(self):
     if self._dr_field is None:
       if self.is_range:
         if self.is_pointer:
-          klass_name = WireType.by_number[self.pointer_num].name
-          self._dr_field = Slice(klass_name, serial=self.name)
+          store = self.pointer_to.name
+          klass = self.pointer_to.wire_type.klass()
+          self._dr_field = Slice(klass, store=store, serial=self.name)
         else:
           self._dr_field = Slice(serial=self.name)
       elif self.is_pointer:
-        klass_name = WireType.by_number[self.pointer_num].name
-        klass = AnnotationMeta.cached(klass_name)
-        klass = klass or klass_name
+        store = self.pointer_to.name
+        klass = self.pointer_to.wire_type.klass()
         if self.is_collection:
-          self._dr_field = Pointers(klass, serial=self.name)
+          self._dr_field = Pointers(klass, store=store, serial=self.name)
         else:
-          self._dr_field = Pointer(klass, serial=self.name)
+          self._dr_field = Pointer(klass, store=store, serial=self.name)
       else:
         self._dr_field = Field(serial=self.name)
     return self._dr_field
 
 
 class WireType(object):
-  __slots__ = ('number', 'name', 'fields', 'ptr_fields', 'is_meta', '_klass')
+  __slots__ = ('number', 'name', 'fields', 'pointer_fields', 'is_meta', '_klass')
 
   by_number = {}
 
@@ -101,7 +101,7 @@ class WireType(object):
     self.number = number
     self.name = name
     self.fields = [WireField(i, f) for i, f in enumerate(klass_fields)]
-    self.ptr_fields = [f for f in self.fields if f.is_pointer and not f.is_range]
+    self.pointer_fields = [f for f in self.fields if f.is_pointer and not f.is_range]
     self.is_meta = name == '__meta__'
     self._klass = None
     WireType.by_number[number] = self
@@ -159,17 +159,11 @@ class Reader(object):
     # decode the klasses header
     wire_types, wire_meta = [], None
     for i, (klass_name, klass_fields) in enumerate(header):
-      print klass_name
       t = WireType(i, klass_name, klass_fields)
       wire_types.append(t)
       if t.is_meta:
         wire_meta = t
     assert wire_meta is not None
-
-    # instantiate / create each of the required classes
-    for t in wire_types:
-      if not t.is_meta:
-        t.klass()
 
     # decode the stores header
     header = self._unpack()  # [ ( store_name, klass_id, store_nelem ) ]
@@ -177,6 +171,17 @@ class Reader(object):
     for name, klass_id, nelem in header:
       wire_type = WireType.by_number[klass_id]
       wire_stores.append(WireStore(name, nelem, wire_type))
+
+    # update the POINTER_TO values in the WireFields to point to their corresponding WireStore objects
+    for t in wire_types:
+      for f in t.fields:
+        if f.is_pointer:
+          f.pointer_to = wire_stores[f.pointer_to]
+
+    # instantiate / create each of the required classes
+    for t in wire_types:
+      if not t.is_meta:
+        t.klass()
 
     # decode the document instance
     self._unpack()  # nbytes (unused in the Python API)
@@ -199,13 +204,14 @@ class Reader(object):
     # instantiate each of the Stores
     stores = {}
     for s in wire_stores:
+      klass = s.wire_type.klass()
       storage = Store if s.is_collection else Singleton
-      stores[s.name] = storage(s.wire_type.klass())
+      stores[s.name] = s.store = storage(klass)
 
     # create the attrs for the Document class
     doc_attrs = stores.copy()
     for f in wire_meta.fields:
-      doc_fields[f.name] = f.dr_field()
+      doc_attrs[f.name] = f.dr_field()
 
     # create / update the Document class
     if self._doc_klass is None:
@@ -221,7 +227,6 @@ class Reader(object):
     # instantiate the Document
     doc_vals = serialised_instance_to_dict(doc_blob, wire_meta)
     self._doc = self._doc_klass(**doc_vals)
-    print self._doc
 
     # instantiate all of the instances
     for s in wire_stores:
@@ -235,28 +240,32 @@ class Reader(object):
         assert len(objs) == 1
         setattr(self._doc, s.name, objs[0])
 
-    # update the pointers
-    # TODO abstract this out as this logic needs to be applied to self._doc too
+    # update the pointers on the document
+    pointer_fields = wire_meta.pointer_fields
+    if pointer_fields:
+      self._update_pointers((self._doc, ), pointer_fields)
+
+    # update the pointers on the instances
     for s in wire_stores:
-      ptr_fields = s.wire_type.ptr_fields
-      if not ptr_fields:
-        continue
-
-      objs = getattr(self._doc, s.name)
-      if not s.is_collection:
-        objs = (objs, )
-
-      for obj in objs:
-        for f in ptr_fields:
-          old = getattr(obj, f.name)
-          if old is None:
-            continue
-          store = getattr(self._doc, f.dr_field().store)
-          if f.is_collection:
-            new = [store[i] for i in old]
-          else:
-            new = store[old]
-          setattr(obj, f.name, new)
+      pointer_fields = s.wire_type.pointer_fields
+      if pointer_fields:
+        objs = getattr(self._doc, s.name)
+        if not s.is_collection:
+          objs = (objs, )
+        self._update_pointers(objs, pointer_fields)
 
     # call post-reading hook.
     self._doc.ready()
+
+  def _update_pointers(self, objs, pointer_fields):
+    for obj in objs:
+      for field in pointer_fields:
+        old = getattr(obj, field.name)
+        if old is None:
+          continue
+        store = getattr(self._doc, field.pointer_to.name)
+        if field.is_collection:
+          new = [store[i] for i in old]
+        else:
+          new = store[old]
+        setattr(obj, field.name, new)

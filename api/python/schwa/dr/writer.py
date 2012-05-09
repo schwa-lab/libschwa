@@ -3,12 +3,75 @@ import cStringIO
 
 import msgpack
 
-from .constants import FIELD_TYPE_POINTER_TO
+from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_SLICE
+from .exceptions import StoreException
 from .fields import Pointer, Slice
-from .io import swizzle_ptr, types_from_doc
 from .meta import Document
 
 __all__ = ['Writer']
+
+
+class Type(object):
+  __slots__ = ('klass', 'number', 'is_meta', 'fields', '_p2i', '_i2p')
+
+  def __init__(self, klass, number, is_meta=False):
+    self.klass = klass
+    self.number = number
+    self.is_meta = is_meta
+    self.fields = []
+    self._p2i = {}  # { index : pyname }
+    self._i2p = {}  # { pyname : index }
+    for i, (pyname, field) in enumerate(klass._dr_fields.iteritems()):
+      self._p2i[pyname] = i
+      self._i2p[i] = pyname
+      f = {}
+      f[FIELD_TYPE_NAME] = field.serial or pyname
+      if isinstance(field, Pointer):
+        f[FIELD_TYPE_POINTER_TO] = field  # placeholder
+      elif isinstance(field, Slice):
+        f[FIELD_TYPE_IS_SLICE] = True
+        if field._klass is not None:
+          f[FIELD_TYPE_POINTER_TO] = field  # placeholder
+      self.fields.append(f)
+
+  def __repr__(self):
+    return 'Type({0!r})'.format(self.name())
+
+  def __str__(self):
+    return self.name()
+
+  def name(self):
+    if self.is_meta:
+      return '__meta__'
+    return self.klass._dr_name
+
+  def pyname_to_index(self, pyname):
+    return self._p2i[pyname]
+
+  def index_to_pyname(self, index):
+    return self._i2p[index]
+
+
+def types_from_doc(doc):
+  """
+  Find all of the types used by a document. Returns a dictionary, mapping from
+  the Python classes to their corresponding Type instance.
+  """
+  types = {}  # { klass : Type }
+  types[doc.__class__] = Type(doc.__class__, len(types), is_meta=True)
+  for name, store in doc._dr_stores.iteritems():
+    if store._klass not in types:
+      types[store._klass] = Type(store._klass, len(types))
+  return types
+
+
+def swizzle_ptr(ptr):
+  """
+  Swizzles a Pointer instance. The ptr argument is assumed not to be None.
+  """
+  if not hasattr(ptr, '_dr_index'):
+    raise ValueError('Cannot serialize a pointer to an object which is not managed by a Store')
+  return ptr._dr_index
 
 
 class Writer(object):
@@ -35,6 +98,16 @@ class Writer(object):
 
     # find all of the types defined
     types = types_from_doc(doc)  # { klass : Type }
+    doc_type = types[doc.__class__]
+
+    # create a mapping from Store names and classes to Store objects
+    stores = {}  # { klass : store_id } \cup { pyname : store_id }
+    for i, (pyname, store) in enumerate(doc._dr_stores.iteritems()):
+      stores[pyname] = i
+      if store._klass in stores:
+        stores[store._klass].append(i)
+      else:
+        stores[store._klass] = [i]
 
     # construct the klasses header
     header = [None] * len(types)
@@ -42,9 +115,21 @@ class Writer(object):
       fields = []
       for field in t.fields:
         f = field.copy()
-        ptr_klass = f.get(FIELD_TYPE_POINTER_TO)
-        if ptr_klass is not None:
-          f[FIELD_TYPE_POINTER_TO] = types[ptr_klass].number
+        pointer_to = f.get(FIELD_TYPE_POINTER_TO)  # is a dr.Field instance
+        if pointer_to is not None:
+          if pointer_to.store:
+            if pointer_to.store not in stores:
+              raise StoreException('Store name {0!r} does not exist for field {1!r} of class {2}'.format(pointer_to.store, f[FIELD_TYPE_NAME], pointer_to._klass))
+            store_id = stores[pointer_to.store]
+          else:
+            store_ids = stores.get(pointer_to._klass, [])
+            if len(store_ids) == 1:
+              store_id = store_ids[0]
+            elif len(store_ids) == 0:
+              raise StoreException('No Store was found for class {0} (for field {1!r})'.format(pointer_to._klass, f[FIELD_TYPE_NAME]))
+            else:
+              raise StoreException('The field {0!r} of class {1} needs to specify which Store it points to, as there are {2} potential Stores'.format(f[FIELD_TYPE_NAME], pointer_to._klass, len(store_ids)))
+          f[FIELD_TYPE_POINTER_TO] = store_id
         fields.append(f)
       header[t.number] = (t.name(), fields)
     self._pack(header)
@@ -60,7 +145,7 @@ class Writer(object):
 
     # write out the document itself
     tmp = cStringIO.StringIO()
-    self._pack(self._serialize(doc, t), tmp)
+    self._pack(self._serialize(doc, doc_type), tmp)
     self._pack(len(tmp.getvalue()))
     self._ostream.write(tmp.getvalue())
 
