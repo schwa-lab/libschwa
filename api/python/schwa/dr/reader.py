@@ -76,13 +76,13 @@ class WireField(object):
       if self.is_range:
         if self.is_pointer:
           store = self.pointer_to.name
-          klass = self.pointer_to.wire_type.klass()
+          klass = self.pointer_to.wire_type.name
           self._dr_field = Slice(klass, store=store, serial=self.name)
         else:
           self._dr_field = Slice(serial=self.name)
       elif self.is_pointer:
         store = self.pointer_to.name
-        klass = self.pointer_to.wire_type.klass()
+        klass = self.pointer_to.wire_type.name
         if self.is_collection:
           self._dr_field = Pointers(klass, store=store, serial=self.name)
         else:
