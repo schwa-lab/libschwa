@@ -3,7 +3,7 @@ import msgpack
 
 from .constants import FIELD_TYPE_NAME, FIELD_TYPE_POINTER_TO, FIELD_TYPE_IS_SLICE
 from .fields import Field, Pointer, Pointers, Singleton, Slice, Store
-from .meta import AnnotationMeta, Annotation, Document
+from .meta import Annotation, AnnotationMeta, Document
 
 __all__ = ['Reader']
 
@@ -27,6 +27,16 @@ def serialised_instance_to_dict(obj, wire_type):
   return instance
 
 
+def instantiate_instance(instance, klass):
+  """
+  Converts a dictionary returned by serialised_instance_to_dict into an actual
+  Python object of type klass
+  """
+  s2p = klass._dr_s2p
+  vals = dict((s2p[k], v) for k, v in instance.iteritems())
+  return klass.from_wire(**vals)
+
+
 class WireStore(object):
   __slots__ = ('name', 'nelem', 'wire_type', 'is_collection', '_instances', 'store')
 
@@ -44,10 +54,8 @@ class WireStore(object):
 
   def instantiate_instances(self):
     klass = self.wire_type.klass()
-    s2p = klass._dr_s2p
     for i in self._instances:
-      vals = dict((s2p[k], v) for k, v in i.iteritems())
-      yield klass.from_wire(**vals)
+      yield instantiate_instance(i, klass)
 
 
 class WireField(object):
@@ -112,15 +120,29 @@ class WireType(object):
   def __str__(self):
     return self.name
 
-  def klass(self):
-    if self._klass is None:
-      dr_fields = dict((f.name, f.dr_field()) for f in self.fields)
-      klass = AnnotationMeta.cached(self.name)
-      if klass is None:
-        klass = type(self.name, (Annotation, ), dr_fields)
+  def create_klass(self, doc_klass=None):
+    if self._klass is not None:
+      return
+
+    if self.is_meta:
+      if doc_klass is None:
+        klass_name = 'Document'
+        klass = AnnotationMeta.cached(klass_name)
       else:
-        klass.update_attrs(dr_fields)
-      self._klass = klass
+        klass = doc_klass
+    else:
+      klass_name = self.name
+      klass = AnnotationMeta.cached(klass_name)
+
+    dr_fields = dict((f.name, f.dr_field()) for f in self.fields)
+    if klass is None:
+      klass = type(klass_name, (Annotation, ), dr_fields)
+    else:
+      klass.update_attrs(dr_fields)
+    self._klass = klass
+    return self._klass
+
+  def klass(self):
     return self._klass
 
 
@@ -148,6 +170,19 @@ class Reader(object):
   def _unpack(self):
     obj = self._unpacker.unpack()
     return obj
+
+  def _update_pointers(self, objs, pointer_fields):
+    for obj in objs:
+      for field in pointer_fields:
+        old = getattr(obj, field.name)
+        if old is None:
+          continue
+        store = getattr(self._doc, field.pointer_to.name)
+        if field.is_collection:
+          new = [store[i] for i in old]
+        else:
+          new = store[old]
+        setattr(obj, field.name, new)
 
   def _read_doc(self):
     # attempt to read the header
@@ -181,7 +216,7 @@ class Reader(object):
     # instantiate / create each of the required classes
     for t in wire_types:
       if not t.is_meta:
-        t.klass()
+        t.create_klass()
 
     # decode the document instance
     self._unpack()  # nbytes (unused in the Python API)
@@ -208,25 +243,13 @@ class Reader(object):
       storage = Store if s.is_collection else Singleton
       stores[s.name] = s.store = storage(klass)
 
-    # create the attrs for the Document class
-    doc_attrs = stores.copy()
-    for f in wire_meta.fields:
-      doc_attrs[f.name] = f.dr_field()
-
-    # create / update the Document class
-    if self._doc_klass is None:
-      klass = AnnotationMeta.cached('Document')
-      if klass is None:
-        klass = type('Document', (Document, ), doc_attrs)
-      else:
-        klass.update_attrs(doc_attrs)
-      self._doc_klass = klass
-    else:
-      self._doc_klass.update_attrs(doc_attrs)
+    # create and update the Document type
+    self._doc_klass = wire_meta.create_klass(self._doc_klass)
+    self._doc_klass.update_attrs(stores)
 
     # instantiate the Document
     doc_vals = serialised_instance_to_dict(doc_blob, wire_meta)
-    self._doc = self._doc_klass(**doc_vals)
+    self._doc = instantiate_instance(doc_vals, self._doc_klass)
 
     # instantiate all of the instances
     for s in wire_stores:
@@ -256,16 +279,3 @@ class Reader(object):
 
     # call post-reading hook.
     self._doc.ready()
-
-  def _update_pointers(self, objs, pointer_fields):
-    for obj in objs:
-      for field in pointer_fields:
-        old = getattr(obj, field.name)
-        if old is None:
-          continue
-        store = getattr(self._doc, field.pointer_to.name)
-        if field.is_collection:
-          new = [store[i] for i in old]
-        else:
-          new = store[old]
-        setattr(obj, field.name, new)

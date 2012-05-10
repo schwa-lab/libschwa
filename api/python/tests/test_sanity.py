@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from schwa import dr
 
-from testutil import write_read, write_x_read_y
+from utils import write_read, write_x_read_y
 
 
 class Annot(dr.Annotation):
