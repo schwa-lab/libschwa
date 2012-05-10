@@ -59,7 +59,7 @@ def types_from_doc(doc):
   """
   types = {}  # { klass : Type }
   types[doc.__class__] = Type(doc.__class__, len(types), is_meta=True)
-  for name, store in doc._dr_stores.iteritems():
+  for name, store in sorted(doc._dr_stores.items(), key=lambda (k, v): k):
     if store._klass not in types:
       types[store._klass] = Type(store._klass, len(types))
   return types
@@ -101,8 +101,9 @@ class Writer(object):
     doc_type = types[doc.__class__]
 
     # create a mapping from Store names and classes to Store objects
+    sorted_dr_stores = sorted(doc._dr_stores.items(), key=lambda (k, v): k)
     stores = {}  # { klass : store_id } \cup { pyname : store_id }
-    for i, (pyname, store) in enumerate(doc._dr_stores.iteritems()):
+    for i, (pyname, store) in enumerate(sorted_dr_stores):
       stores[pyname] = i
       if store._klass in stores:
         stores[store._klass].append(i)
@@ -136,7 +137,7 @@ class Writer(object):
 
     # construct the stores header
     header = []
-    for pyname, store in doc._dr_stores.iteritems():
+    for pyname, store in sorted_dr_stores:
       name = store.serial or pyname
       klass_id = types[store._klass].number
       nelem = 0 if not store.is_collection() else len(getattr(doc, pyname))
@@ -150,7 +151,7 @@ class Writer(object):
     self._ostream.write(tmp.getvalue())
 
     # write out each of the annotation sets
-    for pyname, store in doc._dr_stores.iteritems():
+    for pyname, store in sorted_dr_stores:
       t = types[store._klass]
       tmp = cStringIO.StringIO()
 

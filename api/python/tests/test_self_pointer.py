@@ -7,7 +7,7 @@ import unittest
 
 from schwa import dr
 
-from testutil import write_read
+from utils import write_read
 
 
 class Node(dr.Annotation):

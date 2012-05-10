@@ -3,27 +3,42 @@ import unittest
 
 from schwa import dr
 
-from testutil import write_read, write_x_read_y
+from utils import write_read, write_x_read_y
 
 
 class X(dr.Annotation):
   foo = dr.Field(serial='chicken')
   bar = dr.Field()
 
+  class Meta:
+    name = 'test_serial.X'
+
 
 class Doc1(dr.Document):
-  xs = dr.Store('X')
+  name = dr.Field(serial='filename')
+  xs = dr.Store(X)
+
+  class Meta:
+    name = 'test_serial.Doc1'
 
 
 class Doc2(dr.Document):
-  xs = dr.Store('X')
+  filename = dr.Field()
+  xs = dr.Store(X)
+
+  class Meta:
+    name = 'test_serial.Doc2'
 
 
 class SerialTest(unittest.TestCase):
-  def test_same_doc(self):
-    d1 = Doc1()
+  def test_doc1_doc1(self):
+    d1 = Doc1(name='test.txt')
     self.assertEqual(len(d1._dr_stores), 1)
     self.assertIn('xs', d1._dr_stores)
+
+    self.assertTrue(hasattr(d1, 'name'))
+    self.assertFalse(hasattr(d1, 'filename'))
+    self.assertEqual(d1.name, 'test.txt')
 
     d1.xs.create(foo=1, bar='hello')
     d1.xs.create(foo=10, bar='world')
@@ -45,6 +60,10 @@ class SerialTest(unittest.TestCase):
     d2 = write_read(d1)
     self.assertIsNot(d1, d2)
     self.assertIsInstance(d2, Doc1)
+
+    self.assertTrue(hasattr(d2, 'name'))
+    self.assertFalse(hasattr(d2, 'filename'))
+    self.assertEqual(d2.name, 'test.txt')
 
     self.assertEqual(len(d2._dr_stores), 1)
     self.assertIn('xs', d2._dr_stores)
