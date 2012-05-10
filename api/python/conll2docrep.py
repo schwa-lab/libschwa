@@ -3,11 +3,11 @@ from schwa import dr
 
 class Sentence(dr.Annotation):
   span2 = dr.Pointers('Token')
-  span = dr.Range('Token')
+  span = dr.Slice('Token')
 
 class Token(dr.Token):
-  pos = dr.Field(sname='gold_pos')
-  ne  = dr.Field(sname='gold_ne')
+  pos = dr.Field(serial='gold_pos')
+  ne  = dr.Field(serial='gold_ne')
 
 class Foo(dr.Annotation):
   bar = dr.Field()
@@ -15,8 +15,8 @@ class Foo(dr.Annotation):
 class Document(dr.Document):
   filename  = dr.Field()
   foo       = dr.Singleton('Foo')
-  tokens    = dr.Annotations('Token')
-  sentences = dr.Annotations('Sentence')
+  tokens    = dr.Store('Token')
+  sentences = dr.Store('Sentence')
 
 
 def read_pipefile(file, filename):
@@ -76,12 +76,12 @@ if __name__ == '__main__':
     print >> sys.stderr, 'Usage: {0} <input> <output>'.format(sys.argv[0])
     sys.exit(1)
 
-  with open(sys.argv[1], 'rU') as fin:
-    with open(sys.argv[2], 'wb') as fout:
-      writer = dr.Writer(fout)
-      for doc in read_pipefile(fin, sys.argv[1]):
-        #print doc.filename, len(doc.tokens), len(doc.sentences)
-        doc.foo = Foo()
-        doc.foo.bar = 42
-        writer.write_doc(doc)
+  fin = open(sys.argv[1], 'rU')
+  fout = open(sys.argv[2], 'wb')
+  writer = dr.Writer(fout)
+  for doc in read_pipefile(fin, sys.argv[1]):
+    #print doc.filename, len(doc.tokens), len(doc.sentences)
+    doc.foo = Foo()
+    doc.foo.bar = 42
+    writer.write_doc(doc)
 
