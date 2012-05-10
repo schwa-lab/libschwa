@@ -1,7 +1,7 @@
 # vim: set ts=2 et:
 from .fields import Field
 
-__all__ = ['DateTimeField']
+__all__ = ['DateTimeField', 'EncodedStringField']
 
 
 class DateTimeField(Field):
@@ -10,6 +10,26 @@ class DateTimeField(Field):
       date = date.isoformat()
     return date
 
-  def from_wire(self, value):
+  def from_wire(self, data):
     import dateutil.parser
-    return dateutil.parser.parse(value)
+    if data is None:
+      return None
+    return dateutil.parser.parse(data)
+
+
+class EncodedStringField(Field):
+  __slots__ = ('encoding', )
+
+  def __init__(self, encoding='utf-8', **kwargs):
+    super(EncodedStringField, self).__init__(**kwargs)
+    self.encoding = encoding
+
+  def to_wire(self, string):
+    if string is not None:
+      string = string.encode(self.encoding)
+    return string
+
+  def from_wire(self, data):
+    if data is None:
+      return none
+    return data.decode(self.encoding)
