@@ -2,15 +2,15 @@
 from schwa import dr
 
 class Sentence(dr.Annotation):
-  #my_field = dr.Range('Token', sname='span')
+  #my_field = dr.Slice('Token', serial='span')
   pass
 
 class Token(dr.Token):
-  pos = dr.Field(sname='gold_pos')
+  pos = dr.Field(serial='gold_pos')
 
 class Document(dr.Document):
-  tokens    = dr.Annotations('Token')
-  sentences = dr.Annotations('Sentence')
+  tokens    = dr.Store('Token')
+  sentences = dr.Store('Sentence')
 
   #def token_range(self, start, finish):
     #for i in xrange(start._dr_index, finish._dr_index + 1):
