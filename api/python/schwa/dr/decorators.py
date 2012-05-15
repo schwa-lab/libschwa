@@ -1,3 +1,4 @@
+from operator import attrgetter
 from .decoration import Decorator
 
 def _attrsetter(attr):
@@ -26,18 +27,30 @@ def _attrappender(attr):
   return fn
 
 
+def _storegetter(store):
+  """
+  Allows decorator arguments referring to a store of objects either to be a
+  named attribute of a document, or a function which returns a list of objects
+  given a document.
+  """
+  if callable(store):
+    return store
+  else:
+    return attrgetter(store)
+
+
 class add_prev_next(Decorator):
   """Adds prev and next pointers or None where N/A. Also may add index."""
   def __init__(self, store, prev_attr='prev', next_attr='next', index_attr=None):
     super(add_prev_next, self).__init__(self._build_key(store, prev_attr, next_attr, index_attr))
-    self.store = store
+    self.get_store = _storegetter(store)
     self.set_prev = _attrsetter(prev_attr)
     self.set_next = _attrsetter(next_attr)
     self.set_index = _attrsetter(index_attr)
 
   def decorate(self, doc):
     prev = None
-    for i, item in enumerate(getattr(doc, self.store)):
+    for i, item in enumerate(self.get_store(doc)):
       self.set_prev(item, prev)
       self.set_index(item, i)
       if prev:
@@ -54,21 +67,21 @@ class materialise_slices(Decorator):
   """
   def __init__(self, source_store, target_store, slice_attr, deref_attr):
     super(materialise_slices, self).__init__(self._build_key(source_store, target_store, slice_attr, deref_attr))
-    self.source_store = source_store
-    self.target_store = target_store
+    self.get_source_store = _storegetter(source_store)
+    self.get_target_store = _storegetter(target_store)
     self.slice_attr = slice_attr
     self.deref_attr = deref_attr
 
   def decorate(self, doc):
-    store = getattr(doc, self.target_store)
-    for obj in getattr(doc, self.source_store):
+    store = self.get_target_store(doc)
+    for obj in self.get_source_store(doc):
       span = getattr(obj, self.slice_attr)
       if span is not None:
         setattr(obj, self.deref_attr, store[span])
 
 
 class reverse_slices(Decorator):
-  """
+  """api/python/tests/test_decorators.py
   Where objects in source_store point (through slice_attr) to slices over
   objects in target_store, this decorates the target_store objects with any or
   all of: a pointer to a target_store object, its offset within the slice
@@ -80,8 +93,8 @@ class reverse_slices(Decorator):
 
   def __init__(self, source_store, target_store, slice_attr, pointer_attr=None, offset_attr=None, bilou_attr=None, all_attr=None, mutex=True, mark_outside=False):
     super(reverse_slices, self).__init__(self._build_key(source_store, target_store, slice_attr, pointer_attr, offset_attr, bilou_attr, all_attr, mutex, mark_outside))
-    self.source_store = source_store
-    self.target_store = target_store
+    self.get_source_store = _storegetter(source_store)
+    self.get_target_store = _storegetter(target_store)
     self.slice_attr = slice_attr
     if mutex:
       setter = _attrsetter
@@ -94,7 +107,7 @@ class reverse_slices(Decorator):
     self.mark_outside = mark_outside
 
   def decorate(self, doc):
-    target_items = getattr(doc, self.target_store)
+    target_items = self.get_target_store(doc)
 
     if self.mark_outside:
       for target in target_items:
@@ -103,7 +116,7 @@ class reverse_slices(Decorator):
         self.set_bilou.default(target, 'O')
         self.set_all.default(target, (None, None, 'O'))
 
-    for source in getattr(doc, self.source_store):
+    for source in self.get_source_store(doc):
       span = getattr(source, self.slice_attr)
       if not span:
         continue
@@ -132,8 +145,8 @@ class reverse_pointers(Decorator):
 
   def __init__(self, source_store, target_store, pointer_attr, rev_attr, mutex=True, mark_outside=False):
     super(reverse_pointers, self).__init__(self._build_key(source_store, target_store, pointer_attr, rev_attr, mutex, mark_outside))
-    self.source_store = source_store
-    self.target_store = target_store
+    self.get_source_store = _storegetter(source_store)
+    self.get_target_store = _storegetter(target_store)
     self.pointer_attr = pointer_attr
     if mutex:
       setter = _attrsetter
@@ -144,10 +157,10 @@ class reverse_pointers(Decorator):
 
   def decorate(self, doc):
     if self.mark_outside:
-      for target in getattr(doc, self.target_store):
+      for target in self.get_target_store(doc):
         self.set_rev.default(target, None)
 
-    for source in getattr(doc, self.source_store):
+    for source in self.get_source_store(doc):
       target = getattr(source, self.pointer_attr)
       if not target:
         continue
