@@ -6,6 +6,7 @@ from schwa import dr
 class Document(dr.Document):
   annots = dr.Store('MyAnnot')
   slices = dr.Store('SliceAnnot')
+  favourites = dr.Pointers('MyAnnot')
 
 class MyAnnot(dr.Annotation):
   field = dr.Field()
@@ -277,3 +278,35 @@ class PrevNextIndexTest(TestCase):
     decorate(self.doc)
     for i, a in enumerate(self.doc.annots):
       self.assertEqual(i, a.index)
+
+class StoreSubsetTest(TestCase):
+  """Tests using a function instead of an attribute as a store reference"""
+
+  def setUp(self):
+    self.doc = Document()
+    for val in '0123456':
+      self.doc.annots.create(field=val)
+    self.doc.favourites = [self.doc.annots[i] for i in (1,3,5)]
+
+  def add_prev_next_favourites_test(self):
+    decorate = dr.decorators.add_prev_next(lambda doc: doc.favourites, 'prev', 'next', 'index')
+
+    for a in self.doc.annots:
+      self.assertFalse(hasattr(a, 'prev'))
+      self.assertFalse(hasattr(a, 'next'))
+      self.assertFalse(hasattr(a, 'index'))
+
+    decorate(self.doc)
+
+    EXPECTED = {
+      1: (None, self.doc.annots[3], 0),
+      3: (self.doc.annots[1], self.doc.annots[5], 1),
+      5: (self.doc.annots[3], None, 2),
+    }
+    for i, a in enumerate(self.doc.annots):
+      if i in EXPECTED:
+        self.assertEqual((a.prev, a.next, a.index), EXPECTED[i])
+      else:
+        self.assertFalse(hasattr(a, 'prev'))
+        self.assertFalse(hasattr(a, 'next'))
+        self.assertFalse(hasattr(a, 'index'))
