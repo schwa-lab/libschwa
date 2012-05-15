@@ -31,5 +31,5 @@ class EncodedStringField(Field):
 
   def from_wire(self, data):
     if data is None:
-      return none
+      return None
     return data.decode(self.encoding)
