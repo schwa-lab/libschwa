@@ -34,6 +34,7 @@ class Decorator(object):
   def __init__(self, key):
     # NOTE: wrapping __call__ like this didn't seem to work
     self.decorate = decorator(key)(self.decorate)
+    self._key = key
 
   @classmethod
   def _build_key(cls, *args):
@@ -44,6 +45,9 @@ class Decorator(object):
 
   def decorate(self, doc):
     raise NotImplementedError()
+
+  def __str__(self):
+    return self._key
 
 
 def requires_decoration(*decorators, **kwargs):
