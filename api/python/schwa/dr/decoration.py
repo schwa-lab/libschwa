@@ -35,6 +35,10 @@ class Decorator(object):
     # NOTE: wrapping __call__ like this didn't seem to work
     self.decorate = decorator(key)(self.decorate)
 
+  @classmethod
+  def _build_key(cls, *args):
+    return '{}-{}'.format(cls.__name__, '-'.join(repr(arg) for arg in args))
+
   def __call__(self, doc):
     self.decorate(doc)
 
