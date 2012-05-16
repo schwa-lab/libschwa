@@ -52,10 +52,13 @@ bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(TOKENIZER_OBJECTS)
 # -------------------------------------------------------------------------------
 # generated sources
 # -------------------------------------------------------------------------------
+src/lib/schwa/tokenizer:
+	mkdir -p $@
+
 src/lib/schwa/tokenizer/tokenizer.o: src/lib/schwa/tokenizer/tokenizer.cc
 	$(CXX) $(RAGEL_CXXFLAGS) -c -o $@ $<
 
-src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.rl Makefile Makefile.targets
+src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.rl Makefile Makefile.targets src/lib/schwa/tokenizer
 	$(RAGEL) -G2 -o $@ $<
 
 
