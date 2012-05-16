@@ -1,30 +1,21 @@
+#include <schwa/std.h>
+#include <schwa/tokenizer.h>
+#include <schwa/tokenizer/streams/debug_text.h>
+#include <schwa/tokenizer/streams/text.h>
 
-#include <stdint.h>
-#include <string>
-#include <iostream>
-
-#include "source.h"
-
-#include "token.h"
-#include "stream.h"
-#include "tokenizer.h"
-
-#include "streams/text.h"
-#include "streams/debug_text.h"
-
-using namespace std;
-using namespace schwa;
+namespace st = schwa::tokenizer;
 
 int
-main(int argc, char **){
-	token::Tokenizer tokenizer;
+main(int argc, char **) {
+	st::Tokenizer tokenizer;
 
-	if(argc != 1){
-		token::DebugTextStream debug_stream(cout);
-		tokenizer.tokenize_stream(debug_stream, cin, 10240);
-	}else{
-		token::TextStream text_stream(cout);
-		tokenizer.tokenize_stream(text_stream, cin, 10240);
+	if (argc != 1) {
+		st::DebugTextStream debug_stream(std::cout);
+		tokenizer.tokenize_stream(debug_stream, std::cin, 10240);
+	}
+  else {
+		st::TextStream text_stream(std::cout);
+		tokenizer.tokenize_stream(text_stream, std::cin, 10240);
 	}
 
 	return 0;

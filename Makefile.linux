@@ -1,5 +1,5 @@
 INCLUDE = -Isrc/include -isystem ext/include
-LIBS = -Lext/lib
+LIBS = -Lext/lib -lboost_iostreams
 DEFINES =
 
 BASE_CXXFLAGS = -g -O0 -fPIC $(INCLUDE) $(DEFINES)

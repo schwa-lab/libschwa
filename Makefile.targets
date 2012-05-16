@@ -23,9 +23,9 @@ GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
 all: $(BINARIES)
 
 clean:
-	find src -name "*.gch" -exec rm -f {} \;
-	find src -name "*.o" -exec rm -f {} \;
-	find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
+	-find src -name "*.gch" -exec rm -f {} \;
+	-find src -name "*.o" -exec rm -f {} \;
+	-find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 	-rm -f $(GENERATED_SOURCES)
 

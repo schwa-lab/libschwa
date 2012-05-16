@@ -1,16 +1,19 @@
 
 namespace schwa {
+  namespace io {
 
-class IStreamSource: public Source {
-protected:
-	std::istream &stream_;
-public:
-	IStreamSource(std::istream &stream)
-		: stream_(stream){}
+    class IStreamSource : public Source {
+    protected:
+      std::istream &_istream;
 
-	virtual size_t read(char *buffer, size_t nbytes){
-		return stream_.read(buffer, nbytes).gcount();
-	}
-};
+    public:
+      IStreamSource(std::istream &istream) : _istream(istream) { }
+      virtual ~IStreamSource(void) { }
 
+      virtual size_t read(char *buffer, size_t nbytes) {
+        return _istream.read(buffer, nbytes).gcount();
+      }
+    };
+
+  }
 }
