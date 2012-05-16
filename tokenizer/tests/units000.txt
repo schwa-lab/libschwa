@@ -1,0 +1,29 @@
+Metres: 100m 123.5m, 0.5m -1.8m.
+Inches: 1in 2.5in, 0.65in -9in.
+Feet: 6ft 5.5ft, 0.3ft -9ft.
+Yards: 4yd 95.4yd -0.5yd, 1yd!
+Miles: 1.5mi -2mi; "123mi" --2mi.
+Millimetres: 10mm '1.5mm' 1024mm?
+Centimetres: 100cm 1.5cm -2cm.
+Kilometres: 20km 2.9km--3.1km.
+Area/Vol: 5cm2 2cm^2 4.5m^3 -5in^2; 1.9mi^3!
+Area/Vol: 8cu cm -1sq m 10cc.
+Area/Vol: -1.5cu. cm, 254sq. m.
+Metres/second: 3m/s 1.5m/s 3ms-1 1.5ms-1.
+Kilometres/hour: 4km/h 7.5kmh-1 10kmph -2km/hr!
+Miles/hour: 99mph 88mi/h -5mih-1; 2mih 3mi/hr.
+Liquid volume: 100mL 5L 2.4gal 47fl oz.
+Liquid volume: 10pt 5qt, 100mil!
+Weight: 2g 2.9g: 100mg 20kg `1.5 kg' 5,000T.
+Weight: 5lbs 3.5lb 11oz ``10dr'' 4cwt 3ton.
+Bits/bytes: 10kb 1kB 75KB 128kbit; 100Mb, -2mb 1.5MB 8Mbit 22MBit 4mbit. 
+Bits/bytes: 750Gb 500GB 4gb 1Gbit 5GBit 1.9gbit 2TB 2Tb 1.5tb.
+Misc: 1000bps 600dpi.
+Bandwidth: 10kb/s 128MB/s 0.5TB/s.
+Temperature: 100C 0F 273.15K.
+Temperature degrees: 10°C -5°C 220°F, 32.5°F.
+Frequency: 440Hz 100kHz 100KHz 8MHz 2.4GHz.
+Pressure: 110,000Pa 100hPa; 1.5kPa 110psi.
+Misc: 80db 80dB 8000rpm 10000RPM.
+Period: 10s 100ms 100μs 1.5us 20ns 1h 5min.
+Period: 2hr 2hrs 5mins 2sec 5secs 10yr 10yrs 1mth 1mnth 5mths.
