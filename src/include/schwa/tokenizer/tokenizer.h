@@ -14,7 +14,7 @@ namespace schwa {
       const std::string msg;
 
       TokenError(const std::string &msg) : msg(msg) { }
-      TokenError(const TokenError &other) : msg(other.msg) { }
+      TokenError(const TokenError &other) : std::exception(other), msg(other.msg) { }
       virtual ~TokenError(void) throw() { }
 
       virtual const char* what(void) const throw() { return msg.c_str(); }

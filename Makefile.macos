@@ -4,8 +4,8 @@ DEFINES =
 
 BASE_CXXFLAGS = -g -O0 -fPIC $(INCLUDE) $(DEFINES)
 
-CXX = g++
-CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -Werror
+CXX = clang++
+CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -Werror
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = dylib
 SHARED_LIB_LDFLAGS = -dynamiclib
