@@ -1,4 +1,4 @@
-INCLUDE = -Iinclude -isystem ext/include
+INCLUDE = -Isrc/include -isystem ext/include
 LIBS = -Lext/lib
 DEFINES =
 
@@ -13,7 +13,7 @@ SHARED_LIB_LDFLAGS = -shared
 TEST_CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -DBOOST_TEST_DYN_LINK
 TEST_LDFLAGS = -lboost_unit_test_framework
 
-PORT_OBJECTS = src/schwa/port/unix.o src/schwa/port/unix_common.o src/schwa/port/colour.o
+PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
 
 include Makefile.targets
 -include Makefile.depends
