@@ -1,20 +1,20 @@
 BINARIES = bin/test
 
-BASE_OBJECTS = src/schwa/licence.o src/schwa/version.o
-CLUSTER_OBJECTS = src/schwa/cluster/no_mpi.o
-CONFIG_OBJECTS = src/schwa/config/node.o src/schwa/config/option.o src/schwa/config/config.o
-DOCREP_OBJECTS = src/schwa/docrep/token.o src/schwa/docrep/span.o src/schwa/docrep/document.o src/schwa/docrep/collection.o src/schwa/docrep/wire_istream.o
+BASE_OBJECTS = src/lib/schwa/licence.o src/lib/schwa/version.o
+CLUSTER_OBJECTS = src/lib/schwa/cluster/no_mpi.o
+CONFIG_OBJECTS = src/lib/schwa/config/node.o src/lib/schwa/config/option.o src/lib/schwa/config/config.o
+DOCREP_OBJECTS = src/lib/schwa/docrep/token.o src/lib/schwa/docrep/span.o src/lib/schwa/docrep/document.o src/lib/schwa/docrep/collection.o src/lib/schwa/docrep/wire_istream.o
 HASHTABLE_OBJECTS =
-MSGPACK_OBJECTS = src/schwa/msgpack/wire.o
-UTILS_OBJECTS = src/schwa/utils/escape.o
+MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
+UTILS_OBJECTS = src/lib/schwa/utils/escape.o
 
 OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 
-UNIT_TEST_OBJECTS = tests/unit_tests/main.o tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
-.PHONY: all clean depends wc
+.PHONY: all clean depends test wc
 
 all: $(BINARIES)
 
@@ -25,10 +25,10 @@ clean:
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find . -name '*.cc' | grep -v src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 wc:
-	find src -name "*.cc" -or -name "*.h" | grep -v ^src/test/ | xargs wc -l
+	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l
 
 
 # -------------------------------------------------------------------------------
@@ -37,18 +37,14 @@ wc:
 %.h.gch: %.h
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
-#bin/test: main/test.o $(OBJECTS)
-bin/test: main/test.o $(BASE_OBJECTS) $(MSGPACK_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) -o $@
-
-bin/drcat: main/drcat.o $(OBJECTS)
+bin/test: src/main/test.o $(BASE_OBJECTS) $(MSGPACK_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 
 # -------------------------------------------------------------------------------
 # Testing
 # -------------------------------------------------------------------------------
-tests/unit_tests/%.o: tests/unit_tests/%.cc
+src/tests/unit_tests/%.o: src/tests/unit_tests/%.cc
 	$(CXX) $(TEST_CXXFLAGS) -c -o $@ $<
 
 # TODO should use shared lib rather than linking directly to the .o files
@@ -58,5 +54,5 @@ $(UNIT_TEST_BINARY): $(BASE_OBJECTS) $(MSGPACK_OBJECTS) $(UNIT_TEST_OBJECTS)
 tests: $(UNIT_TEST_BINARY)
 
 test: tests
-	bin/_unit_tests
+	$(UNIT_TEST_BINARY)
 
