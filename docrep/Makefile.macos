@@ -1,0 +1,19 @@
+INCLUDE = -I include -isystem ext/include
+LIBS = #-L ext/lib
+DEFINES =
+
+BASE_CXXFLAGS = -g -O0 -fPIC $(INCLUDE) $(DEFINES)
+
+CXX = g++
+CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -Werror
+LDFLAGS = $(LIBS)
+SHARED_LIB_SUFFIX = dylib
+SHARED_LIB_LDFLAGS = -dynamiclib
+
+TEST_CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -DBOOST_TEST_DYN_LINK
+TEST_LDFLAGS = -lboost_unit_test_framework
+
+PORT_OBJECTS = src/schwa/port/bsd.o src/schwa/port/unix_common.o src/schwa/port/colour.o
+
+include Makefile.targets
+-include Makefile.depends

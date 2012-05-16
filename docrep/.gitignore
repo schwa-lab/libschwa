@@ -1,0 +1,8 @@
+Makefile
+Makefile.depends
+ext
+.*.swp
+*.h.gch
+*.o
+*.pyc
+tags
