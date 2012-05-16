@@ -4,6 +4,7 @@
 *.pyc
 Makefile
 Makefile.depends
+build
 ext
 lib
 tags
