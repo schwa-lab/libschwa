@@ -1,0 +1,62 @@
+BINARIES = bin/test
+
+BASE_OBJECTS = src/schwa/licence.o src/schwa/version.o
+CLUSTER_OBJECTS = src/schwa/cluster/no_mpi.o
+CONFIG_OBJECTS = src/schwa/config/node.o src/schwa/config/option.o src/schwa/config/config.o
+DOCREP_OBJECTS = src/schwa/docrep/token.o src/schwa/docrep/span.o src/schwa/docrep/document.o src/schwa/docrep/collection.o src/schwa/docrep/wire_istream.o
+HASHTABLE_OBJECTS =
+MSGPACK_OBJECTS = src/schwa/msgpack/wire.o
+UTILS_OBJECTS = src/schwa/utils/escape.o
+
+OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+
+UNIT_TEST_OBJECTS = tests/unit_tests/main.o tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_BINARY = bin/_unit_tests
+TEST_BINARIES = $(UNIT_TEST_BINARY)
+
+.PHONY: all clean depends wc
+
+all: $(BINARIES)
+
+clean:
+	find . -name "*.gch" -exec rm -f {} \;
+	find . -name "*.o" -exec rm -f {} \;
+	find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
+	-rm -f $(BINARIES) $(TEST_BINARIES)
+
+depends:
+	scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find . -name '*.cc' | grep -v src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+
+wc:
+	find src -name "*.cc" -or -name "*.h" | grep -v ^src/test/ | xargs wc -l
+
+
+# -------------------------------------------------------------------------------
+# base targets
+# -------------------------------------------------------------------------------
+%.h.gch: %.h
+	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
+
+#bin/test: main/test.o $(OBJECTS)
+bin/test: main/test.o $(BASE_OBJECTS) $(MSGPACK_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+bin/drcat: main/drcat.o $(OBJECTS)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+
+# -------------------------------------------------------------------------------
+# Testing
+# -------------------------------------------------------------------------------
+tests/unit_tests/%.o: tests/unit_tests/%.cc
+	$(CXX) $(TEST_CXXFLAGS) -c -o $@ $<
+
+# TODO should use shared lib rather than linking directly to the .o files
+$(UNIT_TEST_BINARY): $(BASE_OBJECTS) $(MSGPACK_OBJECTS) $(UNIT_TEST_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(TEST_LDFLAGS) -o $@
+
+tests: $(UNIT_TEST_BINARY)
+
+test: tests
+	bin/_unit_tests
+
