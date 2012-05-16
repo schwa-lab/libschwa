@@ -1,16 +1,19 @@
 
 namespace schwa {
+  namespace io {
 
-class FileSource: public Source {
-protected:
-	FILE *file_;
-public:
-	FileSource(FILE *file)
-		: file_(file){}
+    class FileSource : public Source {
+    protected:
+      FILE *_file;
 
-	virtual size_t read(char *buffer, size_t nbytes){
-		return fread(buffer, sizeof(char), nbytes, file_);
-	}
-};
+    public:
+      FileSource(FILE *file) : _file(file) { }
+      virtual ~FileSource(void) { }
 
+      virtual size_t read(char *buffer, size_t nbytes) {
+        return ::fread(buffer, sizeof(char), nbytes, _file);
+      }
+    };
+
+  }
 }
