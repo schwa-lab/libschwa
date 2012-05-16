@@ -15,5 +15,8 @@ TEST_LDFLAGS = -lboost_unit_test_framework
 
 PORT_OBJECTS = src/lib/schwa/port/bsd.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
 
+RAGEL = ragel
+RAGEL_CXXFLAGS = -O3 -W -Wall -Wextra $(INCLUDE) $(DEFINES)
+
 include Makefile.targets
 -include Makefile.depends

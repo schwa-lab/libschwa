@@ -1,4 +1,4 @@
-BINARIES = bin/test
+BINARIES = bin/test bin/tokenizer
 
 BASE_OBJECTS = src/lib/schwa/licence.o src/lib/schwa/version.o
 CLUSTER_OBJECTS = src/lib/schwa/cluster/no_mpi.o
@@ -6,23 +6,28 @@ CONFIG_OBJECTS = src/lib/schwa/config/node.o src/lib/schwa/config/option.o src/l
 DOCREP_OBJECTS = src/lib/schwa/docrep/token.o src/lib/schwa/docrep/span.o src/lib/schwa/docrep/document.o src/lib/schwa/docrep/collection.o src/lib/schwa/docrep/wire_istream.o
 HASHTABLE_OBJECTS =
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
+TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o
 UTILS_OBJECTS = src/lib/schwa/utils/escape.o
 
-OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
 
 UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
+
+GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
+
 
 .PHONY: all clean depends test wc
 
 all: $(BINARIES)
 
 clean:
-	find . -name "*.gch" -exec rm -f {} \;
-	find . -name "*.o" -exec rm -f {} \;
+	find src -name "*.gch" -exec rm -f {} \;
+	find src -name "*.o" -exec rm -f {} \;
 	find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
 	-rm -f $(BINARIES) $(TEST_BINARIES)
+	-rm -f $(GENERATED_SOURCES)
 
 depends:
 	scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
@@ -39,6 +44,19 @@ wc:
 
 bin/test: src/main/test.o $(BASE_OBJECTS) $(MSGPACK_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
+
+bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(TOKENIZER_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+
+# -------------------------------------------------------------------------------
+# generated sources
+# -------------------------------------------------------------------------------
+src/lib/schwa/tokenizer/tokenizer.o: src/lib/schwa/tokenizer/tokenizer.cc
+	$(CXX) $(RAGEL_CXXFLAGS) -c -o $@ $<
+
+src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.rl Makefile Makefile.targets
+	$(RAGEL) -G2 -o $@ $<
 
 
 # -------------------------------------------------------------------------------
