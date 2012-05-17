@@ -15,7 +15,7 @@ namespace schwa {
       PUNCTUATION,
       QUOTE,
       DASH,
-      TERMINATOR,
+      TERMINATOR
     };
 
   }

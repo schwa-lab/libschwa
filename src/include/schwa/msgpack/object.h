@@ -31,7 +31,7 @@ namespace schwa {
       TYPE_DOUBLE,
       TYPE_RAW,
       TYPE_ARRAY,
-      TYPE_MAP,
+      TYPE_MAP
     };
 
     union ObjectValue {

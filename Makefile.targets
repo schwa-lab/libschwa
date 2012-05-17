@@ -1,4 +1,5 @@
 BINARIES = bin/test bin/tokenizer
+SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
 BASE_OBJECTS = src/lib/schwa/licence.o src/lib/schwa/version.o
 CLUSTER_OBJECTS = src/lib/schwa/cluster/no_mpi.o
@@ -9,7 +10,7 @@ MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 UTILS_OBJECTS = src/lib/schwa/utils/escape.o
 
-OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
 
 UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
@@ -20,12 +21,12 @@ GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
 
 .PHONY: all clean depends test wc
 
-all: $(BINARIES)
+all: $(BINARIES) $(SHARED_LIBS)
 
 clean:
 	-find src -name "*.gch" -exec rm -f {} \;
 	-find src -name "*.o" -exec rm -f {} \;
-	#-find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
+	-find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 	-rm -f $(GENERATED_SOURCES)
 
@@ -48,6 +49,9 @@ bin/test: src/main/test.o $(BASE_OBJECTS) $(MSGPACK_OBJECTS)
 bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(TOKENIZER_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
+lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
+	$(CXX) $(SHARED_LIB_LDFLAGS) -o $@ $^ $(LIBS)
+
 
 # -------------------------------------------------------------------------------
 # generated sources
@@ -65,12 +69,11 @@ src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.r
 src/tests/unit_tests/%.o: src/tests/unit_tests/%.cc
 	$(CXX) $(TEST_CXXFLAGS) -c -o $@ $<
 
-# TODO should use shared lib rather than linking directly to the .o files
-$(UNIT_TEST_BINARY): $(BASE_OBJECTS) $(MSGPACK_OBJECTS) $(UNIT_TEST_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) $(TEST_LDFLAGS) -o $@
+$(UNIT_TEST_BINARY): $(UNIT_TEST_OBJECTS) lib/libschwa.$(SHARED_LIB_SUFFIX)
+	$(CXX) $(UNIT_TEST_OBJECTS) $(LDFLAGS) $(TEST_LDFLAGS) -o $@
 
 tests: $(UNIT_TEST_BINARY)
 
 test: tests
-	$(UNIT_TEST_BINARY)
+	LD_LIBRARY_PATH=lib:ext/lib $(UNIT_TEST_BINARY)
 
