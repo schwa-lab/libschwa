@@ -1,5 +1,7 @@
-#include <schwa/base.h>
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <schwa/std.h>
 #include <schwa/msgpack.h>
+
 
 namespace schwa { namespace msgpack {
 
