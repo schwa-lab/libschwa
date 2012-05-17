@@ -1,5 +1,5 @@
 INCLUDE = -Isrc/include -isystem ext/include
-LIBS = -Lext/lib -lboost_iostreams
+LIBS = -Llib -Lext/lib -lboost_iostreams
 DEFINES =
 
 BASE_CXXFLAGS = -g -O0 -fPIC $(INCLUDE) $(DEFINES)
@@ -11,12 +11,12 @@ SHARED_LIB_SUFFIX = dylib
 SHARED_LIB_LDFLAGS = -dynamiclib
 
 TEST_CXXFLAGS = $(BASE_CXXFLAGS) -Wall -Wextra -DBOOST_TEST_DYN_LINK
-TEST_LDFLAGS = -lboost_unit_test_framework
+TEST_LDFLAGS = -lboost_unit_test_framework -lschwa
 
 PORT_OBJECTS = src/lib/schwa/port/bsd.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
 
 RAGEL = ragel
-RAGEL_CXXFLAGS = -O3 -W -Wall -Wextra $(INCLUDE) $(DEFINES)
+RAGEL_CXXFLAGS = -O3 -W -Wall -Wextra -fPIC $(INCLUDE) $(DEFINES)
 
 include Makefile.targets
 -include Makefile.depends

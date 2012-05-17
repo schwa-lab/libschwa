@@ -11,7 +11,7 @@ namespace schwa {
       WIRE_FLOAT, WIRE_DOUBLE,
       WIRE_UINT_8, WIRE_UINT_16, WIRE_UINT_32, WIRE_UINT_64,
       WIRE_INT_8, WIRE_INT_16, WIRE_INT_32, WIRE_INT_64,
-      WIRE_RESERVED,
+      WIRE_RESERVED
     };
 
     namespace header {
