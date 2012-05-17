@@ -31,7 +31,7 @@ clean:
 	-rm -f $(GENERATED_SOURCES)
 
 depends:
-	scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 wc:
 	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l

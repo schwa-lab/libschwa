@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INCLUDE=include
+INCLUDE=src/include/schwa
 PRECOMPILED='std.h'
 
 TMP=/tmp/depends.${RANDOM}
