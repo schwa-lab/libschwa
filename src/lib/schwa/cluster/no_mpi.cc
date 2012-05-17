@@ -1,4 +1,6 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/base.h>
+
 
 namespace schwa { namespace cluster {
 

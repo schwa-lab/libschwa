@@ -1,5 +1,7 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/base.h>
 #include <schwa/config.h>
+
 
 namespace schwa { namespace config {
 

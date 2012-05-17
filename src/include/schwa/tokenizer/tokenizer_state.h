@@ -27,25 +27,22 @@ namespace schwa {
       bool in_double_quotes;
       bool in_single_quotes;
 
-      State(void)
-        : cs(0), ts(0), te(0), act(0),
-          offset(0), n1(0), n2(0), suffix(0),
-          in_document(false), in_heading(false), in_paragraph(false),
-          in_list(false), in_item(false), in_sentence(false),
-          seen_terminator(false),
-          in_double_quotes(false), in_single_quotes(false){}
+      State(void) : cs(0), ts(0), te(0), act(0), offset(0), n1(0), n2(0), suffix(0), in_document(false), in_heading(false), in_paragraph(false), in_list(false), in_item(false), in_sentence(false), seen_terminator(false), in_double_quotes(false), in_single_quotes(false) { }
 
-      void error(Stream &dest){
+      void
+      error(Stream &dest) {
         dest.error(ts, ts - offset, te - ts);
       }
 
-      void add(Type type, Stream &dest, const char *norm = 0){
+      void
+      add(Type type, Stream &dest, const char *norm=0) {
         dest.add(type, ts, ts - offset, te - ts, norm ? norm : n1);
         n1 = n2 = 0;
         suffix = 0;
       }
 
-      void split(Type type1, Type type2, Stream &dest, const char *norm1 = 0, const char *norm2 = 0){
+      void
+      split(Type type1, Type type2, Stream &dest, const char *norm1=0, const char *norm2=0) {
         const char *split = te - suffix;
         dest.add(type1, ts, ts - offset, split - ts, norm1 ? norm1 : n1);
         dest.add(type2, split, split - offset, te - split, norm2 ? norm2 : n2);
@@ -53,13 +50,15 @@ namespace schwa {
         suffix = 0;
       }
 
-      void flush_sentence(Stream &dest){
-        if(seen_terminator)
+      void
+      flush_sentence(Stream &dest) {
+        if (seen_terminator)
           end_sentence(dest);
         seen_terminator = false;
       }
 
-      void begin_document(Stream &dest){
+      void
+      begin_document(Stream &dest) {
         in_document = true;
         dest.begin_document();
 
@@ -75,17 +74,19 @@ namespace schwa {
         in_sentence = false;
       }
 
-      void begin_heading(Stream &dest, int depth) {
-      end_paragraph(dest);
+      void
+      begin_heading(Stream &dest, int depth) {
+        end_paragraph(dest);
 
-      in_heading = true;
+        in_heading = true;
         in_single_quotes = false;
         in_double_quotes = false;
 
-      dest.begin_heading(depth);
+        dest.begin_heading(depth);
       }
 
-      void begin_paragraph(Stream &dest){
+      void
+      begin_paragraph(Stream &dest) {
         end_paragraph(dest);
 
         in_paragraph = true;
@@ -95,15 +96,16 @@ namespace schwa {
         dest.begin_paragraph();
       }
 
-      void ensure_paragraph(Stream &dest){
-        if(in_paragraph)
+      void
+      ensure_paragraph(Stream &dest) {
+        if (in_paragraph)
           return;
-
         begin_paragraph(dest);
       }
 
-      void begin_sentence(Stream &dest){
-        if(!in_heading && !in_list)
+      void
+      begin_sentence(Stream &dest) {
+        if (!in_heading && !in_list)
           ensure_paragraph(dest);
 
         in_sentence = true;
@@ -111,15 +113,16 @@ namespace schwa {
         dest.begin_sentence();
       }
 
-      void ensure_sentence(Stream &dest){
-        if(in_sentence)
+      void
+      ensure_sentence(Stream &dest) {
+        if (in_sentence)
           return;
-
         begin_sentence(dest);
       }
 
-      void end_sentence(Stream &dest){
-        if(!in_sentence)
+      void
+      end_sentence(Stream &dest) {
+        if (!in_sentence)
           return;
 
         dest.end_sentence();
@@ -127,26 +130,26 @@ namespace schwa {
         in_sentence = false;
       }
 
-      void end_paragraph(Stream &dest){
-        if(!in_paragraph)
+      void
+      end_paragraph(Stream &dest) {
+        if (!in_paragraph)
           return;
 
         end_sentence(dest);
-
         dest.end_paragraph();
-
         in_single_quotes = false;
         in_double_quotes = false;
         in_paragraph = false;
       }
 
-      void end_heading(Stream &dest, int depth){
-        if(!in_heading)
+      void
+      end_heading(Stream &dest, int depth) {
+        if (!in_heading)
           return;
 
         end_sentence(dest);
 
-      // FIXME: ensure consistent depth
+        // FIXME: ensure consistent depth
         dest.end_heading(depth);
 
         in_single_quotes = false;
@@ -154,7 +157,8 @@ namespace schwa {
         in_heading = false;
       }
 
-      void end_document(Stream &dest){
+      void
+      end_document(Stream &dest) {
         end_paragraph(dest);
         end_list(dest);
         dest.end_document();
@@ -162,7 +166,8 @@ namespace schwa {
         in_document = false;
       }
 
-      void begin_list(Stream &dest){
+      void
+      begin_list(Stream &dest) {
         end_list(dest);
 
         in_list = true;
@@ -172,15 +177,16 @@ namespace schwa {
         dest.begin_list();
       }
 
-      void ensure_list(Stream &dest){
-        if(in_list)
+      void
+      ensure_list(Stream &dest) {
+        if (in_list)
           return;
-
         begin_list(dest);
       }
 
-      void end_list(Stream &dest){
-        if(!in_list)
+      void
+      end_list(Stream &dest) {
+        if (!in_list)
           return;
 
         end_item(dest);
@@ -191,7 +197,8 @@ namespace schwa {
         in_list = false;
       }
 
-      void begin_item(Stream &dest){
+      void
+      begin_item(Stream &dest) {
         end_item(dest);
         ensure_list(dest);
 
@@ -199,15 +206,16 @@ namespace schwa {
         dest.begin_item();
       }
 
-      void ensure_item(Stream &dest){
-        if(in_item)
+      void
+      ensure_item(Stream &dest) {
+        if (in_item)
           return;
-
         begin_list(dest);
       }
 
-      void end_item(Stream &dest){
-        if(!in_item)
+      void
+      end_item(Stream &dest) {
+        if (!in_item)
           return;
 
         end_sentence(dest);

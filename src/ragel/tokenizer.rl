@@ -23,7 +23,7 @@
   include "rules/main.rl";
 }%%
 
-#include <schwa/std.h>
+#include <schwa/base.h>
 #include <schwa/io/source.h>
 #include <schwa/io/sources/istream.h>
 #include <schwa/tokenizer.h>
@@ -38,13 +38,13 @@ namespace schwa { namespace tokenizer {
 %% write data nofinal;
 
 void
-Tokenizer::token_(Type type, Stream &dest, State &state, const char *norm) const {
+Tokenizer::_token(Type type, Stream &dest, State &state, const char *norm) const {
   state.ensure_sentence(dest);
   state.add(type, dest, norm);
 }
 
 void
-Tokenizer::word_(Type type, Stream &dest, State &state, const char *norm) const {
+Tokenizer::_word(Type type, Stream &dest, State &state, const char *norm) const {
   if (state.seen_terminator) {
     // need to make this work better for UTF8
     if (type == WORD && (isupper(*state.ts) || isdigit(*state.ts)))
@@ -52,22 +52,22 @@ Tokenizer::word_(Type type, Stream &dest, State &state, const char *norm) const 
     else
       state.seen_terminator = false;
   }
-  token_(type, dest, state, norm);
+  _token(type, dest, state, norm);
 }
 
 void
-Tokenizer::punct_(Type type, Stream &dest, State &state, const char *norm) const {
+Tokenizer::_punct(Type type, Stream &dest, State &state, const char *norm) const {
   state.flush_sentence(dest);
-  token_(type, dest, state, norm);
+  _token(type, dest, state, norm);
 }
 
 void
-Tokenizer::end_(Type type, Stream &dest, State &state, const char *norm) const {
-  token_(type, dest, state, norm);
+Tokenizer::_end(Type type, Stream &dest, State &state, const char *norm) const {
+  _token(type, dest, state, norm);
 }
 
 void
-Tokenizer::split_(Type type1, Type type2, Stream &dest, State &state, const char *norm1, const char *norm2) const {
+Tokenizer::_split(Type type1, Type type2, Stream &dest, State &state, const char *norm1, const char *norm2) const {
   if (state.seen_terminator) {
     // need to make this work better for UTF8
     if (type1 == WORD && (isupper(*state.ts) || isdigit(*state.ts)))
@@ -80,142 +80,142 @@ Tokenizer::split_(Type type1, Type type2, Stream &dest, State &state, const char
 }
 
 void
-Tokenizer::terminator_(Stream &dest, State &state, const char *norm) const {
+Tokenizer::_terminator(Stream &dest, State &state, const char *norm) const {
   state.seen_terminator = true;
-  end_(TERMINATOR, dest, state, norm);
+  _end(TERMINATOR, dest, state, norm);
 }
 
 void
-Tokenizer::error_(Stream &dest, State &state) const {
+Tokenizer::_error(Stream &dest, State &state) const {
   state.error(dest);
 }
 
 void
-Tokenizer::single_quote_(Stream &dest, State &state, const char *eof) const {
+Tokenizer::_single_quote(Stream &dest, State &state, const char *eof) const {
   if (state.in_single_quotes || state.te == eof || !isalnum(*state.te)) {
-    end_(QUOTE, dest, state, "'");
+    _end(QUOTE, dest, state, "'");
     state.in_single_quotes = false;
     return;
   }
 
-  punct_(QUOTE, dest, state, "`");
+  _punct(QUOTE, dest, state, "`");
   state.in_single_quotes = true;
 }
 
 void
-Tokenizer::double_quote_(Stream &dest, State &state, const char *eof) const {
+Tokenizer::_double_quote(Stream &dest, State &state, const char *eof) const {
   static_cast<void>(eof);
   if (state.in_double_quotes) {
-    end_(QUOTE, dest, state, "''");
+    _end(QUOTE, dest, state, "''");
     state.in_double_quotes = false;
     return;
   }
 
-  punct_(QUOTE, dest, state, "``");
+  _punct(QUOTE, dest, state, "``");
   state.in_double_quotes = true;
 }
 
 void
-Tokenizer::open_single_quote_(Stream &dest, State &state) const {
-  punct_(QUOTE, dest, state, "`");
+Tokenizer::_open_single_quote(Stream &dest, State &state) const {
+  _punct(QUOTE, dest, state, "`");
   state.in_single_quotes = true;
 }
 
 void
-Tokenizer::close_single_quote_(Stream &dest, State &state) const {
-  end_(QUOTE, dest, state, "'");
+Tokenizer::_close_single_quote(Stream &dest, State &state) const {
+  _end(QUOTE, dest, state, "'");
   state.in_single_quotes = false;
 }
 
 void
-Tokenizer::open_double_quote_(Stream &dest, State &state) const {
-  punct_(QUOTE, dest, state, "``");
+Tokenizer::_open_double_quote(Stream &dest, State &state) const {
+  _punct(QUOTE, dest, state, "``");
   state.in_double_quotes = true;
 }
 
 void
-Tokenizer::close_double_quote_(Stream &dest, State &state) const {
-  end_(QUOTE, dest, state, "''");
+Tokenizer::_close_double_quote(Stream &dest, State &state) const {
+  _end(QUOTE, dest, state, "''");
   state.in_double_quotes = false;
 }
 
 void
-Tokenizer::sep_text_paragraph_(Stream &dest, State &state) const {
+Tokenizer::_sep_text_paragraph(Stream &dest, State &state) const {
   state.end_paragraph(dest);
 }
 
 void
-Tokenizer::sep_html_paragraph_(Stream &dest, State &state) const {
+Tokenizer::_sep_html_paragraph(Stream &dest, State &state) const {
   state.end_paragraph(dest);
 }
 
 void
-Tokenizer::begin_html_paragraph_(Stream &dest, State &state) const {
+Tokenizer::_begin_html_paragraph(Stream &dest, State &state) const {
   state.begin_paragraph(dest);
 }
 
 void
-Tokenizer::end_html_paragraph_(Stream &dest, State &state) const {
+Tokenizer::_end_html_paragraph(Stream &dest, State &state) const {
   state.end_paragraph(dest);
 }
 
 void
-Tokenizer::begin_html_heading_(Stream &dest, State &state) const {
+Tokenizer::_begin_html_heading(Stream &dest, State &state) const {
   const long val = strtol(state.ts + 2 /* <h */, NULL, 10);
   state.begin_heading(dest, static_cast<int>(val));
 }
 
 void
-Tokenizer::end_html_heading_(Stream &dest, State &state) const {
+Tokenizer::_end_html_heading(Stream &dest, State &state) const {
   const long val = strtol(state.ts + 3 /* </h */, NULL, 10);
   state.end_heading(dest, static_cast<int>(val));
 }
 
 void
-Tokenizer::begin_html_list_(Stream &dest, State &state) const {
+Tokenizer::_begin_html_list(Stream &dest, State &state) const {
   state.begin_list(dest);
 }
 
 void
-Tokenizer::end_html_list_(Stream &dest, State &state) const {
+Tokenizer::_end_html_list(Stream &dest, State &state) const {
   state.end_list(dest);
 }
 
 void
-Tokenizer::begin_html_item_(Stream &dest, State &state) const {
+Tokenizer::_begin_html_item(Stream &dest, State &state) const {
   state.begin_item(dest);
 }
 
 void
-Tokenizer::end_html_item_(Stream &dest, State &state) const {
+Tokenizer::_end_html_item(Stream &dest, State &state) const {
   state.end_item(dest);
 }
 
 void
-Tokenizer::dash_or_item_(Stream &dest, State &state) const {
+Tokenizer::_dash_or_item(Stream &dest, State &state) const {
   if (state.in_sentence)
-    punct_(DASH, dest, state, "--");
+    _punct(DASH, dest, state, "--");
   else
     state.begin_item(dest);
 }
 
 void
-Tokenizer::number_or_item_(Stream &dest, State &state) const {
+Tokenizer::_number_or_item(Stream &dest, State &state) const {
   if (state.in_sentence){
-    split_(NUMBER, PUNCTUATION, dest, state);
+    _split(NUMBER, PUNCTUATION, dest, state);
     state.seen_terminator = true;
   }else
     state.begin_item(dest);
 }
 
 bool
-Tokenizer::die_(std::ostream &msg) const {
+Tokenizer::_die(std::ostream &msg) const {
   throw TokenError(dynamic_cast<std::ostringstream &>(msg).str());
   return false;
 }
 
 bool
-Tokenizer::tokenize_(Stream &dest, State &s, const char *&n1, const char *&n2, const char *p, const char *pe, const char *eof, int errors) const {
+Tokenizer::_tokenize(Stream &dest, State &s, const char *&n1, const char *&n2, const char *p, const char *pe, const char *eof, int errors) const {
   static_cast<void>(eof);
   std::ostringstream msg;
 
@@ -239,7 +239,7 @@ Tokenizer::tokenize(Stream &dest, const char *data, offset_type len, int errors)
 
   s.offset = p;
   s.begin_document(dest);
-  bool finished = tokenize_(dest, s, s.n1, s.n2, p, pe, eof, errors);
+  bool finished = _tokenize(dest, s, s.n1, s.n2, p, pe, eof, errors);
   if (finished)
     s.end_document(dest);
   return finished;
@@ -256,7 +256,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
   scoped_array<char> scoped_buffer(new char[buffer_size]);
   char *buffer = scoped_buffer.get();
   if (!buffer)
-    return die_(msg << "could not allocate a buffer of size " << buffer_size);
+    return _die(msg << "could not allocate a buffer of size " << buffer_size);
 
   s.offset = buffer;
   s.begin_document(dest);
@@ -266,7 +266,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
   while (!done) {
     size_t space = buffer_size - have;
     if (space == 0)
-      return die_(msg << "current token (e.g. a HTML script element) is larger than buffer size of " << buffer_size);
+      return _die(msg << "current token (e.g. a HTML script element) is larger than buffer size of " << buffer_size);
 
     char *p = buffer + have;
     size_t nread = src.read(p, space);
@@ -278,7 +278,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
       done = true;
     }
 
-    if (!tokenize_(dest, s, s.n1, s.n2, p, pe, eof, errors))
+    if (!_tokenize(dest, s, s.n1, s.n2, p, pe, eof, errors))
       return false;
 
     if (s.ts == 0)
@@ -320,7 +320,7 @@ Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, int errors) 
 
   iostreams::mapped_file file(filename);
   if (!file)
-    return die_(msg << "could not open file " << filename << " for reading with mmap");
+    return _die(msg << "could not open file " << filename << " for reading with mmap");
 
   return tokenize(dest, file.data(), file.size(), errors);
 }

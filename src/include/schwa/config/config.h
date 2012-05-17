@@ -1,3 +1,5 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
   namespace config {
 
@@ -32,7 +34,7 @@ namespace schwa {
 
       virtual bool has(const std::string &name) const;
       virtual Node &get(const std::string &name);
-      virtual void set(const std::string &){ die("cannot set the value of a config"); }
+      virtual void set(const std::string &) { die("cannot set the value of a config"); }
       virtual void check(void);
 
       virtual void load(std::istream &in, const std::string &uri);
@@ -84,7 +86,7 @@ namespace schwa {
       virtual void check(void);
 
       using Cfg::set;
-      void set(const std::string &path, const std::string &value_str){ get(path).set(value_str); }
+      void set(const std::string &path, const std::string &value_str) { get(path).set(value_str); }
       void parse(const int argc, char * const *argv);
     };
 

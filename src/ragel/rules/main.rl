@@ -1,62 +1,62 @@
+// vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
 %%{
   machine tokenizer;
 
   action ignore {}
-  action word { word_(WORD, dest, s); }
-  action punct { punct_(PUNCTUATION, dest, s); }
-  action end { end_(PUNCTUATION, dest, s); }
-  action contraction { split_(WORD, CONTRACTION, dest, s); }
+  action word { _word(WORD, dest, s); }
+  action punct { _punct(PUNCTUATION, dest, s); }
+  action end { _end(PUNCTUATION, dest, s); }
+  action contraction { _split(WORD, CONTRACTION, dest, s); }
   action catchall {
     switch(errors){
       case ERROR_SKIP:
         break;
       case ERROR_CALL:
-        error_(dest, s);
+        _error(dest, s);
         break;
       case ERROR_THROW:
-        die_(msg << "stuck on character " << (int)*p
-                 << " at offset " << (p - s.offset));
+        _die(msg << "stuck on character " << (int)*p << " at offset " << (p - s.offset));
         break;
       default:
-        die_(msg << "illegal value " << errors << " for bad byte error handling");
+        _die(msg << "illegal value " << errors << " for bad byte error handling");
     }
   }
 
   main := |*
-    single_quote => { single_quote_(dest, s, eof); };
-    double_quote => { double_quote_(dest, s, eof); };
+    single_quote => { _single_quote(dest, s, eof); };
+    double_quote => { _double_quote(dest, s, eof); };
 
-    open_single_quote => { open_single_quote_(dest, s); };
-    close_single_quote => { close_single_quote_(dest, s); };
+    open_single_quote => { _open_single_quote(dest, s); };
+    close_single_quote => { _close_single_quote(dest, s); };
 
-    open_double_quote => { open_double_quote_(dest, s); };
-    close_double_quote => { close_double_quote_(dest, s); };
+    open_double_quote => { _open_double_quote(dest, s); };
+    close_double_quote => { _close_double_quote(dest, s); };
 
-    full_stop => { terminator_(dest, s, "."); };
-    question_mark => { terminator_(dest, s, "?"); };
-    exclamation_mark => { terminator_(dest, s, "!"); };
-    ellipsis => { terminator_(dest, s, "..."); };
+    full_stop => { _terminator(dest, s, "."); };
+    question_mark => { _terminator(dest, s, "?"); };
+    exclamation_mark => { _terminator(dest, s, "!"); };
+    ellipsis => { _terminator(dest, s, "..."); };
 
-    dash => { dash_or_item_(dest, s); };
-#    [1-9][0-9]* "." => { number_or_item_(dest, s); };
+    dash => { _dash_or_item(dest, s); };
+#    [1-9][0-9]* "." => { _number_or_item(dest, s); };
 
     (space - newline | other_ws)+ | newline => ignore;
-    newline{2,} => { sep_text_paragraph_(dest, s); };
+    newline{2,} => { _sep_text_paragraph(dest, s); };
 
-    open_p_tag => { begin_html_paragraph_(dest, s); };
-    close_p_tag => { end_html_paragraph_(dest, s); };
-    sep_p_tag => { sep_html_paragraph_(dest, s); };
+    open_p_tag => { _begin_html_paragraph(dest, s); };
+    close_p_tag => { _end_html_paragraph(dest, s); };
+    sep_p_tag => { _sep_html_paragraph(dest, s); };
 
-    open_h_tag => { begin_html_heading_(dest, s); };
-    close_h_tag => { end_html_heading_(dest, s); };
+    open_h_tag => { _begin_html_heading(dest, s); };
+    close_h_tag => { _end_html_heading(dest, s); };
 
-    open_ul_tag | open_ol_tag => { begin_html_list_(dest, s); };
-    close_ul_tag | close_ol_tag => { end_html_list_(dest, s); };
+    open_ul_tag | open_ol_tag => { _begin_html_list(dest, s); };
+    close_ul_tag | close_ol_tag => { _end_html_list(dest, s); };
 
-    open_li_tag => { begin_html_item_(dest, s); };
-    close_li_tag => { end_html_item_(dest, s); };
+    open_li_tag => { _begin_html_item(dest, s); };
+    close_li_tag => { _end_html_item(dest, s); };
 
     html_tag | html_comment | script_tag | style_tag => ignore;
 
@@ -64,11 +64,11 @@
     neg_error => contraction;
     letter+ cont_suffix => contraction;
 
-    (letter+ "."? possessive) - abbrev_decade => { split_(WORD, POSSESSIVE, dest, s); };
-    possessive => { word_(POSSESSIVE, dest, s); }; # always capture 's
+    (letter+ "."? possessive) - abbrev_decade => { _split(WORD, POSSESSIVE, dest, s); };
+    possessive => { _word(POSSESSIVE, dest, s); }; # always capture 's
 
-    (numbers units) - abbrev_decade => { split_(NUMBER, UNIT, dest, s); };
-    time_ambiguous meridian => { split_(NUMBER, UNIT, dest, s); };
+    (numbers units) - abbrev_decade => { _split(NUMBER, UNIT, dest, s); };
+    time_ambiguous meridian => { _split(NUMBER, UNIT, dest, s); };
     meridian_token | date_time => word;
 
     (integer | float) "-" alpha+ ("-" alpha+)* => word;

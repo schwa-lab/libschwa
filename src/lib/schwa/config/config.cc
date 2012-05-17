@@ -1,12 +1,15 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/base.h>
 #include <schwa/config.h>
 #include <schwa/cluster.h>
+
 
 namespace schwa { namespace config {
 
 std::string Main::PROGRAM_NAME;
 
 typedef std::map<std::string, int> RecursiveCheck;
+
 
 static bool
 split_assignment(const std::string &s, std::string &path, std::string &value_str) {
@@ -21,12 +24,14 @@ split_assignment(const std::string &s, std::string &path, std::string &value_str
   return true;
 }
 
+
 static bool
-valid_option(const char *s){
+valid_option(const char *s) {
   if (!s)
     die("illegal null string in command line arguments", "(null)");
   return *s == SEP;
 }
+
 
 template <class Cfg>
 static void
@@ -93,7 +98,7 @@ Cfg::derived_temp_path(const OpPath &base, const OpPath &temp, const std::string
 void
 Cfg::reg(Node &child, Flags flags) {
   for (Nodes::iterator i = _children.begin(); i != _children.end(); ++i) {
-    if (*i && (*i)->order > child.order){
+    if (*i && (*i)->order > child.order) {
       _children.insert(i, &child);
       return;
     }
@@ -127,7 +132,7 @@ Cfg::get(const std::string &path) {
   try {
     std::string tail;
     for (Nodes::const_iterator i = _children.begin(); i != _children.end(); ++i)
-      if (*i && (*i)->match(path, tail)){
+      if (*i && (*i)->match(path, tail)) {
         if (tail != "")
           return (*i)->get(tail);
         return **i;
@@ -151,7 +156,7 @@ Cfg::get(const std::string &path) {
 
 
 void
-Cfg::check(void){
+Cfg::check(void) {
   try {
     for (Nodes::iterator i = _children.begin(); i != _children.end(); ++i)
       if (*i)

@@ -1,9 +1,12 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/base.h>
 #include <schwa/config.h>
+
 
 namespace schwa { namespace config {
 
 const std::string Option::REQUIRED = std::string(" (") + schwa::port::BOLD + "REQUIRED" + schwa::port::OFF + ')';
+
 
 // ============================================================================
 // schwa::config::Option
@@ -88,7 +91,7 @@ Alias::check(void) {
   try {
     _node.check();
   }
-  catch(ConfigError e){
+  catch(ConfigError e) {
     throw ConfigError(e, NAME);
   }
 }
@@ -151,7 +154,7 @@ OpMoreHelp::set(const std::string &) {
 // schwa::config::OpCfg
 // ============================================================================
 void
-OpCfg::set(const std::string &value_str){
+OpCfg::set(const std::string &value_str) {
   assert(_cfg);
 
   std::ifstream in(value_str.c_str());

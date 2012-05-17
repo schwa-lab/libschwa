@@ -1,37 +1,39 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
 
   inline
-  void dump_uchar(std::ostream &out, unsigned char value){
+  void dump_uchar(std::ostream &out, unsigned char value) {
     out.put(value);
   }
 
   inline
-  bool load_uchar(std::istream &in, unsigned char &value){
-    return in.get((char &)value);
+  bool load_uchar(std::istream &in, unsigned char &value) {
+    return in.get(static_cast<char &>(value));
   }
 
   inline
-  void dump_ushort(std::ostream &out, unsigned short value){
+  void dump_ushort(std::ostream &out, unsigned short value) {
     dump_uchar(out, 0xFF & value);
     dump_uchar(out, 0xFF & (value >> 8));
   }
 
   inline
-  bool load_ushort(std::istream &in, unsigned short &value){
+  bool load_ushort(std::istream &in, unsigned short &value) {
     unsigned char tmp;
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    value = (unsigned short)tmp;
+    value = static_cast<unsigned short>(tmp);
 
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    value |= (unsigned short)tmp << 8;
+    value |= static_cast<unsigned short>(tmp) << 8;
 
     return true;
   }
 
   inline
-  void dump_ulong(std::ostream &out, unsigned long value){
+  void dump_ulong(std::ostream &out, unsigned long value) {
     dump_uchar(out, 0xFF & value);
     dump_uchar(out, 0xFF & (value >> 8));
     dump_uchar(out, 0xFF & (value >> 16));
@@ -39,29 +41,29 @@ namespace schwa {
   }
 
   inline
-  bool load_ulong(std::istream &in, unsigned long &value){
+  bool load_ulong(std::istream &in, unsigned long &value) {
     unsigned char tmp;
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    value = (unsigned long)tmp;
+    value = static_cast<unsigned long>(tmp);
 
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    value |= (unsigned long)tmp << 8;
+    value |= static_cast<unsigned long>(tmp) << 8;
 
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    value |= (unsigned long)tmp << 16;
+    value |= static_cast<unsigned long>(tmp) << 16;
 
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    value |= (unsigned long)tmp << 24;
+    value |= static_cast<unsigned long>(tmp) << 24;
 
     return true;
   }
 
   inline
-  void dump_float(std::ostream &out, float value){
+  void dump_float(std::ostream &out, float value) {
     union {
       unsigned long bits;
       float value;
@@ -75,28 +77,28 @@ namespace schwa {
   }
 
   inline
-  bool load_float(std::istream &in, float &value){
+  bool load_float(std::istream &in, float &value) {
     union {
       unsigned long bits;
       float value;
     } res;
 
     unsigned char tmp;
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    res.bits = (unsigned long)tmp;
+    res.bits = static_cast<unsigned long>(tmp);
 
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    res.bits |= (unsigned long)tmp << 8;
+    res.bits |= static_cast<unsigned long>(tmp) << 8;
 
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    res.bits |= (unsigned long)tmp << 16;
+    res.bits |= static_cast<unsigned long>(tmp) << 16;
 
-    if(!load_uchar(in, tmp))
+    if (!load_uchar(in, tmp))
       return false;
-    res.bits |= (unsigned long)tmp << 24;
+    res.bits |= static_cast<unsigned long>(tmp) << 24;
 
     value = res.value;
 
@@ -104,7 +106,7 @@ namespace schwa {
   }
 
   inline
-  void dump_string(std::ostream &out, const char *const str){
+  void dump_string(std::ostream &out, const char *const str) {
     int len = strlen(str);
     assert(len <= USHRT_MAX);
     dump_ushort(out, len);
@@ -112,13 +114,13 @@ namespace schwa {
   }
 
   inline
-  bool load_string(std::istream &in, char *buffer, unsigned short nbuffer){
+  bool load_string(std::istream &in, char *buffer, unsigned short nbuffer) {
     unsigned short len;
-    if(!load_ushort(in, len))
+    if (!load_ushort(in, len))
       return false;
-    if(len >= nbuffer)
-      throw NLP::IOException("string too long for buffer in load_string");
-    if(!in.read(buffer, len))
+    if (len >= nbuffer)
+      throw IOException("string too long for buffer in load_string");
+    if (!in.read(buffer, len))
       return false;
     buffer[len] = '\0';
     return true;
