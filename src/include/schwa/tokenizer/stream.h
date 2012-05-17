@@ -5,6 +5,8 @@ namespace schwa {
 
     class Stream {
     public:
+      virtual ~Stream(void) { }
+
       virtual void add(Type type, const char *raw, offset_type begin, offset_type len, const char *norm=0) = 0;
 
       virtual void error(const char *raw, offset_type begin, offset_type len) = 0;
