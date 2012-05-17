@@ -1,3 +1,5 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
   namespace config {
 
@@ -15,7 +17,7 @@ namespace schwa {
     public:
       Option(const std::string &name, const std::string &desc, Flags flags);
       Option(Cfg &cfg, const std::string &name, const std::string &desc, Flags flags);
-      virtual ~Option(void){ }
+      virtual ~Option(void) { }
 
       virtual bool has(const std::string &) const { return false; }
       virtual void check(void);
@@ -45,7 +47,7 @@ namespace schwa {
       Op(Cfg &cfg, const std::string &name, const std::string &desc, T default_value) : Option(cfg, name, desc, SHOW_ALL | HAS_DEFAULT | IS_DEFINED), value(default_value), DEFAULT_VALUE(default_value) { }
       Op(Cfg &cfg, Flags flags, const std::string &name, const std::string &desc) : Option(cfg, name, desc, flags) { }
       Op(Cfg &cfg, Flags flags, const std::string &name, const std::string &desc, T default_value) : Option(cfg, name, desc, flags | HAS_DEFAULT | IS_DEFINED), value(default_value), DEFAULT_VALUE(default_value) { }
-      virtual ~Op(void){ }
+      virtual ~Op(void) { }
 
       bool is_default(void) const { return DEFAULT_VALUE == value; }
       T get_default(void) const { return DEFAULT_VALUE; }
@@ -318,7 +320,7 @@ namespace schwa {
 
     public:
       OpPath(const std::string &name, const std::string &desc, const OpPath *base=0) : Op<std::string>(name, desc), BASE(base) { }
-      OpPath(const std::string &name, const std::string &desc, std::string default_value, const OpPath *base=0) : Op<std::string>(name, desc, default_value), BASE(base){}
+      OpPath(const std::string &name, const std::string &desc, std::string default_value, const OpPath *base=0) : Op<std::string>(name, desc, default_value), BASE(base) {}
       OpPath(Cfg &cfg, const std::string &name, const std::string &desc, const OpPath *base=0) : Op<std::string>(cfg, name, desc), BASE(base) { }
       OpPath(Cfg &cfg, const std::string &name, const std::string &desc, std::string default_value, const OpPath *base=0) : Op<std::string>(cfg, name, desc, default_value), BASE(base) { }
       OpPath(Cfg &cfg, Flags flags, const std::string &name, const std::string &desc, const OpPath *base=0) : Op<std::string>(cfg, flags, name, desc), BASE(base) { }

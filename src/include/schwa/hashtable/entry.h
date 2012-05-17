@@ -1,3 +1,4 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 /**
  * schwa::hashtable::Entry, schwa::hashtable::Counter and schwa::hashtable::FCounter
  * basic hash table entry types
@@ -30,8 +31,8 @@ namespace schwa {
     template <class Value>
     class Entry {
     private:
-      Entry(unsigned long index, Hash hash, Entry *next) : index(index), next(next), value(), hash(hash) { }
-      ~Entry(void) { }
+      Entry (unsigned long index, Hash hash, Entry *next) : index(index), next(next), value(), hash(hash) { }
+      ~Entry (void) { }
 
       void *
       operator new(size_t size, Pool *pool, size_t len) {
@@ -50,7 +51,7 @@ namespace schwa {
 
       static Entry *
       create(Pool *pool, const std::string &str, unsigned long index, Hash hash, Entry *next) {
-        Entry *entry = new (pool, get_remainder(str.size())) Entry(index, hash, next);
+        Entry *entry = new (pool, get_remainder(str.size())) Entry (index, hash, next);
         strcpy(entry->str, str.c_str());
         return entry;
       }
@@ -60,31 +61,35 @@ namespace schwa {
 
       Entry *
       find(const Hash hash) {
-        for(Entry *l = this; l != 0; l = l->next)
-          if(l->hash == hash)
+        for (Entry *l = this; l != 0; l = l->next)
+          if (l->hash == hash)
             return l;
         return 0;
       }
 
-      Entry *find(const std::string &str, const Hash hash) {
-        for(Entry *l = this; l != 0; l = l->next)
-          if(l->equal(str, hash))
+      Entry *
+      find(const std::string &str, const Hash hash) {
+        for (Entry *l = this; l != 0; l = l->next)
+          if (l->equal(str, hash))
             return l;
         return 0;
       }
 
-      Entry *find(const char c) {
-        for(Entry *l = this; l != 0; l = l->next)
-          if(l->equal(c))
+      Entry *
+      find(const char c) {
+        for (Entry *l = this; l != 0; l = l->next)
+          if (l->equal(c))
             return l;
         return 0;
       }
 
-      unsigned long nchained(void) {
+      unsigned long
+      nchained(void) {
         return next ? next->nchained() + 1 : 1;
       }
 
-      std::ostream &save(std::ostream &out) const {
+      std::ostream &
+      save(std::ostream &out) const {
         return out << str << ' ' << std::setprecision(4) << value;
       }
     };

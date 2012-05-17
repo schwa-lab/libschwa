@@ -1,5 +1,6 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 /**
- * NLP::Hash
+ * schwa::Hash
  * hash value type and operator overloaded support methods
  * allows new hash functions to be implemented in a uniform
  * manner with the same basic shift and add approach to
@@ -24,65 +25,75 @@ namespace schwa {
     unsigned long _hash;
 
   public:
+    // make all the constructors explicit so there are no nasty
+    // surprises with automatic casts
+    explicit Hash(unsigned long hash): _hash(hash) { };
+    explicit Hash(unsigned short hash): _hash(hash) { };
+    explicit Hash(unsigned char hash): _hash(hash) { };
+    explicit Hash(char c): _hash(_INIT) { *this += c; };
+    explicit Hash(const char *str): _hash(_INIT) { *this += str; };
+    explicit Hash(const std::string &str): _hash(_INIT) { *this += str; };
+
+    Hash(const Hash &other): _hash(other._hash) { };
+
     // += operators which do the shift and add automatically
-    Hash &operator +=(const char c){
+    Hash &
+    operator +=(const char c) {
       _hash = _hash*_INC + static_cast<unsigned char>(c);
       return *this;
     }
 
-    Hash &operator +=(const char *str){
+    Hash &
+    operator +=(const char *str) {
       for( ; *str; ++str)
         *this += *str;
       return *this;
     };
 
-    Hash &operator +=(const std::string &str){
+    Hash &
+    operator +=(const std::string &str) {
       for(const char *s = str.c_str(); *s; ++s)
         *this += *s;
       return *this;
     };
 
-    Hash &operator +=(const Hash &hash){
+    Hash &
+    operator +=(const Hash &hash) {
       _hash *= _INC;
       _hash += hash._hash;
       return *this;
     }
 
-    Hash &operator +=(unsigned char value){
+    Hash &
+    operator +=(unsigned char value) {
       _hash *= _INC;
       _hash += value;
       return *this;
     }
 
-    Hash &operator +=(unsigned short value){
+    Hash &
+    operator +=(unsigned short value) {
       _hash *= _INC;
       _hash += value;
       return *this;
     }
 
-    Hash &operator +=(unsigned long value){
+    Hash &
+    operator +=(unsigned long value) {
       _hash *= _INC;
       _hash += value;
       return *this;
     }
 
-    Hash &operator +=(int value){ return *this += static_cast<unsigned long>(value); };
+    Hash &
+    operator +=(int value) {
+      return *this += static_cast<unsigned long>(value);
+    };
 
     // for greater manual control over hash function shifting
     // and adding, there are the separated out add and shift (multiply) steps
-    Hash &operator |=(unsigned long value){ _hash += value; return *this; };
-    Hash &operator *=(unsigned long value){ _hash *= value; return *this; };
-
-    Hash(const Hash &other): _hash(other._hash) {};
-
-    // make all the constructors explicit so there are no nasty
-    // surprises with automatic casts
-    explicit Hash(unsigned long hash): _hash(hash) {};
-    explicit Hash(unsigned short hash): _hash(hash) {};
-    explicit Hash(unsigned char hash): _hash(hash) {};
-    explicit Hash(char c): _hash(_INIT) { *this += c; };
-    explicit Hash(const char *str): _hash(_INIT) { *this += str; };
-    explicit Hash(const std::string &str): _hash(_INIT) { *this += str; };
+    Hash &operator |=(unsigned long value) { _hash += value; return *this; };
+    Hash &operator *=(unsigned long value) { _hash *= value; return *this; };
 
     // get a unsigned long back for indexing by applying mod
     unsigned long operator %(const size_t buckets) const { return _hash % buckets; };
@@ -91,6 +102,6 @@ namespace schwa {
     unsigned long value(void) const { return _hash; };
   };
 
-  inline bool operator ==(const Hash &a, const Hash &b){ return a.value() == b.value(); }
-  inline bool operator !=(const Hash &a, const Hash &b){ return a.value() != b.value(); }
+  inline bool operator ==(const Hash &a, const Hash &b) { return a.value() == b.value(); }
+  inline bool operator !=(const Hash &a, const Hash &b) { return a.value() != b.value(); }
 }

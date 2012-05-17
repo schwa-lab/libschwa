@@ -1,3 +1,4 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/std.h>
 #include <schwa/licence.h>
 #include <schwa/version.h>

@@ -1,10 +1,12 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/base.h>
+
 
 namespace schwa {
 
 char
-esc2char(char c){
-  switch(c){
+esc2char(char c) {
+  switch(c) {
   case 'a': return '\a';
   case 'b': return '\b';
   case 'f': return '\f';
@@ -21,8 +23,8 @@ esc2char(char c){
 }
 
 char
-char2esc(char c){
-  switch(c){
+char2esc(char c) {
+  switch(c) {
   case '\a': return 'a';
   case '\b': return 'b';
   case '\f': return 'f';
@@ -39,8 +41,8 @@ char2esc(char c){
 }
 
 std::string
-char2esc_str(char c){
-  switch(c){
+char2esc_str(char c) {
+  switch(c) {
   case '\a': return "\\a";
   case '\b': return "\\b";
   case '\f': return "\\f";

@@ -6,7 +6,7 @@ CONFIG_OBJECTS = src/lib/schwa/config/node.o src/lib/schwa/config/option.o src/l
 DOCREP_OBJECTS = src/lib/schwa/docrep/token.o src/lib/schwa/docrep/span.o src/lib/schwa/docrep/document.o src/lib/schwa/docrep/collection.o src/lib/schwa/docrep/wire_istream.o
 HASHTABLE_OBJECTS =
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
-TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o
+TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 UTILS_OBJECTS = src/lib/schwa/utils/escape.o
 
 OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(DOCREP_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
@@ -25,7 +25,7 @@ all: $(BINARIES)
 clean:
 	-find src -name "*.gch" -exec rm -f {} \;
 	-find src -name "*.o" -exec rm -f {} \;
-	-find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
+	#-find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 	-rm -f $(GENERATED_SOURCES)
 
@@ -52,13 +52,10 @@ bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(TOKENIZER_OBJECTS)
 # -------------------------------------------------------------------------------
 # generated sources
 # -------------------------------------------------------------------------------
-src/lib/schwa/tokenizer:
-	mkdir -p $@
-
 src/lib/schwa/tokenizer/tokenizer.o: src/lib/schwa/tokenizer/tokenizer.cc
 	$(CXX) $(RAGEL_CXXFLAGS) -c -o $@ $<
 
-src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.rl Makefile Makefile.targets src/lib/schwa/tokenizer
+src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.rl Makefile Makefile.targets
 	$(RAGEL) -G2 -o $@ $<
 
 

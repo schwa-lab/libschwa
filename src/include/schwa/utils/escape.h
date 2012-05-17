@@ -1,3 +1,5 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
   // convert a control character into its escaped version \t -> t
   char char2esc(char c);

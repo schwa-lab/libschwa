@@ -1,3 +1,5 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
   namespace hashtable {
 
@@ -18,6 +20,7 @@ namespace schwa {
       const static unsigned long SPOOL_ = SPOOL;
 
       Entry *buckets_[NBUCKETS];
+
     public:
       Base(const std::string &name, Pool *pool=0) : name(name), size(0), pool_(pool ? pool : new Pool(SPOOL)), shared_(pool != 0) {
         std::memset(buckets_, 0, sizeof(buckets_));
@@ -47,36 +50,43 @@ namespace schwa {
         }
       }
 
-      Entry *insert(Key key){
+      Entry *
+      insert(Key key) {
         const Hash hash(key);
         return insert(key, hash, hash % NBUCKETS);
       }
 
-      Entry *add(Key key){
+      Entry *
+      add(Key key) {
         const Hash hash(key);
         unsigned long bucket = hash % NBUCKETS;
         Entry *entry = buckets_[bucket]->find(key, hash);
-        if(entry)
+        if (entry)
           return entry;
-
         return insert(key, hash, bucket);
       }
 
-      Entry *find(Key key) const {
+      Entry *
+      find(Key key) const {
         const Hash hash(key);
         return buckets_[hash % NBUCKETS]->find(key, hash);
       }
-      Entry *find(const char c) const { return buckets_[Hash(c) % NBUCKETS]->find(c); }
 
-      void printstats(std::ostream &os) const {
+      Entry *
+      find(const char c) const {
+        return buckets_[Hash(c) % NBUCKETS]->find(c);
+      }
+
+      void
+      printstats(std::ostream &os) const {
         size_t maxchain = 0;
         size_t nbins = 0;
         size_t nbytes = 0;
 
-        for(unsigned long i = 0; i < NBUCKETS; i++){
-          if(buckets_[i]){
+        for (unsigned long i = 0; i < NBUCKETS; i++) {
+          if (buckets_[i]) {
             unsigned long temp = buckets_[i]->nchained();
-            if(maxchain < temp)
+            if (maxchain < temp)
               maxchain = temp;
             nbins++;
           }

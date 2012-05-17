@@ -1,3 +1,5 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
   namespace config {
 
@@ -13,7 +15,6 @@ namespace schwa {
     // ========================================================================
     // Template implementations below
     // ========================================================================
-
     template <typename T>
     std::istream &
     operator >>(std::istream &is, std::vector<T> &vec) {
@@ -71,7 +72,7 @@ namespace schwa {
 
     template <typename T>
     std::ostream &
-    operator <<(std::ostream &os, const std::vector<T> &vec){
+    operator <<(std::ostream &os, const std::vector<T> &vec) {
       if (vec.size() != 0) {
         os << vec[0];
         for(size_t i = 1; i != vec.size(); ++i)

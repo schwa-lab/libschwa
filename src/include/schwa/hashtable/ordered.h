@@ -1,10 +1,12 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
   namespace hashtable {
 
     template <class E>
     class AlphaCmp {
     public:
-      bool operator ()(const E *const e1, const E *const e2){
+      inline bool operator ()(const E *const e1, const E *const e2) {
         return strcmp(e1->str, e2->str) < 0;
       }
     };
@@ -12,7 +14,7 @@ namespace schwa {
     template <class E>
     class ValueCmp {
     public:
-      bool operator ()(const E *const e1, const E *const e2){
+      inline bool operator ()(const E *const e1, const E *const e2) {
         return e1->value < e2->value;
       }
     };
@@ -20,7 +22,7 @@ namespace schwa {
     template <class E>
     class RevValueCmp {
     public:
-      bool operator ()(const E *const e1, const E *const e2){
+      inline bool operator ()(const E *const e1, const E *const e2) {
         return e1->value > e2->value;
       }
     };
@@ -28,7 +30,7 @@ namespace schwa {
     template <class E>
     class IndexCmp {
     public:
-      bool operator ()(const E *const e1, const E *const e2){
+      inline bool operator ()(const E *const e1, const E *const e2) {
         return e1->index < e2->index;
       }
     };
@@ -43,49 +45,57 @@ namespace schwa {
       typedef typename Entries::iterator iterator;
       typedef typename Entries::const_iterator const_iterator;
 
-      Entries entries;
+    protected:
+      Entries _entries;
 
+    public:
       Ordered(std::string name, Pool *pool=0) : Super(name, pool) { }
-      virtual ~Ordered(void){ }
+      virtual ~Ordered(void) { }
 
       using Super::insert;
 
-      virtual Entry *insert(Key key, const Hash hash, const unsigned long bucket){
+      virtual Entry *
+      insert(Key key, const Hash hash, const unsigned long bucket) {
         Entry *entry = Super::insert(key, hash, bucket);
-        entries.push_back(entry);
+        _entries.push_back(entry);
         return entry;
       }
 
-      virtual void clear(void){
+      virtual void
+      clear(void) {
         Super::clear();
-        entries.resize(0);
+        _entries.resize(0);
       }
 
-      virtual void renumber(void){
-        for(unsigned long i = 0; i != entries.size(); ++i)
-          entries[i]->index = i;
+      virtual void
+      renumber(void) {
+        for (unsigned long i = 0; i != _entries.size(); ++i)
+          _entries[i]->index = i;
       }
 
-      void compact(void){
-        iterator new_end = std::remove(entries.begin(), entries.end(), reinterpret_cast<Entry *>(0));
-        entries.erase(new_end, entries.end());
+      void
+      compact(void) {
+        iterator new_end = std::remove(_entries.begin(), _entries.end(), reinterpret_cast<Entry *>(0));
+        _entries.erase(new_end, _entries.end());
       }
 
-      void compress(void){
-        iterator new_end = std::remove(entries.begin(), entries.end(), reinterpret_cast<Entry *>(0));
-        entries.erase(new_end, entries.end());
+      void
+      compress(void) {
+        iterator new_end = std::remove(_entries.begin(), _entries.end(), reinterpret_cast<Entry *>(0));
+        _entries.erase(new_end, _entries.end());
         renumber();
       }
 
       template <class Comparator>
-      void sort(Comparator cmp){ std::sort(entries.begin(), entries.end(), cmp); }
+      void sort(Comparator cmp) { std::sort(_entries.begin(), _entries.end(), cmp); }
 
-      void sort_by_alpha(void){ sort(AlphaCmp<Entry>()); renumber(); }
-      void sort_by_value(void){ sort(ValueCmp<Entry>()); renumber(); };
-      void sort_by_rev_value(void){ sort(RevValueCmp<Entry>()); renumber(); };
+      void sort_by_alpha(void) { sort(AlphaCmp<Entry>()); renumber(); }
+      void sort_by_value(void) { sort(ValueCmp<Entry>()); renumber(); };
+      void sort_by_rev_value(void) { sort(RevValueCmp<Entry>()); renumber(); };
 
-      void save(std::ostream &out) const {
-        for(const_iterator i = entries.begin(); i != entries.end(); ++i)
+      void
+      save(std::ostream &out) const {
+        for (const_iterator i = _entries.begin(); i != _entries.end(); ++i)
           (*i)->save(out) << '\n';
       }
     };

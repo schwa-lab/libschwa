@@ -1,13 +1,15 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/std.h>
 #include <schwa/exception.h>
 #include <schwa/port.h>
 
-#include <cerrno>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
+
 
 namespace schwa { namespace port {
 

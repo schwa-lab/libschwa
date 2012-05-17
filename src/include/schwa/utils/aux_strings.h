@@ -11,7 +11,7 @@ namespace schwa {
 
   inline char *
   strlower(char *string) {
-    for(char *s = string; *s; s++)
+    for (char *s = string; *s; s++)
       *s = std::tolower(*s);
     return string;
   }
@@ -19,7 +19,7 @@ namespace schwa {
   inline char *
   chomp(char *string) {
     char *s = string;
-    while(*s && *s != '\n')
+    while (*s && *s != '\n')
       s++;
     *s = '\0';
     return string;
@@ -51,7 +51,7 @@ namespace schwa {
     if (!str)
       return false;
     long temp = strtol(str, &error, 10);
-    if (error == str || temp < 0){
+    if (error == str || temp < 0) {
       value = 0;
       return false;
     }
@@ -65,7 +65,7 @@ namespace schwa {
     if (!str)
       return false;
     long temp = strtol(str, &error, 10);
-    if (error == str){
+    if (error == str) {
       value = 0;
       return false;
     }
@@ -79,7 +79,7 @@ namespace schwa {
     if (!str)
       return false;
     double temp = strtod(str, &error);
-    if (error == str){
+    if (error == str) {
       value = 0.0;
       return false;
     }

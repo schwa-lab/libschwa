@@ -1,3 +1,4 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #ifndef SCHWA_STD_H_
 #define SCHWA_STD_H_
 

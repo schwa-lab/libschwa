@@ -1,3 +1,5 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
+
 namespace schwa {
   namespace config {
 
@@ -20,11 +22,13 @@ namespace schwa {
 
     const static char SEP = '-';
 
-    inline void die(const std::string &msg, const std::string &name) {
+    inline void
+    die(const std::string &msg, const std::string &name) {
       throw schwa::ConfigError(msg, name);
     }
 
-    inline void die(const std::string &msg, const std::string &name, const std::string &uri, unsigned long nlines) {
+    inline void
+    die(const std::string &msg, const std::string &name, const std::string &uri, unsigned long nlines) {
       throw schwa::ConfigError(msg, name, uri, nlines);
     }
 
@@ -36,8 +40,8 @@ namespace schwa {
       unsigned short order;
 
     public:
-      Node(const std::string &name, const std::string &desc, Flags flags=SHOW_ALL, unsigned short order=0) : NAME(name), DESC(desc), flags(flags), order(order){ }
-      virtual ~Node(void){ }
+      Node(const std::string &name, const std::string &desc, Flags flags=SHOW_ALL, unsigned short order=0) : NAME(name), DESC(desc), flags(flags), order(order) { }
+      virtual ~Node(void) { }
 
       bool has_default(void) const { return flags & HAS_DEFAULT; }
       bool has_changed(void) const { return flags & HAS_CHANGED; }
@@ -68,14 +72,14 @@ namespace schwa {
       void write_config(const std::string &filename, const std::string &PREFIX, bool root=true) const;
       void write_preface(const std::string &filename, const std::string &PREFIX, bool root=true) const;
 
-      virtual void write_help(std::ostream &out, std::string prefix = "", bool full=false) const = 0;
-      virtual void write_config(std::ostream &out, std::string prefix = "", bool root=true) const = 0;
-      virtual void write_preface(std::ostream &out, std::string prefix = "", bool root=true) const = 0;
+      virtual void write_help(std::ostream &out, std::string prefix="", bool full=false) const = 0;
+      virtual void write_config(std::ostream &out, std::string prefix="", bool root=true) const = 0;
+      virtual void write_preface(std::ostream &out, std::string prefix="", bool root=true) const = 0;
 
       virtual void write_desc(std::ostream &out, bool) const;
-      virtual void writeln_help(std::ostream &out, std::string prefix = "", bool full=false) const;
-      virtual void writeln_config(std::ostream &out, std::string prefix = "", bool root=true) const;
-      virtual void writeln_preface(std::ostream &out, std::string prefix = "", bool root=true) const;
+      virtual void writeln_help(std::ostream &out, std::string prefix="", bool full=false) const;
+      virtual void writeln_config(std::ostream &out, std::string prefix="", bool root=true) const;
+      virtual void writeln_preface(std::ostream &out, std::string prefix="", bool root=true) const;
     };
 
   }

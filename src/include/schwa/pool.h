@@ -1,3 +1,4 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 /**
  * schwa::MemoryArena and schwa::Pool
  * very fast, efficient bulk memory allocation used in
@@ -22,7 +23,7 @@ namespace schwa {
 
   public:
     MemoryArena(size_t size) : _SIZE(size), _begin(new char[_SIZE]), _end(_begin + _SIZE), _current(_begin), _mark(_begin) { }
-    ~MemoryArena(void){ delete [] _begin; }
+    ~MemoryArena(void) { delete [] _begin; }
 
     char *
     alloc(const size_t size) {
@@ -108,7 +109,7 @@ namespace schwa {
 
     // allocate space and copy, putting a '\0' on the end
     const char *
-    strdup(const char *const str, size_t len){
+    strdup(const char *const str, size_t len) {
       char *buf = alloc(len + 1);
       std::memmove(buf, str, len);
       buf[len] = '\0';
@@ -116,7 +117,7 @@ namespace schwa {
     }
 
     const char *
-    strdup(const char *const str){
+    strdup(const char *const str) {
       return strdup(str, strlen(str));
     }
 
