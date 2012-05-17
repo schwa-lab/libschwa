@@ -31,8 +31,6 @@
 #include <valarray>
 #include <vector>
 
-typedef uint32_t unicode_t;
-
 #ifndef O_NOATIME
 #define O_NOATIME (0)
 #endif
