@@ -1,16 +1,11 @@
 BINARIES = bin/test bin/tokenizer
 SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
-BASE_OBJECTS = src/lib/schwa/licence.o src/lib/schwa/version.o
-CLUSTER_OBJECTS = src/lib/schwa/cluster/no_mpi.o
-CONFIG_OBJECTS = src/lib/schwa/config/node.o src/lib/schwa/config/option.o src/lib/schwa/config/config.o
 DOCREP_OBJECTS = src/lib/schwa/docrep/token.o src/lib/schwa/docrep/span.o src/lib/schwa/docrep/document.o src/lib/schwa/docrep/collection.o src/lib/schwa/docrep/wire_istream.o
-HASHTABLE_OBJECTS =
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
-UTILS_OBJECTS = src/lib/schwa/utils/escape.o
 
-OBJECTS = $(BASE_OBJECTS) $(CLUSTER_OBJECTS) $(CONFIG_OBJECTS) $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
+OBJECTS = $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
 UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
