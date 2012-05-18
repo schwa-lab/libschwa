@@ -1,11 +1,10 @@
 BINARIES = bin/test bin/tokenizer
 SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
-DOCREP_OBJECTS = src/lib/schwa/docrep/token.o src/lib/schwa/docrep/span.o src/lib/schwa/docrep/document.o src/lib/schwa/docrep/collection.o src/lib/schwa/docrep/wire_istream.o
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 
-OBJECTS = $(HASHTABLE_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+OBJECTS = $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
 UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
@@ -26,7 +25,7 @@ clean:
 	-rm -f $(GENERATED_SOURCES)
 
 depends:
-	src/scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 wc:
 	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l
