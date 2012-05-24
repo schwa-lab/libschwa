@@ -7,5 +7,4 @@ Makefile.depends
 build
 ext
 ./lib
-src/lib/schwa/tokenizer/tokenizer.cc
 tags
