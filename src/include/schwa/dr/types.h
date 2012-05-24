@@ -1,9 +1,18 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <boost/type_traits/is_base_of.hpp>
 
 namespace schwa {
   namespace dr {
 
     class Annotation {
+    protected:
+      size_t _dr_index;
+
+      Annotation(void) : _dr_index(0) { }
+      Annotation(const Annotation &) = delete;
+
+    public:
+      inline void set_dr_index(size_t dr_index) { _dr_index = dr_index; }
     };
 
 
@@ -21,17 +30,17 @@ namespace schwa {
     template <typename T>
     class Pointer {
     public:
-      BOOST_STATIC_ASSERT(boost::is_base_of<Annotation, T>::value);
+      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
       T *ptr;
 
-      Pointer(T *ptr=0) : ptr(ptr) { }
+      Pointer(T *ptr=nullptr) : ptr(ptr) { }
     };
 
 
     template <typename T>
     class Pointers {
     public:
-      BOOST_STATIC_ASSERT(boost::is_base_of<Annotation, T>::value);
+      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
       std::vector<T *> items;
     };
 
@@ -44,8 +53,8 @@ namespace schwa {
       size_t _size;
 
     public:
-      MemoryBlock(const size_t capacity, MemoryBlock *next=0) : _data(new char[capacity * sizeof(T)]), _capacity(capacity), _size(0), _next(next) {
-        assert(_data != 0);
+      MemoryBlock(const size_t capacity) : _data(new char[capacity * sizeof(T)]), _capacity(capacity), _size(0) {
+        assert(_data != nullptr);
       }
       ~MemoryBlock(void) {
         delete [] _data;
@@ -57,25 +66,52 @@ namespace schwa {
       inline char *
       alloc(void) {
         if (_size == _capacity)
-          return 0;
-        char *const ptr = _data[_size * sizeof(T)];
+          return nullptr;
+        char *const ptr = &_data[_size * sizeof(T)];
         ++_size;
         return ptr;
       }
     };
 
 
-    template <typename T>
+    template <typename T, size_t GROW_SIZE=32>
     class Store {
+    public:
+      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+      static_assert(GROW_SIZE > 0, "GROW_SIZE must be positive");
+
     protected:
       std::vector<MemoryBlock<T> *> _blocks;
+      MemoryBlock<T> *_block;
       size_t _size;
 
     public:
-      Store(void) : _size(0) { }
+      Store(void) : _block(nullptr), _size(0) { }
+      Store(const Store &) = delete;
       ~Store(void) {
-        for (std::vector<MemoryBlock<T> *>::const_iterator it = _blocks.begin(); it != _blocks.end(); ++it)
-          delete *it;
+        delete _block;
+        for (auto &block : _blocks)
+          delete block;
+      }
+
+      inline size_t size(void) const { return _size; }
+      inline size_t nblocks(void) const { return (_block != nullptr) + _blocks.size(); }
+
+      T &
+      create(void) {
+        if (_block == nullptr)
+          _block = new MemoryBlock<T>(GROW_SIZE);
+
+        char *bytes = _block->alloc();
+        if (bytes == nullptr) {
+          _blocks.push_back(_block);
+          _block = new MemoryBlock<T>(GROW_SIZE);
+          bytes = _block->alloc();
+        }
+
+        T *const ptr = new (bytes) T();
+        ptr->set_dr_index(_size++);
+        return *ptr;
       }
 
     };
