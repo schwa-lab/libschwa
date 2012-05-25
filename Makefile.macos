@@ -18,5 +18,8 @@ PORT_OBJECTS = src/lib/schwa/port/bsd.o src/lib/schwa/port/unix_common.o src/lib
 RAGEL = ragel
 RAGEL_CXXFLAGS = -O3 -W -Wall -Wextra -fPIC $(INCLUDE) $(DEFINES)
 
+PYTHON_VERSION=2.7
+PYTHON_INCLUDE=-isystem /System/Library/Frameworks/Python.framework/Versions/$(PYTHON_VERSION)/include/python$(PYTHON_VERSION)
+
 include Makefile.targets
 -include Makefile.depends
