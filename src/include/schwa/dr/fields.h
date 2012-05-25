@@ -67,6 +67,7 @@ namespace schwa {
     public:
       static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
       static_assert(GROW_SIZE > 0, "GROW_SIZE must be positive");
+      typedef T value_type;
 
     protected:
       std::vector<MemoryBlock<T> *> _blocks;
