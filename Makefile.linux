@@ -2,7 +2,7 @@ INCLUDE = -Isrc/include -isystem ext/include
 LIBS = -Llib -Lext/lib -lboost_iostreams
 DEFINES =
 
-BASE_CXXFLAGS = -g -O0 -fPIC $(INCLUDE) $(DEFINES)
+BASE_CXXFLAGS = -std=c++0x -g -O0 -fPIC $(INCLUDE) $(DEFINES)
 
 CXX = g++
 CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -Werror -pedantic
@@ -17,6 +17,9 @@ PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/li
 
 RAGEL = ragel
 RAGEL_CXXFLAGS = -O3 -W -Wall -Wextra -fPIC $(INCLUDE) $(DEFINES)
+
+PYTHON_VERSION=2.7
+PYTHON_INCLUDE=-isystem /usr/include/python$(PYTHON_VERSION)
 
 include Makefile.targets
 -include Makefile.depends
