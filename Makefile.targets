@@ -22,10 +22,9 @@ clean:
 	-find src -name "*.o" -exec rm -f {} \;
 	-find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
 	-rm -f $(BINARIES) $(TEST_BINARIES)
-	-rm -f $(GENERATED_SOURCES)
 
 depends:
-	src/scripts/depends "$(CXX) -MM $(INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/depends "$(CXX) -MM $(INCLUDE) $(PYTHON_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 wc:
 	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l
@@ -53,7 +52,7 @@ lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
 src/lib/schwa/tokenizer/tokenizer.o: src/lib/schwa/tokenizer/tokenizer.cc
 	$(CXX) $(RAGEL_CXXFLAGS) -c -o $@ $<
 
-src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.rl Makefile Makefile.targets
+src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.rl
 	$(RAGEL) -G2 -o $@ $<
 
 
