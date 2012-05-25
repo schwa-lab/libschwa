@@ -31,8 +31,8 @@ namespace schwa {
     template <typename R, typename T, R T::*member_obj_ptr>
     class FieldDef<R T::*, member_obj_ptr> : public BaseDef {
     public:
+      typedef T doc_type;
       typedef R value_type;
-      typedef T class_type;
 
       FieldDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial) { }
       virtual ~FieldDef(void) { }
@@ -45,8 +45,8 @@ namespace schwa {
     template <typename R, typename T, R T::*member_obj_ptr>
     class StoreDef<R T::*, member_obj_ptr> : public BaseDef {
     public:
-      typedef R value_type;
-      typedef T class_type;
+      typedef T doc_type;
+      typedef typename R::value_type value_type;
 
       StoreDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial) { }
       virtual ~StoreDef(void) { }
