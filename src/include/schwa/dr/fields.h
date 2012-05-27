@@ -1,9 +1,12 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <boost/type_traits/is_base_of.hpp>
+#include <boost/type_traits.hpp>
 
 namespace schwa {
   namespace dr {
 
+    // ========================================================================
+    // Field types
+    // ========================================================================
     template <typename T>
     class Slice {
     public:
@@ -18,21 +21,27 @@ namespace schwa {
     template <typename T>
     class Pointer {
     public:
-      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+      typedef T pointer_type;
+
       T *ptr;
 
       Pointer(T *ptr=nullptr) : ptr(ptr) { }
+      ~Pointer(void) { }
     };
 
 
     template <typename T>
     class Pointers {
     public:
-      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+      typedef T pointer_type;
+
       std::vector<T *> items;
     };
 
 
+    // ========================================================================
+    // Storage types
+    // ========================================================================
     template <typename T>
     class MemoryBlock {
     private:
@@ -103,6 +112,54 @@ namespace schwa {
         return *ptr;
       }
     };
+
+
+    template <typename T>
+    class Singleton {
+    public:
+      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+      T *ptr;
+
+      Singleton(T *ptr=nullptr) : ptr(ptr) { }
+    };
+
+
+    // ========================================================================
+    // FieldTraits
+    // ========================================================================
+    template <typename T>
+    struct FieldTraits {
+      static constexpr const bool is_dr_ptr_type = false;
+      static constexpr const bool is_pod_ptr = boost::is_pointer<T>::value;
+    };
+
+    template <typename T>
+    struct FieldTraits<Pointer<T>> {
+      static constexpr const bool is_dr_ptr_type = true;
+      typedef T pointer_type;
+    };
+
+    template <typename T>
+    struct FieldTraits<Pointers<T>> {
+      static constexpr const bool is_dr_ptr_type = true;
+      typedef T pointer_type;
+    };
+
+    template <typename T, bool>
+    struct SliceFieldTraits {
+      static constexpr const bool is_dr_ptr_type = false;
+      static constexpr const bool is_pod_ptr = false;
+    };
+
+    template <typename T>
+    struct SliceFieldTraits<T, true> {
+      static constexpr const bool is_dr_ptr_type = true;
+      typedef typename boost::remove_pointer<T>::type pointer_type;
+    };
+
+    template <typename T>
+    struct FieldTraits<Slice<T>> : public SliceFieldTraits<T, boost::is_pointer<T>::value> { };
+
 
   }
 }

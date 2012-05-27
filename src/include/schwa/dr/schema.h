@@ -9,38 +9,74 @@ namespace schwa {
     class Schema {
     protected:
       std::vector<BaseDef *> _defs;
-
-      Schema(void) { }
-      virtual ~Schema(void) { }
-
-    public:
-      inline void add(BaseDef *def) { _defs.push_back(def); }
-    };
-
-
-    class TypeSchema : public Schema {
-    protected:
       const std::string _name;
       const std::string _help;
       std::string _serial;
+      const bool _is_doc;
+
+      Schema(const std::string &name, const std::string &help, const std::string &serial, const bool is_doc) : _name(name), _help(help), _serial(serial), _is_doc(is_doc) { }
 
     public:
-      TypeSchema(const std::string &name, const std::string &help, const std::string &serial) : Schema(), _name(name), _help(help), _serial(serial) { }
-      virtual ~TypeSchema(void) { }
+      virtual ~Schema(void) { }
 
-      inline const std::string &field_name(void) const { return _name; }
+      inline void add(BaseDef *def) { _defs.push_back(def); }
+
+      inline const std::string &name(void) const { return _name; }
       inline const std::string &help(void) const { return _help; }
       inline std::string serial(void) const { return _serial; }
 
-      inline void set_serial(const std::string &serial) { _serial = serial; }
+      inline bool is_doc_schema(void) const { return _is_doc; }
+
+      inline void
+      set_serial(const std::string &serial) {
+        if (_is_doc)
+          throw ValueException("Cannot set the serial value for a Document schema");
+        _serial = serial;
+      }
+    };
+
+    class TypeSchema : public Schema {
+    public:
+      TypeSchema(const std::string &name, const std::string &help, const std::string &serial) : Schema(name, help, serial, false) { }
+      virtual ~TypeSchema(void) { }
     };
 
 
     class DocSchema : public Schema {
     public:
-      DocSchema(void) : Schema() { }
+      DocSchema(const std::string &name, const std::string &help) : Schema(name, help, "", true) { }
       virtual ~DocSchema(void) { }
     };
+
+
+    // ========================================================================
+    // Base classes
+    // ========================================================================
+    class Annotation {
+    public:
+      typedef TypeSchema Schema;
+
+    protected:
+      size_t _dr_index;
+
+      Annotation(void) : _dr_index(0) { }
+      Annotation(const Annotation &) = delete;
+
+    public:
+      inline void set_dr_index(size_t dr_index) { _dr_index = dr_index; }
+    };
+
+
+    class Document {
+    public:
+      typedef DocSchema Schema;
+
+    protected:
+      Document(void) = default;
+      Document(const Document &) = delete;
+    };
+
+
 
   }
 }

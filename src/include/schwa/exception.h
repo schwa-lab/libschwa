@@ -5,7 +5,7 @@ namespace schwa {
   public:
     const std::string msg;
 
-    Exception(const std::string &msg) : msg(msg){ }
+    Exception(const std::string &msg) : msg(msg) { }
     Exception(const Exception &other) : std::exception(other), msg(other.msg) { }
     virtual ~Exception(void) throw() { }
 
@@ -28,17 +28,12 @@ namespace schwa {
   };
 
 
-  // Configuration system errors (illegal values etc)
-  class ConfigError : public IOException {
+  // general errors with an error message
+  class ValueException : public Exception {
   public:
-    const std::string option;
-
-    ConfigError(const std::string &msg, const std::string &option) throw() : IOException(msg), option(option) { }
-    ConfigError(const std::string &msg, const std::string &option, const std::string &uri, int line=0) : IOException(msg, uri, line), option(option) { }
-    ConfigError(const std::string &msg, const std::string &uri, int line) : IOException(msg, uri, line), option() { }
-    ConfigError(const ConfigError &other, const std::string &option) : IOException(other), option(option) { }
-
-    virtual ~ConfigError(void) throw() { }
+    ValueException(const std::string &msg) : Exception(msg) { }
+    ValueException(const ValueException &other) : Exception(other) { }
+    virtual ~ValueException(void) throw() { }
   };
 
 }
