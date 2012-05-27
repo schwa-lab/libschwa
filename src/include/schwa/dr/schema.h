@@ -7,8 +7,11 @@ namespace schwa {
 
 
     class Schema {
+    public:
+      typedef std::vector<BaseDef *> container_type;
+
     protected:
-      std::vector<BaseDef *> _defs;
+      container_type _defs;
       const std::string _name;
       const std::string _help;
       std::string _serial;
@@ -25,7 +28,8 @@ namespace schwa {
       inline const std::string &help(void) const { return _help; }
       inline std::string serial(void) const { return _serial; }
 
-      inline bool is_doc_schema(void) const { return _is_doc; }
+      inline container_type::const_iterator begin(void) const { return _defs.begin(); }
+      inline container_type::const_iterator end(void) const { return _defs.end(); }
 
       inline void
       set_serial(const std::string &serial) {
@@ -34,6 +38,7 @@ namespace schwa {
         _serial = serial;
       }
     };
+
 
     class TypeSchema : public Schema {
     public:

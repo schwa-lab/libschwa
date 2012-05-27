@@ -4,8 +4,6 @@
 #include <schwa/tokenizer.h>
 #include <schwa/dr.h>
 
-#include <boost/static_assert.hpp>
-
 using namespace schwa;
 
 
@@ -73,19 +71,28 @@ main(void) {
   dr::Pointers<Token> ptrs;
   dr::Store<Token> tokens;
 
-  dr::TypeRegistry reg;
-  dr::Schema &s_doc = reg.add<Doc>();
+  dr::TypeRegistry reg = dr::TypeRegistry::create<Doc>();
   dr::Schema &s_tok = reg.add<Token>();
-  (void)s_doc;
   (void)s_tok;
 
   try {
-    //s_doc.set_serial("foo");
+    s_tok.set_serial("foo");
   }
   catch (schwa::Exception &e) {
     std::cerr << port::RED << port::BOLD << "schwa::Exception: " << e.what() << port::OFF << std::endl;
     return 1;
   }
+
+  Doc d;
+  Token &t1 = d.tokens.create();
+  Token &t2 = d.tokens.create();
+  t1.raw = "hello";
+  t2.raw = "world";
+  t2.parent = &t1;
+
+  reg.finalise();
+  dr::Writer writer(std::cout, reg);
+  writer << d;
 
   return 0;
 }
