@@ -3,3 +3,4 @@
 #include <schwa/dr/fields.h>
 #include <schwa/dr/types.h>
 #include <schwa/dr/runtime.h>
+#include <schwa/dr/writer.h>
