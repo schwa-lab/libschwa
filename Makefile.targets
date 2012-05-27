@@ -1,10 +1,11 @@
-BINARIES = bin/test bin/tokenizer
+BINARIES = bin/tokenizer
 SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
+DR_OBJECTS = src/lib/schwa/dr/runtime.o
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 
-OBJECTS = $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+OBJECTS = $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
 UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
@@ -36,10 +37,10 @@ wc:
 %.h.gch: %.h
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
-bin/test: src/main/test.o $(BASE_OBJECTS) $(MSGPACK_OBJECTS)
+bin/test: src/main/test.o $(BASE_OBJECTS) $(DR_OBJECTS) $(PORT_OBJECTS) $(MSGPACK_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(TOKENIZER_OBJECTS)
+bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)

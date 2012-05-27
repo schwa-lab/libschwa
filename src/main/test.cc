@@ -4,28 +4,23 @@
 #include <schwa/tokenizer.h>
 #include <schwa/dr.h>
 
+#include <boost/static_assert.hpp>
+
 using namespace schwa;
+
 
 class Token : public dr::Annotation {
 public:
   dr::Slice<uint64_t> slice;
   std::string raw;
   std::string norm;
+  dr::Pointer<Token> parent;
 
-  class Schema : public dr::Annotation::Schema {
-  public:
-    FIELD(&Token::slice) slice;
-    FIELD(&Token::raw) raw;
-    FIELD(&Token::norm) norm;
+  class Schema;
+};
 
-    Schema(void) :
-      dr::Annotation::Schema("Token", "Some help text about Token", "Token"),
-      slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
-      raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
-      norm(*this, "norm", "some help text about norm", dr::LOAD_RW, "norm")
-      { }
-    virtual ~Schema(void) { }
-  };
+
+class X : public dr::Annotation {
 };
 
 
@@ -33,19 +28,40 @@ class Doc : public dr::Document {
 public:
   std::string filename;
   dr::Store<Token> tokens;
+  dr::Store<X> xs;
 
   class Schema : public dr::Document::Schema {
   public:
-    FIELD(&Doc::filename) filename;
-    STORE(&Doc::tokens) tokens;
+    DR_FIELD(&Doc::filename) filename;
+    DR_STORE(&Doc::tokens) tokens;
+    DR_STORE(&Doc::xs) xs;
 
     Schema(void) :
-      dr::Document::Schema(),
+      dr::Document::Schema("Document", "Some help text about this Document class"),
       filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
-      tokens(*this, "tokens", "some help text about tokens store", dr::LOAD_RW, "tokens")
+      tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens"),
+      xs(*this, "xs", "some help text about X store", dr::LOAD_RW, "xs")
       { }
     virtual ~Schema(void) { }
   };
+};
+
+
+class Token::Schema : public dr::Annotation::Schema {
+public:
+  DR_FIELD(&Token::slice) slice;
+  DR_FIELD(&Token::raw) raw;
+  DR_FIELD(&Token::norm) norm;
+  DR_FIELD2(&Token::parent, &Doc::tokens) parent;
+
+  Schema(void) :
+    dr::Annotation::Schema("Token", "Some help text about Token", "Token"),
+    slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
+    raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
+    norm(*this, "norm", "some help text about norm", dr::LOAD_RW, "norm"),
+    parent(*this, "parent", "some help text about parent", dr::LOAD_RW, "parent")
+    { }
+  virtual ~Schema(void) { }
 };
 
 
@@ -57,7 +73,19 @@ main(void) {
   dr::Pointers<Token> ptrs;
   dr::Store<Token> tokens;
 
-  Doc d;
+  dr::TypeRegistry reg;
+  dr::Schema &s_doc = reg.add<Doc>();
+  dr::Schema &s_tok = reg.add<Token>();
+  (void)s_doc;
+  (void)s_tok;
+
+  try {
+    //s_doc.set_serial("foo");
+  }
+  catch (schwa::Exception &e) {
+    std::cerr << port::RED << port::BOLD << "schwa::Exception: " << e.what() << port::OFF << std::endl;
+    return 1;
+  }
 
   return 0;
 }

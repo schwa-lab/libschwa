@@ -21,6 +21,7 @@
 #include <limits>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <set>
 #include <sstream>
