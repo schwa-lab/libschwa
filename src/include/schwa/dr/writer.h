@@ -12,6 +12,8 @@ namespace schwa {
       std::ostream &_out;
       TypeRegistry &_reg;
 
+      void write_klass_header(const Schema &schema, const std::map<TypeInfo, size_t> &types);
+
     public:
       Writer(std::ostream &out, TypeRegistry &reg) : _out(out), _reg(reg) { }
       ~Writer(void) { }

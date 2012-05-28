@@ -7,16 +7,7 @@ namespace schwa { namespace msgpack {
 
 std::ostream &
 write_array(std::ostream &out, const ArrayObject &arr) {
-  if (arr.size <= 15)
-    out.put(static_cast<unsigned char>(header::ARRAY_FIXED | arr.size));
-  else if (arr.size <= std::numeric_limits<uint16_t>::max()) {
-    out.put(header::ARRAY_16);
-    write_raw_uint16(out, arr.size);
-  }
-  else {
-    out.put(header::ARRAY_32);
-    write_raw_uint32(out, arr.size);
-  }
+  write_array_header(out, arr.size);
   for (uint32_t i = 0; i != arr.size; ++i)
     write_object(out, arr.items[i]);
   return out;
@@ -25,16 +16,7 @@ write_array(std::ostream &out, const ArrayObject &arr) {
 
 std::ostream &
 write_map(std::ostream &out, const MapObject &map) {
-  if (map.size <= 15)
-    out.put(static_cast<unsigned char>(header::MAP_FIXED | map.size));
-  else if (map.size <= std::numeric_limits<uint16_t>::max()) {
-    out.put(header::MAP_16);
-    write_raw_uint16(out, map.size);
-  }
-  else {
-    out.put(header::MAP_32);
-    write_raw_uint32(out, map.size);
-  }
+  write_map_header(out, map.size);
   for (uint32_t i = 0; i != map.size; ++i) {
     write_object(out, map.keys[i]);
     write_object(out, map.vals[i]);
@@ -44,18 +26,18 @@ write_map(std::ostream &out, const MapObject &map) {
 
 
 std::ostream &
-write_raw(std::ostream &out, const RawObject &raw) {
-  if (raw.size <= 31)
-    out.put(static_cast<unsigned char>(header::RAW_FIXED | raw.size));
-  else if (raw.size <= std::numeric_limits<uint16_t>::max()) {
+write_raw(std::ostream &out, const char *const data, const size_t size) {
+  if (size <= 31)
+    out.put(static_cast<unsigned char>(header::RAW_FIXED | size));
+  else if (size <= std::numeric_limits<uint16_t>::max()) {
     out.put(header::RAW_16);
-    write_raw_uint16(out, raw.size);
+    write_raw_uint16(out, size);
   }
   else {
     out.put(header::RAW_32);
-    write_raw_uint32(out, raw.size);
+    write_raw_uint32(out, size);
   }
-  return out.write(raw.data, raw.size);
+  return out.write(data, size);
 }
 
 
