@@ -29,6 +29,7 @@ debug_schema(const Schema &s, const std::map<TypeInfo, size_t> &klass_map) {
 void
 Writer::write(const Document &d) {
   std::cout << "Writer::write(" << &d << ")" << std::endl;
+  _reg.finalise();
 
   std::map<TypeInfo, size_t> klass_map;
 
@@ -37,7 +38,7 @@ Writer::write(const Document &d) {
   for (auto &it : _reg) {
     const TypeInfo &type = it->type();
     const auto i = klass_map.find(type);
-    if (i != klass_map.end())
+    if (i == klass_map.end())
       klass_map[type] = klass_id++;
   }
 
