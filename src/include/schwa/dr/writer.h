@@ -10,10 +10,10 @@ namespace schwa {
     class Writer {
     protected:
       std::ostream &_out;
-      const TypeRegistry &_reg;
+      TypeRegistry &_reg;
 
     public:
-      Writer(std::ostream &out, const TypeRegistry &reg) : _out(out), _reg(reg) { }
+      Writer(std::ostream &out, TypeRegistry &reg) : _out(out), _reg(reg) { }
       ~Writer(void) { }
 
       void write(const Document &doc);

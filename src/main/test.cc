@@ -33,13 +33,11 @@ public:
   public:
     DR_FIELD(&Doc::filename) filename;
     DR_STORE(&Doc::tokens) tokens;
-    DR_STORE(&Doc::xs) xs;
 
     Schema(void) :
       dr::Document::Schema("Document", "Some help text about this Document class", dr::TypeInfo::create<Doc>()),
       filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
-      tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens"),
-      xs(*this, "xs", "some help text about X store", dr::LOAD_RW, "xs")
+      tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens")
       { }
     virtual ~Schema(void) { }
   };
@@ -91,7 +89,6 @@ main(void) {
   t2.raw = "world";
   t2.parent = &t1;
 
-  reg.finalise();
   dr::Writer writer(std::cout, reg);
   writer << d;
 

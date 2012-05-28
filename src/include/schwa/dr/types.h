@@ -92,10 +92,16 @@ namespace schwa {
     public:
       static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
 
-      StoreDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial) { }
+    private:
+      const TypeInfo _pointer_type;
+
+    public:
+      StoreDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) { }
       virtual ~StoreDef(void) { }
 
       bool is_store(void) const { return true; }
+
+      const TypeInfo &pointer_type(void) const { return _pointer_type; }
     };
 
 
