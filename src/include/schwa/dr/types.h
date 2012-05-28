@@ -55,6 +55,8 @@ namespace schwa {
 
       FieldDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial) { }
       virtual ~FieldDef(void) { }
+
+      bool is_slice(void) const { return FieldTraits<R>::is_slice; }
     };
 
 
@@ -76,6 +78,8 @@ namespace schwa {
       virtual ~FieldDefWithStore(void) { }
 
       bool is_pointer(void) const { return true; }
+      bool is_slice(void) const { return FieldTraits<R>::is_slice; }
+
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
     };
 

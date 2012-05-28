@@ -131,18 +131,21 @@ namespace schwa {
     struct FieldTraits {
       static constexpr const bool is_dr_ptr_type = false;
       static constexpr const bool is_pod_ptr = boost::is_pointer<T>::value;
+      static constexpr const bool is_slice = false;
     };
 
     template <typename T>
     struct FieldTraits<Pointer<T>> {
-      static constexpr const bool is_dr_ptr_type = true;
       typedef T pointer_type;
+      static constexpr const bool is_dr_ptr_type = true;
+      static constexpr const bool is_slice = false;
     };
 
     template <typename T>
     struct FieldTraits<Pointers<T>> {
-      static constexpr const bool is_dr_ptr_type = true;
       typedef T pointer_type;
+      static constexpr const bool is_dr_ptr_type = true;
+      static constexpr const bool is_slice = false;
     };
 
     template <typename T, bool>
@@ -158,7 +161,9 @@ namespace schwa {
     };
 
     template <typename T>
-    struct FieldTraits<Slice<T>> : public SliceFieldTraits<T, boost::is_pointer<T>::value> { };
+    struct FieldTraits<Slice<T>> : public SliceFieldTraits<T, boost::is_pointer<T>::value> {
+      static constexpr const bool is_slice = true;
+    };
 
 
   }
