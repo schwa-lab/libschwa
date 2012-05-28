@@ -1,5 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/base.h>
+#include <schwa/port.h>
 #include <schwa/msgpack.h>
 #include <schwa/tokenizer.h>
 #include <schwa/dr.h>
@@ -35,7 +36,7 @@ public:
     DR_STORE(&Doc::xs) xs;
 
     Schema(void) :
-      dr::Document::Schema("Document", "Some help text about this Document class"),
+      dr::Document::Schema("Document", "Some help text about this Document class", dr::TypeInfo::create<Doc>()),
       filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
       tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens"),
       xs(*this, "xs", "some help text about X store", dr::LOAD_RW, "xs")
@@ -53,7 +54,7 @@ public:
   DR_FIELD2(&Token::parent, &Doc::tokens) parent;
 
   Schema(void) :
-    dr::Annotation::Schema("Token", "Some help text about Token", "Token"),
+    dr::Annotation::Schema("Token", "Some help text about Token", "Token", dr::TypeInfo::create<Token>()),
     slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
     raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
     norm(*this, "norm", "some help text about norm", dr::LOAD_RW, "norm"),
