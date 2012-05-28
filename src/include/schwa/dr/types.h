@@ -31,6 +31,16 @@ namespace schwa {
 
     public:
       virtual ~BaseDef(void) { }
+
+      inline const std::string &name(void) const { return _name; }
+      inline const std::string &help(void) const { return _help; }
+      inline loadmode_t mode(void) const { return _mode; }
+      inline std::string serial(void) const { return _serial; }
+
+      virtual bool is_pointer(void) const { return false; }
+      virtual bool is_store(void) const { return false; }
+      virtual bool is_slice(void) const { return false; }
+      virtual const TypeInfo &pointer_type(void) const { return *static_cast<const TypeInfo *>(nullptr); }
     };
 
 
@@ -58,8 +68,15 @@ namespace schwa {
       static_assert(boost::is_same<typename FieldTraits<R>::pointer_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
       static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
 
-      FieldDefWithStore(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial) { }
+    private:
+      const TypeInfo _pointer_type;
+
+    public:
+      FieldDefWithStore(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) { }
       virtual ~FieldDefWithStore(void) { }
+
+      bool is_pointer(void) const { return true; }
+      const TypeInfo &pointer_type(void) const { return _pointer_type; }
     };
 
 
@@ -73,6 +90,8 @@ namespace schwa {
 
       StoreDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial) { }
       virtual ~StoreDef(void) { }
+
+      bool is_store(void) const { return true; }
     };
 
 

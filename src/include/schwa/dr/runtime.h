@@ -43,6 +43,7 @@ namespace schwa {
       add(void) {
         static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
         static_assert(boost::is_base_of<TypeSchema, typename T::Schema>::value, "T::Schema must be a subclass of TypeSchema");
+        _finalised = false;
         typename T::Schema *schema = new typename T::Schema();
         assert(schema != nullptr);
         _schemas.push_back(schema);
