@@ -4,7 +4,7 @@ DEFINES =
 
 BASE_CXXFLAGS = -std=c++0x -g -O0 -fPIC $(INCLUDE) $(DEFINES)
 
-CXX = g++
+CXX = clang++
 CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -Werror -pedantic
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
