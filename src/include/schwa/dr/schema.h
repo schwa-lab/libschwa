@@ -63,6 +63,24 @@ namespace schwa {
     };
 
 
+    class BaseAnnotationSchema : public Schema {
+    protected:
+      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, false) { }
+
+    public:
+      virtual ~BaseAnnotationSchema(void) { }
+    };
+
+
+    class BaseDocumentSchema : public Schema {
+    protected:
+      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, true) { }
+
+    public:
+      virtual ~BaseDocumentSchema(void) { }
+    };
+
+
     // ========================================================================
     // Base classes
     // ========================================================================
@@ -88,22 +106,23 @@ namespace schwa {
     // ========================================================================
     // Templated base schemas
     // ========================================================================
+
     template <typename T>
-    class AnnotationSchema : public Schema {
+    class AnnotationSchema : public BaseAnnotationSchema {
     public:
       static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
 
-      AnnotationSchema(const std::string &name, const std::string &help, const std::string &serial) : Schema(name, help, serial, TypeInfo::create<T>(), false) { }
+      AnnotationSchema(const std::string &name, const std::string &help, const std::string &serial) : BaseAnnotationSchema(name, help, serial, TypeInfo::create<T>()) { }
       virtual ~AnnotationSchema(void) { }
     };
 
 
     template <typename D>
-    class DocumentSchema : public Schema {
+    class DocumentSchema : public BaseDocumentSchema {
     public:
       static_assert(boost::is_base_of<Document, D>::value, "D must be a subclass of Document");
 
-      DocumentSchema(const std::string &name, const std::string &help) : Schema(name, help, "", TypeInfo::create<D>(), true) { }
+      DocumentSchema(const std::string &name, const std::string &help) : BaseDocumentSchema(name, help, "", TypeInfo::create<D>()) { }
       virtual ~DocumentSchema(void) { }
     };
 

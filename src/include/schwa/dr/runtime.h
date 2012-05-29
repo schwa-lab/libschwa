@@ -5,6 +5,8 @@ namespace schwa {
   namespace dr {
 
     class Annotation;
+    class BaseAnnotationSchema;
+    class BaseDocumentSchema;
     class Schema;
 
 
@@ -31,7 +33,7 @@ namespace schwa {
       template <typename D>
       static TypeRegistry create(void) {
         static_assert(boost::is_base_of<Document, D>::value, "D must be a subclass of Document");
-        //static_assert(boost::is_base_of<Schema, typename D::Schema>::value, "D::Schema must be a subclass of DocSchema");
+        static_assert(boost::is_base_of<BaseDocumentSchema, typename D::Schema>::value, "D::Schema must be a subclass of BaseDocumentSchema");
         typename D::Schema *schema = new typename D::Schema();
         assert(schema != nullptr);
         return TypeRegistry(schema);
@@ -41,7 +43,7 @@ namespace schwa {
       inline typename T::Schema &
       add(void) {
         static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
-        //static_assert(boost::is_base_of<TypeSchema, typename T::Schema>::value, "T::Schema must be a subclass of TypeSchema");
+        static_assert(boost::is_base_of<BaseAnnotationSchema, typename T::Schema>::value, "T::Schema must be a subclass of BaseAnnotationSchema");
         _finalised = false;
         typename T::Schema *schema = new typename T::Schema();
         assert(schema != nullptr);
