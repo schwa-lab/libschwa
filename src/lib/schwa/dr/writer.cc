@@ -10,7 +10,7 @@ namespace schwa { namespace dr {
 
 static void
 debug_schema(const Schema &s, const std::map<TypeInfo, size_t> &klass_map) {
-  std::cout << (s.is_document() ? "__meta__" : s.serial()) << " " << s.type().name << std::endl;
+  std::cout << (s.is_document_schema ? "__meta__" : s.serial) << " " << s.type << std::endl;
   for (auto &f : s) {
     std::cout << "  " << f->name() << " " << f->is_pointer() << " " << f->is_store() << " " << f->is_slice();
     if (f->is_pointer()) {
@@ -32,7 +32,7 @@ Writer::write_klass_header(const Schema &s, const std::map<TypeInfo, size_t> &ty
   mp::write_array_header(_out, 2);
 
   // <klass_name>
-  const std::string name = s.is_document() ? "__meta__" : s.serial();
+  const std::string name = s.is_document_schema ? "__meta__" : s.serial;
   mp::write_raw(_out, name.c_str(), name.size());
 
   // <fields> ::= [ <field> ]
@@ -57,7 +57,7 @@ Writer::write_klass_header(const Schema &s, const std::map<TypeInfo, size_t> &ty
 
     // <field_type> ::= 1 # POINTER_TO => the <klass_id> that this type points to
     if (field->is_pointer()) {
-      const auto it = types.find(s.type());
+      const auto it = types.find(s.type);
       assert(it != types.end());
       mp::write_uint_fixed(_out, 1);
       mp::write_uint(_out, it->second);
@@ -81,9 +81,9 @@ Writer::write(const Document &d) {
   // map each of the types to their unique klass id within the header
   std::map<TypeInfo, size_t> klass_map;
   size_t klass_id = 0;
-  klass_map[_reg.doc_schema().type()] = klass_id++;
+  klass_map[_reg.doc_schema().type] = klass_id++;
   for (auto &it : _reg) {
-    const TypeInfo &type = it->type();
+    const TypeInfo &type = it->type;
     assert(klass_map.find(type) == klass_map.end());
     klass_map[type] = klass_id++;
   }
