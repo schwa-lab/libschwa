@@ -79,10 +79,9 @@ main(void) {
   schema.types<Token>().serial = "PTBToken";
   schema.types<Token>().raw.serial = "real_raw";
 
-  dr::TypeRegistry reg = dr::TypeRegistry::create<Doc>();
-  dr::Schema &s_tok = reg.add<Token>();
-  (void)s_tok;
-
+  //dr::TypeRegistry reg = dr::TypeRegistry::create<Doc>();
+  //dr::Schema &s_tok = reg.add<Token>();
+  //(void)s_tok;
 
   Doc d;
   Token &t1 = d.tokens.create();
@@ -91,7 +90,7 @@ main(void) {
   t2.raw = "world";
   t2.parent = &t1;
 
-  dr::Writer writer(std::cout, reg);
+  dr::Writer writer(std::cout, schema);
   writer << d;
 
   return 0;

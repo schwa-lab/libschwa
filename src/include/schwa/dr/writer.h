@@ -3,19 +3,19 @@
 namespace schwa {
   namespace dr {
 
+    class BaseDocumentSchema;
     class Document;
-    class TypeRegistry;
 
 
     class Writer {
     protected:
       std::ostream &_out;
-      TypeRegistry &_reg;
+      BaseDocumentSchema &_dschema;
 
       void write_klass_header(const Schema &schema, const std::map<TypeInfo, size_t> &types);
 
     public:
-      Writer(std::ostream &out, TypeRegistry &reg) : _out(out), _reg(reg) { }
+      Writer(std::ostream &out, BaseDocumentSchema &dschema) : _out(out), _dschema(dschema) { }
       ~Writer(void) { }
 
       void write(const Document &doc);
