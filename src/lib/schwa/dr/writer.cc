@@ -12,7 +12,7 @@ static void
 debug_schema(const Schema &s, const std::map<TypeInfo, size_t> &klass_map) {
   std::cout << (s.is_document_schema ? "__meta__" : s.serial) << " " << s.type << std::endl;
   for (auto &f : s) {
-    std::cout << "  " << f->name() << " " << f->is_pointer() << " " << f->is_store() << " " << f->is_slice();
+    std::cout << "  " << f->name << " " << f->is_pointer() << " " << f->is_store() << " " << f->is_slice();
     if (f->is_pointer()) {
       std::cout << " " << f->pointer_type().name;
       const auto it = klass_map.find(f->pointer_type());
@@ -51,9 +51,8 @@ Writer::write_klass_header(const Schema &s, const std::map<TypeInfo, size_t> &ty
     mp::write_map_header(_out, nitems);
 
     // <field_type> ::= 0 # NAME => the name of the field
-    const std::string &name = field->serial();
     mp::write_uint_fixed(_out, 0);
-    mp::write_raw(_out, name.c_str(), name.size());
+    mp::write_raw(_out, field->serial.c_str(), field->serial.size());
 
     // <field_type> ::= 1 # POINTER_TO => the <klass_id> that this type points to
     if (field->is_pointer()) {

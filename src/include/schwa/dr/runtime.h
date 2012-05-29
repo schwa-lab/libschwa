@@ -12,14 +12,14 @@ namespace schwa {
 
     class TypeRegistry {
     public:
-      typedef std::vector<Schema *> container_type;
+      typedef std::vector<BaseAnnotationSchema *> container_type;
 
     protected:
       container_type _schemas;
-      Schema *const _doc_schema;
+      BaseDocumentSchema *const _doc_schema;
       bool _finalised;
 
-      TypeRegistry(Schema *doc_schema) : _doc_schema(doc_schema), _finalised(false) { }
+      TypeRegistry(BaseDocumentSchema *doc_schema) : _doc_schema(doc_schema), _finalised(false) { }
 
     public:
       TypeRegistry(const TypeRegistry &&o) : _schemas(o._schemas), _doc_schema(o._doc_schema), _finalised(o._finalised) { }
