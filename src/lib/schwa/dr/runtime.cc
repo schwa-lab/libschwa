@@ -6,12 +6,6 @@
 
 namespace schwa { namespace dr {
 
-Schema::~Schema(void) {
-  for (auto &s : _schemas)
-    delete s;
-}
-
-
 static void
 _finalise(const std::set<TypeInfo> &seen, const Schema &schema) {
   for (auto &field : schema) {
@@ -30,18 +24,18 @@ _finalise(const std::set<TypeInfo> &seen, const Schema &schema) {
 
 
 void
-TypeRegistry::finalise(void) {
+BaseDocumentSchema::finalise(void) {
   if (_finalised)
     return;
 
   // find all of the types stored in the registry
   std::set<TypeInfo> seen;
-  seen.insert(_doc_schema->type);
+  seen.insert(type);
   for (auto &schema : _schemas)
     seen.insert(schema->type);
 
   // find all pointer fields
-  _finalise(seen, *_doc_schema);
+  _finalise(seen, *this);
   for (auto &schema : _schemas)
     _finalise(seen, *schema);
 

@@ -45,7 +45,6 @@ namespace schwa {
     class Schema {
     public:
       typedef std::vector<BaseDef *> field_container;
-      typedef std::vector<BaseAnnotationSchema *> schema_container;
 
       const std::string name;
       const std::string help;
@@ -55,18 +54,13 @@ namespace schwa {
 
     protected:
       field_container _defs;
-      schema_container _schemas;
-      bool _finalised;
 
-      Schema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type, const bool is_document_schema) : name(name), help(help), serial(serial), type(type), is_document_schema(is_document_schema), _finalised(false) { }
+      Schema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type, const bool is_document_schema) : name(name), help(help), serial(serial), type(type), is_document_schema(is_document_schema) { }
 
     public:
-      virtual ~Schema(void);
+      virtual ~Schema(void) { }
 
       inline void add(BaseDef *def) { _defs.push_back(def); }
-
-      template <typename T, T fn>
-      inline void add(StoreDef<T, fn> *def);
 
       inline field_container::const_iterator begin(void) const { return _defs.begin(); }
       inline field_container::const_iterator end(void) const { return _defs.end(); }
@@ -105,11 +99,33 @@ namespace schwa {
 
 
     class BaseDocumentSchema : public Schema {
+    public:
+      typedef std::vector<BaseAnnotationSchema *> schema_container;
+
     protected:
-      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, true) { }
+      schema_container _schemas;
+      bool _finalised;
+
+      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, true), _finalised(false) { }
 
     public:
-      virtual ~BaseDocumentSchema(void) { }
+      virtual ~BaseDocumentSchema(void) {
+        for (auto &s : _schemas)
+          delete s;
+      }
+
+      template <typename T, T fn>
+      inline void add(StoreDef<T, fn> *def) {
+        typedef typename StoreDef<T, fn>::store_type::Schema S;
+        static_assert(boost::is_base_of<BaseAnnotationSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnotationSchema");
+
+        _defs.push_back(def);
+
+        _finalised = false;
+        S *schema = new S();
+        assert(schema != nullptr);
+        _schemas.push_back(schema);
+      }
 
       template <typename T>
       inline typename T::Schema &
@@ -122,6 +138,10 @@ namespace schwa {
         assert(!"Type was not found!");
         return *static_cast<typename T::Schema *>(nullptr);
       }
+
+      inline const schema_container &schemas(void) const { return _schemas; }
+
+      void finalise(void);
     };
 
 
@@ -146,24 +166,6 @@ namespace schwa {
       DocumentSchema(const std::string &name, const std::string &help) : BaseDocumentSchema(name, help, "", TypeInfo::create<D>()) { }
       virtual ~DocumentSchema(void) { }
     };
-
-
-    // ========================================================================
-    // Out-of-line declaration of Schema
-    // ========================================================================
-    template <typename T, T fn>
-    inline void
-    Schema::add(StoreDef<T, fn> *def) {
-      typedef typename StoreDef<T, fn>::store_type::Schema S;
-      static_assert(boost::is_base_of<BaseAnnotationSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnotationSchema");
-
-      _defs.push_back(def);
-
-      _finalised = false;
-      S *schema = new S();
-      assert(schema != nullptr);
-      _schemas.push_back(schema);
-    }
 
   }
 }
