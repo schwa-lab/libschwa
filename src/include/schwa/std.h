@@ -36,8 +36,4 @@
   #define O_NOATIME (0)
 #endif
 
-#ifndef BOOST_PP_VARIADICS
-  #define BOOST_PP_VARIADICS (1)
-#endif
-
 #endif

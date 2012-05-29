@@ -43,74 +43,73 @@ namespace schwa {
     // Storage types
     // ========================================================================
     template <typename T>
-    class MemoryBlock {
-    private:
-      char *const _data;
-      const size_t _capacity;
-      size_t _size;
-
-    public:
-      MemoryBlock(const size_t capacity) : _data(new char[capacity * sizeof(T)]), _capacity(capacity), _size(0) {
-        assert(_data != nullptr);
-      }
-      ~MemoryBlock(void) {
-        delete [] _data;
-      }
-
-      inline size_t capacity(void) const { return _capacity; }
-      inline size_t size(void) const { return _size; }
-
-      inline char *
-      alloc(void) {
-        if (_size == _capacity)
-          return nullptr;
-        char *const ptr = &_data[_size * sizeof(T)];
-        ++_size;
-        return ptr;
-      }
-    };
-
-
-    template <typename T, size_t GROW_SIZE=32>
     class Store {
     public:
       static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
-      static_assert(GROW_SIZE > 0, "GROW_SIZE must be positive");
-      typedef T value_type;
+      typedef std::vector<T> container_type;
+      typedef typename container_type::const_reference const_reference;
+      typedef typename container_type::const_iterator const_iterator;
+      typedef typename container_type::const_pointer const_pointer;
+      typedef typename container_type::const_reverse_iterator const_reverse_iterator;
+      typedef typename container_type::difference_type difference_type;
+      typedef typename container_type::iterator iterator;
+      typedef typename container_type::pointer pointer;
+      typedef typename container_type::reference reference;
+      typedef typename container_type::reverse_iterator reverse_iterator;
+      typedef typename container_type::size_type size_type;
+      typedef typename container_type::value_type value_type;
 
     protected:
-      std::vector<MemoryBlock<T> *> _blocks;
-      MemoryBlock<T> *_block;
-      size_t _size;
+      container_type _items;
 
     public:
-      Store(void) : _block(nullptr), _size(0) { }
-      Store(const Store &) = delete;
-      ~Store(void) {
-        delete _block;
-        for (auto &block : _blocks)
-          delete block;
-      }
+      Store(void) { }
+      Store(const size_type size) : _items(size) { }
+      Store(const Store &&o) : _items(o._items) { }
+      ~Store(void) { }
 
-      inline size_t size(void) const { return _size; }
-      inline size_t nblocks(void) const { return (_block != nullptr) + _blocks.size(); }
+      // extra methods
+      inline void create(const size_type n, const T x=T()) { _items.insert(_items.end(), n, x); }
 
-      T &
-      create(void) {
-        if (_block == nullptr)
-          _block = new MemoryBlock<T>(GROW_SIZE);
+      // iterators
+      inline iterator begin(void) { return _items.begin(); }
+      inline iterator end(void) { return _items.end(); }
+      inline const_iterator begin(void) const { return _items.begin(); }
+      inline const_iterator end(void) const { return _items.end(); }
+      inline reverse_iterator rbegin(void) { return _items.rbegin(); }
+      inline reverse_iterator rend(void) { return _items.rend(); }
+      inline const_reverse_iterator rbegin(void) const { return _items.rbegin(); }
+      inline const_reverse_iterator rend(void) const { return _items.rend(); }
 
-        char *bytes = _block->alloc();
-        if (bytes == nullptr) {
-          _blocks.push_back(_block);
-          _block = new MemoryBlock<T>(GROW_SIZE);
-          bytes = _block->alloc();
-        }
+      // capacity
+      inline size_type capacity(void) const { return _items.capacity(); }
+      inline bool empty(void) const { return _items.empty(); }
+      inline void reserve(const size_type n) { _items.reserve(n); }
+      inline void resize(const size_type n, T value=T()) { _items.resize(n, value); }
+      inline size_type size(void) const { return _items.size(); }
 
-        T *const ptr = new (bytes) T();
-        ptr->set_dr_index(_size++);
-        return *ptr;
-      }
+      // element access
+      inline reference operator [](const size_type n) { return _items[n]; }
+      inline reference at(const size_type n) { return _items.at(n); }
+      inline reference back(void) { return _items.back(); }
+      inline reference front(void) { return _items.front(); }
+      inline const_reference operator [](const size_type n) const { return _items[n]; }
+      inline const_reference at(const size_type n) const { return _items.at(n); }
+      inline const_reference back(void) const { return _items.back(); }
+      inline const_reference front(void) const { return _items.front(); }
+
+      // modifiers
+      inline void push_back(const T &x) { _items.push_back(x); }
+      inline void pop_back(void) { _items.pop_back(); }
+      inline void assign(const size_type n, const T &x) { _items.assign(n, x); }
+      inline iterator insert(iterator position, const T &x) { return _items.insert(position, x); }
+      inline void insert(iterator position, const size_type n, const T &x) { _items.insert(position, n, x); }
+      inline iterator erase(iterator position) { return _items.erase(position); }
+      inline iterator erase(iterator first, iterator last) { return _items.erase(first, last); }
+      inline void swap(container_type &other) { _items.swap(other); }
+      inline void clear(void) { _items.clear(); }
+      template <typename InputIterator> inline void assign(InputIterator first, InputIterator last) { _items.assign(first, last); }
+      template <typename InputIterator> inline void insert(iterator position, InputIterator first, InputIterator last) { _items.insert(position, first, last); }
     };
 
 

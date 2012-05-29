@@ -1,7 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <boost/preprocessor/cat.hpp>
-#include <boost/preprocessor/facilities/empty.hpp>
-#include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/typeof/typeof.hpp>
 
 namespace schwa {
@@ -110,10 +107,8 @@ namespace schwa {
     };
 
 
-    #define DR_FIELD_1(member_obj_ptr) schwa::dr::FieldDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
-    #define DR_FIELD_2(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr, BOOST_TYPEOF(store_obj_ptr), store_obj_ptr>
-
-    #define DR_FIELD(...) BOOST_PP_OVERLOAD(DR_FIELD_,__VA_ARGS__)(__VA_ARGS__)
+    #define DR_FIELD(member_obj_ptr) schwa::dr::FieldDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
+    #define DR_POINTER(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr, BOOST_TYPEOF(store_obj_ptr), store_obj_ptr>
     #define DR_STORE(member_obj_ptr) schwa::dr::StoreDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
 
   }

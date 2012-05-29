@@ -38,7 +38,7 @@ public:
   DR_FIELD(&Token::slice) slice;
   DR_FIELD(&Token::raw) raw;
   DR_FIELD(&Token::norm) norm;
-  DR_FIELD(&Token::parent, &Doc::tokens) parent;
+  DR_POINTER(&Token::parent, &Doc::tokens) parent;
 
   Schema(void) :
     dr::AnnotationSchema<Token>("Token", "Some help text about Token", "Token"),
@@ -73,19 +73,15 @@ main(void) {
   dr::Pointers<Token> ptrs;
   dr::Store<Token> tokens;
 
-
   Doc::Schema schema;
   schema.filename.serial = "foo";
   schema.types<Token>().serial = "PTBToken";
   schema.types<Token>().raw.serial = "real_raw";
 
-  //dr::TypeRegistry reg = dr::TypeRegistry::create<Doc>();
-  //dr::Schema &s_tok = reg.add<Token>();
-  //(void)s_tok;
-
   Doc d;
-  Token &t1 = d.tokens.create();
-  Token &t2 = d.tokens.create();
+  d.tokens.create(2);
+  Token &t1 = d.tokens[0];
+  Token &t2 = d.tokens[1];
   t1.raw = "hello";
   t2.raw = "world";
   t2.parent = &t1;
