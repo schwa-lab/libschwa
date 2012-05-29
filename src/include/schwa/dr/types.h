@@ -17,13 +17,14 @@ namespace schwa {
     // FieldDef and StoreDef
     // ========================================================================
     class BaseDef {
-    protected:
-      const std::string _name;
-      const std::string _help;
-      const loadmode_t _mode;
-      std::string _serial;
+    public:
+      const std::string name;
+      const std::string help;
+      const loadmode_t mode;
+      std::string serial;
 
-      BaseDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : _name(name), _help(help), _mode(mode), _serial(serial) {
+    protected:
+      BaseDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial) {
         if (!(mode == LOAD_RW || mode == LOAD_RO))
           throw ValueException("Invalid `mode' value: must be either LOAD_RW or LOAD_RO");
         schema.add(this);
@@ -31,11 +32,6 @@ namespace schwa {
 
     public:
       virtual ~BaseDef(void) { }
-
-      inline const std::string &name(void) const { return _name; }
-      inline const std::string &help(void) const { return _help; }
-      inline loadmode_t mode(void) const { return _mode; }
-      inline std::string serial(void) const { return _serial; }
 
       virtual bool is_pointer(void) const { return false; }
       virtual bool is_store(void) const { return false; }

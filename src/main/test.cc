@@ -73,17 +73,16 @@ main(void) {
   dr::Pointers<Token> ptrs;
   dr::Store<Token> tokens;
 
+
+  Doc::Schema schema;
+  schema.filename.serial = "foo";
+  schema.types<Token>().serial = "PTBToken";
+  schema.types<Token>().raw.serial = "real_raw";
+
   dr::TypeRegistry reg = dr::TypeRegistry::create<Doc>();
   dr::Schema &s_tok = reg.add<Token>();
   (void)s_tok;
 
-  try {
-    s_tok.serial = "foo";
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << port::RED << port::BOLD << "schwa::Exception: " << e.what() << port::OFF << std::endl;
-    return 1;
-  }
 
   Doc d;
   Token &t1 = d.tokens.create();

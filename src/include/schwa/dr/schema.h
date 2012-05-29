@@ -63,24 +63,6 @@ namespace schwa {
     };
 
 
-    class BaseAnnotationSchema : public Schema {
-    protected:
-      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, false) { }
-
-    public:
-      virtual ~BaseAnnotationSchema(void) { }
-    };
-
-
-    class BaseDocumentSchema : public Schema {
-    protected:
-      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, true) { }
-
-    public:
-      virtual ~BaseDocumentSchema(void) { }
-    };
-
-
     // ========================================================================
     // Base classes
     // ========================================================================
@@ -103,10 +85,39 @@ namespace schwa {
     };
 
 
+    class BaseAnnotationSchema : public Schema {
+    protected:
+      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, false) { }
+
+    public:
+      virtual ~BaseAnnotationSchema(void) { }
+    };
+
+
+    class BaseDocumentSchema : public Schema {
+    protected:
+      typedef std::vector<BaseAnnotationSchema *> container_type;
+
+      container_type _schemas;
+      bool _finalised;
+
+      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, true), _finalised(false) { }
+
+    public:
+      virtual ~BaseDocumentSchema(void) { }
+
+      template <typename T>
+      inline typename T::Schema &
+      types(void) const {
+        static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+        return *static_cast<typename T::Schema *>(nullptr);
+      }
+    };
+
+
     // ========================================================================
     // Templated base schemas
     // ========================================================================
-
     template <typename T>
     class AnnotationSchema : public BaseAnnotationSchema {
     public:

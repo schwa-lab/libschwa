@@ -14,7 +14,7 @@ _finalise(const std::set<TypeInfo> &seen, const Schema &schema) {
       const auto it = seen.find(type);
       if (it == seen.end()) {
         std::stringstream ss;
-        ss << "Type '" << type << "' is used by field '" << schema.name << "::" << field->name();
+        ss << "Type '" << type << "' is used by field '" << schema.name << "::" << field->name;
         ss << "', but it is not registered in the type registry";
         throw DependencyException(ss.str());
       }
