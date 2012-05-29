@@ -46,6 +46,7 @@ namespace schwa {
     protected:
       Annotation(void) { }
       Annotation(const Annotation &) { }
+      Annotation(const Annotation &&) { }
       Annotation &operator =(const Annotation &) { return *this; }
     };
 
@@ -72,9 +73,8 @@ namespace schwa {
 
     protected:
       schema_container _schemas;
-      bool _finalised;
 
-      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type, true), _finalised(false) { }
+      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type, true) { }
 
     public:
       virtual ~BaseDocumentSchema(void) {
@@ -89,8 +89,12 @@ namespace schwa {
 
         _defs.push_back(def);
 
-        _finalised = false;
-        S *schema = new S();
+        // check to see if we have not yet seen this type
+        const TypeInfo &t = def->pointer_type();
+        for (auto &s : _schemas)
+          if (s->type == t)
+            return;
+        S *const schema = new S();
         assert(schema != nullptr);
         _schemas.push_back(schema);
       }
@@ -108,8 +112,6 @@ namespace schwa {
       }
 
       inline const schema_container &schemas(void) const { return _schemas; }
-
-      void finalise(void);
     };
 
 
