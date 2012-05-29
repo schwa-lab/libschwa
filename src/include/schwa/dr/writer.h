@@ -12,7 +12,7 @@ namespace schwa {
       std::ostream &_out;
       BaseDocumentSchema &_dschema;
 
-      void write_klass_header(const Schema &schema, const std::map<TypeInfo, size_t> &types);
+      void write_klass_header(const BaseSchema &schema, const std::map<TypeInfo, size_t> &types);
 
     public:
       Writer(std::ostream &out, BaseDocumentSchema &dschema) : _out(out), _dschema(dschema) { }

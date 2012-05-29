@@ -7,7 +7,7 @@
 namespace schwa { namespace dr {
 
 static void
-_finalise(const std::set<TypeInfo> &seen, const Schema &schema) {
+_finalise(const std::set<TypeInfo> &seen, const BaseSchema &schema) {
   for (auto &field : schema) {
     if (field->is_pointer() || field->is_store()) {
       const TypeInfo &type = field->pointer_type();

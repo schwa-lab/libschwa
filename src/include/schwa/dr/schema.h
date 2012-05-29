@@ -1,6 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <typeinfo>
-
 #include <boost/type_traits.hpp>
 
 namespace schwa {
@@ -12,37 +10,11 @@ namespace schwa {
     template <typename T, T fn>
     class StoreDef;
 
-    // ========================================================================
-    // Runtime type information
-    // ========================================================================
-    class TypeInfo {
-    public:
-      const std::string name;
-
-    protected:
-      TypeInfo(const std::string &typeid_name) : name(port::demangle_typeid(typeid_name.c_str())) { }
-
-    public:
-      ~TypeInfo(void) { }
-
-      inline bool operator ==(const TypeInfo &o) const { return name == o.name; }
-      inline bool operator !=(const TypeInfo &o) const { return name != o.name; }
-      inline bool operator <(const TypeInfo &o) const { return name < o.name; }
-
-      template <typename T>
-      static TypeInfo create(void) { return TypeInfo(typeid(T).name()); }
-    };
-
-    inline std::ostream &
-    operator <<(std::ostream &out, const TypeInfo &type ) {
-      return out << type.name;
-    }
-
 
     // ========================================================================
-    // Schema definitions
+    // BaseSchema definitions
     // ========================================================================
-    class Schema {
+    class BaseSchema {
     public:
       typedef std::vector<BaseDef *> field_container;
 
@@ -55,10 +27,10 @@ namespace schwa {
     protected:
       field_container _defs;
 
-      Schema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type, const bool is_document_schema) : name(name), help(help), serial(serial), type(type), is_document_schema(is_document_schema) { }
+      BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type, const bool is_document_schema) : name(name), help(help), serial(serial), type(type), is_document_schema(is_document_schema) { }
 
     public:
-      virtual ~Schema(void) { }
+      virtual ~BaseSchema(void) { }
 
       inline void add(BaseDef *def) { _defs.push_back(def); }
 
@@ -89,16 +61,16 @@ namespace schwa {
     };
 
 
-    class BaseAnnotationSchema : public Schema {
+    class BaseAnnotationSchema : public BaseSchema {
     protected:
-      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, false) { }
+      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type, false) { }
 
     public:
       virtual ~BaseAnnotationSchema(void) { }
     };
 
 
-    class BaseDocumentSchema : public Schema {
+    class BaseDocumentSchema : public BaseSchema {
     public:
       typedef std::vector<BaseAnnotationSchema *> schema_container;
 
@@ -106,7 +78,7 @@ namespace schwa {
       schema_container _schemas;
       bool _finalised;
 
-      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, true), _finalised(false) { }
+      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type, true), _finalised(false) { }
 
     public:
       virtual ~BaseDocumentSchema(void) {

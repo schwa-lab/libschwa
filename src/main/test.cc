@@ -38,7 +38,7 @@ public:
   DR_FIELD(&Token::slice) slice;
   DR_FIELD(&Token::raw) raw;
   DR_FIELD(&Token::norm) norm;
-  DR_FIELD2(&Token::parent, &Doc::tokens) parent;
+  DR_FIELD(&Token::parent, &Doc::tokens) parent;
 
   Schema(void) :
     dr::AnnotationSchema<Token>("Token", "Some help text about Token", "Token"),
