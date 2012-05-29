@@ -47,9 +47,14 @@ namespace schwa {
     inline std::ostream &write_int(std::ostream &out, const int64_t x);
     inline std::ostream &write_float(std::ostream &out, const float x);
     inline std::ostream &write_double(std::ostream &out, const double x);
+
+    inline std::ostream &write_array_header(std::ostream &out, const size_t size);
+    inline std::ostream &write_map_header(std::ostream &out, const size_t size);
+
     std::ostream &write_array(std::ostream &out, const ArrayObject &arr);
     std::ostream &write_map(std::ostream &out, const MapObject &map);
-    std::ostream &write_raw(std::ostream &out, const RawObject &raw);
+    std::ostream &write_raw(std::ostream &out, const char *const data, const size_t size);
+    inline std::ostream &write_raw(std::ostream &out, const RawObject &raw);
 
     std::ostream &write_object(std::ostream &out, const Object &obj);
     std::ostream &write_packed(std::ostream &out, const char *const data, const size_t size);
@@ -181,6 +186,37 @@ namespace schwa {
       return write_raw_int64(out, x);
     }
 
+    inline std::ostream &
+    write_array_header(std::ostream &out, const size_t size) {
+      if (size <= 15)
+        out.put(static_cast<unsigned char>(header::ARRAY_FIXED | size));
+      else if (size <= std::numeric_limits<uint16_t>::max()) {
+        out.put(header::ARRAY_16);
+        write_raw_uint16(out, size);
+      }
+      else {
+        out.put(header::ARRAY_32);
+        write_raw_uint32(out, size);
+      }
+      return out;
+    }
+
+    inline std::ostream &
+    write_map_header(std::ostream &out, const size_t size) {
+      if (size <= 15)
+        out.put(static_cast<unsigned char>(header::MAP_FIXED | size));
+      else if (size <= std::numeric_limits<uint16_t>::max()) {
+        out.put(header::MAP_16);
+        write_raw_uint16(out, size);
+      }
+      else {
+        out.put(header::MAP_32);
+        write_raw_uint32(out, size);
+      }
+      return out;
+    }
+
+
     // ========================================================================
     // ObjectType writing
     // ========================================================================
@@ -232,6 +268,11 @@ namespace schwa {
     write_double(std::ostream &out, const double x) {
       out.put(header::DOUBLE);
       return write_raw_64(out, x);
+    }
+
+    inline std::ostream &
+    write_raw(std::ostream &out, const RawObject &raw) {
+      return write_raw(out, raw.data, raw.size);
     }
 
   }
