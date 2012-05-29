@@ -9,7 +9,7 @@ namespace mp = schwa::msgpack;
 namespace schwa { namespace dr {
 
 static void
-debug_schema(const Schema &s, const std::map<TypeInfo, size_t> &klass_map) {
+debug_schema(const BaseSchema &s, const std::map<TypeInfo, size_t> &klass_map) {
   std::cout << (s.is_document_schema ? "__meta__" : s.serial) << " " << s.type << std::endl;
   for (auto &f : s) {
     std::cout << "  " << f->name << " " << f->is_pointer() << " " << f->is_store() << " " << f->is_slice();
@@ -27,7 +27,7 @@ debug_schema(const Schema &s, const std::map<TypeInfo, size_t> &klass_map) {
 
 
 void
-Writer::write_klass_header(const Schema &s, const std::map<TypeInfo, size_t> &types) {
+Writer::write_klass_header(const BaseSchema &s, const std::map<TypeInfo, size_t> &types) {
   // <klass> ::= ( <klass_name>, <fields> )
   mp::write_array_header(_out, 2);
 

@@ -33,7 +33,11 @@
 #include <vector>
 
 #ifndef O_NOATIME
-#define O_NOATIME (0)
+  #define O_NOATIME (0)
+#endif
+
+#ifndef BOOST_PP_VARIADICS
+  #define BOOST_PP_VARIADICS (1)
 #endif
 
 #endif

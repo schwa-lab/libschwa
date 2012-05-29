@@ -1,4 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/facilities/empty.hpp>
+#include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/typeof/typeof.hpp>
 
 namespace schwa {
@@ -48,7 +51,7 @@ namespace schwa {
       static_assert(FieldTraits<R>::is_dr_ptr_type == false, "DR_FIELD must be used with POD fields only. Use DR_FIELD2 for schwa::dr field types instead.");
       static_assert(FieldTraits<R>::is_pod_ptr == false, "Fields cannot be POD pointers. Use schwa::dr::Pointer<T> instead.");
 
-      FieldDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial) {
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial) {
         schema.add(this);
       }
       virtual ~FieldDef(void) { }
@@ -71,7 +74,7 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      FieldDefWithStore(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~FieldDefWithStore(void) { }
@@ -107,8 +110,10 @@ namespace schwa {
     };
 
 
-    #define DR_FIELD(member_obj_ptr) schwa::dr::FieldDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
-    #define DR_FIELD2(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr, BOOST_TYPEOF(store_obj_ptr), store_obj_ptr>
+    #define DR_FIELD_1(member_obj_ptr) schwa::dr::FieldDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
+    #define DR_FIELD_2(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr, BOOST_TYPEOF(store_obj_ptr), store_obj_ptr>
+
+    #define DR_FIELD(...) BOOST_PP_OVERLOAD(DR_FIELD_,__VA_ARGS__)(__VA_ARGS__)
     #define DR_STORE(member_obj_ptr) schwa::dr::StoreDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
 
   }
