@@ -96,7 +96,7 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      StoreDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+      StoreDef(BaseDocumentSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~StoreDef(void) { }
