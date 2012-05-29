@@ -44,13 +44,9 @@ namespace schwa {
     // ========================================================================
     class Annotation {
     protected:
-      size_t _dr_index;
-
-      Annotation(void) : _dr_index(0) { }
-      Annotation(const Annotation &) = delete;
-
-    public:
-      inline void set_dr_index(size_t dr_index) { _dr_index = dr_index; }
+      Annotation(void) { }
+      Annotation(const Annotation &) { }
+      Annotation &operator =(const Annotation &) { return *this; }
     };
 
 
