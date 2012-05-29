@@ -6,6 +6,12 @@
 
 namespace schwa { namespace dr {
 
+Schema::~Schema(void) {
+  for (auto &s : _schemas)
+    delete s;
+}
+
+
 static void
 _finalise(const std::set<TypeInfo> &seen, const Schema &schema) {
   for (auto &field : schema) {
