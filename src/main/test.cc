@@ -29,22 +29,11 @@ public:
   dr::Store<Token> tokens;
   dr::Store<X> xs;
 
-  class Schema : public dr::Document::Schema {
-  public:
-    DR_FIELD(&Doc::filename) filename;
-    DR_STORE(&Doc::tokens) tokens;
-
-    Schema(void) :
-      dr::Document::Schema("Document", "Some help text about this Document class", dr::TypeInfo::create<Doc>()),
-      filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
-      tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens")
-      { }
-    virtual ~Schema(void) { }
-  };
+  class Schema;
 };
 
 
-class Token::Schema : public dr::Annotation::Schema {
+class Token::Schema : public dr::AnnotationSchema<Token> {
 public:
   DR_FIELD(&Token::slice) slice;
   DR_FIELD(&Token::raw) raw;
@@ -52,11 +41,25 @@ public:
   DR_FIELD2(&Token::parent, &Doc::tokens) parent;
 
   Schema(void) :
-    dr::Annotation::Schema("Token", "Some help text about Token", "Token", dr::TypeInfo::create<Token>()),
+    dr::AnnotationSchema<Token>("Token", "Some help text about Token", "Token"),
     slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
     raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
     norm(*this, "norm", "some help text about norm", dr::LOAD_RW, "norm"),
     parent(*this, "parent", "some help text about parent", dr::LOAD_RW, "parent")
+    { }
+  virtual ~Schema(void) { }
+};
+
+
+class Doc::Schema : public dr::DocumentSchema<Doc> {
+public:
+  DR_FIELD(&Doc::filename) filename;
+  DR_STORE(&Doc::tokens) tokens;
+
+  Schema(void) :
+    dr::DocumentSchema<Doc>("Document", "Some help text about this Document class"),
+    filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
+    tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens")
     { }
   virtual ~Schema(void) { }
 };
@@ -75,7 +78,7 @@ main(void) {
   (void)s_tok;
 
   try {
-    s_tok.set_serial("foo");
+    s_tok.serial = "foo";
   }
   catch (schwa::Exception &e) {
     std::cerr << port::RED << port::BOLD << "schwa::Exception: " << e.what() << port::OFF << std::endl;

@@ -1,6 +1,8 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <typeinfo>
 
+#include <boost/type_traits.hpp>
+
 namespace schwa {
   namespace dr {
 
@@ -40,53 +42,24 @@ namespace schwa {
     public:
       typedef std::vector<BaseDef *> container_type;
 
+      const std::string name;
+      const std::string help;
+      std::string serial;
+      const TypeInfo type;
+      const bool is_document_schema;
+
     protected:
       container_type _defs;
-      const std::string _name;
-      const std::string _help;
-      std::string _serial;
-      const TypeInfo _type;
-      const bool _is_doc;
 
-      Schema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type, const bool is_doc) : _name(name), _help(help), _serial(serial), _type(type), _is_doc(is_doc) { }
+      Schema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type, const bool is_document_schema) : name(name), help(help), serial(serial), type(type), is_document_schema(is_document_schema) { }
 
     public:
       virtual ~Schema(void) { }
 
       inline void add(BaseDef *def) { _defs.push_back(def); }
 
-      inline const std::string &name(void) const { return _name; }
-      inline const std::string &help(void) const { return _help; }
-      inline std::string serial(void) const { return _serial; }
-      inline const TypeInfo &type(void) const { return _type; }
-
       inline container_type::const_iterator begin(void) const { return _defs.begin(); }
       inline container_type::const_iterator end(void) const { return _defs.end(); }
-
-      virtual bool is_document(void) const { return false; }
-
-      inline void
-      set_serial(const std::string &serial) {
-        if (_is_doc)
-          throw ValueException("Cannot set the serial value for a Document schema");
-        _serial = serial;
-      }
-    };
-
-
-    class TypeSchema : public Schema {
-    public:
-      TypeSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : Schema(name, help, serial, type, false) { }
-      virtual ~TypeSchema(void) { }
-    };
-
-
-    class DocSchema : public Schema {
-    public:
-      DocSchema(const std::string &name, const std::string &help, const TypeInfo &type) : Schema(name, help, "", type, true) { }
-      virtual ~DocSchema(void) { }
-
-      bool is_document(void) const { return true; }
     };
 
 
@@ -94,9 +67,6 @@ namespace schwa {
     // Base classes
     // ========================================================================
     class Annotation {
-    public:
-      typedef TypeSchema Schema;
-
     protected:
       size_t _dr_index;
 
@@ -109,15 +79,33 @@ namespace schwa {
 
 
     class Document {
-    public:
-      typedef DocSchema Schema;
-
     protected:
       Document(void) { }
       Document(const Document &) = delete;
     };
 
 
+    // ========================================================================
+    // Templated base schemas
+    // ========================================================================
+    template <typename T>
+    class AnnotationSchema : public Schema {
+    public:
+      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+
+      AnnotationSchema(const std::string &name, const std::string &help, const std::string &serial) : Schema(name, help, serial, TypeInfo::create<T>(), false) { }
+      virtual ~AnnotationSchema(void) { }
+    };
+
+
+    template <typename D>
+    class DocumentSchema : public Schema {
+    public:
+      static_assert(boost::is_base_of<Document, D>::value, "D must be a subclass of Document");
+
+      DocumentSchema(const std::string &name, const std::string &help) : Schema(name, help, "", TypeInfo::create<D>(), true) { }
+      virtual ~DocumentSchema(void) { }
+    };
 
   }
 }

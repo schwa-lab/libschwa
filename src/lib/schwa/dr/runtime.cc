@@ -14,7 +14,7 @@ _finalise(const std::set<TypeInfo> &seen, const Schema &schema) {
       const auto it = seen.find(type);
       if (it == seen.end()) {
         std::stringstream ss;
-        ss << "Type '" << type << "' is used by field '" << schema.name() << "::" << field->name();
+        ss << "Type '" << type << "' is used by field '" << schema.name << "::" << field->name();
         ss << "', but it is not registered in the type registry";
         throw DependencyException(ss.str());
       }
@@ -30,9 +30,9 @@ TypeRegistry::finalise(void) {
 
   // find all of the types stored in the registry
   std::set<TypeInfo> seen;
-  seen.insert(_doc_schema->type());
+  seen.insert(_doc_schema->type);
   for (auto &schema : _schemas)
-    seen.insert(schema->type());
+    seen.insert(schema->type);
 
   // find all pointer fields
   _finalise(seen, *_doc_schema);
