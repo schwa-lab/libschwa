@@ -74,8 +74,6 @@ Writer::write_klass_header(const BaseSchema &s, const std::map<TypeInfo, size_t>
 void
 Writer::write(const Document &d) {
   std::cout << "Writer::write(" << &d << ")" << std::endl;
-  // ensure the type registry has checked that all of its dependencies are fulfilled
-  _dschema.finalise();
 
   // map each of the types to their unique klass id within the header
   std::map<TypeInfo, size_t> klass_map;

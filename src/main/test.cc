@@ -27,6 +27,7 @@ class Doc : public dr::Document {
 public:
   std::string filename;
   dr::Store<Token> tokens;
+  dr::Store<Token> tokens2;
   dr::Store<X> xs;
 
   class Schema;
@@ -55,11 +56,13 @@ class Doc::Schema : public dr::DocumentSchema<Doc> {
 public:
   DR_FIELD(&Doc::filename) filename;
   DR_STORE(&Doc::tokens) tokens;
+  DR_STORE(&Doc::tokens2) tokens2;
 
   Schema(void) :
     dr::DocumentSchema<Doc>("Document", "Some help text about this Document class"),
     filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
-    tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens")
+    tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens"),
+    tokens2(*this, "tokens2", "some help text about Token2 store", dr::LOAD_RW, "tokens2")
     { }
   virtual ~Schema(void) { }
 };
