@@ -35,7 +35,15 @@ namespace schwa {
       inline void add(BaseFieldDef *const field) { _fields.push_back(field); }
 
       inline const field_container &fields(void) const { return _fields; }
+
+      virtual std::ostream &dump(std::ostream &out) const;
     };
+
+
+    inline std::ostream &
+    operator <<(std::ostream &out, const BaseSchema &s) {
+      return s.dump(out);
+    }
 
 
     // ========================================================================
@@ -63,6 +71,8 @@ namespace schwa {
 
     public:
       virtual ~BaseAnnotationSchema(void) { }
+
+      virtual std::ostream &dump(std::ostream &out) const;
     };
 
 
@@ -114,6 +124,8 @@ namespace schwa {
 
       inline const schema_container &schemas(void) const { return _schemas; }
       inline const store_container &stores(void) const { return _stores; }
+
+      virtual std::ostream &dump(std::ostream &out) const;
     };
 
 
