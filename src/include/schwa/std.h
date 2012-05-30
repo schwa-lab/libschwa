@@ -33,7 +33,7 @@
 #include <vector>
 
 #ifndef O_NOATIME
-#define O_NOATIME (0)
+  #define O_NOATIME (0)
 #endif
 
 #endif
