@@ -5,7 +5,8 @@ namespace schwa {
   namespace dr {
 
     class BaseAnnotationSchema;
-    class BaseDef;
+    class BaseFieldDef;
+    class BaseStoreDef;
 
     template <typename T, T fn>
     class StoreDef;
@@ -16,26 +17,24 @@ namespace schwa {
     // ========================================================================
     class BaseSchema {
     public:
-      typedef std::vector<BaseDef *> field_container;
+      typedef std::vector<BaseFieldDef *> field_container;
 
       const std::string name;
       const std::string help;
       std::string serial;
       const TypeInfo type;
-      const bool is_document_schema;
 
     protected:
-      field_container _defs;
+      field_container _fields;
 
-      BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type, const bool is_document_schema) : name(name), help(help), serial(serial), type(type), is_document_schema(is_document_schema) { }
+      BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : name(name), help(help), serial(serial), type(type) { }
 
     public:
       virtual ~BaseSchema(void) { }
 
-      inline void add(BaseDef *def) { _defs.push_back(def); }
+      inline void add(BaseFieldDef *const field) { _fields.push_back(field); }
 
-      inline field_container::const_iterator begin(void) const { return _defs.begin(); }
-      inline field_container::const_iterator end(void) const { return _defs.end(); }
+      inline const field_container &fields(void) const { return _fields; }
     };
 
 
@@ -60,7 +59,7 @@ namespace schwa {
 
     class BaseAnnotationSchema : public BaseSchema {
     protected:
-      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type, false) { }
+      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
 
     public:
       virtual ~BaseAnnotationSchema(void) { }
@@ -70,11 +69,13 @@ namespace schwa {
     class BaseDocumentSchema : public BaseSchema {
     public:
       typedef std::vector<BaseAnnotationSchema *> schema_container;
+      typedef std::vector<BaseStoreDef *> store_container;
 
     protected:
       schema_container _schemas;
+      store_container _stores;
 
-      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type, true) { }
+      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
 
     public:
       virtual ~BaseDocumentSchema(void) {
@@ -83,14 +84,14 @@ namespace schwa {
       }
 
       template <typename T, T fn>
-      inline void add(StoreDef<T, fn> *def) {
+      inline void add(StoreDef<T, fn> *const store) {
         typedef typename StoreDef<T, fn>::store_type::Schema S;
         static_assert(boost::is_base_of<BaseAnnotationSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnotationSchema");
 
-        _defs.push_back(def);
+        _stores.push_back(store);
 
         // check to see if we have not yet seen this type
-        const TypeInfo &t = def->pointer_type();
+        const TypeInfo &t = store->pointer_type();
         for (auto &s : _schemas)
           if (s->type == t)
             return;
@@ -112,6 +113,7 @@ namespace schwa {
       }
 
       inline const schema_container &schemas(void) const { return _schemas; }
+      inline const store_container &stores(void) const { return _stores; }
     };
 
 
