@@ -9,24 +9,6 @@ namespace mp = schwa::msgpack;
 namespace schwa { namespace dr {
 
 static void
-debug_schema(const BaseSchema &s, const bool is_doc_schema, const std::map<TypeInfo, size_t> &type_map) {
-  std::cout << (is_doc_schema ? "__meta__" : s.serial) << " " << s.type << std::endl;
-  for (auto &f : s.fields()) {
-    std::cout << "  " << f->name << " " << f->is_pointer << " " << f->is_slice;
-    if (f->is_pointer) {
-      std::cout << " " << f->pointer_type().name;
-      const auto it = type_map.find(f->pointer_type());
-      if (it == type_map.end())
-        std::cout << " <unknown!>";
-      else
-        std::cout << " " << it->second;
-    }
-    std::cout << std::endl;
-  }
-}
-
-
-static void
 write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_schema, const std::map<TypeInfo, size_t> &types) {
   // <klass> ::= ( <klass_name>, <fields> )
   mp::write_array_header(out, 2);
@@ -129,10 +111,7 @@ Writer::write(const Document &doc) {
     // <instances_group> ::= <instances_nbytes> <instances>
   }
 
-  std::cout << std::endl << std::endl;
-  debug_schema(_dschema, true, type_map);
-  for (auto &s : _dschema.schemas())
-    debug_schema(*s, false, type_map);
+  std::cout << _dschema << std::endl;
 
   // flush since we've finished writing a whole document
   _out.flush();
