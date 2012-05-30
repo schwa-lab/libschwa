@@ -14,7 +14,7 @@ namespace schwa {
 
 
     // ========================================================================
-    // FieldDef and StoreDef
+    // Base classes for field and store definitions
     // ========================================================================
     class BaseDef {
     public:
@@ -32,30 +32,50 @@ namespace schwa {
     public:
       virtual ~BaseDef(void) { }
 
-      virtual bool is_pointer(void) const { return false; }
-      virtual bool is_store(void) const { return false; }
-      virtual bool is_slice(void) const { return false; }
       virtual const TypeInfo &pointer_type(void) const { return *static_cast<const TypeInfo *>(nullptr); }
-
-      virtual size_t store_size(const void *) const { return 0; }
     };
 
 
+    class BaseFieldDef : public BaseDef {
+    public:
+      const bool is_pointer;
+      const bool is_slice;
+
+    protected:
+      BaseFieldDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial, const bool is_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_slice(is_slice) { }
+
+    public:
+      virtual ~BaseFieldDef(void) { }
+    };
+
+
+    class BaseStoreDef : public BaseDef {
+    protected:
+      BaseStoreDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial) { }
+
+    public:
+      virtual ~BaseStoreDef(void) { }
+
+      virtual size_t size(const Document &doc) const = 0;
+    };
+
+
+    // ========================================================================
+    // Templated FieldDef and StoreDef
+    // ========================================================================
     template <typename T, T fn>
     class FieldDef;
 
     template <typename R, typename T, R T::*member_obj_ptr>
-    class FieldDef<R T::*, member_obj_ptr> : public BaseDef {
+    class FieldDef<R T::*, member_obj_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == false, "DR_FIELD must be used with POD fields only. Use DR_FIELD2 for schwa::dr field types instead.");
       static_assert(FieldTraits<R>::is_pod_ptr == false, "Fields cannot be POD pointers. Use schwa::dr::Pointer<T> instead.");
 
-      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial) {
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
         schema.add(this);
       }
       virtual ~FieldDef(void) { }
-
-      bool is_slice(void) const { return FieldTraits<R>::is_slice; }
     };
 
 
@@ -63,7 +83,7 @@ namespace schwa {
     class FieldDefWithStore;
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
-    class FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr> : public BaseDef {
+    class FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_FIELD2 must be used with schwa::dr field types only");
       static_assert(boost::is_same<typename FieldTraits<R>::pointer_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
@@ -73,13 +93,10 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~FieldDefWithStore(void) { }
-
-      bool is_pointer(void) const { return true; }
-      bool is_slice(void) const { return FieldTraits<R>::is_slice; }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
     };
@@ -89,7 +106,7 @@ namespace schwa {
     class StoreDef;
 
     template <typename S, typename T, Store<S> T::*member_obj_ptr>
-    class StoreDef<Store<S> T::*, member_obj_ptr> : public BaseDef {
+    class StoreDef<Store<S> T::*, member_obj_ptr> : public BaseStoreDef {
     public:
       static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
       typedef S store_type;
@@ -98,15 +115,13 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      StoreDef(BaseDocumentSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+      StoreDef(BaseDocumentSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~StoreDef(void) { }
 
-      bool is_store(void) const { return true; }
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
-
-      size_t store_size(const void *doc) const { return (static_cast<const T *>(doc)->*member_obj_ptr).size(); }
+      size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*member_obj_ptr).size(); }
     };
 
 
