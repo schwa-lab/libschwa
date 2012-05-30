@@ -72,8 +72,8 @@ Writer::write_klass_header(const BaseSchema &s, const std::map<TypeInfo, size_t>
 
 
 void
-Writer::write(const Document &d) {
-  std::cout << "Writer::write(" << &d << ")" << std::endl;
+Writer::write(const Document &doc) {
+  std::cout << "Writer::write(" << &doc << ")" << std::endl;
 
   // map each of the types to their unique klass id within the header
   std::map<TypeInfo, size_t> klass_map;
@@ -98,10 +98,22 @@ Writer::write(const Document &d) {
       ++nstores;
   mp::write_array_header(_out, nstores);
 
+  // <store> ::= ( <store_name>, <klass_id>, <store_nelem> )
   for (auto &field : _dschema) {
     if (!field->is_store())
       continue;
+
+    const auto it = klass_map.find(field->pointer_type());
+    assert(it != klass_map.end());
+
+    mp::write_array_header(_out, 3);
+    mp::write_raw(_out, field->serial.c_str(), field->serial.size());
+    mp::write_uint(_out, it->second);
+    mp::write_uint(_out, field->store_size(&doc));
   }
+
+  // <doc_instance> ::= <instances_nbytes> <instance>
+  // TODO
 
   std::cout << std::endl;
   debug_schema(_dschema, klass_map);

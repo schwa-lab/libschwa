@@ -36,6 +36,8 @@ namespace schwa {
       virtual bool is_store(void) const { return false; }
       virtual bool is_slice(void) const { return false; }
       virtual const TypeInfo &pointer_type(void) const { return *static_cast<const TypeInfo *>(nullptr); }
+
+      virtual size_t store_size(const void *) const { return 0; }
     };
 
 
@@ -102,8 +104,9 @@ namespace schwa {
       virtual ~StoreDef(void) { }
 
       bool is_store(void) const { return true; }
-
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
+
+      size_t store_size(const void *doc) const { return (static_cast<const T *>(doc)->*member_obj_ptr).size(); }
     };
 
 
