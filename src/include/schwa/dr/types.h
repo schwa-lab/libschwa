@@ -17,25 +17,20 @@ namespace schwa {
     // FieldDef and StoreDef
     // ========================================================================
     class BaseDef {
-    protected:
-      const std::string _name;
-      const std::string _help;
-      const loadmode_t _mode;
-      std::string _serial;
+    public:
+      const std::string name;
+      const std::string help;
+      const loadmode_t mode;
+      std::string serial;
 
-      BaseDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : _name(name), _help(help), _mode(mode), _serial(serial) {
+    protected:
+      BaseDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial) {
         if (!(mode == LOAD_RW || mode == LOAD_RO))
           throw ValueException("Invalid `mode' value: must be either LOAD_RW or LOAD_RO");
-        schema.add(this);
       }
 
     public:
       virtual ~BaseDef(void) { }
-
-      inline const std::string &name(void) const { return _name; }
-      inline const std::string &help(void) const { return _help; }
-      inline loadmode_t mode(void) const { return _mode; }
-      inline std::string serial(void) const { return _serial; }
 
       virtual bool is_pointer(void) const { return false; }
       virtual bool is_store(void) const { return false; }
@@ -53,7 +48,9 @@ namespace schwa {
       static_assert(FieldTraits<R>::is_dr_ptr_type == false, "DR_FIELD must be used with POD fields only. Use DR_FIELD2 for schwa::dr field types instead.");
       static_assert(FieldTraits<R>::is_pod_ptr == false, "Fields cannot be POD pointers. Use schwa::dr::Pointer<T> instead.");
 
-      FieldDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial) { }
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial) {
+        schema.add(this);
+      }
       virtual ~FieldDef(void) { }
 
       bool is_slice(void) const { return FieldTraits<R>::is_slice; }
@@ -74,7 +71,9 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      FieldDefWithStore(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) { }
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+        schema.add(this);
+      }
       virtual ~FieldDefWithStore(void) { }
 
       bool is_pointer(void) const { return true; }
@@ -91,12 +90,15 @@ namespace schwa {
     class StoreDef<Store<S> T::*, member_obj_ptr> : public BaseDef {
     public:
       static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
+      typedef S store_type;
 
     private:
       const TypeInfo _pointer_type;
 
     public:
-      StoreDef(Schema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(schema, name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) { }
+      StoreDef(BaseDocumentSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+        schema.add(this);
+      }
       virtual ~StoreDef(void) { }
 
       bool is_store(void) const { return true; }
@@ -106,9 +108,8 @@ namespace schwa {
 
 
     #define DR_FIELD(member_obj_ptr) schwa::dr::FieldDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
-    #define DR_FIELD2(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr, BOOST_TYPEOF(store_obj_ptr), store_obj_ptr>
+    #define DR_POINTER(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr, BOOST_TYPEOF(store_obj_ptr), store_obj_ptr>
     #define DR_STORE(member_obj_ptr) schwa::dr::StoreDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
-
 
   }
 }
