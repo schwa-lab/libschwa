@@ -10,11 +10,11 @@ namespace schwa {
     template <typename T>
     class Slice {
     public:
-      T begin;
-      T end;
+      T start;
+      T stop;
 
       Slice(void) { }
-      Slice(const T &begin, const T &end) : begin(begin), end(end) { }
+      Slice(const T &start, const T &stop) : start(start), stop(stop) { }
     };
 
 
