@@ -11,6 +11,7 @@ using namespace schwa;
 class Token : public dr::Annotation {
 public:
   dr::Slice<uint64_t> slice;
+  dr::Slice<Token *> slice2;
   std::string raw;
   std::string norm;
   dr::Pointer<Token> parent;
@@ -37,6 +38,7 @@ public:
 class Token::Schema : public dr::AnnotationSchema<Token> {
 public:
   DR_FIELD(&Token::slice) slice;
+  DR_POINTER(&Token::slice2, &Doc::tokens) slice2;
   DR_FIELD(&Token::raw) raw;
   DR_FIELD(&Token::norm) norm;
   DR_POINTER(&Token::parent, &Doc::tokens) parent;
@@ -44,6 +46,7 @@ public:
   Schema(void) :
     dr::AnnotationSchema<Token>("Token", "Some help text about Token", "Token"),
     slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
+    slice2(*this, "slice2", "some help text about slice2", dr::LOAD_RO, "slice2"),
     raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
     norm(*this, "norm", "some help text about norm", dr::LOAD_RW, "norm"),
     parent(*this, "parent", "some help text about parent", dr::LOAD_RW, "parent")

@@ -57,6 +57,7 @@ namespace schwa {
       virtual ~BaseStoreDef(void) { }
 
       virtual size_t size(const Document &doc) const = 0;
+      virtual void write(std::ostream &out, const Document &doc) const = 0;
     };
 
 
@@ -69,8 +70,10 @@ namespace schwa {
     template <typename R, typename T, R T::*member_obj_ptr>
     class FieldDef<R T::*, member_obj_ptr> : public BaseFieldDef {
     public:
-      static_assert(FieldTraits<R>::is_dr_ptr_type == false, "DR_FIELD must be used with POD fields only. Use DR_FIELD2 for schwa::dr field types instead.");
+      static_assert(FieldTraits<R>::is_dr_ptr_type == false, "DR_FIELD must be used with POD fields only. Use DR_POINTER for schwa::dr field types instead.");
       static_assert(FieldTraits<R>::is_pod_ptr == false, "Fields cannot be POD pointers. Use schwa::dr::Pointer<T> instead.");
+      typedef R value_type;
+      typedef T annotation_type;
 
       FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
         schema.add(this);
@@ -85,9 +88,13 @@ namespace schwa {
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     class FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr> : public BaseFieldDef {
     public:
-      static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_FIELD2 must be used with schwa::dr field types only");
+      static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
       static_assert(boost::is_same<typename FieldTraits<R>::pointer_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
       static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
+      typedef R value_type;
+      typedef T annotation_type;
+      typedef S store_type;
+      typedef D doc_type;
 
     private:
       const TypeInfo _pointer_type;
@@ -122,6 +129,18 @@ namespace schwa {
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
       size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*member_obj_ptr).size(); }
+
+      void
+      write(std::ostream &out, const Document &_doc) const {
+        namespace mp = schwa::msgpack;
+        const T &doc = static_cast<const T &>(_doc);
+        const Store<S> &store = doc.*member_obj_ptr;
+
+        // <instances> ::= [ <instance> ]
+        mp::write_array_header(out, store.size());
+        //for (auto &obj : store)
+          //out << obj;
+      }
     };
 
 

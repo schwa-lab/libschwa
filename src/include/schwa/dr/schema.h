@@ -9,7 +9,107 @@ namespace schwa {
     class BaseStoreDef;
 
     template <typename T, T fn>
+    class FieldDef;
+    template <typename T1, T1 fn1, typename T2, T2 fn2>
+    class FieldDefWithStore;
+    template <typename T, T fn>
     class StoreDef;
+
+    template <typename T>
+    class Pointer;
+    template <typename T>
+    class Pointers;
+    template <typename T>
+    class Slice;
+    template <typename T>
+    class Store;
+    template <typename T>
+    struct FieldTraits;
+
+
+    namespace wire {
+      namespace mp = schwa::msgpack;
+
+      template <typename T>
+      struct WireTraits {
+        static bool should_write(const T &val);
+        static void write(std::ostream &out, const T &val);
+      };
+
+      template <>
+      struct WireTraits<std::string> {
+        static inline bool should_write(const std::string &val) { return !val.empty(); }
+        static inline void write(std::ostream &out, const std::string &val) { mp::write(out, val); }
+      };
+
+      template <typename T>
+      struct WireTraits<Pointer<T>> {
+        static inline bool should_write(const Pointer<T> &val) { return val.ptr != nullptr; }
+
+        static inline void
+        write(std::ostream &out, const Pointer<T> &val, const T &front) {
+          mp::write_uint(out, val.ptr - &front);
+        }
+      };
+
+      template <typename T, bool IS_POINTER>
+      struct WireTraitsSliceTraits {
+        static inline bool should_write(const Slice<T> &val) { return val.start != T() && val.stop != T(); }
+
+        static inline void
+        write(std::ostream &out, const Slice<T> &val) {
+          mp::write_array_header(out, 2);
+          mp::write<T>(out, val.start);
+          mp::write<T>(out, val.stop);
+        }
+      };
+
+      template <typename T>
+      struct WireTraitsSliceTraits<T, true> {
+        static inline bool should_write(const Slice<T> &val) { return val.start != nullptr && val.stop != nullptr; }
+
+        static inline void
+        write(std::ostream &out, const Slice<T> &val, const typename FieldTraits<Slice<T>>::pointer_type &front) {
+          mp::write_array_header(out, 2);
+          mp::write_uint(out, val.start - &front);
+          mp::write_uint(out, val.stop - &front);
+        }
+      };
+
+      template <typename T>
+      struct WireTraits<Slice<T>> : public WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
+
+
+      template <typename R, typename T, R T::*field_ptr>
+      inline bool
+      write_field(std::ostream &out, const unsigned int key, const void *const _ann, const void *const _doc) {
+        static_cast<void>(_doc);
+        const T &ann = *static_cast<const T *>(_ann);
+        const R &val = ann.*field_ptr;
+        if (WireTraits<R>::should_write(val)) {
+          mp::write_uint(out, key);
+          WireTraits<R>::write(out, val);
+          return true;
+        }
+        return false;
+      }
+
+
+      template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+      inline bool
+      write_field(std::ostream &out, const unsigned int key, const void *const _ann, const void *const _doc) {
+        const D &doc = *static_cast<const D *>(_doc);
+        const T &ann = *static_cast<const T *>(_ann);
+        const R &val = ann.*field_ptr;
+        if (WireTraits<R>::should_write(val)) {
+          mp::write_uint(out, key);
+          WireTraits<R>::write(out, val, (doc.*store_ptr).front());
+          return true;
+        }
+        return false;
+      }
+
+    }
 
 
     // ========================================================================
@@ -26,13 +126,26 @@ namespace schwa {
 
     protected:
       field_container _fields;
+      std::vector<bool (*)(std::ostream &out, const unsigned int, const void *, const void *)> _writers;
 
       BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : name(name), help(help), serial(serial), type(type) { }
 
     public:
       virtual ~BaseSchema(void) { }
 
-      inline void add(BaseFieldDef *const field) { _fields.push_back(field); }
+      template <typename T, T fn>
+      inline void add(FieldDef<T, fn> *const field) {
+        typedef FieldDef<T, fn> F;
+        _fields.push_back(field);
+        _writers.push_back(&wire::write_field<typename F::value_type, typename F::annotation_type, fn>);
+      }
+
+      template <typename T1, T1 fn1, typename T2, T2 fn2>
+      inline void add(FieldDefWithStore<T1, fn1, T2, fn2> *const field) {
+        typedef FieldDefWithStore<T1, fn1, T2, fn2> F;
+        _fields.push_back(field);
+        _writers.push_back(&wire::write_field<typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>);
+      }
 
       inline const field_container &fields(void) const { return _fields; }
 

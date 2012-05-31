@@ -76,6 +76,22 @@ namespace schwa {
     inline std::ostream &write_uint_64(std::ostream &out, const uint64_t x);
 
 
+    template <typename T>
+    inline std::ostream &write(std::ostream &out, const T &val);
+
+    template <> inline std::ostream &write(std::ostream &out, const int8_t &val) { return write_int_8(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const int16_t &val) { return write_int_16(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const int32_t &val) { return write_int_32(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const int64_t &val) { return write_int_64(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const uint8_t &val) { return write_uint_8(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const uint16_t &val) { return write_uint_16(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const uint32_t &val) { return write_uint_32(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const uint64_t &val) { return write_uint_64(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const float &val) { return write_float(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const double &val) { return write_double(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const bool &val) { return write_boolean(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const std::string &val) { return write_raw(out, val.c_str(), val.size()); }
+
     // ========================================================================
     // Inline implementations for speed benifit
     // ========================================================================
