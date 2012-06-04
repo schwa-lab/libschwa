@@ -118,6 +118,7 @@ namespace schwa {
     class BaseSchema {
     public:
       typedef std::vector<BaseFieldDef *> field_container;
+      typedef std::vector<bool (*)(std::ostream &out, const unsigned int, const void *, const void *)> writers_container;
 
       const std::string name;
       const std::string help;
@@ -126,7 +127,7 @@ namespace schwa {
 
     protected:
       field_container _fields;
-      std::vector<bool (*)(std::ostream &out, const unsigned int, const void *, const void *)> _writers;
+      writers_container _writers;
 
       BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : name(name), help(help), serial(serial), type(type) { }
 
@@ -148,6 +149,7 @@ namespace schwa {
       }
 
       inline const field_container &fields(void) const { return _fields; }
+      inline const writers_container &writers(void) const { return _writers; }
 
       virtual std::ostream &dump(std::ostream &out) const;
     };
