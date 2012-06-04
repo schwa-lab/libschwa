@@ -57,7 +57,7 @@ namespace schwa {
       virtual ~BaseStoreDef(void) { }
 
       virtual size_t size(const Document &doc) const = 0;
-      virtual void write(std::ostream &out, const Document &doc) const = 0;
+      virtual void write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const = 0;
     };
 
 
@@ -131,15 +131,15 @@ namespace schwa {
       size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*member_obj_ptr).size(); }
 
       void
-      write(std::ostream &out, const Document &_doc) const {
+      write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const {
         namespace mp = schwa::msgpack;
         const T &doc = static_cast<const T &>(_doc);
         const Store<S> &store = doc.*member_obj_ptr;
 
         // <instances> ::= [ <instance> ]
         mp::write_array_header(out, store.size());
-        //for (auto &obj : store)
-          //out << obj;
+        for (auto &obj : store)
+          writer(out, _doc, schema, &obj);
       }
     };
 
