@@ -54,7 +54,9 @@ public:
 // ============================================================================
 class A1 : public dr::Annotation {
 public:
-  std::string value;
+  std::string v_str;
+  uint32_t v_uint32;
+  bool v_bool;
   class Schema;
 };
 
@@ -77,11 +79,15 @@ public:
 
 class A1::Schema : public dr::AnnotationSchema<A1> {
 public:
-  DR_FIELD(&A1::value) value;
+  DR_FIELD(&A1::v_str) v_str;
+  DR_FIELD(&A1::v_uint32) v_uint32;
+  DR_FIELD(&A1::v_bool) v_bool;
 
   Schema(void) :
     dr::AnnotationSchema<A1>("A", "Some help text about A", "A"),
-    value(*this, "value", "some help text about value", dr::LOAD_RW, "value")
+    v_str(*this, "v_str", "some help text about v_str", dr::LOAD_RW, "v_str"),
+    v_uint32(*this, "v_uint32", "some help text about v_uint32", dr::LOAD_RW, "v_uint32"),
+    v_bool(*this, "v_bool", "some help text about v_bool", dr::LOAD_RW, "v_bool")
     { }
   virtual ~Schema(void) { }
 };

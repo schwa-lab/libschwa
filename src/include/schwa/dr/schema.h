@@ -32,9 +32,27 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits {
-        static bool should_write(const T &val);
-        static void write(std::ostream &out, const T &val);
+        //static bool should_write(const T &val);
+        //static void write(std::ostream &out, const T &val);
       };
+
+      template <typename T>
+      struct WireTraitsPrimative {
+        static constexpr inline bool should_write(const T &) { return true; }
+        static inline void write(std::ostream &out, const T &val) { mp::write(out, val); }
+      };
+
+      template <> struct WireTraits<int8_t> : public WireTraitsPrimative<int8_t> { };
+      template <> struct WireTraits<int16_t> : public WireTraitsPrimative<int16_t> { };
+      template <> struct WireTraits<int32_t> : public WireTraitsPrimative<int32_t> { };
+      template <> struct WireTraits<int64_t> : public WireTraitsPrimative<int64_t> { };
+      template <> struct WireTraits<uint8_t> : public WireTraitsPrimative<uint8_t> { };
+      template <> struct WireTraits<uint16_t> : public WireTraitsPrimative<uint16_t> { };
+      template <> struct WireTraits<uint32_t> : public WireTraitsPrimative<uint32_t> { };
+      template <> struct WireTraits<uint64_t> : public WireTraitsPrimative<uint64_t> { };
+      template <> struct WireTraits<float> : public WireTraitsPrimative<float> { };
+      template <> struct WireTraits<double> : public WireTraitsPrimative<double> { };
+      template <> struct WireTraits<bool> : public WireTraitsPrimative<bool> { };
 
       template <>
       struct WireTraits<std::string> {
