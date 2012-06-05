@@ -7,7 +7,7 @@ TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/
 
 OBJECTS = $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
-UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
@@ -25,7 +25,7 @@ clean:
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	src/scripts/depends "$(CXX) -MM $(INCLUDE) $(PYTHON_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/depends "$(CXX) -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 wc:
 	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l

@@ -59,14 +59,13 @@ write_instance(std::ostream &out, const Document &doc, const BaseSchema &schema,
   }
 
   mp::write_map_header(out, nfields);
-  out << ss.rdbuf();
+  if (nfields != 0)
+    out << ss.rdbuf();
 }
 
 
 void
 Writer::write(const Document &doc) {
-  std::cout << "Writer::write(" << &doc << ")" << std::endl;
-
   // map each of the types to their unique klass id within the header
   std::map<TypeInfo, size_t> typeid_map;
   std::map<TypeInfo, const BaseSchema *> schema_map;

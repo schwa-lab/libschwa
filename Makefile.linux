@@ -10,7 +10,8 @@ LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
 
-TEST_CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -DBOOST_TEST_DYN_LINK
+TEST_INCLUDE = -Isrc/tests/unit_tests
+TEST_CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -DBOOST_TEST_DYN_LINK $(TEST_INCLUDE)
 TEST_LDFLAGS = -lboost_unit_test_framework -lschwa
 
 PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
