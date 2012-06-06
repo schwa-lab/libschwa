@@ -21,8 +21,8 @@ namespace schwa {
       static const unsigned char ARRAY_FIXED = 0x90;
       static const unsigned char RAW_FIXED   = 0xa0;
       static const unsigned char NIL      = 0xc0;
-      static const unsigned char TRUE     = 0xc2;
-      static const unsigned char FALSE    = 0xc3;
+      static const unsigned char FALSE    = 0xc2;
+      static const unsigned char TRUE     = 0xc3;
       static const unsigned char FLOAT    = 0xca;
       static const unsigned char DOUBLE   = 0xcb;
       static const unsigned char UINT_8   = 0xcc;
