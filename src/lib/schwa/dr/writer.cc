@@ -9,7 +9,7 @@ namespace mp = schwa::msgpack;
 namespace schwa { namespace dr {
 
 static void
-write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_schema, const std::map<TypeInfo, size_t> &types) {
+write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_schema, const Document &doc, const BaseDocumentSchema &dschema) {
   // <klass> ::= ( <klass_name>, <fields> )
   mp::write_array_header(out, 2);
 
@@ -29,12 +29,19 @@ write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_sch
     mp::write_uint_fixed(out, 0);
     mp::write_raw(out, field->serial.c_str(), field->serial.size());
 
-    // <field_type> ::= 1 # POINTER_TO => the <type_id> that this type points to
+    // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
     if (field->is_pointer) {
-      const auto it = types.find(s.type);
-      assert(it != types.end());
+      const ptrdiff_t field_store_offset = field->store_offset(doc);
+      size_t store_id = 0;
+      for (auto &store : dschema.stores()) {
+        if (store->store_offset(doc) == field_store_offset)
+          break;
+        ++store_id;
+      }
+      assert(store_id != dschema.stores().size());
+
       mp::write_uint_fixed(out, 1);
-      mp::write_uint(out, it->second);
+      mp::write_uint(out, store_id);
     }
 
     // <field_type> ::= 2 # IS_SLICE => whether or not this field is a "Slice" field
@@ -80,9 +87,9 @@ Writer::write(const Document &doc) {
 
   // <klasses> ::= [ <klass> ]
   mp::write_array_header(_out, typeid_map.size());
-  write_klass_header(_out, _dschema, true, typeid_map);
+  write_klass_header(_out, _dschema, true, doc, _dschema);
   for (auto &s : _dschema.schemas())
-    write_klass_header(_out, *s, false, typeid_map);
+    write_klass_header(_out, *s, false, doc, _dschema);
 
   // <stores> ::= [ <store> ]
   mp::write_array_header(_out, _dschema.stores().size());
@@ -118,8 +125,6 @@ Writer::write(const Document &doc) {
     mp::write_uint(_out, ss.tellp());
     _out << ss.rdbuf();
   }
-
-  //std::cout << _dschema << std::endl;
 
   // flush since we've finished writing a whole document
   _out.flush();
