@@ -55,8 +55,13 @@ public:
 class A1 : public dr::Annotation {
 public:
   std::string v_str;
-  uint32_t v_uint32;
+  uint8_t v_uint8;
   bool v_bool;
+
+  A1(void) : v_uint8(0), v_bool(false) {
+    std::cout << "A1::A1(void)" << std::endl;
+  }
+
   class Schema;
 };
 
@@ -80,13 +85,13 @@ public:
 class A1::Schema : public dr::AnnotationSchema<A1> {
 public:
   DR_FIELD(&A1::v_str) v_str;
-  DR_FIELD(&A1::v_uint32) v_uint32;
+  DR_FIELD(&A1::v_uint8) v_uint8;
   DR_FIELD(&A1::v_bool) v_bool;
 
   Schema(void) :
     dr::AnnotationSchema<A1>("A", "Some help text about A", "A"),
     v_str(*this, "v_str", "some help text about v_str", dr::LOAD_RW, "v_str"),
-    v_uint32(*this, "v_uint32", "some help text about v_uint32", dr::LOAD_RW, "v_uint32"),
+    v_uint8(*this, "v_uint8", "some help text about v_uint8", dr::LOAD_RW, "v_uint8"),
     v_bool(*this, "v_bool", "some help text about v_bool", dr::LOAD_RW, "v_bool")
     { }
   virtual ~Schema(void) { }
@@ -212,10 +217,16 @@ BOOST_AUTO_TEST_CASE(DocWithA__empty) {
   correct << '\x90';  // <fields>: 0-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "writer.A";  // <klass_name>: utf-8 encoded "writer.A"
-  correct << '\x91';  // <fields>: 1-element array
+  correct << '\x93';  // <fields>: 3-element array
   correct << '\x81';  // <field>: 1-element map
   correct << '\x00';  // 0: NAME
-  correct << '\xa5' << "value";  // utf-8 encoded "value"
+  correct << '\xa5' << "v_str";  // utf-8 encoded "v_str"
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa7' << "v_uint8";  // utf-8 encoded "v_uint8"
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa6' << "v_bool";  // utf-8 encoded "v_bool"
   correct << '\x91';  // <stores>: 1-element array
   correct << '\x93';  // <store>: 3-element array
   correct << '\xa2' << "as";  // <store_name>: utf-8 encoded "as"
@@ -225,6 +236,54 @@ BOOST_AUTO_TEST_CASE(DocWithA__empty) {
   correct << '\x80';  // <instance>: 0-element map
   correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "as" store
   correct << '\x90';  // <instance>: 0-element array
+
+  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+}
+
+
+BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
+  std::stringstream out, correct;
+  DocWithA::Schema schema;
+  dr::Writer writer(out, schema);
+
+  schema.types<A1>().serial = "writer.A";
+
+  DocWithA d;
+  d.as.create(4);
+  d.as[0].v_str = "first";
+  d.as[1].v_uint8 = 2;
+  d.as[3].v_bool = true;
+  writer << d;
+
+  correct << '\x92';  // <klasses>: 2-element array
+  correct << '\x92';  // <klass>: 2-element array
+  correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
+  correct << '\x90';  // <fields>: 0-element array
+  correct << '\x92';  // <klass>: 2-element array
+  correct << '\xa8' << "writer.A";  // <klass_name>: utf-8 encoded "writer.A"
+  correct << '\x93';  // <fields>: 3-element array
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa5' << "v_str";  // utf-8 encoded "v_str"
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa7' << "v_uint8";  // utf-8 encoded "v_uint8"
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa6' << "v_bool";  // utf-8 encoded "v_bool"
+  correct << '\x91';  // <stores>: 1-element array
+  correct << '\x93';  // <store>: 3-element array
+  correct << '\xa2' << "as";  // <store_name>: utf-8 encoded "as"
+  correct << '\x01';  // <klass_id>: 1
+  correct << '\x04';  // <store_nelem>: 4
+  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the document
+  correct << '\x80';  // <instance>: 0-element map
+  correct << '\x20';  // <instance_nbytes>: 32 byte after this for the "as" store
+  correct << '\x94';  // <instance>: 4-element array
+  correct << '\x83' << '\x00' << '\xa5' << "first" << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc2'; // {0: 'first', 1: 0, 2: false}
+  correct << '\x82' << '\x01' << '\xcc' << '\x02' << '\x02' << '\xc2'; // {1: 2, 2: false}
+  correct << '\x82' << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc2'; // {1: 0, 2: false}
+  correct << '\x82' << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc3'; // {1: 0, 2: true}
 
   BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
 }
