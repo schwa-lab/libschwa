@@ -15,6 +15,7 @@ namespace mp = schwa::msgpack;
 class DocWithField : public dr::Document {
 public:
   std::string name;
+
   class Schema;
 };
 
@@ -35,6 +36,7 @@ public:
 class DocWithFieldWithSerial : public dr::Document {
 public:
   std::string name;
+
   class Schema;
 };
 
@@ -52,22 +54,47 @@ public:
 
 // ============================================================================
 // ============================================================================
-class A1 : public dr::Annotation {
+class A : public dr::Annotation {
 public:
   std::string v_str;
   uint8_t v_uint8;
   bool v_bool;
 
-  A1(void) : v_uint8(0), v_bool(false) {
-    std::cout << "A1::A1(void)" << std::endl;
-  }
+  A(void) : v_uint8(0), v_bool(false) { }
+
+  class Schema;
+};
+
+class Y : public dr::Annotation {
+public:
+  dr::Pointer<A> p;
+
+  class Schema;
+};
+
+class Z : public dr::Annotation {
+public:
+  dr::Pointer<A> p;
+  bool value;
+
+  Z(void) : value(false) { }
 
   class Schema;
 };
 
 class DocWithA : public dr::Document {
 public:
-  dr::Store<A1> as;
+  dr::Store<A> as;
+
+  class Schema;
+};
+
+class DocWithAYZ : public dr::Document {
+public:
+  dr::Store<A> as;
+  dr::Store<Y> ys;
+  dr::Store<Z> zs;
+
   class Schema;
 };
 
@@ -82,20 +109,60 @@ public:
   virtual ~Schema(void) { }
 };
 
-class A1::Schema : public dr::AnnotationSchema<A1> {
+class DocWithAYZ::Schema : public dr::DocumentSchema<DocWithAYZ> {
 public:
-  DR_FIELD(&A1::v_str) v_str;
-  DR_FIELD(&A1::v_uint8) v_uint8;
-  DR_FIELD(&A1::v_bool) v_bool;
+  DR_STORE(&DocWithAYZ::as) as;
+  DR_STORE(&DocWithAYZ::ys) ys;
+  DR_STORE(&DocWithAYZ::zs) zs;
 
   Schema(void) :
-    dr::AnnotationSchema<A1>("A", "Some help text about A", "A"),
+    dr::DocumentSchema<DocWithAYZ>("Document", "Some help text about this Document class"),
+    as(*this, "as", "some help text about as", dr::LOAD_RW, "as"),
+    ys(*this, "ys", "some help text about ys", dr::LOAD_RW, "ys"),
+    zs(*this, "zs", "some help text about zs", dr::LOAD_RW, "zs")
+    { }
+  virtual ~Schema(void) { }
+};
+
+class A::Schema : public dr::AnnotationSchema<A> {
+public:
+  DR_FIELD(&A::v_str) v_str;
+  DR_FIELD(&A::v_uint8) v_uint8;
+  DR_FIELD(&A::v_bool) v_bool;
+
+  Schema(void) :
+    dr::AnnotationSchema<A>("A", "Some help text about A", "A"),
     v_str(*this, "v_str", "some help text about v_str", dr::LOAD_RW, "v_str"),
     v_uint8(*this, "v_uint8", "some help text about v_uint8", dr::LOAD_RW, "v_uint8"),
     v_bool(*this, "v_bool", "some help text about v_bool", dr::LOAD_RW, "v_bool")
     { }
   virtual ~Schema(void) { }
 };
+
+class Y::Schema : public dr::AnnotationSchema<Y> {
+public:
+  DR_POINTER(&Y::p, &DocWithAYZ::as) p;
+
+  Schema(void) :
+    dr::AnnotationSchema<Y>("Y", "Some help text about Y", "Y"),
+    p(*this, "p", "some help text about p", dr::LOAD_RW, "p")
+    { }
+  virtual ~Schema(void) { }
+};
+
+class Z::Schema : public dr::AnnotationSchema<Z> {
+public:
+  DR_POINTER(&Z::p, &DocWithAYZ::as) p;
+  DR_FIELD(&Z::value) value;
+
+  Schema(void) :
+    dr::AnnotationSchema<Z>("Z", "Some help text about Z", "Z"),
+    p(*this, "p", "some help text about p", dr::LOAD_RW, "p"),
+    value(*this, "value", "some help text about value", dr::LOAD_RW, "value")
+    { }
+  virtual ~Schema(void) { }
+};
+
 
 // ============================================================================
 // ============================================================================
@@ -206,7 +273,7 @@ BOOST_AUTO_TEST_CASE(DocWithA__empty) {
   DocWithA::Schema schema;
   dr::Writer writer(out, schema);
 
-  schema.types<A1>().serial = "writer.A";
+  schema.types<A>().serial = "writer.A";
 
   DocWithA d;
   writer << d;
@@ -246,7 +313,7 @@ BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
   DocWithA::Schema schema;
   dr::Writer writer(out, schema);
 
-  schema.types<A1>().serial = "writer.A";
+  schema.types<A>().serial = "writer.A";
 
   DocWithA d;
   d.as.create(4);
@@ -284,6 +351,92 @@ BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
   correct << '\x82' << '\x01' << '\xcc' << '\x02' << '\x02' << '\xc2'; // {1: 2, 2: false}
   correct << '\x82' << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc2'; // {1: 0, 2: false}
   correct << '\x82' << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc3'; // {1: 0, 2: true}
+
+  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+}
+
+
+BOOST_AUTO_TEST_CASE(DocWithAYZ__empty) {
+  std::stringstream out, correct;
+  DocWithAYZ::Schema schema;
+  dr::Writer writer(out, schema);
+
+  schema.types<A>().serial = "writer.A";
+  schema.types<Y>().serial = "writer.Y";
+  schema.types<Z>().serial = "writer.Z";
+  schema.types<Z>().p.serial = "zp";
+
+  DocWithAYZ d;
+  writer << d;
+
+  correct << '\x94';  // <klasses>: 4-element array
+  correct << '\x92';  // <klass>: 2-element array
+
+  correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
+  correct << '\x90';  // <fields>: 0-element array
+
+  correct << '\x92';  // <klass>: 2-element array
+  correct << '\xa8' << "writer.A";  // <klass_name>: utf-8 encoded "writer.A"
+  correct << '\x93';  // <fields>: 1-element array
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa5' << "v_str";  // utf-8 encoded "v_str"
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa7' << "v_uint8";  // utf-8 encoded "v_uint8"
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa6' << "v_bool";  // utf-8 encoded "v_bool"
+
+  correct << '\x92';  // <klass>: 2-element array
+  correct << '\xa8' << "writer.Y";  // <klass_name>: utf-8 encoded "writer.Y"
+  correct << '\x91';  // <fields>: 1-element array
+  correct << '\x82';  // <field>: 2-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa1' << "p";  // utf-8 encoded "p"
+  correct << '\x01';  // 1: POINTER_TO
+  correct << '\x00';  // <store_id>: 0
+
+  correct << '\x92';  // <klass>: 2-element array
+  correct << '\xa8' << "writer.Z";  // <klass_name>: utf-8 encoded "writer.Z"
+  correct << '\x92';  // <fields>: 2-element array
+  correct << '\x82';  // <field>: 2-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa2' << "zp";  // utf-8 encoded "zp"
+  correct << '\x01';  // 1: POINTER_TO
+  correct << '\x00';  // <store_id>: 0
+  correct << '\x81';  // <field>: 1-element map
+  correct << '\x00';  // 0: NAME
+  correct << '\xa5' << "value";  // utf-8 encoded "value"
+
+  correct << '\x93';  // <stores>: 3-element array
+
+  correct << '\x93';  // <store>: 3-element array
+  correct << '\xa2' << "as";  // <store_name>: utf-8 encoded "as"
+  correct << '\x01';  // <klass_id>: 1
+  correct << '\x00';  // <store_nelem>: 0
+
+  correct << '\x93';  // <store>: 3-element array
+  correct << '\xa2' << "ys";  // <store_name>: utf-8 encoded "ys"
+  correct << '\x02';  // <klass_id>: 2
+  correct << '\x00';  // <store_nelem>: 0
+
+  correct << '\x93';  // <store>: 3-element array
+  correct << '\xa2' << "zs";  // <store_name>: utf-8 encoded "zs"
+  correct << '\x03';  // <klass_id>: 3
+  correct << '\x00';  // <store_nelem>: 0
+
+  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the document
+  correct << '\x80';  // <instance>: 0-element map
+
+  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "as" store
+  correct << '\x90';  // <instance>: 0-element array
+
+  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "ys" store
+  correct << '\x90';  // <instance>: 0-element array
+
+  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "zs" store
+  correct << '\x90';  // <instance>: 0-element array
 
   BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
 }
