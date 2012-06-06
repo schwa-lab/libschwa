@@ -27,7 +27,7 @@ public:
     out << "            actual            |" << std::endl;
 
     // table rows
-    for (unsigned int row = 0; e != _expected_size && a != _actual_size; ++row) {
+    for (unsigned int row = 0; e != _expected_size || a != _actual_size; ++row) {
       out << std::dec << std::setw(3) << std::setfill(' ') << row << "]";
 
       std::stringstream e_row, a_row, e_str, a_str;
