@@ -70,6 +70,7 @@ namespace schwa {
 
       // extra methods
       inline void create(const size_type n, const T x=T()) { _items.insert(_items.end(), n, x); }
+      inline container_type &raw(void) { return _items; }
 
       // iterators
       inline iterator begin(void) { return _items.begin(); }
