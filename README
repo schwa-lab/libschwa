@@ -41,3 +41,15 @@
 	Type "help", "copyright", "credits" or "license" for more information.
 	>>> from schwa import dr
 	>>> from schwa import tokenizer
+
+= Gotchas =
+
+* Running on versions of Mac OS X may mean you don't have clang available in xcode.
+	* Download binary (tested with LLVM 3.1) from http://llvm.org/releases/download.html#3.1
+	* Unpack and add the bin directory to $PATH
+
+* Boost libraries released under homebrew can be built for multithreaded operation.
+	* Symlink /usr/local to ext/
+	* Append "-mt" to library names in Makefile.macos and setup.py
+		boost_iostreams -> boost_iostreams-mt
+		boost_unit_test_framework -> boost_unit_test_framework-mt
