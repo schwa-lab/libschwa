@@ -80,6 +80,12 @@ main(void) {
   dr::Pointers<Token> ptrs;
   dr::Store<Token> tokens;
 
+  config::OpGroup cfg("program", "this is the toplevel help");
+  config::Op<std::string> op1(cfg, "str_op1", "This is some option which is a string");
+  config::Op<std::string> op2(cfg, "str_op2", "This is some option which is a string with default", "foo");
+  cfg.help(std::cout);
+  cfg.validate();
+
   Doc::Schema schema;
   schema.filename.serial = "foo";
   schema.types<Token>().serial = "PTBToken";
