@@ -49,6 +49,8 @@ namespace schwa {
       set_default(void) {
         _value = _default;
       }
+
+      inline const T &operator ()(void) const { return _value; }
     };
 
 
@@ -69,6 +71,8 @@ namespace schwa {
     template <> inline void Op<uint16_t>::_set(const std::string &value) { set_value(value, _value, _name); }
     template <> inline void Op<uint32_t>::_set(const std::string &value) { set_value(value, _value, _name); }
     template <> inline void Op<uint64_t>::_set(const std::string &value) { set_value(value, _value, _name); }
+    template <> inline void Op<long>::_set(const std::string &value) { set_value(value, _value, _name); }
+    template <> inline void Op<unsigned long>::_set(const std::string &value) { set_value(value, _value, _name); }
     template <> inline void Op<float>::_set(const std::string &value) { set_value(value, _value, _name); }
     template <> inline void Op<double>::_set(const std::string &value) { set_value(value, _value, _name); }
 
