@@ -87,8 +87,9 @@ main(int argc, char *argv[]) {
       return 1;
   }
   catch (config::ConfigException &e) {
-    print_exception(std::cerr, "ConfigException", e);
+    std::cerr << print_exception("ConfigException", e);
     cfg.help(std::cerr);
+    return 1;
   }
 
   Doc::Schema schema;
