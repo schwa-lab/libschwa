@@ -4,7 +4,7 @@
 
 namespace schwa { namespace config {
 
-OpBase::OpBase(OpGroup &group, const std::string &name, const std::string &desc, const bool has_default) : OptionBase(name, desc), _has_default(has_default) {
+OpBase::OpBase(OpGroup &group, const std::string &name, const std::string &desc, const bool has_default) : OptionBase(name, desc), _has_default(has_default), _is_set(false) {
   group.add(this);
 }
 
