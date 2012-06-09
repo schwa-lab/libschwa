@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/std.h>
 #include <schwa/msgpack.h>
 
 
@@ -65,7 +64,5 @@ write_object(std::ostream &out, const Object &obj) {
   };
   return out;
 }
-
-
 
 } }
