@@ -1,10 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/base.h>
-#include <schwa/port.h>
 #include <schwa/config.h>
-#include <schwa/msgpack.h>
-#include <schwa/tokenizer.h>
 #include <schwa/dr.h>
+#include <schwa/msgpack.h>
 
 using namespace schwa;
 
