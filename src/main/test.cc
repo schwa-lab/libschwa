@@ -73,7 +73,7 @@ public:
 
 
 int
-main(void) {
+main(int argc, char *argv[]) {
   dr::Slice<uint64_t> slice;
   dr::Slice<Token *> ptr_slice;
   dr::Pointer<Token> ptr;
@@ -83,8 +83,16 @@ main(void) {
   config::OpGroup cfg("program", "this is the toplevel help");
   config::Op<std::string> op1(cfg, "str_op1", "This is some option which is a string");
   config::Op<std::string> op2(cfg, "str_op2", "This is some option which is a string with default", "foo");
-  cfg.help(std::cout);
-  cfg.validate();
+  config::OpGroup cfg2(cfg, "foo", "sublevel group");
+  config::Op<std::string> op3(cfg2, "baz", "some text", "baz");
+  try {
+    if (!cfg.process(argc - 1, argv + 1))
+      return 1;
+  }
+  catch (config::ConfigException &e) {
+    print_exception(std::cerr, "ConfigException", e);
+    cfg.help(std::cerr);
+  }
 
   Doc::Schema schema;
   schema.filename.serial = "foo";
