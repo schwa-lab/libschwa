@@ -36,4 +36,10 @@ namespace schwa {
     virtual ~ValueException(void) throw() { }
   };
 
+
+  inline std::ostream &
+  print_exception(std::ostream &out, const std::string &name, const Exception &e) {
+    return out << port::BOLD << '[' << name << "] " << port::RED << e.what() << port::OFF << std::endl;
+  }
+
 }
