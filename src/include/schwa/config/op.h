@@ -29,7 +29,12 @@ namespace schwa {
       const T _default;
       T _value;
 
-      virtual void _set(const std::string &value);
+      void
+      virtual _set(const std::string &value) {
+        std::stringstream ss(value);
+        if (!(ss >> _value))
+          throw ConfigException("Error setting value", _name, value);
+      }
       virtual void _validate(void) { }
 
     public:
@@ -54,27 +59,7 @@ namespace schwa {
     };
 
 
-    template <typename T>
-    inline void
-    set_value(const std::string &str, T &value, const std::string &name) {
-      std::stringstream ss(str);
-      if (!(ss >> value))
-        throw ConfigException("Error setting value", name, str);
-    }
-
     template <> inline void Op<std::string>::_set(const std::string &value) { _value = value; }
-    template <> inline void Op<int8_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<int16_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<int32_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<int64_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<uint8_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<uint16_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<uint32_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<uint64_t>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<long>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<unsigned long>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<float>::_set(const std::string &value) { set_value(value, _value, _name); }
-    template <> inline void Op<double>::_set(const std::string &value) { set_value(value, _value, _name); }
 
   }
 }
