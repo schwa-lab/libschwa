@@ -7,6 +7,7 @@
 namespace cfg = schwa::config;
 namespace tok = schwa::tokenizer;
 
+
 class Config : public cfg::OpGroup {
 public:
   cfg::Op<std::string> input;
