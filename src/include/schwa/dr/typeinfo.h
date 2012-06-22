@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <typeinfo>
 
 namespace schwa {
   namespace dr {

@@ -36,4 +36,21 @@ namespace schwa {
     virtual ~ValueException(void) throw() { }
   };
 
+
+  // exception pretty printing functor
+  class print_exception {
+  public:
+    const std::string &name;
+    const Exception &e;
+
+    print_exception(const std::string &name, const Exception &e) : name(name), e(e) { }
+
+    inline std::ostream &
+    dump(std::ostream &out) const {
+      return out << port::BOLD << '[' << name << "] " << port::RED << e.what() << port::OFF << std::endl;
+    }
+  };
+
+  inline std::ostream &operator <<(std::ostream &out, const print_exception &obj) { return obj.dump(out); }
+
 }

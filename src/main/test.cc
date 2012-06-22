@@ -1,9 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/base.h>
-#include <schwa/port.h>
-#include <schwa/msgpack.h>
-#include <schwa/tokenizer.h>
+#include <schwa/config.h>
 #include <schwa/dr.h>
+#include <schwa/msgpack.h>
 
 using namespace schwa;
 
@@ -72,12 +70,27 @@ public:
 
 
 int
-main(void) {
+main(int argc, char *argv[]) {
   dr::Slice<uint64_t> slice;
   dr::Slice<Token *> ptr_slice;
   dr::Pointer<Token> ptr;
   dr::Pointers<Token> ptrs;
   dr::Store<Token> tokens;
+
+  config::OpGroup cfg("program", "this is the toplevel help");
+  config::Op<std::string> op1(cfg, "str_op1", "This is some option which is a string");
+  config::Op<std::string> op2(cfg, "str_op2", "This is some option which is a string with default", "foo");
+  config::OpGroup cfg2(cfg, "foo", "sublevel group");
+  config::Op<std::string> op3(cfg2, "baz", "some text", "baz");
+  try {
+    if (!cfg.process(argc - 1, argv + 1))
+      return 1;
+  }
+  catch (config::ConfigException &e) {
+    std::cerr << print_exception("ConfigException", e);
+    cfg.help(std::cerr);
+    return 1;
+  }
 
   Doc::Schema schema;
   schema.filename.serial = "foo";
