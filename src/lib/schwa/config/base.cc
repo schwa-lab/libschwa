@@ -9,9 +9,9 @@ ConfigException::what(void) const throw() {
   std::stringstream ss;
   ss << msg;
   if (!name.empty()) {
-    ss << ": " << name;
+    ss << " for option \"" << name << "\"";
     if (!value.empty())
-      ss << " to value \"" << value << "\"";
+      ss << " (value \"" << value << "\")";
   }
   return ss.str().c_str();
 }

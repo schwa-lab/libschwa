@@ -12,14 +12,14 @@ class Config : public cfg::OpGroup {
 public:
   cfg::Op<std::string> input;
   cfg::Op<std::string> output;
-  cfg::Op<std::string> printer;
+  cfg::EnumOp<std::string> printer;
   cfg::Op<size_t> input_buffer;
 
   Config(void) :
     cfg::OpGroup("tok", "Schwa-Lab tokenizer"),
     input(*this, "input", "input filename", ""),
     output(*this, "output", "output filename", ""),
-    printer(*this, "printer", "which printer to use as output {text, debug, docrep}", "text"),
+    printer(*this, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text"),
     input_buffer(*this, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE)
     { }
   virtual ~Config(void) { }
