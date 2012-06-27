@@ -1,4 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <initializer_list>
 
 namespace schwa {
   namespace config {
@@ -94,7 +95,42 @@ namespace schwa {
           out << " (" << Op<T>::_default << ")";
         out << std::endl;
       }
+    };
 
+
+    class IStreamOp : public Op<std::string> {
+    public:
+      static const char *const STDIN_STRING;
+
+    protected:
+      std::istream *_in;
+      bool _is_stdin;
+
+      virtual void _validate(void);
+
+    public:
+      IStreamOp(OpGroup &group, const std::string &name, const std::string &desc) : Op<std::string>(group, name, desc, STDIN_STRING), _in(nullptr), _is_stdin(false) { }
+      virtual ~IStreamOp(void);
+
+      inline std::istream &file(void) const { return *_in; }
+    };
+
+
+    class OStreamOp : public Op<std::string> {
+    public:
+      static const char *const STDOUT_STRING;
+
+    protected:
+      std::ostream *_out;
+      bool _is_stdout;
+
+      virtual void _validate(void);
+
+    public:
+      OStreamOp(OpGroup &group, const std::string &name, const std::string &desc) : Op<std::string>(group, name, desc, STDOUT_STRING), _out(nullptr), _is_stdout(false) { }
+      virtual ~OStreamOp(void);
+
+      inline std::ostream &file(void) const { return *_out; }
     };
 
   }

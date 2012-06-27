@@ -10,15 +10,15 @@ namespace tok = schwa::tokenizer;
 
 class Config : public cfg::OpGroup {
 public:
-  cfg::Op<std::string> input;
-  cfg::Op<std::string> output;
+  cfg::IStreamOp input;
+  cfg::OStreamOp output;
   cfg::EnumOp<std::string> printer;
   cfg::Op<size_t> input_buffer;
 
   Config(void) :
     cfg::OpGroup("tok", "Schwa-Lab tokenizer"),
-    input(*this, "input", "input filename", ""),
-    output(*this, "output", "output filename", ""),
+    input(*this, "input", "input filename"),
+    output(*this, "output", "output filename"),
     printer(*this, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text"),
     input_buffer(*this, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE)
     { }
@@ -39,40 +39,26 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
-  // input file
-  std::istream *in;
-  if (c.input().empty())
-    in = &std::cin;
-  else
-    in = new std::ifstream(c.input().c_str());
-
-  // output file
-  std::ostream *out;
-  if (c.output().empty())
-    out = &std::cout;
-  else
-    out = new std::ofstream(c.output().c_str());
+  // input and file files
+  std::istream &in = c.input.file();
+  std::ostream &out = c.output.file();
 
   // printer
   tok::Stream *stream;
 	if (c.printer() == "text")
-		stream = new tok::TextStream(*out);
+		stream = new tok::TextStream(out);
   else if (c.printer() == "debug")
-		stream = new tok::DebugTextStream(*out);
+		stream = new tok::DebugTextStream(out);
   else if (c.printer() == "docrep")
     throw cfg::ConfigException("Unhandled value", "printer", c.printer());
   else
     throw cfg::ConfigException("Unknown value", "printer", c.printer());
 
 	tok::Tokenizer t;
-  t.tokenize_stream(*stream, *in, c.input_buffer());
+  t.tokenize_stream(*stream, in, c.input_buffer());
 
   // cleanup
   delete stream;
-  if (!c.output().empty())
-    delete out;
-  if (!c.input().empty())
-    delete in;
 
 	return 0;
 }
