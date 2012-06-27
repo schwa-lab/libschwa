@@ -67,7 +67,7 @@ OpGroup::process(const int argc, const char *const argv[], std::ostream &help_os
       throw ConfigException("Invalid option key", key, val);
     OptionBase *const node = find(key, key.substr(2));
     if (node == nullptr)
-      throw ConfigException("Unknown option provided", key);
+      throw ConfigException("Unknown option", _name, key.substr(2));
     node->set(val);
   }
 
