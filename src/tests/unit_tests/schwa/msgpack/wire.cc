@@ -6,17 +6,22 @@
 #include <boost/preprocessor/list.hpp>
 #include <boost/test/unit_test.hpp>
 
-#define BYTES_TEST_CHECK(r, data, i, elem) \
-  BOOST_CHECK_EQUAL(static_cast<uint8_t>(data[i]), elem);
+#define BYTES_BEGIN() \
+  std::stringstream ss; \
+  uint8_t expected[]
 
-#define BYTES_TEST(function_call, list) \
-  { \
-    std::stringstream ss; \
-    function_call; \
-    const std::string s = ss.str(); \
-    BOOST_CHECK_EQUAL(s.size(), BOOST_PP_LIST_SIZE(list)); \
-    BOOST_PP_LIST_FOR_EACH_I(BYTES_TEST_CHECK, s, list); \
-  }
+#define VALUE_BEGIN(type) \
+  const type value
+
+#define BYTES_WRITE_CHECK() \
+  const std::string s = ss.str(); \
+  BOOST_CHECK_EQUAL(s.size(), sizeof(expected)/sizeof(uint8_t)); \
+  for (size_t i = 0; i != sizeof(expected)/sizeof(uint8_t); ++i) \
+    BOOST_CHECK_EQUAL(static_cast<uint8_t>(s[i]), expected[i]);
+
+#define BYTES_READ_HEADER_CHECK(value) \
+  ss.seekg(0); \
+  BOOST_CHECK_EQUAL(mp::read_peek(ss), value)
 
 namespace mp = schwa::msgpack;
 
@@ -28,30 +33,33 @@ BOOST_AUTO_TEST_SUITE(schwa_msgpack_wire)
 // write_raw_8
 //  100 = 0110 0100
 // -100 = 1001 1100
-BOOST_AUTO_TEST_CASE(write_raw_8_unsigned) {
-  #define BYTES (0x64, BOOST_PP_NIL)
-  BYTES_TEST(mp::write_raw_8(ss, static_cast<uint8_t>(100)), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_raw_8_unsigned) {
+  BYTES_BEGIN() = {0x64};
+  mp::write_raw_8(ss, 100);
+  BYTES_WRITE_CHECK();
 }
-BOOST_AUTO_TEST_CASE(write_raw_8_signed) {
-  #define BYTES (0x9c, BOOST_PP_NIL)
-  BYTES_TEST(mp::write_raw_8(ss, static_cast<int8_t>(-100)), BYTES);
-  #undef BYTES
+
+BOOST_AUTO_TEST_CASE(test_raw_8_signed) {
+  BYTES_BEGIN() = {0x9c};
+  mp::write_raw_8(ss, -100);
+  BYTES_WRITE_CHECK();
 }
+
 
 // ----------------------------------------------------------------------------
 // write_raw_16
 //  4957 = 0001 0011 0101 1101
 // -4957 = 1110 1100 1010 0011
-BOOST_AUTO_TEST_CASE(write_raw_16_unsigned) {
-  #define BYTES (0x13, (0x5D, BOOST_PP_NIL))
-  BYTES_TEST(mp::write_raw_16(ss, static_cast<uint16_t>(4957)), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_raw_16_unsigned) {
+  BYTES_BEGIN() = {0x13, 0x5D};
+  mp::write_raw_16(ss, 4957);
+  BYTES_WRITE_CHECK();
 }
-BOOST_AUTO_TEST_CASE(write_raw_16_signed) {
-  #define BYTES (0xEC, (0xA3, BOOST_PP_NIL))
-  BYTES_TEST(mp::write_raw_16(ss, static_cast<int16_t>(-4957)), BYTES);
-  #undef BYTES
+
+BOOST_AUTO_TEST_CASE(test_raw_16_signed) {
+  BYTES_BEGIN() = {0xEC, 0xA3};
+  mp::write_raw_16(ss, -4957);
+  BYTES_WRITE_CHECK();
 }
 
 
@@ -59,15 +67,16 @@ BOOST_AUTO_TEST_CASE(write_raw_16_signed) {
 // write_raw_32
 //  584667347 = 0010 0010 1101 1001 0101 0000 1101 0011
 // -584667347 = 1101 1101 0010 0110 1010 1111 0010 1101
-BOOST_AUTO_TEST_CASE(write_raw_32_unsigned) {
-  #define BYTES (0x22, (0xD9, (0x50, (0xD3, BOOST_PP_NIL))))
-  BYTES_TEST(mp::write_raw_32(ss, static_cast<uint32_t>(584667347)), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_raw_32_unsigned) {
+  BYTES_BEGIN() = {0x22, 0xD9, 0x50, 0xD3};
+  mp::write_raw_32(ss, 584667347);
+  BYTES_WRITE_CHECK();
 }
-BOOST_AUTO_TEST_CASE(write_raw_32_signed) {
-  #define BYTES (0xDD, (0x26, (0xAF, (0x2D, BOOST_PP_NIL))))
-  BYTES_TEST(mp::write_raw_32(ss, static_cast<int32_t>(-584667347)), BYTES);
-  #undef BYTES
+
+BOOST_AUTO_TEST_CASE(test_raw_32_signed) {
+  BYTES_BEGIN() = {0xDD, 0x26, 0xAF, 0x2D};
+  mp::write_raw_32(ss, -584667347);
+  BYTES_WRITE_CHECK();
 }
 
 
@@ -75,105 +84,175 @@ BOOST_AUTO_TEST_CASE(write_raw_32_signed) {
 // write_raw_64
 //  8436114578613100000 = 0111 0101 0001 0011 0001 1001 1000 0011 0100 0110 1011 1010 0101 1101 1110 0000
 // -8436114578613100000 = 1000 1010 1110 1100 1110 0110 0111 1100 1011 1001 0100 0101 1010 0010 0010 0000
-BOOST_AUTO_TEST_CASE(write_raw_64_unsigned) {
-  #define BYTES (0x75, (0x13, (0x19, (0x83, (0x46, (0xBA, (0x5D, (0xE0, BOOST_PP_NIL))))))))
-  BYTES_TEST(mp::write_raw_64(ss, static_cast<uint64_t>(8436114578613100000ULL)), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_raw_64_unsigned) {
+  BYTES_BEGIN() = {0x75, 0x13, 0x19, 0x83, 0x46, 0xBA, 0x5D, 0xE0};
+  mp::write_raw_64(ss, 8436114578613100000ULL);
+  BYTES_WRITE_CHECK();
 }
-BOOST_AUTO_TEST_CASE(write_raw_64_signed) {
-  #define BYTES (0x8A, (0xEC, (0xE6, (0x7C, (0xB9, (0x45, (0xA2, (0x20, BOOST_PP_NIL))))))))
-  BYTES_TEST(mp::write_raw_64(ss, static_cast<int64_t>(-8436114578613100000ULL)), BYTES);
-  #undef BYTES
+
+BOOST_AUTO_TEST_CASE(test_raw_64_signed) {
+  BYTES_BEGIN() = {0x8A, 0xEC, 0xE6, 0x7C, 0xB9, 0x45, 0xA2, 0x20};
+  mp::write_raw_64(ss, -8436114578613100000ULL);
+  BYTES_WRITE_CHECK();
 }
 
 
 
 // ----------------------------------------------------------------------------
 // write_nil
-BOOST_AUTO_TEST_CASE(write_nil) {
-  #define BYTES (mp::header::NIL, BOOST_PP_NIL)
-  BYTES_TEST(mp::write_nil(ss), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_nil) {
+  BYTES_BEGIN() = {mp::header::NIL};
+  mp::write_nil(ss);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_NIL);
 }
 
 
 // ----------------------------------------------------------------------------
 // write_boolean
-BOOST_AUTO_TEST_CASE(write_boolean) {
-  #define BYTES (mp::header::TRUE, BOOST_PP_NIL)
-  BYTES_TEST(mp::write_boolean(ss, true), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_boolean_true) {
+  BYTES_BEGIN() = {mp::header::TRUE};
+  VALUE_BEGIN(bool) = true;
+  mp::write_boolean(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_TRUE);
+  BOOST_CHECK_EQUAL(mp::read_boolean(ss), value);
+}
 
-  #define BYTES (mp::header::FALSE, BOOST_PP_NIL)
-  BYTES_TEST(mp::write_boolean(ss, false), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_boolean_false) {
+  BYTES_BEGIN() = {mp::header::FALSE};
+  VALUE_BEGIN(bool) = false;
+  mp::write_boolean(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_FALSE);
+  BOOST_CHECK_EQUAL(mp::read_boolean(ss), value);
 }
 
 
 // ----------------------------------------------------------------------------
 // write_uint
-BOOST_AUTO_TEST_CASE(write_uint_fixed) {
-  #define BYTES (0x64, BOOST_PP_NIL)
-  BYTES_TEST(mp::write_uint(ss, 100), BYTES);
-  #undef BYTES
-}
-BOOST_AUTO_TEST_CASE(write_uint_8) {
-  #define BYTES (mp::header::UINT_8, (0x80, BOOST_PP_NIL))
-  BYTES_TEST(mp::write_uint(ss, 128), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_8, (0xC8, BOOST_PP_NIL))
-  BYTES_TEST(mp::write_uint(ss, 200), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_8, (0xFF, BOOST_PP_NIL))
-  BYTES_TEST(mp::write_uint(ss, 255), BYTES);
-  #undef BYTES
-}
-BOOST_AUTO_TEST_CASE(write_uint_16) {
-  #define BYTES (mp::header::UINT_16, (0x01, (0x00, BOOST_PP_NIL)))
-  BYTES_TEST(mp::write_uint(ss, 256), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_16, (0x13, (0x5D, BOOST_PP_NIL)))
-  BYTES_TEST(mp::write_uint(ss, 4957), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_16, (0xFF, (0xFF, BOOST_PP_NIL)))
-  BYTES_TEST(mp::write_uint(ss, 65535), BYTES);
-  #undef BYTES
-}
-BOOST_AUTO_TEST_CASE(write_uint_32) {
-  #define BYTES (mp::header::UINT_32, (0x00, (0x01, (0x00, (0x00, BOOST_PP_NIL)))))
-  BYTES_TEST(mp::write_uint(ss, 65536), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_32, (0x22, (0xD9, (0x50, (0xD3, BOOST_PP_NIL)))))
-  BYTES_TEST(mp::write_uint(ss, 584667347), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_32, (0xFF, (0xFF, (0xFF, (0xFF, BOOST_PP_NIL)))))
-  BYTES_TEST(mp::write_uint(ss, 4294967295U), BYTES);
-  #undef BYTES
-}
-BOOST_AUTO_TEST_CASE(write_uint_64) {
-  #define BYTES (mp::header::UINT_64, (0x00, (0x00, (0x00, (0x01, (0x00, (0x00, (0x00, (0x00, BOOST_PP_NIL)))))))))
-  BYTES_TEST(mp::write_uint(ss, 4294967296ULL), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_64, (0x75, (0x13, (0x19, (0x83, (0x46, (0xBA, (0x5D, (0xE0, BOOST_PP_NIL)))))))))
-  BYTES_TEST(mp::write_uint(ss, static_cast<uint64_t>(8436114578613100000ULL)), BYTES);
-  #undef BYTES
-
-  #define BYTES (mp::header::UINT_64, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, (0xFF, BOOST_PP_NIL)))))))))
-  BYTES_TEST(mp::write_uint(ss, std::numeric_limits<uint64_t>::max()), BYTES);
-  #undef BYTES
+BOOST_AUTO_TEST_CASE(test_uint_fixed) {
+  BYTES_BEGIN() = {0x64};
+  VALUE_BEGIN(uint8_t) = 100;
+  mp::write_uint_fixed(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_FIXNUM_POSITIVE);
+  BOOST_CHECK_EQUAL(mp::read_uint_fixed(ss), value);
 }
 
+BOOST_AUTO_TEST_CASE(test_uint_8_100) {
+  BYTES_BEGIN() = {0x64};
+  VALUE_BEGIN(uint64_t) = 100;
+  mp::write_uint(ss, 100);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_FIXNUM_POSITIVE);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_8_128) {
+  BYTES_BEGIN() = {mp::header::UINT_8, 0x80};
+  VALUE_BEGIN(uint64_t) = 128;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_8);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_8_200) {
+  BYTES_BEGIN() = {mp::header::UINT_8, 0xC8};
+  VALUE_BEGIN(uint64_t) = 200;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_8);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_8_255) {
+  BYTES_BEGIN() = {mp::header::UINT_8, 0xFF};
+  VALUE_BEGIN(uint64_t) = 255;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_8);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
 
+BOOST_AUTO_TEST_CASE(test_uint_16_256) {
+  BYTES_BEGIN() = {mp::header::UINT_16, 0x01, 0x00};
+  VALUE_BEGIN(uint64_t) = 256;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_16);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_16_4957) {
+  BYTES_BEGIN() = {mp::header::UINT_16, 0x13, 0x5D};
+  VALUE_BEGIN(uint64_t) = 4957;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_16);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_16_65535) {
+  BYTES_BEGIN() = {mp::header::UINT_16, 0xFF, 0xFF};
+  VALUE_BEGIN(uint64_t) = 65535;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_16);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+
+BOOST_AUTO_TEST_CASE(test_uint_32_65536) {
+  BYTES_BEGIN() = {mp::header::UINT_32, 0x00, 0x01, 0x00, 0x00};
+  VALUE_BEGIN(uint64_t) = 65536;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_32);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_32_584667347) {
+  BYTES_BEGIN() = {mp::header::UINT_32, 0x22, 0xD9, 0x50, 0xD3};
+  VALUE_BEGIN(uint64_t) = 584667347;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_32);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_32_4294967295) {
+  BYTES_BEGIN() = {mp::header::UINT_32, 0xFF, 0xFF, 0xFF, 0xFF};
+  VALUE_BEGIN(uint64_t) = 4294967295U;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_32);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+
+BOOST_AUTO_TEST_CASE(test_uint_64_4294967296) {
+  BYTES_BEGIN() = {mp::header::UINT_64, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00};
+  VALUE_BEGIN(uint64_t) = 4294967296ULL;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_64);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_64_8436114578613100000) {
+  BYTES_BEGIN() = {mp::header::UINT_64, 0x75, 0x13, 0x19, 0x83, 0x46, 0xBA, 0x5D, 0xE0};
+  VALUE_BEGIN(uint64_t) = 8436114578613100000ULL;
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_64);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+BOOST_AUTO_TEST_CASE(test_uint_64_max) {
+  BYTES_BEGIN() = {mp::header::UINT_64, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  VALUE_BEGIN(uint64_t) = std::numeric_limits<uint64_t>::max();
+  mp::write_uint(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(mp::WIRE_UINT_64);
+  BOOST_CHECK_EQUAL(mp::read_uint(ss), value);
+}
+
+
+#if 0
 // ----------------------------------------------------------------------------
 // write_array
-BOOST_AUTO_TEST_CASE(write_array_fixed) {
+BOOST_AUTO_TEST_CASE(test_array_fixed) {
   {
     mp::Object items[1];
     items[0].type = mp::TYPE_BOOLEAN; items[0].via._bool = true;
@@ -215,7 +294,7 @@ BOOST_AUTO_TEST_CASE(write_array_fixed) {
     BOOST_CHECK( compare_bytes(ss.str(), expected, e) );
   }
 }
-BOOST_AUTO_TEST_CASE(write_array_16) {
+BOOST_AUTO_TEST_CASE(test_array_16) {
   uint8_t expected[4 * 1024 * 1024];
   {
     size_t e = 0;
@@ -265,7 +344,7 @@ BOOST_AUTO_TEST_CASE(write_array_16) {
 
 // ----------------------------------------------------------------------------
 // write_raw
-BOOST_AUTO_TEST_CASE(write_raw_fixed) {
+BOOST_AUTO_TEST_CASE(test_raw_fixed) {
   uint8_t expected[32];
   {
     size_t e = 0;
@@ -289,5 +368,7 @@ BOOST_AUTO_TEST_CASE(write_raw_fixed) {
     BOOST_CHECK( compare_bytes(ss.str(), expected, e) );
   }
 }
+#endif
+
 
 BOOST_AUTO_TEST_SUITE_END()
