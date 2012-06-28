@@ -45,20 +45,20 @@ main(int argc, char *argv[]) {
 
   // printer
   tok::Stream *stream;
-	if (c.printer() == "text")
-		stream = new tok::TextStream(out);
+  if (c.printer() == "text")
+    stream = new tok::TextStream(out);
   else if (c.printer() == "debug")
-		stream = new tok::DebugTextStream(out);
+    stream = new tok::DebugTextStream(out);
   else if (c.printer() == "docrep")
     throw cfg::ConfigException("Unhandled value", "printer", c.printer());
   else
     throw cfg::ConfigException("Unknown value", "printer", c.printer());
 
-	tok::Tokenizer t;
+  tok::Tokenizer t;
   t.tokenize_stream(*stream, in, c.input_buffer());
 
   // cleanup
   delete stream;
 
-	return 0;
+  return 0;
 }
