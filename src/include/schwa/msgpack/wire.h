@@ -41,27 +41,56 @@ namespace schwa {
       static const unsigned char MAP_32   = 0xdf;
     }
 
+
+    // ========================================================================
+    // Reading API
+    // ========================================================================
+    inline WireType read_peek(std::istream &in);
+
+    inline void     read_nil(std::istream &in);
+    inline bool     read_boolean(std::istream &in);
+    inline float    read_float(std::istream &in);
+    inline double   read_double(std::istream &in);
+    inline int64_t  read_int(std::istream &in);
+    inline uint64_t read_uint(std::istream &in);
+
+    inline size_t   read_array_header(std::istream &in);
+    inline size_t   read_map_header(std::istream &in);
+
+    inline int8_t   read_int_fixed(std::istream &in);
+    inline int8_t   read_int_8(std::istream &in);
+    inline int16_t  read_int_16(std::istream &in);
+    inline int32_t  read_int_32(std::istream &in);
+    inline int64_t  read_int_64(std::istream &in);
+
+    inline uint8_t  read_uint_fixed(std::istream &in);
+    inline uint8_t  read_uint_8(std::istream &in);
+    inline uint16_t read_uint_16(std::istream &in);
+    inline uint32_t read_uint_32(std::istream &in);
+    inline uint64_t read_uint_64(std::istream &in);
+
+
+    // ========================================================================
+    // Writing API
+    // ========================================================================
     inline std::ostream &write_nil(std::ostream &out);
     inline std::ostream &write_boolean(std::ostream &out, const bool x);
-    inline std::ostream &write_uint(std::ostream &out, const uint64_t x);
     inline std::ostream &write_int(std::ostream &out, const int64_t x);
+    inline std::ostream &write_uint(std::ostream &out, const uint64_t x);
     inline std::ostream &write_float(std::ostream &out, const float x);
     inline std::ostream &write_double(std::ostream &out, const double x);
 
     inline std::ostream &write_array_header(std::ostream &out, const size_t size);
     inline std::ostream &write_map_header(std::ostream &out, const size_t size);
 
-    std::ostream &write_array(std::ostream &out, const ArrayObject &arr);
-    std::ostream &write_map(std::ostream &out, const MapObject &map);
+    //std::ostream &write_array(std::ostream &out, const ArrayObject &arr);
+    //std::ostream &write_map(std::ostream &out, const MapObject &map);
+    //inline std::ostream &write_raw(std::ostream &out, const RawObject &raw);
+    //std::ostream &write_object(std::ostream &out, const Object &obj);
+
     std::ostream &write_raw(std::ostream &out, const char *const data, const size_t size);
-    inline std::ostream &write_raw(std::ostream &out, const RawObject &raw);
 
-    std::ostream &write_object(std::ostream &out, const Object &obj);
     std::ostream &write_packed(std::ostream &out, const char *const data, const size_t size);
-
-    inline std::ostream &write_raw_uint16(std::ostream &out, const uint16_t x);
-    inline std::ostream &write_raw_uint32(std::ostream &out, const uint32_t x);
-    inline std::ostream &write_raw_uint64(std::ostream &out, const uint64_t x);
 
     inline std::ostream &write_int_fixed(std::ostream &out, const int8_t x);
     inline std::ostream &write_int_8(std::ostream &out, const int8_t x);
@@ -92,8 +121,199 @@ namespace schwa {
     template <> inline std::ostream &write(std::ostream &out, const bool &val) { return write_boolean(out, val); }
     template <> inline std::ostream &write(std::ostream &out, const std::string &val) { return write_raw(out, val.c_str(), val.size()); }
 
+
     // ========================================================================
-    // Inline implementations for speed benifit
+    // Reading API implementations
+    // ========================================================================
+    template <typename T>
+    inline std::istream &
+    read_raw_8(std::istream &in, T *_x) {
+      char *x = reinterpret_cast<char *>(_x);
+      return in.get(x[0]);
+    }
+
+    template <typename T>
+    inline std::istream &
+    read_raw_16(std::istream &in, T *_x) {
+      char *x = reinterpret_cast<char *>(_x);
+      in.get(x[1]);
+      return in.get(x[0]);
+    }
+
+    template <typename T>
+    inline std::istream &
+    read_raw_32(std::istream &in, T *_x) {
+      char *x = reinterpret_cast<char *>(_x);
+      in.get(x[3]);
+      in.get(x[2]);
+      in.get(x[1]);
+      return in.get(x[0]);
+    }
+
+    template <typename T>
+    inline std::istream &
+    read_raw_64(std::istream &in, T *_x) {
+      char *x = reinterpret_cast<char *>(_x);
+      in.get(x[7]);
+      in.get(x[6]);
+      in.get(x[5]);
+      in.get(x[4]);
+      in.get(x[3]);
+      in.get(x[2]);
+      in.get(x[1]);
+      return in.get(x[0]);
+    }
+
+    inline WireType
+    read_peek(std::istream &in) {
+      const int c = in.peek();
+      if ((c >> 7) == 0x00)
+        return WIRE_FIXNUM_POSITIVE;
+      else if ((c >> 5) == 0x07)
+        return WIRE_FIXNUM_NEGATIVE;
+      else if ((c >> 4) == 0x08)
+        return WIRE_MAP_FIX;
+      else if ((c >> 4) == 0x09)
+        return WIRE_ARRAY_FIX;
+      else if ((c >> 5) == 0x05)
+        return WIRE_RAW_FIX;
+      else if (c == header::NIL)
+        return WIRE_NIL;
+      else if (c == header::FALSE)
+        return WIRE_FALSE;
+      else if (c == header::TRUE)
+        return WIRE_TRUE;
+      else if (c == header::FLOAT)
+        return WIRE_FLOAT;
+      else if (c == header::DOUBLE)
+        return WIRE_DOUBLE;
+      else if (c == header::UINT_8)
+        return WIRE_UINT_8;
+      else if (c == header::UINT_16)
+        return WIRE_UINT_16;
+      else if (c == header::UINT_32)
+        return WIRE_UINT_32;
+      else if (c == header::UINT_64)
+        return WIRE_UINT_64;
+      else if (c == header::INT_8)
+        return WIRE_INT_8;
+      else if (c == header::INT_16)
+        return WIRE_INT_16;
+      else if (c == header::INT_32)
+        return WIRE_INT_32;
+      else if (c == header::INT_64)
+        return WIRE_INT_64;
+      else if (c == header::ARRAY_16)
+        return WIRE_ARRAY_16;
+      else if (c == header::ARRAY_32)
+        return WIRE_ARRAY_32;
+      else if (c == header::MAP_16)
+        return WIRE_MAP_16;
+      else if (c == header::MAP_32)
+        return WIRE_MAP_32;
+      else if (c == header::RAW_16)
+        return WIRE_RAW_16;
+      else if (c == header::RAW_32)
+        return WIRE_RAW_32;
+      else
+        return WIRE_RESERVED;
+    }
+
+    inline void
+    read_nil(std::istream &in) {
+      const int h = in.get();
+      assert(h == header::NIL);
+    }
+
+    inline bool
+    read_boolean(std::istream &in) {
+      const int h = in.get();
+      if (h == header::TRUE)
+        return true;
+      else if (h == header::FALSE)
+        return false;
+      assert((h == header::TRUE || h == header::FALSE));
+      return false;
+    }
+
+    inline float
+    read_float(std::istream &in) {
+      float x;
+      const int h = in.get();
+      assert(h == header::FLOAT);
+      read_raw_32(in, &x);
+      return x;
+    }
+
+    inline double
+    read_double(std::istream &in) {
+      double x;
+      const int h = in.get();
+      assert(h == header::DOUBLE);
+      read_raw_64(in, &x);
+      return x;
+    }
+
+    inline uint8_t
+    read_uint_fixed(std::istream &in) {
+      int c = in.get();
+      assert((c & 0x80) == 0x00);
+      return static_cast<uint8_t>(c);
+    }
+
+    inline uint8_t
+    read_uint_8(std::istream &in) {
+      uint8_t x;
+      const int h = in.get();
+      assert(h == header::UINT_8);
+      read_raw_8(in, &x);
+      return x;
+    }
+
+    inline uint16_t
+    read_uint_16(std::istream &in) {
+      uint16_t x;
+      const int h = in.get();
+      assert(h == header::UINT_16);
+      read_raw_16(in, &x);
+      return x;
+    }
+
+    inline uint32_t
+    read_uint_32(std::istream &in) {
+      uint32_t x;
+      const int h = in.get();
+      assert(h == header::UINT_32);
+      read_raw_32(in, &x);
+      return x;
+    }
+
+    inline uint64_t
+    read_uint_64(std::istream &in) {
+      uint64_t x;
+      const int h = in.get();
+      assert(h == header::UINT_64);
+      read_raw_64(in, &x);
+      return x;
+    }
+
+    inline uint64_t
+    read_uint(std::istream &in) {
+      const WireType type = read_peek(in);
+      switch (type) {
+      case WIRE_FIXNUM_POSITIVE: return read_uint_fixed(in);
+      case WIRE_UINT_8: return read_uint_8(in);
+      case WIRE_UINT_16: return read_uint_16(in);
+      case WIRE_UINT_32: return read_uint_32(in);
+      case WIRE_UINT_64: return read_uint_64(in);
+      default:
+        assert(!"Did not find a uint to read");
+        return 0;
+      }
+    }
+
+    // ========================================================================
+    // Writing API implementations
     // ========================================================================
     template <typename T>
     inline std::ostream &
@@ -232,10 +452,6 @@ namespace schwa {
       return out;
     }
 
-
-    // ========================================================================
-    // ObjectType writing
-    // ========================================================================
     inline std::ostream &
     write_nil(std::ostream &out) {
       return out.put(header::NIL);
