@@ -47,7 +47,7 @@ namespace schwa {
       help(std::ostream &out, const std::string &prefix, unsigned int) const {
         out << "  " << port::BOLD << prefix << _name << port::OFF << ": " << _desc;
         if (_has_default)
-          out << " (" << _default << ")";
+          out << " (default: " << _default << ")";
         out << std::endl;
       }
 
@@ -92,7 +92,7 @@ namespace schwa {
         }
         out << "}";
         if (Op<T>::_has_default)
-          out << " (" << Op<T>::_default << ")";
+          out << " (default: " << Op<T>::_default << ")";
         out << std::endl;
       }
     };
