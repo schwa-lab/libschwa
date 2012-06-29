@@ -2,7 +2,7 @@ BINARIES = bin/tokenizer
 SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
 CONFIG_OBJECTS = src/lib/schwa/config/base.o src/lib/schwa/config/group.o src/lib/schwa/config/op.o
-DR_OBJECTS = src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o
+DR_OBJECTS = src/lib/schwa/dr/reader.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 

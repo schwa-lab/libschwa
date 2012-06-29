@@ -34,12 +34,14 @@ namespace schwa {
       struct WireTraits {
         //static bool should_write(const T &val);
         //static void write(std::ostream &out, const T &val);
+        //static void read(std::istream &in, const T &val);
       };
 
       template <typename T>
       struct WireTraitsPrimative {
         static constexpr inline bool should_write(const T &) { return true; }
         static inline void write(std::ostream &out, const T &val) { mp::write(out, val); }
+        static inline void read(std::istream &in, const T &val) { mp::read(in, val); }
       };
 
       template <> struct WireTraits<int8_t> : public WireTraitsPrimative<int8_t> { };
@@ -58,6 +60,7 @@ namespace schwa {
       struct WireTraits<std::string> {
         static inline bool should_write(const std::string &val) { return !val.empty(); }
         static inline void write(std::ostream &out, const std::string &val) { mp::write(out, val); }
+        static inline void read(std::istream &in, const std::string &val) { mp::read(in, val); }
       };
 
       template <typename T>
@@ -67,6 +70,12 @@ namespace schwa {
         static inline void
         write(std::ostream &out, const Pointer<T> &val, const T &front) {
           mp::write_uint(out, val.ptr - &front);
+        }
+
+        static inline void
+        read(std::istream &in, Pointer<T> &val, const T &front) {
+          const size_t offset = mp::read_uint(in);
+          val.ptr = &front + offset;
         }
       };
 
@@ -79,6 +88,14 @@ namespace schwa {
           mp::write_array_header(out, 2);
           mp::write<T>(out, val.start);
           mp::write<T>(out, val.stop);
+        }
+
+        static inline void
+        read(std::istream &in, Slice<T> &val) {
+          const size_t nitems = mp::read_array_header(in);
+          assert(nitems == 2);
+          mp::read<T>(in, val.start);
+          mp::read<T>(in, val.stop);
         }
       };
 

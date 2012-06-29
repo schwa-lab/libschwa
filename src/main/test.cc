@@ -69,29 +69,10 @@ public:
 };
 
 
-int
-main(int argc, char *argv[]) {
-  dr::Slice<uint64_t> slice;
-  dr::Slice<Token *> ptr_slice;
-  dr::Pointer<Token> ptr;
-  dr::Pointers<Token> ptrs;
-  dr::Store<Token> tokens;
-
-  config::OpGroup cfg("program", "this is the toplevel help");
-  config::Op<std::string> op1(cfg, "str_op1", "This is some option which is a string");
-  config::Op<std::string> op2(cfg, "str_op2", "This is some option which is a string with default", "foo");
-  config::OpGroup cfg2(cfg, "foo", "sublevel group");
-  config::Op<std::string> op3(cfg2, "baz", "some text", "baz");
-  try {
-    if (!cfg.process(argc - 1, argv + 1))
-      return 1;
-  }
-  catch (config::ConfigException &e) {
-    std::cerr << print_exception("ConfigException", e);
-    cfg.help(std::cerr);
-    return 1;
-  }
-
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+static void
+do_write(std::ostream &out) {
   Doc::Schema schema;
   schema.filename.serial = "foo";
   schema.types<Token>().serial = "PTBToken";
@@ -105,8 +86,55 @@ main(int argc, char *argv[]) {
   t2.raw = "world";
   t2.parent = &t1;
 
-  dr::Writer writer(std::cout, schema);
+  dr::Writer writer(out, schema);
   writer << d;
+}
+
+
+static void
+do_read(std::istream &in) {
+  Doc::Schema schema;
+  schema.filename.serial = "foo";
+  schema.types<Token>().serial = "PTBToken";
+  schema.types<Token>().raw.serial = "real_raw";
+
+  dr::Reader reader(in, schema);
+  while (true) {
+    Doc d;
+    if (!(reader >> d))
+      break;
+    std::cout << "read ..." << std::endl;
+    break;
+  }
+}
+
+
+int
+main(int argc, char *argv[]) {
+  config::OpGroup cfg("test", "this is the toplevel help");
+  config::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
+  config::IStreamOp op_in(cfg, "input", "The input file");
+  config::OStreamOp op_out(cfg, "output", "The output file");
+  try {
+    if (!cfg.process(argc - 1, argv + 1))
+      return 1;
+  }
+  catch (config::ConfigException &e) {
+    std::cerr << print_exception("ConfigException", e);
+    cfg.help(std::cerr);
+    return 1;
+  }
+
+  try {
+    if (op_mode() == "write")
+      do_write(op_out.file());
+    else
+      do_read(op_in.file());
+  }
+  catch (Exception &e) {
+    std::cerr << print_exception("Exception", e);
+    return 1;
+  }
 
   return 0;
 }
