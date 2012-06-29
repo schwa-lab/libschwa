@@ -9,7 +9,7 @@ namespace schwa { namespace dr {
 
 Reader &
 Reader::read(Document &doc) {
-  if (_in.eof()) {
+  if (_in.peek() == EOF || _in.eof()) {
     _has_more = false;
     return *this;
   }
