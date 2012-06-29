@@ -104,7 +104,6 @@ do_read(std::istream &in) {
     if (!(reader >> d))
       break;
     std::cout << "read ..." << std::endl;
-    break;
   }
 }
 

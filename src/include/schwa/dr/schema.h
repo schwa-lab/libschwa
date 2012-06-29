@@ -60,7 +60,7 @@ namespace schwa {
       struct WireTraits<std::string> {
         static inline bool should_write(const std::string &val) { return !val.empty(); }
         static inline void write(std::ostream &out, const std::string &val) { mp::write(out, val); }
-        static inline void read(std::istream &in, const std::string &val) { mp::read(in, val); }
+        static inline void read(std::istream &in, std::string &val) { mp::read(in, val); }
       };
 
       template <typename T>
@@ -73,7 +73,7 @@ namespace schwa {
         }
 
         static inline void
-        read(std::istream &in, Pointer<T> &val, const T &front) {
+        read(std::istream &in, Pointer<T> &val, T &front) {
           const size_t offset = mp::read_uint(in);
           val.ptr = &front + offset;
         }
@@ -109,11 +109,27 @@ namespace schwa {
           mp::write_uint(out, val.start - &front);
           mp::write_uint(out, val.stop - &front);
         }
+
+        static inline void
+        read(std::istream &in, Slice<T> &val, typename FieldTraits<Slice<T>>::pointer_type &front) {
+          size_t offset = mp::read_uint(in);
+          val.start = &front + offset;
+          offset = mp::read_uint(in);
+          val.stop = &front + offset;
+        }
       };
 
       template <typename T>
       struct WireTraits<Slice<T>> : public WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
 
+      template <typename R, typename T, R T::*field_ptr>
+      inline void
+      read_field(std::istream &in, void *const _ann, void *const _doc) {
+        static_cast<void>(_doc);
+        T &ann = *static_cast<T *>(_ann);
+        R &val = ann.*field_ptr;
+        WireTraits<R>::read(in, val);
+      }
 
       template <typename R, typename T, R T::*field_ptr>
       inline bool
@@ -129,6 +145,14 @@ namespace schwa {
         return false;
       }
 
+      template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+      inline void
+      read_field(std::istream &in, void *const _ann, void *const _doc) {
+        D &doc = *static_cast<D *>(_doc);
+        T &ann = *static_cast<T *>(_ann);
+        R &val = ann.*field_ptr;
+        WireTraits<R>::read(in, val, (doc.*store_ptr).front());
+      }
 
       template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
       inline bool
@@ -153,6 +177,7 @@ namespace schwa {
     class BaseSchema {
     public:
       typedef std::vector<BaseFieldDef *> field_container;
+      typedef std::vector<void (*)(std::istream &in, void *, void *)> readers_container;
       typedef std::vector<bool (*)(std::ostream &out, const unsigned int, const void *, const void *)> writers_container;
 
       const std::string name;
@@ -162,6 +187,7 @@ namespace schwa {
 
     protected:
       field_container _fields;
+      readers_container _readers;
       writers_container _writers;
 
       BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : name(name), help(help), serial(serial), type(type) { }
@@ -173,6 +199,7 @@ namespace schwa {
       inline void add(FieldDef<T, fn> *const field) {
         typedef FieldDef<T, fn> F;
         _fields.push_back(field);
+        _readers.push_back(&wire::read_field< typename F::value_type, typename F::annotation_type, fn>);
         _writers.push_back(&wire::write_field<typename F::value_type, typename F::annotation_type, fn>);
       }
 
@@ -180,10 +207,12 @@ namespace schwa {
       inline void add(FieldDefWithStore<T1, fn1, T2, fn2> *const field) {
         typedef FieldDefWithStore<T1, fn1, T2, fn2> F;
         _fields.push_back(field);
+        _readers.push_back(&wire::read_field< typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>);
         _writers.push_back(&wire::write_field<typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>);
       }
 
       inline const field_container &fields(void) const { return _fields; }
+      inline const readers_container &readers(void) const { return _readers; }
       inline const writers_container &writers(void) const { return _writers; }
 
       virtual std::ostream &dump(std::ostream &out) const;

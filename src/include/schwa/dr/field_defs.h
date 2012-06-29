@@ -63,6 +63,9 @@ namespace schwa {
       virtual size_t size(const Document &doc) const = 0;
       virtual ptrdiff_t store_offset(const Document &) const = 0;
       virtual void write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const = 0;
+
+      virtual char *read_begin(Document &_doc) const = 0;
+      virtual size_t read_size(void) const = 0;
     };
 
 
@@ -138,6 +141,23 @@ namespace schwa {
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
       size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
       ptrdiff_t store_offset(const Document &doc) const { return reinterpret_cast<const char *>(&(static_cast<const T &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+
+      char *
+      read_begin(Document &_doc) const {
+        T &doc = static_cast<T &>(_doc);
+        Store<S> &store = doc.*store_ptr;
+        return reinterpret_cast<char *>(&store[0]);
+      }
+
+      inline size_t read_size(void) const { return sizeof(S); }
+
+      //read(std::istream &in, Document &_doc, const BaseSchema &schema, void (*reader)(std::istream &, Document &, const BaseSchema &, void *const)) {
+        //namespace mp = schwa::msgpack;
+        //T &doc = static_cast<T &>(_doc);
+        //Store<S> &store = doc.*store_ptr;
+        //for (auto &obj : store)
+          //reader(in, _doc, schema, &obj);
+      //}
 
       void
       write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const {

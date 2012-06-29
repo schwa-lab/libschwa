@@ -6,17 +6,6 @@ namespace mp = schwa::msgpack;
 
 namespace schwa { namespace dr {
 
-#if 0
-static void
-read_instance(std::istream &in, Document &doc, const BaseSchema &schema, const void *const obj) {
-  const size_t nfields = mp::read_map_header(in);
-  for (size_t i = 0; i != nfields; ++i) {
-    const size_t key = mp::read_uint(in);
-
-  }
-}
-#endif
-
 
 Reader &
 Reader::read(Document &doc) {
@@ -31,12 +20,15 @@ Reader::read(Document &doc) {
   for (auto &s : _dschema.schemas())
     klass_name_map[s->serial] = s;
 
+  // keep track of the klass_id of __meta__
+  bool found_klass_id_meta = false;
+  size_t klass_id_meta;
 
   // read the klasses header
   // <klasses> ::= [ <klass> ]
   const size_t nklasses = mp::read_array_header(_in);
   std::vector<const BaseSchema *> klasses;
-  std::vector<std::vector<const BaseFieldDef *>> klass_fields;
+  std::vector<std::vector<size_t>> klass_fields;
   klasses.reserve(nklasses);
   klass_fields.resize(nklasses);
 
@@ -59,6 +51,12 @@ Reader::read(Document &doc) {
     };
     const BaseSchema *const schema = kit->second;
     klasses.push_back(schema);
+
+    // keep track of the klass_id of __meta__
+    if (klass_name == "__meta__") {
+      found_klass_id_meta = true;
+      klass_id_meta = k;
+    }
 
     // <fields> ::= [ <field> ]
     const size_t nfields = mp::read_array_header(_in);
@@ -85,11 +83,13 @@ Reader::read(Document &doc) {
 
       // see if the read in field exists on the registered class's schema
       const BaseFieldDef *field = nullptr;
+      size_t index = 0;
       for (auto &f : schema->fields()) {
         if (f->serial == field_name) {
           field = f;
           break;
         }
+        ++index;
       }
       if (field == nullptr) {
         std::stringstream ss;
@@ -109,16 +109,21 @@ Reader::read(Document &doc) {
         throw ReaderException(ss.str());
       }
 
-      klass_fields[k].push_back(field);
+      klass_fields[k].push_back(index);
     } // for each field
 
   } // for each klass
 
+  if (!found_klass_id_meta)
+    throw ReaderException("Did not read in a __meta__ class");
 
 
   // read the stores header
   // <stores> ::= [ <store> ]
   const size_t nstores = mp::read_array_header(_in);
+  std::vector<std::pair<const BaseStoreDef *, size_t>> stores;
+  stores.reserve(nstores);
+
   for (size_t n = 0; n != nstores; ++n) {
     // <store> ::= ( <store_name>, <klass_id>, <store_nelem> )
     const size_t ntriple = mp::read_array_header(_in);
@@ -163,15 +168,56 @@ Reader::read(Document &doc) {
 
     // resize the store to house the correct number of instances
     store->resize(doc, nitems);
+    stores.push_back(std::make_pair(store, klass_id));
     std::cout << "resizing " << store_name << " to " << nitems << std::endl;
   }
 
 
   // read the document instance
   // <doc_instance> ::= <instances_nbytes> <instance>
-  const size_t doc_nbytes = mp::read_uint(_in);
-  (void)doc_nbytes;
+  {
+    const size_t nbytes = mp::read_uint(_in);
+    static_cast<void>(nbytes); // unused
 
+    // <instance> ::= { <field_id> : <obj_val> }
+    auto readers = _dschema.readers();
+    const size_t size = mp::read_map_header(_in);
+    for (size_t i = 0; i != size; ++i) {
+      const size_t key = mp::read_uint(_in);
+      const size_t index = klass_fields[klass_id_meta][key];
+      readers[index](_in, static_cast<void *>(&doc), static_cast<void *>(&doc));
+    }
+  }
+
+
+  // read the store instances
+  // <instances_groups> ::= <instances_group>*
+  for (auto &pair : stores) {
+    // <instances_group>  ::= <instances_nbytes> <instances>
+    const size_t nbytes = mp::read_uint(_in);
+    static_cast<void>(nbytes); // unused
+
+    const BaseStoreDef *const schema = pair.first;
+    const size_t klass_id = pair.second;
+
+    const size_t delta = schema->read_size();
+    char *objects = schema->read_begin(doc);
+    auto readers = klasses[klass_id]->readers();
+
+    // <instances> ::= [ <instance> ]
+    const size_t ninstances = mp::read_array_header(_in);
+    for (size_t i = 0; i != ninstances; ++i) {
+      // <instance> ::= { <field_id> : <obj_val> }
+      const size_t size = mp::read_map_header(_in);
+      for (size_t j = 0; j != size; ++j) {
+        const size_t key = mp::read_uint(_in);
+        const size_t index = klass_fields[klass_id][key];
+        readers[index](_in, objects, static_cast<void *>(&doc));
+      }
+
+      objects += delta;
+    }
+  }
 
   _has_more = true;
   return *this;
