@@ -312,6 +312,39 @@ namespace schwa {
       }
     }
 
+    inline size_t
+    read_array_header(std::istream &in) {
+      const WireType type = read_peek(in);
+      const int h = in.get();
+      size_t size;
+      switch (type) {
+      case WIRE_ARRAY_FIX: size = h & 0x0F; break;
+      case WIRE_ARRAY_16: read_raw_16(in, &size); break;
+      case WIRE_ARRAY_32: read_raw_32(in, &size); break;
+      default:
+        assert(!"header is not an array");
+        return 0;
+      }
+      return size;
+    }
+
+    inline size_t
+    read_map_header(std::istream &in) {
+      const WireType type = read_peek(in);
+      const int h = in.get();
+      size_t size;
+      switch (type) {
+      case WIRE_MAP_FIX: size = h & 0x0F; break;
+      case WIRE_MAP_16: read_raw_16(in, &size); break;
+      case WIRE_MAP_32: read_raw_32(in, &size); break;
+      default:
+        assert(!"header is not a map");
+        return 0;
+      }
+      return size;
+    }
+
+
     // ========================================================================
     // Writing API implementations
     // ========================================================================
