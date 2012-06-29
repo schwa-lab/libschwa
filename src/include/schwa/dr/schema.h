@@ -32,9 +32,27 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits {
-        static bool should_write(const T &val);
-        static void write(std::ostream &out, const T &val);
+        //static bool should_write(const T &val);
+        //static void write(std::ostream &out, const T &val);
       };
+
+      template <typename T>
+      struct WireTraitsPrimative {
+        static constexpr inline bool should_write(const T &) { return true; }
+        static inline void write(std::ostream &out, const T &val) { mp::write(out, val); }
+      };
+
+      template <> struct WireTraits<int8_t> : public WireTraitsPrimative<int8_t> { };
+      template <> struct WireTraits<int16_t> : public WireTraitsPrimative<int16_t> { };
+      template <> struct WireTraits<int32_t> : public WireTraitsPrimative<int32_t> { };
+      template <> struct WireTraits<int64_t> : public WireTraitsPrimative<int64_t> { };
+      template <> struct WireTraits<uint8_t> : public WireTraitsPrimative<uint8_t> { };
+      template <> struct WireTraits<uint16_t> : public WireTraitsPrimative<uint16_t> { };
+      template <> struct WireTraits<uint32_t> : public WireTraitsPrimative<uint32_t> { };
+      template <> struct WireTraits<uint64_t> : public WireTraitsPrimative<uint64_t> { };
+      template <> struct WireTraits<float> : public WireTraitsPrimative<float> { };
+      template <> struct WireTraits<double> : public WireTraitsPrimative<double> { };
+      template <> struct WireTraits<bool> : public WireTraitsPrimative<bool> { };
 
       template <>
       struct WireTraits<std::string> {
@@ -118,6 +136,7 @@ namespace schwa {
     class BaseSchema {
     public:
       typedef std::vector<BaseFieldDef *> field_container;
+      typedef std::vector<bool (*)(std::ostream &out, const unsigned int, const void *, const void *)> writers_container;
 
       const std::string name;
       const std::string help;
@@ -126,7 +145,7 @@ namespace schwa {
 
     protected:
       field_container _fields;
-      std::vector<bool (*)(std::ostream &out, const unsigned int, const void *, const void *)> _writers;
+      writers_container _writers;
 
       BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : name(name), help(help), serial(serial), type(type) { }
 
@@ -148,6 +167,7 @@ namespace schwa {
       }
 
       inline const field_container &fields(void) const { return _fields; }
+      inline const writers_container &writers(void) const { return _writers; }
 
       virtual std::ostream &dump(std::ostream &out) const;
     };

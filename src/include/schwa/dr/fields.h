@@ -70,6 +70,7 @@ namespace schwa {
 
       // extra methods
       inline void create(const size_type n, const T x=T()) { _items.insert(_items.end(), n, x); }
+      inline container_type &raw(void) { return _items; }
 
       // iterators
       inline iterator begin(void) { return _items.begin(); }
@@ -128,40 +129,40 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     struct FieldTraits {
-      static constexpr const bool is_dr_ptr_type = false;
-      static constexpr const bool is_pod_ptr = boost::is_pointer<T>::value;
-      static constexpr const bool is_slice = false;
+      static constexpr bool is_dr_ptr_type = false;
+      static constexpr bool is_pod_ptr = boost::is_pointer<T>::value;
+      static constexpr bool is_slice = false;
     };
 
     template <typename T>
     struct FieldTraits<Pointer<T>> {
       typedef T pointer_type;
-      static constexpr const bool is_dr_ptr_type = true;
-      static constexpr const bool is_slice = false;
+      static constexpr bool is_dr_ptr_type = true;
+      static constexpr bool is_slice = false;
     };
 
     template <typename T>
     struct FieldTraits<Pointers<T>> {
       typedef T pointer_type;
-      static constexpr const bool is_dr_ptr_type = true;
-      static constexpr const bool is_slice = false;
+      static constexpr bool is_dr_ptr_type = true;
+      static constexpr bool is_slice = false;
     };
 
     template <typename T, bool>
     struct SliceFieldTraits {
-      static constexpr const bool is_dr_ptr_type = false;
-      static constexpr const bool is_pod_ptr = false;
+      static constexpr bool is_dr_ptr_type = false;
+      static constexpr bool is_pod_ptr = false;
     };
 
     template <typename T>
     struct SliceFieldTraits<T, true> {
-      static constexpr const bool is_dr_ptr_type = true;
+      static constexpr bool is_dr_ptr_type = true;
       typedef typename boost::remove_pointer<T>::type pointer_type;
     };
 
     template <typename T>
     struct FieldTraits<Slice<T>> : public SliceFieldTraits<T, boost::is_pointer<T>::value> {
-      static constexpr const bool is_slice = true;
+      static constexpr bool is_slice = true;
     };
 
 

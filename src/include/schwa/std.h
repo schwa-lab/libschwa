@@ -28,6 +28,7 @@
 #include <stack>
 #include <stdexcept>
 #include <string>
+#include <typeinfo>
 #include <utility>
 #include <valarray>
 #include <vector>

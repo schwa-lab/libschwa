@@ -46,6 +46,8 @@ namespace schwa {
 
     public:
       virtual ~BaseFieldDef(void) { }
+
+      virtual ptrdiff_t store_offset(const Document &) const { assert(!"this should never be invoked"); return -1; }
     };
 
 
@@ -57,7 +59,8 @@ namespace schwa {
       virtual ~BaseStoreDef(void) { }
 
       virtual size_t size(const Document &doc) const = 0;
-      virtual void write(std::ostream &out, const Document &doc) const = 0;
+      virtual ptrdiff_t store_offset(const Document &) const = 0;
+      virtual void write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const = 0;
     };
 
 
@@ -106,14 +109,15 @@ namespace schwa {
       virtual ~FieldDefWithStore(void) { }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
+      ptrdiff_t store_offset(const Document &doc) const { return reinterpret_cast<const char *>(&(static_cast<const D &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
     };
 
 
     template <typename T, T fn>
     class StoreDef;
 
-    template <typename S, typename T, Store<S> T::*member_obj_ptr>
-    class StoreDef<Store<S> T::*, member_obj_ptr> : public BaseStoreDef {
+    template <typename S, typename T, Store<S> T::*store_ptr>
+    class StoreDef<Store<S> T::*, store_ptr> : public BaseStoreDef {
     public:
       static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
       typedef S store_type;
@@ -128,18 +132,19 @@ namespace schwa {
       virtual ~StoreDef(void) { }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*member_obj_ptr).size(); }
+      size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
+      ptrdiff_t store_offset(const Document &doc) const { return reinterpret_cast<const char *>(&(static_cast<const T &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
 
       void
-      write(std::ostream &out, const Document &_doc) const {
+      write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const {
         namespace mp = schwa::msgpack;
         const T &doc = static_cast<const T &>(_doc);
-        const Store<S> &store = doc.*member_obj_ptr;
+        const Store<S> &store = doc.*store_ptr;
 
         // <instances> ::= [ <instance> ]
         mp::write_array_header(out, store.size());
-        //for (auto &obj : store)
-          //out << obj;
+        for (auto &obj : store)
+          writer(out, _doc, schema, &obj);
       }
     };
 

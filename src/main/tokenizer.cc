@@ -1,24 +1,64 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/base.h>
+#include <schwa/config.h>
 #include <schwa/tokenizer.h>
 #include <schwa/tokenizer/streams/debug_text.h>
 #include <schwa/tokenizer/streams/text.h>
 
+namespace cfg = schwa::config;
 namespace tok = schwa::tokenizer;
 
+
+class Config : public cfg::OpGroup {
+public:
+  cfg::IStreamOp input;
+  cfg::OStreamOp output;
+  cfg::EnumOp<std::string> printer;
+  cfg::Op<size_t> input_buffer;
+
+  Config(void) :
+    cfg::OpGroup("tok", "Schwa-Lab tokenizer"),
+    input(*this, "input", "input filename"),
+    output(*this, "output", "output filename"),
+    printer(*this, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text"),
+    input_buffer(*this, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE)
+    { }
+  virtual ~Config(void) { }
+};
+
+
 int
-main(int argc, char **) {
-	tok::Tokenizer tokenizer;
+main(int argc, char *argv[]) {
+  Config c;
+  try {
+    if (!c.process(argc - 1, argv + 1))
+      return 1;
+  }
+  catch (cfg::ConfigException &e) {
+    std::cerr << schwa::print_exception("ConfigException", e);
+    c.help(std::cerr);
+    return 1;
+  }
+
+  // input and file files
+  std::istream &in = c.input.file();
+  std::ostream &out = c.output.file();
+
+  // printer
   tok::Stream *stream;
-
-	if (argc != 1)
-		stream = new tok::DebugTextStream(std::cout);
+  if (c.printer() == "text")
+    stream = new tok::TextStream(out);
+  else if (c.printer() == "debug")
+    stream = new tok::DebugTextStream(out);
+  else if (c.printer() == "docrep")
+    throw cfg::ConfigException("Unhandled value", "printer", c.printer());
   else
-		stream = new tok::TextStream(std::cout);
+    throw cfg::ConfigException("Unknown value", "printer", c.printer());
 
-  tokenizer.tokenize_stream(*stream, std::cin, 10240);
+  tok::Tokenizer t;
+  t.tokenize_stream(*stream, in, c.input_buffer());
 
+  // cleanup
   delete stream;
 
-	return 0;
+  return 0;
 }

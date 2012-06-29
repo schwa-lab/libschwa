@@ -22,7 +22,6 @@ demangle_typeid(const char *const typeid_name) {
   if (name != nullptr) {
     const std::string out(name);
     std::free(name);
-    std::cout << "before='" << typeid_name << "' after='" << out << "'" << std::endl;
     return out;
   }
   return typeid_name;

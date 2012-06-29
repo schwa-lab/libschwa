@@ -1,10 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/std.h>
 #include <schwa/msgpack.h>
 
 
 namespace schwa { namespace msgpack {
 
+#if 0
 std::ostream &
 write_array(std::ostream &out, const ArrayObject &arr) {
   write_array_header(out, arr.size);
@@ -23,7 +23,7 @@ write_map(std::ostream &out, const MapObject &map) {
   }
   return out;
 }
-
+#endif
 
 std::ostream &
 write_raw(std::ostream &out, const char *const data, const size_t size) {
@@ -40,7 +40,7 @@ write_raw(std::ostream &out, const char *const data, const size_t size) {
   return out.write(data, size);
 }
 
-
+#if 0
 std::ostream &
 write_object(std::ostream &out, const Object &obj) {
   switch (obj.type) {
@@ -65,7 +65,6 @@ write_object(std::ostream &out, const Object &obj) {
   };
   return out;
 }
-
-
+#endif
 
 } }
