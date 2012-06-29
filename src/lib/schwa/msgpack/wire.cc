@@ -25,6 +25,7 @@ write_map(std::ostream &out, const MapObject &map) {
 }
 #endif
 
+#if 0
 std::ostream &
 write_raw(std::ostream &out, const char *const data, const size_t size) {
   if (size <= 31)
@@ -39,6 +40,7 @@ write_raw(std::ostream &out, const char *const data, const size_t size) {
   }
   return out.write(data, size);
 }
+#endif
 
 #if 0
 std::ostream &

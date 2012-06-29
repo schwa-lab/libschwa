@@ -58,6 +58,8 @@ namespace schwa {
     public:
       virtual ~BaseStoreDef(void) { }
 
+      virtual void resize(Document &doc, const size_t size) const = 0;
+
       virtual size_t size(const Document &doc) const = 0;
       virtual ptrdiff_t store_offset(const Document &) const = 0;
       virtual void write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const = 0;
@@ -130,6 +132,8 @@ namespace schwa {
         schema.add(this);
       }
       virtual ~StoreDef(void) { }
+
+      void resize(Document &doc, const size_t size) const { (static_cast<T &>(doc).*store_ptr).resize(size); }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
       size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }

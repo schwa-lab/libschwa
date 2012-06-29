@@ -57,6 +57,8 @@ namespace schwa {
     inline size_t   read_array_header(std::istream &in);
     inline size_t   read_map_header(std::istream &in);
 
+    inline std::string read_raw(std::istream &in);
+
     inline int8_t   read_int_fixed(std::istream &in);
     inline int8_t   read_int_8(std::istream &in);
     inline int16_t  read_int_16(std::istream &in);
@@ -68,6 +70,22 @@ namespace schwa {
     inline uint16_t read_uint_16(std::istream &in);
     inline uint32_t read_uint_32(std::istream &in);
     inline uint64_t read_uint_64(std::istream &in);
+
+    template <typename T>
+    inline void read(std::istream &in, T &val);
+
+    template <> inline void read(std::istream &in, int8_t &val) { val = read_int_8(in); }
+    template <> inline void read(std::istream &in, int16_t &val) { val = read_int_16(in); }
+    template <> inline void read(std::istream &in, int32_t &val) { val = read_int_32(in); }
+    template <> inline void read(std::istream &in, int64_t &val) { val = read_int_64(in); }
+    template <> inline void read(std::istream &in, uint8_t &val) { val = read_uint_8(in); }
+    template <> inline void read(std::istream &in, uint16_t &val) { val = read_uint_16(in); }
+    template <> inline void read(std::istream &in, uint32_t &val) { val = read_uint_32(in); }
+    template <> inline void read(std::istream &in, uint64_t &val) { val = read_uint_64(in); }
+    template <> inline void read(std::istream &in, float &val) { val = read_float(in); }
+    template <> inline void read(std::istream &in, double &val) { val = read_double(in); }
+    template <> inline void read(std::istream &in, bool &val) { val = read_boolean(in); }
+    template <> inline void read(std::istream &in, std::string &val) { val = read_raw(in); }
 
 
     // ========================================================================
@@ -344,6 +362,27 @@ namespace schwa {
       return size;
     }
 
+    inline std::string
+    read_raw(std::istream &in) {
+      const WireType type = read_peek(in);
+      const int h = in.get();
+      size_t size;
+
+      switch (type) {
+      case WIRE_RAW_FIX: size = h & 0x1F; break;
+      case WIRE_MAP_16: read_raw_16(in, &size); break;
+      case WIRE_MAP_32: read_raw_32(in, &size); break;
+      default:
+        assert(!"header is not a raw");
+        return 0;
+      }
+
+      std::string s;
+      s.resize(size);
+      in.read(&s[0], size);
+      return s;
+    }
+
 
     // ========================================================================
     // Writing API implementations
@@ -536,9 +575,24 @@ namespace schwa {
     }
 
     inline std::ostream &
-    write_raw(std::ostream &out, const RawObject &raw) {
-      return write_raw(out, raw.data, raw.size);
+    write_raw(std::ostream &out, const char *const data, const size_t size) {
+      if (size <= 31)
+        out.put(static_cast<unsigned char>(header::RAW_FIXED | size));
+      else if (size <= std::numeric_limits<uint16_t>::max()) {
+        out.put(header::RAW_16);
+        write_raw_uint16(out, size);
+      }
+      else {
+        out.put(header::RAW_32);
+        write_raw_uint32(out, size);
+      }
+      return out.write(data, size);
     }
+
+    //inline std::ostream &
+    //write_raw(std::ostream &out, const RawObject &raw) {
+      //return write_raw(out, raw.data, raw.size);
+    //}
 
   }
 }
