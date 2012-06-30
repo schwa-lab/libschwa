@@ -92,18 +92,20 @@ do_write(std::ostream &out) {
 
 
 static void
-do_read(std::istream &in) {
+do_read(std::istream &in, std::ostream &out) {
   Doc::Schema schema;
   schema.filename.serial = "foo";
-  //schema.types<Token>().serial = "PTBToken";
-  //schema.types<Token>().raw.serial = "real_raw";
+  schema.types<Token>().serial = "PTBToken";
+  schema.types<Token>().raw.serial = "real_raw";
 
   dr::Reader reader(in, schema);
+  dr::Writer writer(out, schema);
   while (true) {
     Doc d;
     if (!(reader >> d))
       break;
-    std::cout << "read ..." << std::endl;
+    std::cerr << "read ..." << std::endl;
+    writer << d;
   }
 }
 
@@ -128,7 +130,7 @@ main(int argc, char *argv[]) {
     if (op_mode() == "write")
       do_write(op_out.file());
     else
-      do_read(op_in.file());
+      do_read(op_in.file(), op_out.file());
   }
   catch (Exception &e) {
     std::cerr << print_exception(port::demangle_typeid(typeid(e).name()), e);

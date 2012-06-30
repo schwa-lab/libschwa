@@ -169,7 +169,6 @@ Reader::read(Document &doc) {
     // resize the store to house the correct number of instances
     store->resize(doc, nitems);
     stores.push_back(std::make_pair(store, klass_id));
-    std::cout << "resizing " << store_name << " to " << nitems << std::endl;
   }
 
 
