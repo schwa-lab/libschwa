@@ -5,7 +5,7 @@ BASE_OBJECTS = src/lib/schwa/exception.o
 CONFIG_OBJECTS = src/lib/schwa/config/base.o src/lib/schwa/config/group.o src/lib/schwa/config/op.o
 DR_OBJECTS = src/lib/schwa/dr/reader.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o
 MSGPACK_OBJECTS =
-TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
+TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/docrep.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
@@ -42,7 +42,7 @@ wc:
 bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(PORT_OBJECTS) $(MSGPACK_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
