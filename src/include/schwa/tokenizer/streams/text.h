@@ -3,7 +3,7 @@
 namespace schwa {
   namespace tokenizer {
 
-    class TextStream: public Stream {
+    class TextStream : public Stream {
     protected:
       std::ostream &_out;
       bool _normalise;

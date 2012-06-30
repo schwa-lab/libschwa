@@ -1,7 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config.h>
 #include <schwa/dr.h>
-#include <schwa/msgpack.h>
 
 using namespace schwa;
 

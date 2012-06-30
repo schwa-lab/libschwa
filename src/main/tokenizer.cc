@@ -1,7 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config.h>
+#include <schwa/dr.h>
 #include <schwa/tokenizer.h>
 #include <schwa/tokenizer/streams/debug_text.h>
+#include <schwa/tokenizer/streams/docrep.h>
 #include <schwa/tokenizer/streams/text.h>
 
 namespace cfg = schwa::config;
@@ -28,13 +30,17 @@ public:
 
 int
 main(int argc, char *argv[]) {
+  // instantiate a document schema for use in the config framework
+  tok::Doc::Schema schema;
+
+  // parse the command line options
   Config c;
   try {
     if (!c.process(argc - 1, argv + 1))
       return 1;
   }
   catch (cfg::ConfigException &e) {
-    std::cerr << schwa::print_exception("ConfigException", e);
+    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
     c.help(std::cerr);
     return 1;
   }
@@ -50,7 +56,7 @@ main(int argc, char *argv[]) {
   else if (c.printer() == "debug")
     stream = new tok::DebugTextStream(out);
   else if (c.printer() == "docrep")
-    throw cfg::ConfigException("Unhandled value", "printer", c.printer());
+    stream = new tok::DocrepStream(out, schema);
   else
     throw cfg::ConfigException("Unknown value", "printer", c.printer());
 
