@@ -81,7 +81,7 @@ namespace schwa {
 
       template <typename T, bool IS_POINTER>
       struct WireTraitsSliceTraits {
-        static inline bool should_write(const Slice<T> &val) { return val.start != T() && val.stop != T(); }
+        static inline bool should_write(const Slice<T> &val) { return !(val.start == T() && val.stop == T()); }
 
         static inline void
         write(std::ostream &out, const Slice<T> &val) {
