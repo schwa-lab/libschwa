@@ -133,7 +133,7 @@ main(int argc, char *argv[]) {
       do_read(op_in.file(), op_out.file());
   }
   catch (Exception &e) {
-    std::cerr << print_exception(port::demangle_typeid(typeid(e).name()), e);
+    std::cerr << print_exception(e) << std::endl;
     return 1;
   }
 

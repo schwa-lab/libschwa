@@ -40,7 +40,7 @@ namespace schwa {
   // exception pretty printing functor
   class print_exception {
   public:
-    const std::string &name;
+    const std::string name;
     const Exception &e;
 
     print_exception(const Exception &e);
