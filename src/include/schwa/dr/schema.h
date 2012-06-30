@@ -41,7 +41,7 @@ namespace schwa {
       struct WireTraitsPrimative {
         static constexpr inline bool should_write(const T &) { return true; }
         static inline void write(std::ostream &out, const T &val) { mp::write(out, val); }
-        static inline void read(std::istream &in, const T &val) { mp::read(in, val); }
+        static inline void read(std::istream &in, T &val) { mp::read(in, val); }
       };
 
       template <> struct WireTraits<int8_t> : public WireTraitsPrimative<int8_t> { };

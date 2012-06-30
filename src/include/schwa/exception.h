@@ -43,12 +43,10 @@ namespace schwa {
     const std::string &name;
     const Exception &e;
 
-    print_exception(const std::string &name, const Exception &e) : name(name), e(e) { }
+    print_exception(const Exception &e);
+    print_exception(const std::string &name, const Exception &e);
 
-    inline std::ostream &
-    dump(std::ostream &out) const {
-      return out << port::BOLD << '[' << name << "] " << port::RED << e.what() << port::OFF << std::endl;
-    }
+    std::ostream &dump(std::ostream &out) const;
   };
 
   inline std::ostream &operator <<(std::ostream &out, const print_exception &obj) { return obj.dump(out); }

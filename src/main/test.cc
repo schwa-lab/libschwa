@@ -95,8 +95,8 @@ static void
 do_read(std::istream &in) {
   Doc::Schema schema;
   schema.filename.serial = "foo";
-  schema.types<Token>().serial = "PTBToken";
-  schema.types<Token>().raw.serial = "real_raw";
+  //schema.types<Token>().serial = "PTBToken";
+  //schema.types<Token>().raw.serial = "real_raw";
 
   dr::Reader reader(in, schema);
   while (true) {
@@ -131,7 +131,7 @@ main(int argc, char *argv[]) {
       do_read(op_in.file());
   }
   catch (Exception &e) {
-    std::cerr << print_exception("Exception", e);
+    std::cerr << print_exception(port::demangle_typeid(typeid(e).name()), e);
     return 1;
   }
 

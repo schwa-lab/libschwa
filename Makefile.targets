@@ -1,12 +1,13 @@
 BINARIES = bin/tokenizer
 SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
+BASE_OBJECTS = src/lib/schwa/exception.o
 CONFIG_OBJECTS = src/lib/schwa/config/base.o src/lib/schwa/config/group.o src/lib/schwa/config/op.o
 DR_OBJECTS = src/lib/schwa/dr/reader.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o
-MSGPACK_OBJECTS = src/lib/schwa/msgpack/wire.o
+MSGPACK_OBJECTS =
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 
-OBJECTS = $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
 UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
