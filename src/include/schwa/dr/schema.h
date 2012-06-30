@@ -101,7 +101,7 @@ namespace schwa {
 
       template <typename T>
       struct WireTraitsSliceTraits<T, true> {
-        static inline bool should_write(const Slice<T> &val) { return val.start != nullptr && val.stop != nullptr; }
+        static inline bool should_write(const Slice<T> &val) { return !(val.start == nullptr && val.stop == nullptr); }
 
         static inline void
         write(std::ostream &out, const Slice<T> &val, const typename FieldTraits<Slice<T>>::pointer_type &front) {
