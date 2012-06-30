@@ -11,7 +11,7 @@ print_exception::print_exception(const std::string &name, const Exception &e) : 
 
 std::ostream &
 print_exception::dump(std::ostream &out) const {
-  return out << port::BOLD << '[' << name << "] " << port::RED << e.what() << port::OFF << std::endl;
+  return out << port::BOLD << '[' << name << "] " << port::RED << e.what() << port::OFF;
 }
 
 
