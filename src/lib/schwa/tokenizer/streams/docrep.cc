@@ -9,8 +9,8 @@ namespace schwa { namespace tokenizer {
 Token::Schema::Schema(void) :
   dr::AnnotationSchema<Token>("Token", "The token class", "Token"),
   slice(*this, "slice", "the beginning and end byte offsets of the token", dr::LOAD_RW, "slice"),
-  raw(*this, "raw", "the raw token", dr::LOAD_RW, "slice"),
-  norm(*this, "norm", "the normalised token", dr::LOAD_RW, "slice")
+  raw(*this, "raw", "the raw token", dr::LOAD_RW, "raw"),
+  norm(*this, "norm", "the normalised token", dr::LOAD_RW, "norm")
   { }
 Token::Schema::~Schema(void) { }
 
@@ -51,7 +51,7 @@ DocrepStream::ensure_doc(void) {
 
 void
 DocrepStream::add(Type, const char *raw, offset_type begin, offset_type len, const char *norm) {
-  std::cerr << "DocrepStream::add" << std::endl;
+  (std::cerr << "DocrepStream::add(").write(raw, len) << ", " << begin << ", " << len << ")" << std::endl;
   ensure_doc();
 
   // instantiate a token instance
