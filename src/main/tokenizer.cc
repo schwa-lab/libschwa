@@ -7,6 +7,7 @@
 #include <schwa/tokenizer/streams/text.h>
 
 namespace cfg = schwa::config;
+namespace dr  = schwa::dr;
 namespace tok = schwa::tokenizer;
 
 
@@ -16,13 +17,15 @@ public:
   cfg::OStreamOp output;
   cfg::EnumOp<std::string> printer;
   cfg::Op<size_t> input_buffer;
+  dr::DocrepOpGroup dr;
 
-  Config(void) :
+  Config(dr::BaseDocumentSchema &dschema) :
     cfg::OpGroup("tok", "Schwa-Lab tokenizer"),
     input(*this, "input", "input filename"),
     output(*this, "output", "output filename"),
     printer(*this, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text"),
-    input_buffer(*this, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE)
+    input_buffer(*this, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE),
+    dr(*this, dschema)
     { }
   virtual ~Config(void) { }
 };
@@ -34,7 +37,7 @@ main(int argc, char *argv[]) {
   tok::Doc::Schema schema;
 
   // parse the command line options
-  Config c;
+  Config c(schema);
   try {
     if (!c.process(argc - 1, argv + 1))
       return 1;
