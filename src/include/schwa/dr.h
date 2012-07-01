@@ -3,6 +3,7 @@
 #define SCHWA_DR_H_
 
 #include <schwa/base.h>
+#include <schwa/config.h>
 #include <schwa/msgpack.h>
 
 #include <schwa/dr/typeinfo.h>
@@ -11,5 +12,7 @@
 #include <schwa/dr/field_defs.h>
 #include <schwa/dr/reader.h>
 #include <schwa/dr/writer.h>
+
+#include <schwa/dr/config.h>
 
 #endif
