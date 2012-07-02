@@ -45,7 +45,7 @@ namespace schwa {
     // ========================================================================
     // Reading API
     // ========================================================================
-    inline WireType read_peek(std::istream &in);
+    inline WireType peek_type(std::istream &in);
 
     inline void     read_nil(std::istream &in);
     inline bool     read_bool(std::istream &in);
@@ -54,8 +54,8 @@ namespace schwa {
     inline int64_t  read_int(std::istream &in);
     inline uint64_t read_uint(std::istream &in);
 
-    inline size_t   read_array_header(std::istream &in);
-    inline size_t   read_map_header(std::istream &in);
+    inline size_t   read_array_size(std::istream &in);
+    inline size_t   read_map_size(std::istream &in);
 
     inline std::string read_raw(std::istream &in);
 
@@ -98,8 +98,8 @@ namespace schwa {
     inline std::ostream &write_float(std::ostream &out, const float x);
     inline std::ostream &write_double(std::ostream &out, const double x);
 
-    inline std::ostream &write_array_header(std::ostream &out, const size_t size);
-    inline std::ostream &write_map_header(std::ostream &out, const size_t size);
+    inline std::ostream &write_array_size(std::ostream &out, const size_t size);
+    inline std::ostream &write_map_size(std::ostream &out, const size_t size);
 
     std::ostream &write_raw(std::ostream &out, const std::string &data);
     std::ostream &write_raw(std::ostream &out, const char *const data, const size_t size);
@@ -179,7 +179,7 @@ namespace schwa {
     }
 
     inline WireType
-    read_peek(std::istream &in) {
+    peek_type(std::istream &in) {
       const int c = in.peek();
       if ((c >> 7) == 0x00)
         return WIRE_FIXNUM_POSITIVE;
@@ -313,7 +313,7 @@ namespace schwa {
 
     inline uint64_t
     read_uint(std::istream &in) {
-      const WireType type = read_peek(in);
+      const WireType type = peek_type(in);
       switch (type) {
       case WIRE_FIXNUM_POSITIVE: return read_uint_fixed(in);
       case WIRE_UINT_8: return read_uint_8(in);
@@ -327,8 +327,8 @@ namespace schwa {
     }
 
     inline size_t
-    read_array_header(std::istream &in) {
-      const WireType type = read_peek(in);
+    read_array_size(std::istream &in) {
+      const WireType type = peek_type(in);
       const int h = in.get();
       size_t size = 0;
       switch (type) {
@@ -343,8 +343,8 @@ namespace schwa {
     }
 
     inline size_t
-    read_map_header(std::istream &in) {
-      const WireType type = read_peek(in);
+    read_map_size(std::istream &in) {
+      const WireType type = peek_type(in);
       const int h = in.get();
       size_t size = 0;
       switch (type) {
@@ -360,7 +360,7 @@ namespace schwa {
 
     inline std::string
     read_raw(std::istream &in) {
-      const WireType type = read_peek(in);
+      const WireType type = peek_type(in);
       const int h = in.get();
       size_t size = 0;
 
@@ -491,7 +491,7 @@ namespace schwa {
     }
 
     inline std::ostream &
-    write_array_header(std::ostream &out, const size_t size) {
+    write_array_size(std::ostream &out, const size_t size) {
       if (size <= 15)
         out.put(static_cast<unsigned char>(header::ARRAY_FIXED | size));
       else if (size <= std::numeric_limits<uint16_t>::max()) {
@@ -506,7 +506,7 @@ namespace schwa {
     }
 
     inline std::ostream &
-    write_map_header(std::ostream &out, const size_t size) {
+    write_map_size(std::ostream &out, const size_t size) {
       if (size <= 15)
         out.put(static_cast<unsigned char>(header::MAP_FIXED | size));
       else if (size <= std::numeric_limits<uint16_t>::max()) {
