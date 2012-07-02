@@ -3,18 +3,21 @@
 namespace schwa {
   namespace msgpack {
 
-    enum WireType {
-      WIRE_FIXNUM_POSITIVE, WIRE_FIXNUM_NEGATIVE,
-      WIRE_MAP_FIX, WIRE_MAP_16, WIRE_MAP_32,
-      WIRE_ARRAY_FIX, WIRE_ARRAY_16, WIRE_ARRAY_32,
-      WIRE_RAW_FIX, WIRE_RAW_16, WIRE_RAW_32,
-      WIRE_NIL,
-      WIRE_TRUE, WIRE_FALSE,
-      WIRE_FLOAT, WIRE_DOUBLE,
-      WIRE_UINT_8, WIRE_UINT_16, WIRE_UINT_32, WIRE_UINT_64,
-      WIRE_INT_8, WIRE_INT_16, WIRE_INT_32, WIRE_INT_64,
-      WIRE_RESERVED
+    enum class WireType : uint8_t {
+      FIXNUM_POSITIVE, FIXNUM_NEGATIVE,
+      MAP_FIXED, MAP_16, MAP_32,
+      ARRAY_FIXED, ARRAY_16, ARRAY_32,
+      RAW_FIXED, RAW_16, RAW_32,
+      NIL,
+      TRUE, FALSE,
+      FLOAT, DOUBLE,
+      UINT_8, UINT_16, UINT_32, UINT_64,
+      INT_8, INT_16, INT_32, INT_64,
+      RESERVED
     };
+
+    inline std::ostream &operator <<(std::ostream &out, const WireType &t) { return out << static_cast<uint8_t>(t); }
+
 
     namespace header {
       static const unsigned char MAP_FIXED   = 0x80;
@@ -180,57 +183,39 @@ namespace schwa {
 
     inline WireType
     peek_type(std::istream &in) {
+      static const WireType TABLE[256] = {
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::MAP_FIXED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::ARRAY_FIXED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RAW_FIXED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::NIL, WireType::RESERVED, WireType::FALSE, WireType::TRUE, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::FLOAT, WireType::DOUBLE, WireType::UINT_8, WireType::UINT_16, WireType::UINT_32, WireType::UINT_64,
+        WireType::INT_8, WireType::INT_16, WireType::INT_32, WireType::INT_64, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RAW_16, WireType::RAW_32, WireType::ARRAY_16, WireType::ARRAY_32, WireType::MAP_16, WireType::MAP_32,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
+        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED
+      };
       const int c = in.peek();
       if ((c >> 7) == 0x00)
-        return WIRE_FIXNUM_POSITIVE;
+        return WireType::FIXNUM_POSITIVE;
       else if ((c >> 5) == 0x07)
-        return WIRE_FIXNUM_NEGATIVE;
+        return WireType::FIXNUM_NEGATIVE;
       else if ((c >> 4) == 0x08)
-        return WIRE_MAP_FIX;
+        return WireType::MAP_FIXED;
       else if ((c >> 4) == 0x09)
-        return WIRE_ARRAY_FIX;
+        return WireType::ARRAY_FIXED;
       else if ((c >> 5) == 0x05)
-        return WIRE_RAW_FIX;
-      else if (c == header::NIL)
-        return WIRE_NIL;
-      else if (c == header::FALSE)
-        return WIRE_FALSE;
-      else if (c == header::TRUE)
-        return WIRE_TRUE;
-      else if (c == header::FLOAT)
-        return WIRE_FLOAT;
-      else if (c == header::DOUBLE)
-        return WIRE_DOUBLE;
-      else if (c == header::UINT_8)
-        return WIRE_UINT_8;
-      else if (c == header::UINT_16)
-        return WIRE_UINT_16;
-      else if (c == header::UINT_32)
-        return WIRE_UINT_32;
-      else if (c == header::UINT_64)
-        return WIRE_UINT_64;
-      else if (c == header::INT_8)
-        return WIRE_INT_8;
-      else if (c == header::INT_16)
-        return WIRE_INT_16;
-      else if (c == header::INT_32)
-        return WIRE_INT_32;
-      else if (c == header::INT_64)
-        return WIRE_INT_64;
-      else if (c == header::ARRAY_16)
-        return WIRE_ARRAY_16;
-      else if (c == header::ARRAY_32)
-        return WIRE_ARRAY_32;
-      else if (c == header::MAP_16)
-        return WIRE_MAP_16;
-      else if (c == header::MAP_32)
-        return WIRE_MAP_32;
-      else if (c == header::RAW_16)
-        return WIRE_RAW_16;
-      else if (c == header::RAW_32)
-        return WIRE_RAW_32;
+        return WireType::RAW_FIXED;
+      else if (c < 0 || c > 255)
+        return WireType::RESERVED;
       else
-        return WIRE_RESERVED;
+        return TABLE[c & 0xFF];
     }
 
     inline void
@@ -315,12 +300,12 @@ namespace schwa {
     read_int(std::istream &in) {
       const WireType type = peek_type(in);
       switch (type) {
-      case WIRE_FIXNUM_NEGATIVE: return read_int_fixed(in);
-      case WIRE_FIXNUM_POSITIVE: return read_uint_fixed(in);
-      case WIRE_INT_8: return read_int_8(in);
-      case WIRE_INT_16: return read_int_16(in);
-      case WIRE_INT_32: return read_int_32(in);
-      case WIRE_INT_64: return read_int_64(in);
+      case WireType::FIXNUM_NEGATIVE: return read_int_fixed(in);
+      case WireType::FIXNUM_POSITIVE: return read_uint_fixed(in);
+      case WireType::INT_8: return read_int_8(in);
+      case WireType::INT_16: return read_int_16(in);
+      case WireType::INT_32: return read_int_32(in);
+      case WireType::INT_64: return read_int_64(in);
       default:
         assert(!"Did not find an int to read");
         return 0;
@@ -374,11 +359,11 @@ namespace schwa {
     read_uint(std::istream &in) {
       const WireType type = peek_type(in);
       switch (type) {
-      case WIRE_FIXNUM_POSITIVE: return read_uint_fixed(in);
-      case WIRE_UINT_8: return read_uint_8(in);
-      case WIRE_UINT_16: return read_uint_16(in);
-      case WIRE_UINT_32: return read_uint_32(in);
-      case WIRE_UINT_64: return read_uint_64(in);
+      case WireType::FIXNUM_POSITIVE: return read_uint_fixed(in);
+      case WireType::UINT_8: return read_uint_8(in);
+      case WireType::UINT_16: return read_uint_16(in);
+      case WireType::UINT_32: return read_uint_32(in);
+      case WireType::UINT_64: return read_uint_64(in);
       default:
         assert(!"Did not find a uint to read");
         return 0;
@@ -391,9 +376,9 @@ namespace schwa {
       const int h = in.get();
       size_t size = 0;
       switch (type) {
-      case WIRE_ARRAY_FIX: size = h & 0x0F; break;
-      case WIRE_ARRAY_16: read_raw_16(in, &size); break;
-      case WIRE_ARRAY_32: read_raw_32(in, &size); break;
+      case WireType::ARRAY_FIXED: size = h & 0x0F; break;
+      case WireType::ARRAY_16: read_raw_16(in, &size); break;
+      case WireType::ARRAY_32: read_raw_32(in, &size); break;
       default:
         assert(!"header is not an array");
         return 0;
@@ -407,9 +392,9 @@ namespace schwa {
       const int h = in.get();
       size_t size = 0;
       switch (type) {
-      case WIRE_MAP_FIX: size = h & 0x0F; break;
-      case WIRE_MAP_16: read_raw_16(in, &size); break;
-      case WIRE_MAP_32: read_raw_32(in, &size); break;
+      case WireType::MAP_FIXED: size = h & 0x0F; break;
+      case WireType::MAP_16: read_raw_16(in, &size); break;
+      case WireType::MAP_32: read_raw_32(in, &size); break;
       default:
         assert(!"header is not a map");
         return 0;
@@ -424,9 +409,9 @@ namespace schwa {
       size_t size = 0;
 
       switch (type) {
-      case WIRE_RAW_FIX: size = h & 0x1F; break;
-      case WIRE_MAP_16: read_raw_16(in, &size); break;
-      case WIRE_MAP_32: read_raw_32(in, &size); break;
+      case WireType::RAW_FIXED: size = h & 0x1F; break;
+      case WireType::MAP_16: read_raw_16(in, &size); break;
+      case WireType::MAP_32: read_raw_32(in, &size); break;
       default:
         assert(!"header is not a raw");
         return 0;
