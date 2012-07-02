@@ -166,7 +166,7 @@ namespace schwa {
         const Store<S> &store = doc.*store_ptr;
 
         // <instances> ::= [ <instance> ]
-        mp::write_array_header(out, store.size());
+        mp::write_array_size(out, store.size());
         for (auto &obj : store)
           writer(out, _doc, schema, &obj);
       }

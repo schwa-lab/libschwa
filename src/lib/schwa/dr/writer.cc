@@ -9,19 +9,19 @@ namespace schwa { namespace dr {
 static void
 write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_schema, const Document &doc, const BaseDocumentSchema &dschema) {
   // <klass> ::= ( <klass_name>, <fields> )
-  mp::write_array_header(out, 2);
+  mp::write_array_size(out, 2);
 
   // <klass_name>
   const std::string name = is_doc_schema ? "__meta__" : s.serial;
   mp::write_raw(out, name);
 
   // <fields> ::= [ <field> ]
-  mp::write_array_header(out, s.fields().size());
+  mp::write_array_size(out, s.fields().size());
 
   for (auto &field : s.fields()) {
     // <field> ::= { <field_type> : <field_val> }
     const size_t nitems = 1 + field->is_pointer + field->is_slice;
-    mp::write_map_header(out, nitems);
+    mp::write_map_size(out, nitems);
 
     // <field_type> ::= 0 # NAME => the name of the field
     mp::write_uint_fixed(out, 0);
@@ -63,7 +63,7 @@ write_instance(std::ostream &out, const Document &doc, const BaseSchema &schema,
     ++key;
   }
 
-  mp::write_map_header(out, nfields);
+  mp::write_map_size(out, nfields);
   if (nfields != 0)
     out << ss.rdbuf();
 }
@@ -84,20 +84,20 @@ Writer::write(const Document &doc) {
   }
 
   // <klasses> ::= [ <klass> ]
-  mp::write_array_header(_out, typeid_map.size());
+  mp::write_array_size(_out, typeid_map.size());
   write_klass_header(_out, _dschema, true, doc, _dschema);
   for (auto &s : _dschema.schemas())
     write_klass_header(_out, *s, false, doc, _dschema);
 
   // <stores> ::= [ <store> ]
-  mp::write_array_header(_out, _dschema.stores().size());
+  mp::write_array_size(_out, _dschema.stores().size());
 
   // <store> ::= ( <store_name>, <type_id>, <store_nelem> )
   for (auto &store : _dschema.stores()) {
     const auto it = typeid_map.find(store->pointer_type());
     assert(it != typeid_map.end());
 
-    mp::write_array_header(_out, 3);
+    mp::write_array_size(_out, 3);
     mp::write_raw(_out, store->serial);
     mp::write_uint(_out, it->second);
     mp::write_uint(_out, store->size(doc));

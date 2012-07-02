@@ -26,7 +26,7 @@ Reader::read(Document &doc) {
 
   // read the klasses header
   // <klasses> ::= [ <klass> ]
-  const size_t nklasses = mp::read_array_header(_in);
+  const size_t nklasses = mp::read_array_size(_in);
   std::vector<const BaseSchema *> klasses;
   std::vector<std::vector<size_t>> klass_fields;
   klasses.reserve(nklasses);
@@ -34,7 +34,7 @@ Reader::read(Document &doc) {
 
   for (size_t k = 0; k != nklasses; ++k) {
     // <klass> ::= ( <klass_name>, <fields> )
-    const size_t npair = mp::read_array_header(_in);
+    const size_t npair = mp::read_array_size(_in);
     if (npair != 2) {
       std::stringstream ss;
       ss << "Invalid sized tuple read in: expected 2 elements but found " << npair;
@@ -59,7 +59,7 @@ Reader::read(Document &doc) {
     }
 
     // <fields> ::= [ <field> ]
-    const size_t nfields = mp::read_array_header(_in);
+    const size_t nfields = mp::read_array_size(_in);
 
     for (size_t f = 0; f != nfields; ++f) {
       std::string field_name;
@@ -67,7 +67,7 @@ Reader::read(Document &doc) {
       bool is_pointer = false, is_slice = false;
 
       // <field> ::= { <field_type> : <field_val> }
-      const size_t nitems = mp::read_map_header(_in);
+      const size_t nitems = mp::read_map_size(_in);
       for (size_t i = 0; i != nitems; ++i) {
         const uint8_t key = mp::read_uint_fixed(_in);
         switch (key) {
@@ -120,13 +120,13 @@ Reader::read(Document &doc) {
 
   // read the stores header
   // <stores> ::= [ <store> ]
-  const size_t nstores = mp::read_array_header(_in);
+  const size_t nstores = mp::read_array_size(_in);
   std::vector<std::pair<const BaseStoreDef *, size_t>> stores;
   stores.reserve(nstores);
 
   for (size_t n = 0; n != nstores; ++n) {
     // <store> ::= ( <store_name>, <klass_id>, <store_nelem> )
-    const size_t ntriple = mp::read_array_header(_in);
+    const size_t ntriple = mp::read_array_size(_in);
     if (ntriple != 3) {
       std::stringstream ss;
       ss << "Invalid sized tuple read in: expected 3 elements but found " << ntriple;
@@ -180,7 +180,7 @@ Reader::read(Document &doc) {
 
     // <instance> ::= { <field_id> : <obj_val> }
     auto readers = _dschema.readers();
-    const size_t size = mp::read_map_header(_in);
+    const size_t size = mp::read_map_size(_in);
     for (size_t i = 0; i != size; ++i) {
       const size_t key = mp::read_uint(_in);
       const size_t index = klass_fields[klass_id_meta][key];
@@ -204,10 +204,10 @@ Reader::read(Document &doc) {
     auto readers = klasses[klass_id]->readers();
 
     // <instances> ::= [ <instance> ]
-    const size_t ninstances = mp::read_array_header(_in);
+    const size_t ninstances = mp::read_array_size(_in);
     for (size_t i = 0; i != ninstances; ++i) {
       // <instance> ::= { <field_id> : <obj_val> }
-      const size_t size = mp::read_map_header(_in);
+      const size_t size = mp::read_map_size(_in);
       for (size_t j = 0; j != size; ++j) {
         const size_t key = mp::read_uint(_in);
         const size_t index = klass_fields[klass_id][key];

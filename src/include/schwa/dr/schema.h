@@ -85,14 +85,14 @@ namespace schwa {
 
         static inline void
         write(std::ostream &out, const Slice<T> &val) {
-          mp::write_array_header(out, 2);
+          mp::write_array_size(out, 2);
           mp::write<T>(out, val.start);
           mp::write<T>(out, val.stop);
         }
 
         static inline void
         read(std::istream &in, Slice<T> &val) {
-          const size_t nitems = mp::read_array_header(in);
+          const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
           mp::read<T>(in, val.start);
           mp::read<T>(in, val.stop);
@@ -105,14 +105,14 @@ namespace schwa {
 
         static inline void
         write(std::ostream &out, const Slice<T> &val, const typename FieldTraits<Slice<T>>::pointer_type &front) {
-          mp::write_array_header(out, 2);
+          mp::write_array_size(out, 2);
           mp::write_uint(out, val.start - &front);
           mp::write_uint(out, val.stop - &front);
         }
 
         static inline void
         read(std::istream &in, Slice<T> &val, typename FieldTraits<Slice<T>>::pointer_type &front) {
-          const size_t nitems = mp::read_array_header(in);
+          const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
           size_t offset = mp::read_uint(in);
           val.start = &front + offset;
