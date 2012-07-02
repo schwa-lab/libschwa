@@ -116,25 +116,25 @@ BOOST_AUTO_TEST_CASE(test_nil) {
 
 
 // ----------------------------------------------------------------------------
-// write_boolean
+// write_bool
 // ----------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(test_boolean_true) {
   BYTES_BEGIN() = {mp::header::TRUE};
   VALUE_BEGIN(bool) = true;
-  mp::write_boolean(ss, value);
+  mp::write_bool(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(mp::WIRE_TRUE);
-  BOOST_CHECK_EQUAL(mp::read_boolean(ss), value);
+  BOOST_CHECK_EQUAL(mp::read_bool(ss), value);
   BYTES_CONSUMED_CHECK();
 }
 
 BOOST_AUTO_TEST_CASE(test_boolean_false) {
   BYTES_BEGIN() = {mp::header::FALSE};
   VALUE_BEGIN(bool) = false;
-  mp::write_boolean(ss, value);
+  mp::write_bool(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(mp::WIRE_FALSE);
-  BOOST_CHECK_EQUAL(mp::read_boolean(ss), value);
+  BOOST_CHECK_EQUAL(mp::read_bool(ss), value);
   BYTES_CONSUMED_CHECK();
 }
 
@@ -293,8 +293,8 @@ BOOST_AUTO_TEST_CASE(test_array_fixed_15) {
   mp::write_array_header(ss, size);
   for (int i = 0; i != 4; ++i) {
     mp::write_nil(ss);
-    mp::write_boolean(ss, true);
-    mp::write_boolean(ss, false);
+    mp::write_bool(ss, true);
+    mp::write_bool(ss, false);
   }
   mp::write_uint(ss, 8);
   mp::write_uint(ss, 200);
@@ -307,9 +307,9 @@ BOOST_AUTO_TEST_CASE(test_array_fixed_15) {
   uint64_t u;
   for (int i = 0; i != 4; ++i) {
     mp::read_nil(ss);
-    b = mp::read_boolean(ss);
+    b = mp::read_bool(ss);
     BOOST_CHECK_EQUAL(b, true);
-    b = mp::read_boolean(ss);
+    b = mp::read_bool(ss);
     BOOST_CHECK_EQUAL(b, false);
   }
   u = mp::read_uint(ss);
@@ -327,8 +327,8 @@ BOOST_AUTO_TEST_CASE(test_array_fixed_16) {
   mp::write_array_header(ss, size);
   for (int i = 0; i != 4; ++i) {
     mp::write_nil(ss);
-    mp::write_boolean(ss, true);
-    mp::write_boolean(ss, false);
+    mp::write_bool(ss, true);
+    mp::write_bool(ss, false);
   }
   mp::write_uint(ss, 8);
   mp::write_uint(ss, 200);
@@ -342,9 +342,9 @@ BOOST_AUTO_TEST_CASE(test_array_fixed_16) {
   uint64_t u;
   for (int i = 0; i != 4; ++i) {
     mp::read_nil(ss);
-    b = mp::read_boolean(ss);
+    b = mp::read_bool(ss);
     BOOST_CHECK_EQUAL(b, true);
-    b = mp::read_boolean(ss);
+    b = mp::read_bool(ss);
     BOOST_CHECK_EQUAL(b, false);
   }
   u = mp::read_uint(ss);
@@ -377,7 +377,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_15) {
   mp::write_map_header(ss, size);
   for (int i = 0; i != size; ++i) {
     mp::write_uint(ss, i);
-    mp::write_boolean(ss, (i % 2) == 0);
+    mp::write_bool(ss, (i % 2) == 0);
   }
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(mp::WIRE_MAP_FIX);
@@ -388,7 +388,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_15) {
   for (int i = 0; i != size; ++i) {
     u = mp::read_uint(ss);
     BOOST_CHECK_EQUAL(u, i);
-    b = mp::read_boolean(ss);
+    b = mp::read_bool(ss);
     BOOST_CHECK_EQUAL(b, (i % 2) == 0);
   }
 
@@ -401,7 +401,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_16) {
   mp::write_map_header(ss, size);
   for (int i = 0; i != size; ++i) {
     mp::write_uint(ss, i);
-    mp::write_boolean(ss, (i % 2) == 0);
+    mp::write_bool(ss, (i % 2) == 0);
   }
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(mp::WIRE_MAP_16);
@@ -412,7 +412,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_16) {
   for (int i = 0; i != size; ++i) {
     u = mp::read_uint(ss);
     BOOST_CHECK_EQUAL(u, i);
-    b = mp::read_boolean(ss);
+    b = mp::read_bool(ss);
     BOOST_CHECK_EQUAL(b, (i % 2) == 0);
   }
 

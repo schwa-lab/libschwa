@@ -48,7 +48,7 @@ namespace schwa {
     inline WireType read_peek(std::istream &in);
 
     inline void     read_nil(std::istream &in);
-    inline bool     read_boolean(std::istream &in);
+    inline bool     read_bool(std::istream &in);
     inline float    read_float(std::istream &in);
     inline double   read_double(std::istream &in);
     inline int64_t  read_int(std::istream &in);
@@ -84,7 +84,7 @@ namespace schwa {
     template <> inline void read(std::istream &in, uint64_t &val) { val = read_uint_64(in); }
     template <> inline void read(std::istream &in, float &val) { val = read_float(in); }
     template <> inline void read(std::istream &in, double &val) { val = read_double(in); }
-    template <> inline void read(std::istream &in, bool &val) { val = read_boolean(in); }
+    template <> inline void read(std::istream &in, bool &val) { val = read_bool(in); }
     template <> inline void read(std::istream &in, std::string &val) { val = read_raw(in); }
 
 
@@ -92,7 +92,7 @@ namespace schwa {
     // Writing API
     // ========================================================================
     inline std::ostream &write_nil(std::ostream &out);
-    inline std::ostream &write_boolean(std::ostream &out, const bool x);
+    inline std::ostream &write_bool(std::ostream &out, const bool x);
     inline std::ostream &write_int(std::ostream &out, const int64_t x);
     inline std::ostream &write_uint(std::ostream &out, const uint64_t x);
     inline std::ostream &write_float(std::ostream &out, const float x);
@@ -132,7 +132,7 @@ namespace schwa {
     template <> inline std::ostream &write(std::ostream &out, const uint64_t &val) { return write_uint_64(out, val); }
     template <> inline std::ostream &write(std::ostream &out, const float &val) { return write_float(out, val); }
     template <> inline std::ostream &write(std::ostream &out, const double &val) { return write_double(out, val); }
-    template <> inline std::ostream &write(std::ostream &out, const bool &val) { return write_boolean(out, val); }
+    template <> inline std::ostream &write(std::ostream &out, const bool &val) { return write_bool(out, val); }
     template <> inline std::ostream &write(std::ostream &out, const std::string &val) { return write_raw(out, val); }
 
 
@@ -240,7 +240,7 @@ namespace schwa {
     }
 
     inline bool
-    read_boolean(std::istream &in) {
+    read_bool(std::istream &in) {
       const int h = in.get();
       if (h == header::TRUE)
         return true;
@@ -526,7 +526,7 @@ namespace schwa {
     }
 
     inline std::ostream &
-    write_boolean(std::ostream &out, const bool x) {
+    write_bool(std::ostream &out, const bool x) {
       return out.put(x ? header::TRUE : header::FALSE);
     }
 

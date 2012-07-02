@@ -45,7 +45,7 @@ write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_sch
     // <field_type> ::= 2 # IS_SLICE => whether or not this field is a "Slice" field
     if (field->is_slice) {
       mp::write_uint_fixed(out, 2);
-      mp::write_boolean(out, true);
+      mp::write_bool(out, true);
     }
   }
 }
