@@ -101,11 +101,7 @@ namespace schwa {
     inline std::ostream &write_array_header(std::ostream &out, const size_t size);
     inline std::ostream &write_map_header(std::ostream &out, const size_t size);
 
-    //std::ostream &write_array(std::ostream &out, const ArrayObject &arr);
-    //std::ostream &write_map(std::ostream &out, const MapObject &map);
-    //inline std::ostream &write_raw(std::ostream &out, const RawObject &raw);
-    //std::ostream &write_object(std::ostream &out, const Object &obj);
-
+    std::ostream &write_raw(std::ostream &out, const std::string &data);
     std::ostream &write_raw(std::ostream &out, const char *const data, const size_t size);
 
     std::ostream &write_packed(std::ostream &out, const char *const data, const size_t size);
@@ -137,7 +133,7 @@ namespace schwa {
     template <> inline std::ostream &write(std::ostream &out, const float &val) { return write_float(out, val); }
     template <> inline std::ostream &write(std::ostream &out, const double &val) { return write_double(out, val); }
     template <> inline std::ostream &write(std::ostream &out, const bool &val) { return write_boolean(out, val); }
-    template <> inline std::ostream &write(std::ostream &out, const std::string &val) { return write_raw(out, val.c_str(), val.size()); }
+    template <> inline std::ostream &write(std::ostream &out, const std::string &val) { return write_raw(out, val); }
 
 
     // ========================================================================
@@ -589,10 +585,9 @@ namespace schwa {
       return out.write(data, size);
     }
 
-    //inline std::ostream &
-    //write_raw(std::ostream &out, const RawObject &raw) {
-      //return write_raw(out, raw.data, raw.size);
-    //}
-
+    inline std::ostream &
+    write_raw(std::ostream &out, const std::string &data) {
+      return write_raw(out, data.c_str(), data.size());
+    }
   }
 }

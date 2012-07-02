@@ -13,7 +13,7 @@ write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_sch
 
   // <klass_name>
   const std::string name = is_doc_schema ? "__meta__" : s.serial;
-  mp::write_raw(out, name.c_str(), name.size());
+  mp::write_raw(out, name);
 
   // <fields> ::= [ <field> ]
   mp::write_array_header(out, s.fields().size());
@@ -25,7 +25,7 @@ write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_sch
 
     // <field_type> ::= 0 # NAME => the name of the field
     mp::write_uint_fixed(out, 0);
-    mp::write_raw(out, field->serial.c_str(), field->serial.size());
+    mp::write_raw(out, field->serial);
 
     // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
     if (field->is_pointer) {
@@ -98,7 +98,7 @@ Writer::write(const Document &doc) {
     assert(it != typeid_map.end());
 
     mp::write_array_header(_out, 3);
-    mp::write_raw(_out, store->serial.c_str(), store->serial.size());
+    mp::write_raw(_out, store->serial);
     mp::write_uint(_out, it->second);
     mp::write_uint(_out, store->size(doc));
   }
