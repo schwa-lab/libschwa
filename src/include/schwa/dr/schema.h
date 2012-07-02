@@ -112,6 +112,8 @@ namespace schwa {
 
         static inline void
         read(std::istream &in, Slice<T> &val, typename FieldTraits<Slice<T>>::pointer_type &front) {
+          const size_t nitems = mp::read_array_header(in);
+          assert(nitems == 2);
           size_t offset = mp::read_uint(in);
           val.start = &front + offset;
           offset = mp::read_uint(in);
