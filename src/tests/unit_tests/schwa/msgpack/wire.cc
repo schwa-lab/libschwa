@@ -375,7 +375,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_15) {
   BYTES_BEGIN() = {mp::header::MAP_FIXED | 0x0F, 0, mp::header::TRUE, 1, mp::header::FALSE, 2, mp::header::TRUE, 3, mp::header::FALSE, 4, mp::header::TRUE, 5, mp::header::FALSE, 6, mp::header::TRUE, 7, mp::header::FALSE, 8, mp::header::TRUE, 9, mp::header::FALSE, 10, mp::header::TRUE, 11, mp::header::FALSE, 12, mp::header::TRUE, 13, mp::header::FALSE, 14, mp::header::TRUE};
   const size_t size = 15;
   mp::write_map_size(ss, size);
-  for (int i = 0; i != size; ++i) {
+  for (size_t i = 0; i != size; ++i) {
     mp::write_uint(ss, i);
     mp::write_bool(ss, (i % 2) == 0);
   }
@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_15) {
 
   bool b;
   uint64_t u;
-  for (int i = 0; i != size; ++i) {
+  for (size_t i = 0; i != size; ++i) {
     u = mp::read_uint(ss);
     BOOST_CHECK_EQUAL(u, i);
     b = mp::read_bool(ss);
@@ -399,7 +399,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_16) {
   BYTES_BEGIN() = {mp::header::MAP_16, 0, 16, 0, mp::header::TRUE, 1, mp::header::FALSE, 2, mp::header::TRUE, 3, mp::header::FALSE, 4, mp::header::TRUE, 5, mp::header::FALSE, 6, mp::header::TRUE, 7, mp::header::FALSE, 8, mp::header::TRUE, 9, mp::header::FALSE, 10, mp::header::TRUE, 11, mp::header::FALSE, 12, mp::header::TRUE, 13, mp::header::FALSE, 14, mp::header::TRUE, 15, mp::header::FALSE};
   const size_t size = 16;
   mp::write_map_size(ss, size);
-  for (int i = 0; i != size; ++i) {
+  for (size_t i = 0; i != size; ++i) {
     mp::write_uint(ss, i);
     mp::write_bool(ss, (i % 2) == 0);
   }
@@ -409,7 +409,7 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_16) {
 
   bool b;
   uint64_t u;
-  for (int i = 0; i != size; ++i) {
+  for (size_t i = 0; i != size; ++i) {
     u = mp::read_uint(ss);
     BOOST_CHECK_EQUAL(u, i);
     b = mp::read_bool(ss);

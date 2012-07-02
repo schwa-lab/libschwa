@@ -268,6 +268,65 @@ namespace schwa {
       return x;
     }
 
+    inline int8_t
+    read_int_fixed(std::istream &in) {
+      int c = in.get();
+      assert((c & 0xE0) == 0xE0);
+      return static_cast<int8_t>(c & 0x1F);
+    }
+
+    inline int8_t
+    read_int_8(std::istream &in) {
+      int8_t x;
+      const int h = in.get();
+      assert(h == header::INT_8);
+      read_raw_8(in, &x);
+      return x;
+    }
+
+    inline int16_t
+    read_int_16(std::istream &in) {
+      int16_t x;
+      const int h = in.get();
+      assert(h == header::INT_16);
+      read_raw_16(in, &x);
+      return x;
+    }
+
+    inline int32_t
+    read_int_32(std::istream &in) {
+      int32_t x;
+      const int h = in.get();
+      assert(h == header::INT_32);
+      read_raw_32(in, &x);
+      return x;
+    }
+
+    inline int64_t
+    read_int_64(std::istream &in) {
+      int64_t x;
+      const int h = in.get();
+      assert(h == header::INT_64);
+      read_raw_64(in, &x);
+      return x;
+    }
+
+    inline int64_t
+    read_int(std::istream &in) {
+      const WireType type = peek_type(in);
+      switch (type) {
+      case WIRE_FIXNUM_NEGATIVE: return read_int_fixed(in);
+      case WIRE_FIXNUM_POSITIVE: return read_uint_fixed(in);
+      case WIRE_INT_8: return read_int_8(in);
+      case WIRE_INT_16: return read_int_16(in);
+      case WIRE_INT_32: return read_int_32(in);
+      case WIRE_INT_64: return read_int_64(in);
+      default:
+        assert(!"Did not find an int to read");
+        return 0;
+      }
+    }
+
     inline uint8_t
     read_uint_fixed(std::istream &in) {
       int c = in.get();
@@ -548,6 +607,8 @@ namespace schwa {
     write_int(std::ostream &out, const int64_t x) {
       if (x >= -32 && x <= -1)
         return write_int_fixed(out, static_cast<int8_t>(x));
+      else if (x >= 0 && x <= 127)
+        return write_uint_fixed(out, static_cast<uint8_t>(x));
       else if (x >= std::numeric_limits<int8_t>::min() && x <= std::numeric_limits<int8_t>::max())
         return write_int_8(out, static_cast<int8_t>(x));
       else if (x >= std::numeric_limits<int16_t>::min() && x <= std::numeric_limits<int16_t>::max())
