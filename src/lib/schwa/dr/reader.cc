@@ -73,7 +73,7 @@ Reader::read(Document &doc) {
         switch (key) {
         case 0: field_name = mp::read_raw(_in); break;
         case 1: store_id = mp::read_uint(_in); is_pointer = true; break;
-        case 2: is_slice = mp::read_boolean(_in); break;
+        case 2: is_slice = mp::read_bool(_in); break;
         default:
           std::stringstream ss;
           ss << "Unknown value " << static_cast<unsigned int>(key) << " as key in <field> map";
