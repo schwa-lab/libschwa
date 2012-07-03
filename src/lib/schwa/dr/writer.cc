@@ -7,7 +7,7 @@ namespace mp = schwa::msgpack;
 namespace schwa { namespace dr {
 
 static void
-write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_schema, const Document &doc, const BaseDocumentSchema &dschema) {
+write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_schema, const Doc &doc, const BaseDocSchema &dschema) {
   // <klass> ::= ( <klass_name>, <fields> )
   mp::write_array_size(out, 2);
 
@@ -52,7 +52,7 @@ write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_sch
 
 
 static void
-write_instance(std::ostream &out, const Document &doc, const BaseSchema &schema, const void *const obj) {
+write_instance(std::ostream &out, const Doc &doc, const BaseSchema &schema, const void *const obj) {
   std::stringstream ss;
   size_t nfields = 0;
   unsigned int key = 0;
@@ -70,7 +70,7 @@ write_instance(std::ostream &out, const Document &doc, const BaseSchema &schema,
 
 
 void
-Writer::write(const Document &doc) {
+Writer::write(const Doc &doc) {
   // map each of the types to their unique klass id within the header
   std::map<TypeInfo, size_t> typeid_map;
   std::map<TypeInfo, const BaseSchema *> schema_map;

@@ -3,23 +3,23 @@
 namespace schwa {
   namespace dr {
 
-    class BaseDocumentSchema;
-    class Document;
+    class BaseDocSchema;
+    class Doc;
 
 
     class Writer {
     protected:
       std::ostream &_out;
-      BaseDocumentSchema &_dschema;
+      BaseDocSchema &_dschema;
 
     public:
-      Writer(std::ostream &out, BaseDocumentSchema &dschema) : _out(out), _dschema(dschema) { }
+      Writer(std::ostream &out, BaseDocSchema &dschema) : _out(out), _dschema(dschema) { }
       ~Writer(void) { }
 
-      void write(const Document &doc);
+      void write(const Doc &doc);
 
       inline Writer &
-      operator <<(const Document &doc) {
+      operator <<(const Doc &doc) {
         write(doc);
         return *this;
       }

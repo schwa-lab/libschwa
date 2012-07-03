@@ -5,7 +5,7 @@
 using namespace schwa;
 
 
-class Token : public dr::Annotation {
+class Token : public dr::Ann {
 public:
   dr::Slice<uint64_t> slice;
   dr::Slice<Token *> slice2;
@@ -17,11 +17,11 @@ public:
 };
 
 
-class X : public dr::Annotation {
+class X : public dr::Ann {
 };
 
 
-class Doc : public dr::Document {
+class Doc : public dr::Doc {
 public:
   std::string filename;
   dr::Store<Token> tokens;
@@ -32,7 +32,7 @@ public:
 };
 
 
-class Token::Schema : public dr::AnnotationSchema<Token> {
+class Token::Schema : public dr::AnnSchema<Token> {
 public:
   DR_FIELD(&Token::slice) slice;
   DR_POINTER(&Token::slice2, &Doc::tokens) slice2;
@@ -41,7 +41,7 @@ public:
   DR_POINTER(&Token::parent, &Doc::tokens) parent;
 
   Schema(void) :
-    dr::AnnotationSchema<Token>("Token", "Some help text about Token", "Token"),
+    dr::AnnSchema<Token>("Token", "Some help text about Token", "Token"),
     slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
     slice2(*this, "slice2", "some help text about slice2", dr::LOAD_RO, "slice2"),
     raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
@@ -52,14 +52,14 @@ public:
 };
 
 
-class Doc::Schema : public dr::DocumentSchema<Doc> {
+class Doc::Schema : public dr::DocSchema<Doc> {
 public:
   DR_FIELD(&Doc::filename) filename;
   DR_STORE(&Doc::tokens) tokens;
   DR_STORE(&Doc::tokens2) tokens2;
 
   Schema(void) :
-    dr::DocumentSchema<Doc>("Document", "Some help text about this Document class"),
+    dr::DocSchema<Doc>("Doc", "Some help text about this Doc class"),
     filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
     tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens"),
     tokens2(*this, "tokens2", "some help text about Token2 store", dr::LOAD_RW, "tokens2")

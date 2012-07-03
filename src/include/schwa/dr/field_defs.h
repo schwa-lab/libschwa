@@ -47,7 +47,7 @@ namespace schwa {
     public:
       virtual ~BaseFieldDef(void) { }
 
-      virtual ptrdiff_t store_offset(const Document &) const { assert(!"this should never be invoked"); return -1; }
+      virtual ptrdiff_t store_offset(const Doc &) const { assert(!"this should never be invoked"); return -1; }
     };
 
 
@@ -58,13 +58,13 @@ namespace schwa {
     public:
       virtual ~BaseStoreDef(void) { }
 
-      virtual void resize(Document &doc, const size_t size) const = 0;
+      virtual void resize(Doc &doc, const size_t size) const = 0;
 
-      virtual size_t size(const Document &doc) const = 0;
-      virtual ptrdiff_t store_offset(const Document &) const = 0;
-      virtual void write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const = 0;
+      virtual size_t size(const Doc &doc) const = 0;
+      virtual ptrdiff_t store_offset(const Doc &) const = 0;
+      virtual void write(std::ostream &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Doc &, const BaseSchema &, const void *const)) const = 0;
 
-      virtual char *read_begin(Document &_doc) const = 0;
+      virtual char *read_begin(Doc &_doc) const = 0;
       virtual size_t read_size(void) const = 0;
     };
 
@@ -98,7 +98,7 @@ namespace schwa {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
       static_assert(boost::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
-      static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
+      static_assert(boost::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
       typedef R value_type;
       typedef T annotation_type;
       typedef S store_type;
@@ -114,7 +114,7 @@ namespace schwa {
       virtual ~FieldDefWithStore(void) { }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      ptrdiff_t store_offset(const Document &doc) const { return reinterpret_cast<const char *>(&(static_cast<const D &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      ptrdiff_t store_offset(const Doc &doc) const { return reinterpret_cast<const char *>(&(static_cast<const D &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
     };
 
 
@@ -124,26 +124,26 @@ namespace schwa {
     template <typename S, typename T, Store<S> T::*store_ptr>
     class StoreDef<Store<S> T::*, store_ptr> : public BaseStoreDef {
     public:
-      static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
+      static_assert(boost::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
       typedef S store_type;
 
     private:
       const TypeInfo _pointer_type;
 
     public:
-      StoreDef(BaseDocumentSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+      StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~StoreDef(void) { }
 
-      void resize(Document &doc, const size_t size) const { (static_cast<T &>(doc).*store_ptr).resize(size); }
+      void resize(Doc &doc, const size_t size) const { (static_cast<T &>(doc).*store_ptr).resize(size); }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      size_t size(const Document &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
-      ptrdiff_t store_offset(const Document &doc) const { return reinterpret_cast<const char *>(&(static_cast<const T &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      size_t size(const Doc &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
+      ptrdiff_t store_offset(const Doc &doc) const { return reinterpret_cast<const char *>(&(static_cast<const T &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
 
       char *
-      read_begin(Document &_doc) const {
+      read_begin(Doc &_doc) const {
         T &doc = static_cast<T &>(_doc);
         Store<S> &store = doc.*store_ptr;
         return reinterpret_cast<char *>(&store[0]);
@@ -151,16 +151,8 @@ namespace schwa {
 
       inline size_t read_size(void) const { return sizeof(S); }
 
-      //read(std::istream &in, Document &_doc, const BaseSchema &schema, void (*reader)(std::istream &, Document &, const BaseSchema &, void *const)) {
-        //namespace mp = schwa::msgpack;
-        //T &doc = static_cast<T &>(_doc);
-        //Store<S> &store = doc.*store_ptr;
-        //for (auto &obj : store)
-          //reader(in, _doc, schema, &obj);
-      //}
-
       void
-      write(std::ostream &out, const Document &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Document &, const BaseSchema &, const void *const)) const {
+      write(std::ostream &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Doc &, const BaseSchema &, const void *const)) const {
         namespace mp = schwa::msgpack;
         const T &doc = static_cast<const T &>(_doc);
         const Store<S> &store = doc.*store_ptr;
