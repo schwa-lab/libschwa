@@ -1,4 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <endian.h>
+
 
 namespace schwa {
   namespace msgpack {
@@ -141,42 +143,34 @@ namespace schwa {
     // Reading API implementations
     // ========================================================================
     template <typename T>
-    inline std::istream &
-    read_raw_8(std::istream &in, T *_x) {
+    inline void
+    read_bytes_8(std::istream &in, T *_x) {
       char *x = reinterpret_cast<char *>(_x);
-      return in.get(x[0]);
+      in.get(x[0]);
     }
 
     template <typename T>
-    inline std::istream &
-    read_raw_16(std::istream &in, T *_x) {
-      char *x = reinterpret_cast<char *>(_x);
-      in.get(x[1]);
-      return in.get(x[0]);
+    inline void
+    read_bytes_16(std::istream &in, T *_x) {
+      uint16_t x;
+      in.read(reinterpret_cast<char *>(&x), 2);
+      *_x = be16toh(x);
     }
 
     template <typename T>
-    inline std::istream &
-    read_raw_32(std::istream &in, T *_x) {
-      char *x = reinterpret_cast<char *>(_x);
-      in.get(x[3]);
-      in.get(x[2]);
-      in.get(x[1]);
-      return in.get(x[0]);
+    inline void
+    read_bytes_32(std::istream &in, T *_x) {
+      uint32_t x;
+      in.read(reinterpret_cast<char *>(&x), 4);
+      *_x = be32toh(x);
     }
 
     template <typename T>
-    inline std::istream &
-    read_raw_64(std::istream &in, T *_x) {
-      char *x = reinterpret_cast<char *>(_x);
-      in.get(x[7]);
-      in.get(x[6]);
-      in.get(x[5]);
-      in.get(x[4]);
-      in.get(x[3]);
-      in.get(x[2]);
-      in.get(x[1]);
-      return in.get(x[0]);
+    inline void
+    read_bytes_64(std::istream &in, T *_x) {
+      uint64_t x;
+      in.read(reinterpret_cast<char *>(&x), 8);
+      *_x = be64toh(x);
     }
 
     inline WireType
@@ -238,7 +232,7 @@ namespace schwa {
       float x;
       const int h = in.get();
       assert(h == header::FLOAT);
-      read_raw_32(in, &x);
+      read_bytes_32(in, &x);
       return x;
     }
 
@@ -247,7 +241,7 @@ namespace schwa {
       double x;
       const int h = in.get();
       assert(h == header::DOUBLE);
-      read_raw_64(in, &x);
+      read_bytes_64(in, &x);
       return x;
     }
 
@@ -263,7 +257,7 @@ namespace schwa {
       int8_t x;
       const int h = in.get();
       assert(h == header::INT_8);
-      read_raw_8(in, &x);
+      read_bytes_8(in, &x);
       return x;
     }
 
@@ -272,7 +266,7 @@ namespace schwa {
       int16_t x;
       const int h = in.get();
       assert(h == header::INT_16);
-      read_raw_16(in, &x);
+      read_bytes_16(in, &x);
       return x;
     }
 
@@ -281,7 +275,7 @@ namespace schwa {
       int32_t x;
       const int h = in.get();
       assert(h == header::INT_32);
-      read_raw_32(in, &x);
+      read_bytes_32(in, &x);
       return x;
     }
 
@@ -290,7 +284,7 @@ namespace schwa {
       int64_t x;
       const int h = in.get();
       assert(h == header::INT_64);
-      read_raw_64(in, &x);
+      read_bytes_64(in, &x);
       return x;
     }
 
@@ -322,7 +316,7 @@ namespace schwa {
       uint8_t x;
       const int h = in.get();
       assert(h == header::UINT_8);
-      read_raw_8(in, &x);
+      read_bytes_8(in, &x);
       return x;
     }
 
@@ -331,7 +325,7 @@ namespace schwa {
       uint16_t x;
       const int h = in.get();
       assert(h == header::UINT_16);
-      read_raw_16(in, &x);
+      read_bytes_16(in, &x);
       return x;
     }
 
@@ -340,7 +334,7 @@ namespace schwa {
       uint32_t x;
       const int h = in.get();
       assert(h == header::UINT_32);
-      read_raw_32(in, &x);
+      read_bytes_32(in, &x);
       return x;
     }
 
@@ -349,7 +343,7 @@ namespace schwa {
       uint64_t x;
       const int h = in.get();
       assert(h == header::UINT_64);
-      read_raw_64(in, &x);
+      read_bytes_64(in, &x);
       return x;
     }
 
@@ -375,8 +369,8 @@ namespace schwa {
       size_t size = 0;
       switch (type) {
       case WireType::ARRAY_FIXED: size = h & 0x0F; break;
-      case WireType::ARRAY_16: read_raw_16(in, &size); break;
-      case WireType::ARRAY_32: read_raw_32(in, &size); break;
+      case WireType::ARRAY_16: read_bytes_16(in, &size); break;
+      case WireType::ARRAY_32: read_bytes_32(in, &size); break;
       default:
         assert(!"header is not an array");
         return 0;
@@ -391,8 +385,8 @@ namespace schwa {
       size_t size = 0;
       switch (type) {
       case WireType::MAP_FIXED: size = h & 0x0F; break;
-      case WireType::MAP_16: read_raw_16(in, &size); break;
-      case WireType::MAP_32: read_raw_32(in, &size); break;
+      case WireType::MAP_16: read_bytes_16(in, &size); break;
+      case WireType::MAP_32: read_bytes_32(in, &size); break;
       default:
         assert(!"header is not a map");
         return 0;
@@ -408,8 +402,8 @@ namespace schwa {
 
       switch (type) {
       case WireType::RAW_FIXED: size = h & 0x1F; break;
-      case WireType::MAP_16: read_raw_16(in, &size); break;
-      case WireType::MAP_32: read_raw_32(in, &size); break;
+      case WireType::MAP_16: read_bytes_16(in, &size); break;
+      case WireType::MAP_32: read_bytes_32(in, &size); break;
       default:
         assert(!"header is not a raw");
         return 0;
@@ -427,52 +421,41 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     inline void
-    write_raw_8(std::ostream &out, const T _x) {
+    write_bytes_8(std::ostream &out, const T _x) {
       const unsigned char *x = reinterpret_cast<const unsigned char *>(&_x);
       out.put(x[0]);
     }
 
     template <typename T>
     inline void
-    write_raw_16(std::ostream &out, const T _x) {
-      const unsigned char *x = reinterpret_cast<const unsigned char *>(&_x);
-      out.put(x[1]);
-      out.put(x[0]);
+    write_bytes_16(std::ostream &out, const T _x) {
+      const uint16_t x = htobe16(static_cast<uint16_t>(_x));
+      out.write(reinterpret_cast<const char *>(&x), 2);
     }
 
     template <typename T>
     inline void
-    write_raw_32(std::ostream &out, const T _x) {
-      const unsigned char *x = reinterpret_cast<const unsigned char *>(&_x);
-      out.put(x[3]);
-      out.put(x[2]);
-      out.put(x[1]);
-      out.put(x[0]);
+    write_bytes_32(std::ostream &out, const T _x) {
+      const uint32_t x = htobe32(static_cast<uint32_t>(_x));
+      out.write(reinterpret_cast<const char *>(&x), 4);
     }
 
     template <typename T>
     inline void
-    write_raw_64(std::ostream &out, const T _x) {
-      const unsigned char *x = reinterpret_cast<const unsigned char *>(&_x);
-      out.put(x[7]);
-      out.put(x[6]);
-      out.put(x[5]);
-      out.put(x[4]);
-      out.put(x[3]);
-      out.put(x[2]);
-      out.put(x[1]);
-      out.put(x[0]);
+    write_bytes_64(std::ostream &out, const T _x) {
+      const uint64_t x = htobe64(static_cast<uint64_t>(_x));
+      out.write(reinterpret_cast<const char *>(&x), 8);
     }
 
-    inline void write_raw_uint8(std::ostream &out, const uint8_t x) { write_raw_8<uint8_t>(out, x); }
-    inline void write_raw_uint16(std::ostream &out, const uint16_t x) { write_raw_16<uint16_t>(out, x); }
-    inline void write_raw_uint32(std::ostream &out, const uint32_t x) { write_raw_32<uint32_t>(out, x); }
-    inline void write_raw_uint64(std::ostream &out, const uint64_t x) { write_raw_64<uint64_t>(out, x); }
+    inline void write_raw_uint8(std::ostream &out, const uint8_t x) { write_bytes_8<uint8_t>(out, x); }
+    inline void write_raw_uint16(std::ostream &out, const uint16_t x) { write_bytes_16<uint16_t>(out, x); }
+    inline void write_raw_uint32(std::ostream &out, const uint32_t x) { write_bytes_32<uint32_t>(out, x); }
+    inline void write_raw_uint64(std::ostream &out, const uint64_t x) { write_bytes_64<uint64_t>(out, x); }
 
-    inline void write_raw_int8(std::ostream &out, const int8_t x) { write_raw_8<int8_t>(out, x); }
-    inline void write_raw_int16(std::ostream &out, const int16_t x) { write_raw_16<int16_t>(out, x); }
-    inline void write_raw_int32(std::ostream &out, const int32_t x) { write_raw_32<int32_t>(out, x); }
-    inline void write_raw_int64(std::ostream &out, const int64_t x) { write_raw_64<int64_t>(out, x); }
+    inline void write_raw_int8(std::ostream &out, const int8_t x) { write_bytes_8<int8_t>(out, x); }
+    inline void write_raw_int16(std::ostream &out, const int16_t x) { write_bytes_16<int16_t>(out, x); }
+    inline void write_raw_int32(std::ostream &out, const int32_t x) { write_bytes_32<int32_t>(out, x); }
+    inline void write_raw_int64(std::ostream &out, const int64_t x) { write_bytes_64<int64_t>(out, x); }
 
     inline void
     write_uint_fixed(std::ostream &out, const uint8_t x) {
@@ -603,13 +586,13 @@ namespace schwa {
     inline void
     write_float(std::ostream &out, const float x) {
       out.put(header::FLOAT);
-      write_raw_32(out, x);
+      write_bytes_32(out, x);
     }
 
     inline void
     write_double(std::ostream &out, const double x) {
       out.put(header::DOUBLE);
-      write_raw_64(out, x);
+      write_bytes_64(out, x);
     }
 
     inline void
