@@ -97,7 +97,7 @@ namespace schwa {
     class FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
-      static_assert(boost::is_same<typename FieldTraits<R>::pointer_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
+      static_assert(boost::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
       static_assert(boost::is_base_of<Annotation, S>::value, "Store<T> type T must be a subclass of Annotation");
       typedef R value_type;
       typedef T annotation_type;
