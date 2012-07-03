@@ -30,7 +30,7 @@ namespace schwa {
     };
 
 
-    class Token::Schema : public dr::AnnSchema<Token> {
+    class Token::Schema : public dr::Ann::Schema<Token> {
     public:
       DR_FIELD(&Token::slice) slice;
       DR_FIELD(&Token::raw) raw;
@@ -41,7 +41,7 @@ namespace schwa {
     };
 
 
-    class Sent::Schema : public dr::AnnSchema<Sent> {
+    class Sent::Schema : public dr::Ann::Schema<Sent> {
     public:
       DR_POINTER(&Sent::slice, &Doc::tokens) slice;
 
@@ -50,7 +50,7 @@ namespace schwa {
     };
 
 
-    class Doc::Schema : public dr::DocSchema<Doc> {
+    class Doc::Schema : public dr::Doc::Schema<Doc> {
     public:
       DR_STORE(&Doc::tokens) tokens;
       DR_STORE(&Doc::sents) sents;

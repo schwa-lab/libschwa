@@ -78,7 +78,9 @@ namespace schwa {
       Ann(void) { }
       Ann(const Ann &) { }
       Ann(const Ann &&) { }
-      Ann&operator =(const Ann &) { return *this; }
+      Ann &operator =(const Ann &) { return *this; }
+
+      template <typename T> class Schema;
     };
 
 
@@ -86,6 +88,8 @@ namespace schwa {
     protected:
       Doc(void) { }
       Doc(const Doc &) = delete;
+
+      template <typename T> class Schema;
     };
 
 
@@ -157,22 +161,22 @@ namespace schwa {
     // Templated base schemas
     // ========================================================================
     template <typename T>
-    class AnnSchema : public BaseAnnSchema {
+    class Ann::Schema : public BaseAnnSchema {
     public:
       static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
 
-      AnnSchema(const std::string &name, const std::string &help, const std::string &serial) : BaseAnnSchema(name, help, serial, TypeInfo::create<T>()) { }
-      virtual ~AnnSchema(void) { }
+      Schema(const std::string &name, const std::string &help, const std::string &serial) : BaseAnnSchema(name, help, serial, TypeInfo::create<T>()) { }
+      virtual ~Schema(void) { }
     };
 
 
     template <typename D>
-    class DocSchema : public BaseDocSchema {
+    class Doc::Schema : public BaseDocSchema {
     public:
       static_assert(boost::is_base_of<Doc, D>::value, "D must be a subclass of Doc");
 
-      DocSchema(const std::string &name, const std::string &help) : BaseDocSchema(name, help, "", TypeInfo::create<D>()) { }
-      virtual ~DocSchema(void) { }
+      Schema(const std::string &name, const std::string &help) : BaseDocSchema(name, help, "", TypeInfo::create<D>()) { }
+      virtual ~Schema(void) { }
     };
 
   }
