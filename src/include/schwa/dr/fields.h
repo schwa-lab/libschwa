@@ -21,7 +21,8 @@ namespace schwa {
     template <typename T>
     class Pointer {
     public:
-      typedef T pointer_type;
+      typedef T value_type;
+      typedef T *pointer_type;
 
       T *ptr;
 
@@ -33,7 +34,8 @@ namespace schwa {
     template <typename T>
     class Pointers {
     public:
-      typedef T pointer_type;
+      typedef T value_type;
+      typedef T *pointer_type;
 
       std::vector<T *> items;
     };
@@ -136,14 +138,14 @@ namespace schwa {
 
     template <typename T>
     struct FieldTraits<Pointer<T>> {
-      typedef T pointer_type;
+      typedef T value_type;
       static constexpr bool is_dr_ptr_type = true;
       static constexpr bool is_slice = false;
     };
 
     template <typename T>
     struct FieldTraits<Pointers<T>> {
-      typedef T pointer_type;
+      typedef T value_type;
       static constexpr bool is_dr_ptr_type = true;
       static constexpr bool is_slice = false;
     };
@@ -157,7 +159,7 @@ namespace schwa {
     template <typename T>
     struct SliceFieldTraits<T, true> {
       static constexpr bool is_dr_ptr_type = true;
-      typedef typename boost::remove_pointer<T>::type pointer_type;
+      typedef typename boost::remove_pointer<T>::type value_type;
     };
 
     template <typename T>
