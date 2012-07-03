@@ -47,7 +47,7 @@ namespace schwa {
     template <typename T>
     class Store {
     public:
-      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       typedef std::vector<T> container_type;
       typedef typename container_type::const_reference const_reference;
       typedef typename container_type::const_iterator const_iterator;
@@ -119,7 +119,7 @@ namespace schwa {
     template <typename T>
     class Singleton {
     public:
-      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       T *ptr;
 
       Singleton(T *ptr=nullptr) : ptr(ptr) { }

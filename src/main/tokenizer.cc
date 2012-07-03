@@ -19,7 +19,7 @@ public:
   cfg::Op<size_t> input_buffer;
   dr::DocrepOpGroup dr;
 
-  Config(dr::BaseDocumentSchema &dschema) :
+  Config(dr::BaseDocSchema &dschema) :
     cfg::OpGroup("tok", "Schwa-Lab tokenizer"),
     input(*this, "input", "input filename"),
     output(*this, "output", "output filename"),

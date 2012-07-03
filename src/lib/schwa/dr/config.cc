@@ -45,7 +45,7 @@ DocrepFieldOp::validate(void) { }
 // ----------------------------------------------------------------------------
 // DocrepClassOp
 // ----------------------------------------------------------------------------
-DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseDocumentSchema &schema) : config::OptionBase(schema.name, schema.help), _schema(schema) {
+DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseDocSchema &schema) : config::OptionBase(schema.name, schema.help), _schema(schema) {
   group.add(this);
   for (auto &f : schema.fields())
     new DocrepFieldOp(*this, *f);
@@ -115,7 +115,7 @@ DocrepClassOp::validate(void) { }
 // ----------------------------------------------------------------------------
 // DocrepOpGroup
 // ----------------------------------------------------------------------------
-DocrepOpGroup::DocrepOpGroup(OpGroup &group, BaseDocumentSchema &dschema, const std::string &name, const std::string &desc) : config::OpGroup(group, name, desc), _dschema(dschema) {
+DocrepOpGroup::DocrepOpGroup(OpGroup &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) : config::OpGroup(group, name, desc), _dschema(dschema) {
   new DocrepClassOp(*this, dschema);
   for (auto &s : dschema.schemas())
     new DocrepClassOp(*this, *s);

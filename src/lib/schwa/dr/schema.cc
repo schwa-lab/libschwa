@@ -19,14 +19,14 @@ BaseSchema::dump(std::ostream &out) const {
 
 
 std::ostream &
-BaseAnnotationSchema::dump(std::ostream &out) const {
+BaseAnnSchema::dump(std::ostream &out) const {
   out << serial << ' ' << type << std::endl;
   return BaseSchema::dump(out);
 }
 
 
 std::ostream &
-BaseDocumentSchema::dump(std::ostream &out) const {
+BaseDocSchema::dump(std::ostream &out) const {
   out << "__meta__ " << type << std::endl;
   BaseSchema::dump(out);
   for (auto &schema : _schemas)

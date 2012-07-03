@@ -4,7 +4,7 @@
 namespace schwa {
   namespace dr {
 
-    class BaseAnnotationSchema;
+    class BaseAnnSchema;
     class BaseFieldDef;
     class BaseStoreDef;
 
@@ -73,46 +73,46 @@ namespace schwa {
     // ========================================================================
     // Base classes
     // ========================================================================
-    class Annotation {
+    class Ann {
     protected:
-      Annotation(void) { }
-      Annotation(const Annotation &) { }
-      Annotation(const Annotation &&) { }
-      Annotation &operator =(const Annotation &) { return *this; }
+      Ann(void) { }
+      Ann(const Ann &) { }
+      Ann(const Ann &&) { }
+      Ann&operator =(const Ann &) { return *this; }
     };
 
 
-    class Document {
+    class Doc {
     protected:
-      Document(void) { }
-      Document(const Document &) = delete;
+      Doc(void) { }
+      Doc(const Doc &) = delete;
     };
 
 
-    class BaseAnnotationSchema : public BaseSchema {
+    class BaseAnnSchema : public BaseSchema {
     protected:
-      BaseAnnotationSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
+      BaseAnnSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
 
     public:
-      virtual ~BaseAnnotationSchema(void) { }
+      virtual ~BaseAnnSchema(void) { }
 
       virtual std::ostream &dump(std::ostream &out) const;
     };
 
 
-    class BaseDocumentSchema : public BaseSchema {
+    class BaseDocSchema : public BaseSchema {
     public:
-      typedef std::vector<BaseAnnotationSchema *> schema_container;
+      typedef std::vector<BaseAnnSchema *> schema_container;
       typedef std::vector<BaseStoreDef *> store_container;
 
     protected:
       schema_container _schemas;
       store_container _stores;
 
-      BaseDocumentSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
+      BaseDocSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
 
     public:
-      virtual ~BaseDocumentSchema(void) {
+      virtual ~BaseDocSchema(void) {
         for (auto &s : _schemas)
           delete s;
       }
@@ -120,7 +120,7 @@ namespace schwa {
       template <typename T, T fn>
       inline void add(StoreDef<T, fn> *const store) {
         typedef typename StoreDef<T, fn>::store_type::Schema S;
-        static_assert(boost::is_base_of<BaseAnnotationSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnotationSchema");
+        static_assert(boost::is_base_of<BaseAnnSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnSchema");
 
         _stores.push_back(store);
 
@@ -137,7 +137,7 @@ namespace schwa {
       template <typename T>
       inline typename T::Schema &
       types(void) const {
-        static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+        static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
         const TypeInfo type = TypeInfo::create<T>();
         for (auto &it : _schemas)
           if (it->type == type)
@@ -157,22 +157,22 @@ namespace schwa {
     // Templated base schemas
     // ========================================================================
     template <typename T>
-    class AnnotationSchema : public BaseAnnotationSchema {
+    class AnnSchema : public BaseAnnSchema {
     public:
-      static_assert(boost::is_base_of<Annotation, T>::value, "T must be a subclass of Annotation");
+      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
 
-      AnnotationSchema(const std::string &name, const std::string &help, const std::string &serial) : BaseAnnotationSchema(name, help, serial, TypeInfo::create<T>()) { }
-      virtual ~AnnotationSchema(void) { }
+      AnnSchema(const std::string &name, const std::string &help, const std::string &serial) : BaseAnnSchema(name, help, serial, TypeInfo::create<T>()) { }
+      virtual ~AnnSchema(void) { }
     };
 
 
     template <typename D>
-    class DocumentSchema : public BaseDocumentSchema {
+    class DocSchema : public BaseDocSchema {
     public:
-      static_assert(boost::is_base_of<Document, D>::value, "D must be a subclass of Document");
+      static_assert(boost::is_base_of<Doc, D>::value, "D must be a subclass of Doc");
 
-      DocumentSchema(const std::string &name, const std::string &help) : BaseDocumentSchema(name, help, "", TypeInfo::create<D>()) { }
-      virtual ~DocumentSchema(void) { }
+      DocSchema(const std::string &name, const std::string &help) : BaseDocSchema(name, help, "", TypeInfo::create<D>()) { }
+      virtual ~DocSchema(void) { }
     };
 
   }

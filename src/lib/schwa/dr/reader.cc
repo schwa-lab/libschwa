@@ -8,7 +8,7 @@ namespace schwa { namespace dr {
 
 
 Reader &
-Reader::read(Document &doc) {
+Reader::read(Doc &doc) {
   if (_in.peek() == EOF || _in.eof()) {
     _has_more = false;
     return *this;
@@ -136,7 +136,7 @@ Reader::read(Document &doc) {
     const size_t klass_id = mp::read_uint(_in);
     const size_t nitems = mp::read_uint(_in);
 
-    // lookup the store on the Document class
+    // lookup the store on the Doc class
     const BaseStoreDef *store = nullptr;
     for (auto &s : _dschema.stores()) {
       if (s->serial == store_name) {

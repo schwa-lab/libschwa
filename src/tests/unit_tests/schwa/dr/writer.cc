@@ -12,19 +12,19 @@ namespace mp = schwa::msgpack;
 
 // ============================================================================
 // ============================================================================
-class DocWithField : public dr::Document {
+class DocWithField : public dr::Doc {
 public:
   std::string name;
 
   class Schema;
 };
 
-class DocWithField::Schema : public dr::DocumentSchema<DocWithField> {
+class DocWithField::Schema : public dr::DocSchema<DocWithField> {
 public:
   DR_FIELD(&DocWithField::name) name;
 
   Schema(void) :
-    dr::DocumentSchema<DocWithField>("Document", "Some help text about this Document class"),
+    dr::DocSchema<DocWithField>("Doc", "Some help text about this Doc class"),
     name(*this, "name", "some help text about name", dr::LOAD_RW, "name")
     { }
   virtual ~Schema(void) { }
@@ -33,19 +33,19 @@ public:
 
 // ============================================================================
 // ============================================================================
-class DocWithFieldWithSerial : public dr::Document {
+class DocWithFieldWithSerial : public dr::Doc {
 public:
   std::string name;
 
   class Schema;
 };
 
-class DocWithFieldWithSerial::Schema : public dr::DocumentSchema<DocWithFieldWithSerial> {
+class DocWithFieldWithSerial::Schema : public dr::DocSchema<DocWithFieldWithSerial> {
 public:
   DR_FIELD(&DocWithFieldWithSerial::name) name;
 
   Schema(void) :
-    dr::DocumentSchema<DocWithFieldWithSerial>("Document", "Some help text about this Document class"),
+    dr::DocSchema<DocWithFieldWithSerial>("Doc", "Some help text about this Doc class"),
     name(*this, "name", "some help text about name", dr::LOAD_RW, "filename")
     { }
   virtual ~Schema(void) { }
@@ -54,7 +54,7 @@ public:
 
 // ============================================================================
 // ============================================================================
-class A : public dr::Annotation {
+class A : public dr::Ann {
 public:
   std::string v_str;
   uint8_t v_uint8;
@@ -65,14 +65,14 @@ public:
   class Schema;
 };
 
-class Y : public dr::Annotation {
+class Y : public dr::Ann {
 public:
   dr::Pointer<A> p;
 
   class Schema;
 };
 
-class Z : public dr::Annotation {
+class Z : public dr::Ann {
 public:
   dr::Pointer<A> p;
   bool value;
@@ -82,14 +82,14 @@ public:
   class Schema;
 };
 
-class DocWithA : public dr::Document {
+class DocWithA : public dr::Doc {
 public:
   dr::Store<A> as;
 
   class Schema;
 };
 
-class DocWithAYZ : public dr::Document {
+class DocWithAYZ : public dr::Doc {
 public:
   dr::Store<A> as;
   dr::Store<Y> ys;
@@ -98,25 +98,25 @@ public:
   class Schema;
 };
 
-class DocWithA::Schema : public dr::DocumentSchema<DocWithA> {
+class DocWithA::Schema : public dr::DocSchema<DocWithA> {
 public:
   DR_STORE(&DocWithA::as) as;
 
   Schema(void) :
-    dr::DocumentSchema<DocWithA>("Document", "Some help text about this Document class"),
+    dr::DocSchema<DocWithA>("Doc", "Some help text about this Doc class"),
     as(*this, "as", "some help text about as", dr::LOAD_RW, "as")
     { }
   virtual ~Schema(void) { }
 };
 
-class DocWithAYZ::Schema : public dr::DocumentSchema<DocWithAYZ> {
+class DocWithAYZ::Schema : public dr::DocSchema<DocWithAYZ> {
 public:
   DR_STORE(&DocWithAYZ::as) as;
   DR_STORE(&DocWithAYZ::ys) ys;
   DR_STORE(&DocWithAYZ::zs) zs;
 
   Schema(void) :
-    dr::DocumentSchema<DocWithAYZ>("Document", "Some help text about this Document class"),
+    dr::DocSchema<DocWithAYZ>("Doc", "Some help text about this Doc class"),
     as(*this, "as", "some help text about as", dr::LOAD_RW, "as"),
     ys(*this, "ys", "some help text about ys", dr::LOAD_RW, "ys"),
     zs(*this, "zs", "some help text about zs", dr::LOAD_RW, "zs")
@@ -124,14 +124,14 @@ public:
   virtual ~Schema(void) { }
 };
 
-class A::Schema : public dr::AnnotationSchema<A> {
+class A::Schema : public dr::AnnSchema<A> {
 public:
   DR_FIELD(&A::v_str) v_str;
   DR_FIELD(&A::v_uint8) v_uint8;
   DR_FIELD(&A::v_bool) v_bool;
 
   Schema(void) :
-    dr::AnnotationSchema<A>("A", "Some help text about A", "A"),
+    dr::AnnSchema<A>("A", "Some help text about A", "A"),
     v_str(*this, "v_str", "some help text about v_str", dr::LOAD_RW, "v_str"),
     v_uint8(*this, "v_uint8", "some help text about v_uint8", dr::LOAD_RW, "v_uint8"),
     v_bool(*this, "v_bool", "some help text about v_bool", dr::LOAD_RW, "v_bool")
@@ -139,24 +139,24 @@ public:
   virtual ~Schema(void) { }
 };
 
-class Y::Schema : public dr::AnnotationSchema<Y> {
+class Y::Schema : public dr::AnnSchema<Y> {
 public:
   DR_POINTER(&Y::p, &DocWithAYZ::as) p;
 
   Schema(void) :
-    dr::AnnotationSchema<Y>("Y", "Some help text about Y", "Y"),
+    dr::AnnSchema<Y>("Y", "Some help text about Y", "Y"),
     p(*this, "p", "some help text about p", dr::LOAD_RW, "p")
     { }
   virtual ~Schema(void) { }
 };
 
-class Z::Schema : public dr::AnnotationSchema<Z> {
+class Z::Schema : public dr::AnnSchema<Z> {
 public:
   DR_POINTER(&Z::p, &DocWithAYZ::as) p;
   DR_FIELD(&Z::value) value;
 
   Schema(void) :
-    dr::AnnotationSchema<Z>("Z", "Some help text about Z", "Z"),
+    dr::AnnSchema<Z>("Z", "Some help text about Z", "Z"),
     p(*this, "p", "some help text about p", dr::LOAD_RW, "p"),
     value(*this, "value", "some help text about value", dr::LOAD_RW, "value")
     { }
