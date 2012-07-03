@@ -63,28 +63,28 @@ namespace schwa {
     inline std::string read_raw(std::istream &in);
 
     inline int8_t   read_int_fixed(std::istream &in);
-    inline int8_t   read_int_8(std::istream &in);
-    inline int16_t  read_int_16(std::istream &in);
-    inline int32_t  read_int_32(std::istream &in);
-    inline int64_t  read_int_64(std::istream &in);
+    inline int8_t   read_int8(std::istream &in);
+    inline int16_t  read_int16(std::istream &in);
+    inline int32_t  read_int32(std::istream &in);
+    inline int64_t  read_int64(std::istream &in);
 
     inline uint8_t  read_uint_fixed(std::istream &in);
-    inline uint8_t  read_uint_8(std::istream &in);
-    inline uint16_t read_uint_16(std::istream &in);
-    inline uint32_t read_uint_32(std::istream &in);
-    inline uint64_t read_uint_64(std::istream &in);
+    inline uint8_t  read_uint8(std::istream &in);
+    inline uint16_t read_uint16(std::istream &in);
+    inline uint32_t read_uint32(std::istream &in);
+    inline uint64_t read_uint64(std::istream &in);
 
     template <typename T>
     inline void read(std::istream &in, T &val);
 
-    template <> inline void read(std::istream &in, int8_t &val) { val = read_int_8(in); }
-    template <> inline void read(std::istream &in, int16_t &val) { val = read_int_16(in); }
-    template <> inline void read(std::istream &in, int32_t &val) { val = read_int_32(in); }
-    template <> inline void read(std::istream &in, int64_t &val) { val = read_int_64(in); }
-    template <> inline void read(std::istream &in, uint8_t &val) { val = read_uint_8(in); }
-    template <> inline void read(std::istream &in, uint16_t &val) { val = read_uint_16(in); }
-    template <> inline void read(std::istream &in, uint32_t &val) { val = read_uint_32(in); }
-    template <> inline void read(std::istream &in, uint64_t &val) { val = read_uint_64(in); }
+    template <> inline void read(std::istream &in, int8_t &val) { val = read_int8(in); }
+    template <> inline void read(std::istream &in, int16_t &val) { val = read_int16(in); }
+    template <> inline void read(std::istream &in, int32_t &val) { val = read_int32(in); }
+    template <> inline void read(std::istream &in, int64_t &val) { val = read_int64(in); }
+    template <> inline void read(std::istream &in, uint8_t &val) { val = read_uint8(in); }
+    template <> inline void read(std::istream &in, uint16_t &val) { val = read_uint16(in); }
+    template <> inline void read(std::istream &in, uint32_t &val) { val = read_uint32(in); }
+    template <> inline void read(std::istream &in, uint64_t &val) { val = read_uint64(in); }
     template <> inline void read(std::istream &in, float &val) { val = read_float(in); }
     template <> inline void read(std::istream &in, double &val) { val = read_double(in); }
     template <> inline void read(std::istream &in, bool &val) { val = read_bool(in); }
@@ -108,29 +108,29 @@ namespace schwa {
     inline void write_raw(std::ostream &out, const char *const data, const size_t size);
 
     inline void write_int_fixed(std::ostream &out, const int8_t x);
-    inline void write_int_8(std::ostream &out, const int8_t x);
-    inline void write_int_16(std::ostream &out, const int16_t x);
-    inline void write_int_32(std::ostream &out, const int32_t x);
-    inline void write_int_64(std::ostream &out, const int64_t x);
+    inline void write_int8(std::ostream &out, const int8_t x);
+    inline void write_int16(std::ostream &out, const int16_t x);
+    inline void write_int32(std::ostream &out, const int32_t x);
+    inline void write_int64(std::ostream &out, const int64_t x);
 
     inline void write_uint_fixed(std::ostream &out, const uint8_t x);
-    inline void write_uint_8(std::ostream &out, const uint8_t x);
-    inline void write_uint_16(std::ostream &out, const uint16_t x);
-    inline void write_uint_32(std::ostream &out, const uint32_t x);
-    inline void write_uint_64(std::ostream &out, const uint64_t x);
+    inline void write_uint8(std::ostream &out, const uint8_t x);
+    inline void write_uint16(std::ostream &out, const uint16_t x);
+    inline void write_uint32(std::ostream &out, const uint32_t x);
+    inline void write_uint64(std::ostream &out, const uint64_t x);
 
 
     template <typename T>
     inline void write(std::ostream &out, const T &val);
 
-    template <> inline void write(std::ostream &out, const int8_t &val) { return write_int_8(out, val); }
-    template <> inline void write(std::ostream &out, const int16_t &val) { return write_int_16(out, val); }
-    template <> inline void write(std::ostream &out, const int32_t &val) { return write_int_32(out, val); }
-    template <> inline void write(std::ostream &out, const int64_t &val) { return write_int_64(out, val); }
-    template <> inline void write(std::ostream &out, const uint8_t &val) { return write_uint_8(out, val); }
-    template <> inline void write(std::ostream &out, const uint16_t &val) { return write_uint_16(out, val); }
-    template <> inline void write(std::ostream &out, const uint32_t &val) { return write_uint_32(out, val); }
-    template <> inline void write(std::ostream &out, const uint64_t &val) { return write_uint_64(out, val); }
+    template <> inline void write(std::ostream &out, const int8_t &val) { return write_int8(out, val); }
+    template <> inline void write(std::ostream &out, const int16_t &val) { return write_int16(out, val); }
+    template <> inline void write(std::ostream &out, const int32_t &val) { return write_int32(out, val); }
+    template <> inline void write(std::ostream &out, const int64_t &val) { return write_int64(out, val); }
+    template <> inline void write(std::ostream &out, const uint8_t &val) { return write_uint8(out, val); }
+    template <> inline void write(std::ostream &out, const uint16_t &val) { return write_uint16(out, val); }
+    template <> inline void write(std::ostream &out, const uint32_t &val) { return write_uint32(out, val); }
+    template <> inline void write(std::ostream &out, const uint64_t &val) { return write_uint64(out, val); }
     template <> inline void write(std::ostream &out, const float &val) { return write_float(out, val); }
     template <> inline void write(std::ostream &out, const double &val) { return write_double(out, val); }
     template <> inline void write(std::ostream &out, const bool &val) { return write_bool(out, val); }
@@ -251,7 +251,7 @@ namespace schwa {
     }
 
     inline int8_t
-    read_int_8(std::istream &in) {
+    read_int8(std::istream &in) {
       int8_t x;
       const int h = in.get();
       assert(h == header::INT_8);
@@ -260,7 +260,7 @@ namespace schwa {
     }
 
     inline int16_t
-    read_int_16(std::istream &in) {
+    read_int16(std::istream &in) {
       int16_t x;
       const int h = in.get();
       assert(h == header::INT_16);
@@ -269,7 +269,7 @@ namespace schwa {
     }
 
     inline int32_t
-    read_int_32(std::istream &in) {
+    read_int32(std::istream &in) {
       int32_t x;
       const int h = in.get();
       assert(h == header::INT_32);
@@ -278,7 +278,7 @@ namespace schwa {
     }
 
     inline int64_t
-    read_int_64(std::istream &in) {
+    read_int64(std::istream &in) {
       int64_t x;
       const int h = in.get();
       assert(h == header::INT_64);
@@ -292,10 +292,10 @@ namespace schwa {
       switch (type) {
       case WireType::FIXNUM_NEGATIVE: return read_int_fixed(in);
       case WireType::FIXNUM_POSITIVE: return read_uint_fixed(in);
-      case WireType::INT_8: return read_int_8(in);
-      case WireType::INT_16: return read_int_16(in);
-      case WireType::INT_32: return read_int_32(in);
-      case WireType::INT_64: return read_int_64(in);
+      case WireType::INT_8: return read_int8(in);
+      case WireType::INT_16: return read_int16(in);
+      case WireType::INT_32: return read_int32(in);
+      case WireType::INT_64: return read_int64(in);
       default:
         assert(!"Did not find an int to read");
         return 0;
@@ -310,7 +310,7 @@ namespace schwa {
     }
 
     inline uint8_t
-    read_uint_8(std::istream &in) {
+    read_uint8(std::istream &in) {
       uint8_t x;
       const int h = in.get();
       assert(h == header::UINT_8);
@@ -319,7 +319,7 @@ namespace schwa {
     }
 
     inline uint16_t
-    read_uint_16(std::istream &in) {
+    read_uint16(std::istream &in) {
       uint16_t x;
       const int h = in.get();
       assert(h == header::UINT_16);
@@ -328,7 +328,7 @@ namespace schwa {
     }
 
     inline uint32_t
-    read_uint_32(std::istream &in) {
+    read_uint32(std::istream &in) {
       uint32_t x;
       const int h = in.get();
       assert(h == header::UINT_32);
@@ -337,7 +337,7 @@ namespace schwa {
     }
 
     inline uint64_t
-    read_uint_64(std::istream &in) {
+    read_uint64(std::istream &in) {
       uint64_t x;
       const int h = in.get();
       assert(h == header::UINT_64);
@@ -350,10 +350,10 @@ namespace schwa {
       const WireType type = peek_type(in);
       switch (type) {
       case WireType::FIXNUM_POSITIVE: return read_uint_fixed(in);
-      case WireType::UINT_8: return read_uint_8(in);
-      case WireType::UINT_16: return read_uint_16(in);
-      case WireType::UINT_32: return read_uint_32(in);
-      case WireType::UINT_64: return read_uint_64(in);
+      case WireType::UINT_8: return read_uint8(in);
+      case WireType::UINT_16: return read_uint16(in);
+      case WireType::UINT_32: return read_uint32(in);
+      case WireType::UINT_64: return read_uint64(in);
       default:
         assert(!"Did not find a uint to read");
         return 0;
@@ -479,25 +479,25 @@ namespace schwa {
     }
 
     inline void
-    write_uint_8(std::ostream &out, const uint8_t x) {
+    write_uint8(std::ostream &out, const uint8_t x) {
       out.put(header::UINT_8);
       write_raw_uint8(out, x);
     }
 
     inline void
-    write_uint_16(std::ostream &out, const uint16_t x) {
+    write_uint16(std::ostream &out, const uint16_t x) {
       out.put(header::UINT_16);
       write_raw_uint16(out, x);
     }
 
     inline void
-    write_uint_32(std::ostream &out, const uint32_t x) {
+    write_uint32(std::ostream &out, const uint32_t x) {
       out.put(header::UINT_32);
       write_raw_uint32(out, x);
     }
 
     inline void
-    write_uint_64(std::ostream &out, const uint64_t x) {
+    write_uint64(std::ostream &out, const uint64_t x) {
       out.put(header::UINT_64);
       write_raw_uint64(out, x);
     }
@@ -508,25 +508,25 @@ namespace schwa {
     }
 
     inline void
-    write_int_8(std::ostream &out, const int8_t x) {
+    write_int8(std::ostream &out, const int8_t x) {
       out.put(header::INT_8);
       write_raw_int8(out, x);
     }
 
     inline void
-    write_int_16(std::ostream &out, const int16_t x) {
+    write_int16(std::ostream &out, const int16_t x) {
       out.put(header::INT_16);
       write_raw_int16(out, x);
     }
 
     inline void
-    write_int_32(std::ostream &out, const int32_t x) {
+    write_int32(std::ostream &out, const int32_t x) {
       out.put(header::INT_32);
       write_raw_int32(out, x);
     }
 
     inline void
-    write_int_64(std::ostream &out, const int64_t x) {
+    write_int64(std::ostream &out, const int64_t x) {
       out.put(header::INT_64);
       write_raw_int64(out, x);
     }
@@ -574,13 +574,13 @@ namespace schwa {
       if (x <= 127)
         write_uint_fixed(out, static_cast<uint8_t>(x));
       else if (x <= std::numeric_limits<uint8_t>::max())
-        write_uint_8(out, static_cast<uint8_t>(x));
+        write_uint8(out, static_cast<uint8_t>(x));
       else if (x <= std::numeric_limits<uint16_t>::max())
-        write_uint_16(out, static_cast<uint16_t>(x));
+        write_uint16(out, static_cast<uint16_t>(x));
       else if (x <= std::numeric_limits<uint32_t>::max())
-        write_uint_32(out, static_cast<uint32_t>(x));
+        write_uint32(out, static_cast<uint32_t>(x));
       else
-        write_uint_64(out, x);
+        write_uint64(out, x);
     }
 
     inline void
@@ -590,13 +590,13 @@ namespace schwa {
       else if (x >= 0 && x <= 127)
         write_uint_fixed(out, static_cast<uint8_t>(x));
       else if (x >= std::numeric_limits<int8_t>::min() && x <= std::numeric_limits<int8_t>::max())
-        write_int_8(out, static_cast<int8_t>(x));
+        write_int8(out, static_cast<int8_t>(x));
       else if (x >= std::numeric_limits<int16_t>::min() && x <= std::numeric_limits<int16_t>::max())
-        write_int_16(out, static_cast<int16_t>(x));
+        write_int16(out, static_cast<int16_t>(x));
       else if (x >= std::numeric_limits<int32_t>::min() && x <= std::numeric_limits<int32_t>::max())
-        write_int_32(out, static_cast<int32_t>(x));
+        write_int32(out, static_cast<int32_t>(x));
       else
-        write_int_64(out, x);
+        write_int64(out, x);
     }
 
     inline void
