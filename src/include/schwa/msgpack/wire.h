@@ -364,52 +364,70 @@ namespace schwa {
     read_array_size(std::istream &in) {
       const WireType type = peek_type(in);
       const int h = in.get();
-      size_t size = 0;
+      uint16_t s16;
+      uint32_t s32;
       switch (type) {
-      case WireType::ARRAY_FIXED: size = h & 0x0F; break;
-      case WireType::ARRAY_16: read_bytes_16(in, &size); break;
-      case WireType::ARRAY_32: read_bytes_32(in, &size); break;
+      case WireType::ARRAY_FIXED:
+        return h & 0x0F;
+      case WireType::ARRAY_16:
+        read_bytes_16(in, &s16);
+        return s16;
+      case WireType::ARRAY_32:
+        read_bytes_32(in, &s32);
+        return s32;
       default:
         assert(!"header is not an array");
         return 0;
       }
-      return size;
     }
 
     inline size_t
     read_map_size(std::istream &in) {
       const WireType type = peek_type(in);
       const int h = in.get();
-      size_t size = 0;
+      uint16_t s16;
+      uint32_t s32;
       switch (type) {
-      case WireType::MAP_FIXED: size = h & 0x0F; break;
-      case WireType::MAP_16: read_bytes_16(in, &size); break;
-      case WireType::MAP_32: read_bytes_32(in, &size); break;
+      case WireType::MAP_FIXED:
+        return h & 0x0F;
+      case WireType::MAP_16:
+        read_bytes_16(in, &s16);
+        return s16;
+      case WireType::MAP_32:
+        read_bytes_32(in, &s32);
+        return s32;
       default:
         assert(!"header is not a map");
         return 0;
       }
-      return size;
     }
 
     inline std::string
     read_raw(std::istream &in) {
       const WireType type = peek_type(in);
       const int h = in.get();
-      size_t size = 0;
+      uint16_t s16;
+      uint32_t s32;
 
       switch (type) {
-      case WireType::RAW_FIXED: size = h & 0x1F; break;
-      case WireType::MAP_16: read_bytes_16(in, &size); break;
-      case WireType::MAP_32: read_bytes_32(in, &size); break;
+      case WireType::RAW_FIXED:
+        s32 = h & 0x1F;
+        break;
+      case WireType::MAP_16:
+        read_bytes_16(in, &s16);
+        s32 = s16;
+        break;
+      case WireType::MAP_32:
+        read_bytes_32(in, &s32);
+        break;
       default:
         assert(!"header is not a raw");
-        return 0;
+        return "";
       }
 
       std::string s;
-      s.resize(size);
-      in.read(&s[0], size);
+      s.resize(s32);
+      in.read(&s[0], s32);
       return s;
     }
 
