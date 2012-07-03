@@ -1,5 +1,4 @@
 #include <schwa/base.h>
-#include <schwa/port.h>
 
 #include "test_utils.h"
 

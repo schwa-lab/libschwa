@@ -1,6 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <endian.h>
-
 
 namespace schwa {
   namespace msgpack {
@@ -154,7 +152,7 @@ namespace schwa {
     read_bytes_16(std::istream &in, T *_x) {
       uint16_t x;
       in.read(reinterpret_cast<char *>(&x), 2);
-      *_x = be16toh(x);
+      *_x = port::be16_to_h(x);
     }
 
     template <typename T>
@@ -162,7 +160,7 @@ namespace schwa {
     read_bytes_32(std::istream &in, T *_x) {
       uint32_t x;
       in.read(reinterpret_cast<char *>(&x), 4);
-      *_x = be32toh(x);
+      *_x = port::be32_to_h(x);
     }
 
     template <typename T>
@@ -170,7 +168,7 @@ namespace schwa {
     read_bytes_64(std::istream &in, T *_x) {
       uint64_t x;
       in.read(reinterpret_cast<char *>(&x), 8);
-      *_x = be64toh(x);
+      *_x = port::be64_to_h(x);
     }
 
     inline WireType
@@ -429,21 +427,21 @@ namespace schwa {
     template <typename T>
     inline void
     write_bytes_16(std::ostream &out, const T _x) {
-      const uint16_t x = htobe16(static_cast<uint16_t>(_x));
+      const uint16_t x = port::h_to_be16(static_cast<uint16_t>(_x));
       out.write(reinterpret_cast<const char *>(&x), 2);
     }
 
     template <typename T>
     inline void
     write_bytes_32(std::ostream &out, const T _x) {
-      const uint32_t x = htobe32(static_cast<uint32_t>(_x));
+      const uint32_t x = port::h_to_be32(static_cast<uint32_t>(_x));
       out.write(reinterpret_cast<const char *>(&x), 4);
     }
 
     template <typename T>
     inline void
     write_bytes_64(std::ostream &out, const T _x) {
-      const uint64_t x = htobe64(static_cast<uint64_t>(_x));
+      const uint64_t x = port::h_to_be64(static_cast<uint64_t>(_x));
       out.write(reinterpret_cast<const char *>(&x), 8);
     }
 
