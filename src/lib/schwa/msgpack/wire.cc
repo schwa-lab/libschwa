@@ -9,7 +9,7 @@ static constexpr WireType FP = WireType::FIXNUM_POSITIVE;
 static constexpr WireType AF = WireType::ARRAY_FIXED;
 static constexpr WireType MF = WireType::MAP_FIXED;
 static constexpr WireType RF = WireType::RAW_FIXED;
-constexpr WireType TABLE[256] = {
+const WireType TABLE[256] = {
   FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP,
   FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP,
   FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP,
