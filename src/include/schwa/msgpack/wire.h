@@ -104,6 +104,7 @@ namespace schwa {
     template <> inline void read(std::istream &in, bool &val) { val = read_bool(in); }
     template <> inline void read(std::istream &in, std::string &val) { val = read_raw(in); }
 
+    bool read_lazy(std::istream &in, std::ostream &out, WireType &type);
 
     // ========================================================================
     // Writing API
