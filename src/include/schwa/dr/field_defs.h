@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <boost/typeof/typeof.hpp>
 
 namespace schwa {
   namespace dr {
@@ -165,9 +164,9 @@ namespace schwa {
     };
 
 
-    #define DR_FIELD(member_obj_ptr) schwa::dr::FieldDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
-    #define DR_POINTER(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr, BOOST_TYPEOF(store_obj_ptr), store_obj_ptr>
-    #define DR_STORE(member_obj_ptr) schwa::dr::StoreDef<BOOST_TYPEOF(member_obj_ptr), member_obj_ptr>
+    #define DR_FIELD(member_obj_ptr) schwa::dr::FieldDef<decltype(member_obj_ptr), member_obj_ptr>
+    #define DR_POINTER(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<decltype(member_obj_ptr), member_obj_ptr, decltype(store_obj_ptr), store_obj_ptr>
+    #define DR_STORE(member_obj_ptr) schwa::dr::StoreDef<decltype(member_obj_ptr), member_obj_ptr>
 
   }
 }
