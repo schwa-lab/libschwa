@@ -18,7 +18,7 @@
 
 #define BYTES_READ_HEADER_CHECK(value) \
   ss.seekg(0); \
-  BOOST_REQUIRE_EQUAL(mp::peek_type(ss), value)
+  BOOST_REQUIRE_EQUAL(mp::header_type(ss.peek()), value)
 
 #define BYTES_CONSUMED_CHECK() \
   BOOST_CHECK_EQUAL(ss.tellg(), sizeof(expected)/sizeof(uint8_t))

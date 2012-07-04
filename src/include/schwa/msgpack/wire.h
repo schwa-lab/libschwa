@@ -18,6 +18,8 @@ namespace schwa {
 
     inline std::ostream &operator <<(std::ostream &out, const WireType &t) { return out << static_cast<uint8_t>(t); }
 
+    extern const WireType TABLE[256];
+
 
     namespace header {
       static const unsigned char MAP_FIXED   = 0x80;
@@ -48,7 +50,7 @@ namespace schwa {
     // ========================================================================
     // Reading API
     // ========================================================================
-    inline WireType peek_type(std::istream &in);
+    inline WireType header_type(const int header);
 
     inline void     read_nil(std::istream &in);
     inline bool     read_bool(std::istream &in);
@@ -61,6 +63,18 @@ namespace schwa {
     inline size_t   read_map_size(std::istream &in);
 
     inline std::string read_raw(std::istream &in);
+
+    inline int8_t   read_val_int_fixed(const int h);
+    inline int8_t   read_val_int8(std::istream &in);
+    inline int16_t  read_val_int16(std::istream &in);
+    inline int32_t  read_val_int32(std::istream &in);
+    inline int64_t  read_val_int64(std::istream &in);
+
+    inline uint8_t  read_val_uint_fixed(const int h);
+    inline uint8_t  read_val_uint8(std::istream &in);
+    inline uint16_t read_val_uint16(std::istream &in);
+    inline uint32_t read_val_uint32(std::istream &in);
+    inline uint64_t read_val_uint64(std::istream &in);
 
     inline int8_t   read_int_fixed(std::istream &in);
     inline int8_t   read_int8(std::istream &in);
@@ -142,70 +156,41 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     inline void
-    read_bytes_8(std::istream &in, T *_x) {
-      char *x = reinterpret_cast<char *>(_x);
-      in.get(x[0]);
+    read_bytes8(std::istream &in, T &x) {
+      uint8_t tmp;
+      in.read(reinterpret_cast<char *>(&tmp), 1);
+      x = tmp;
     }
 
     template <typename T>
     inline void
-    read_bytes_16(std::istream &in, T *_x) {
-      uint16_t x;
-      in.read(reinterpret_cast<char *>(&x), 2);
-      *_x = port::be16_to_h(x);
+    read_bytes16(std::istream &in, T &x) {
+      uint16_t tmp;
+      in.read(reinterpret_cast<char *>(&tmp), 2);
+      x = port::be16_to_h(tmp);
     }
 
     template <typename T>
     inline void
-    read_bytes_32(std::istream &in, T *_x) {
-      uint32_t x;
-      in.read(reinterpret_cast<char *>(&x), 4);
-      *_x = port::be32_to_h(x);
+    read_bytes32(std::istream &in, T &x) {
+      uint32_t tmp;
+      in.read(reinterpret_cast<char *>(&tmp), 4);
+      x = port::be32_to_h(tmp);
     }
 
     template <typename T>
     inline void
-    read_bytes_64(std::istream &in, T *_x) {
-      uint64_t x;
-      in.read(reinterpret_cast<char *>(&x), 8);
-      *_x = port::be64_to_h(x);
+    read_bytes64(std::istream &in, T &x) {
+      uint64_t tmp;
+      in.read(reinterpret_cast<char *>(&tmp), 8);
+      x = port::be64_to_h(tmp);
     }
 
     inline WireType
-    peek_type(std::istream &in) {
-      static const WireType TABLE[256] = {
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::MAP_FIXED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::ARRAY_FIXED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RAW_FIXED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::NIL, WireType::RESERVED, WireType::FALSE, WireType::TRUE, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::FLOAT, WireType::DOUBLE, WireType::UINT_8, WireType::UINT_16, WireType::UINT_32, WireType::UINT_64,
-        WireType::INT_8, WireType::INT_16, WireType::INT_32, WireType::INT_64, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RAW_16, WireType::RAW_32, WireType::ARRAY_16, WireType::ARRAY_32, WireType::MAP_16, WireType::MAP_32,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED,
-        WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED, WireType::RESERVED
-      };
-      const int c = in.peek();
-      if ((c >> 7) == 0x00)
-        return WireType::FIXNUM_POSITIVE;
-      else if ((c >> 5) == 0x07)
-        return WireType::FIXNUM_NEGATIVE;
-      else if ((c >> 4) == 0x08)
-        return WireType::MAP_FIXED;
-      else if ((c >> 4) == 0x09)
-        return WireType::ARRAY_FIXED;
-      else if ((c >> 5) == 0x05)
-        return WireType::RAW_FIXED;
-      else if (c < 0 || c > 255)
+    header_type(const int header) {
+      if (header < 0 || header > 255)
         return WireType::RESERVED;
-      else
-        return TABLE[c & 0xFF];
+      return TABLE[header & 0xFF];
     }
 
     inline void
@@ -230,7 +215,7 @@ namespace schwa {
       float x;
       const int h = in.get();
       assert(h == header::FLOAT);
-      read_bytes_32(in, &x);
+      read_bytes32(in, x);
       return x;
     }
 
@@ -239,141 +224,201 @@ namespace schwa {
       double x;
       const int h = in.get();
       assert(h == header::DOUBLE);
-      read_bytes_64(in, &x);
+      read_bytes64(in, x);
+      return x;
+    }
+
+    inline int8_t
+    read_val_int_fixed(const int h) {
+      return static_cast<int8_t>(h & 0x1F);
+    }
+
+    inline int8_t
+    read_val_int8(std::istream &in) {
+      int8_t x;
+      read_bytes8(in, x);
+      return x;
+    }
+
+    inline int16_t
+    read_val_int16(std::istream &in) {
+      int16_t x;
+      read_bytes16(in, x);
+      return x;
+    }
+
+    inline int32_t
+    read_val_int32(std::istream &in) {
+      int32_t x;
+      read_bytes32(in, x);
+      return x;
+    }
+
+    inline int64_t
+    read_val_int64(std::istream &in) {
+      int64_t x;
+      read_bytes64(in, x);
       return x;
     }
 
     inline int8_t
     read_int_fixed(std::istream &in) {
-      int c = in.get();
-      assert((c & 0xE0) == 0xE0);
-      return static_cast<int8_t>(c & 0x1F);
+      const int h = in.get();
+      if (header_type(h) != WireType::FIXNUM_NEGATIVE)
+        throw ReadException("Failed to read FIXNUM_NEGATIVE", h);
+      return read_val_int_fixed(h);
     }
 
     inline int8_t
     read_int8(std::istream &in) {
-      int8_t x;
       const int h = in.get();
-      assert(h == header::INT_8);
-      read_bytes_8(in, &x);
-      return x;
+      if (header_type(h) != WireType::INT_8)
+        throw ReadException("Failed to read INT_8", h, header::INT_8);
+      return read_val_int8(in);
     }
 
     inline int16_t
     read_int16(std::istream &in) {
-      int16_t x;
       const int h = in.get();
-      assert(h == header::INT_16);
-      read_bytes_16(in, &x);
-      return x;
+      if (header_type(h) != WireType::INT_16)
+        throw ReadException("Failed to read INT_16", h, header::INT_16);
+      return read_val_int16(in);
     }
 
     inline int32_t
     read_int32(std::istream &in) {
-      int32_t x;
       const int h = in.get();
-      assert(h == header::INT_32);
-      read_bytes_32(in, &x);
-      return x;
+      if (header_type(h) != WireType::INT_32)
+        throw ReadException("Failed to read INT_32", h, header::INT_32);
+      return read_val_int32(in);
     }
 
     inline int64_t
     read_int64(std::istream &in) {
-      int64_t x;
       const int h = in.get();
-      assert(h == header::INT_64);
-      read_bytes_64(in, &x);
-      return x;
+      if (header_type(h) != WireType::INT_64)
+        throw ReadException("Failed to read INT_64", h, header::INT_64);
+      return read_val_int64(in);
     }
 
     inline int64_t
     read_int(std::istream &in) {
-      const WireType type = peek_type(in);
+      const int h = in.get();
+      const WireType type = header_type(h);
       switch (type) {
-      case WireType::FIXNUM_NEGATIVE: return read_int_fixed(in);
-      case WireType::FIXNUM_POSITIVE: return read_uint_fixed(in);
-      case WireType::INT_8: return read_int8(in);
-      case WireType::INT_16: return read_int16(in);
-      case WireType::INT_32: return read_int32(in);
-      case WireType::INT_64: return read_int64(in);
+      case WireType::FIXNUM_NEGATIVE: return read_val_int_fixed(h);
+      case WireType::FIXNUM_POSITIVE: return read_val_uint_fixed(h);
+      case WireType::INT_8: return read_val_int8(in);
+      case WireType::INT_16: return read_val_int16(in);
+      case WireType::INT_32: return read_val_int32(in);
+      case WireType::INT_64: return read_val_int64(in);
       default:
-        assert(!"Did not find an int to read");
-        return 0;
+        throw ReadException("Did not find an integer to read", h);
       }
     }
 
     inline uint8_t
-    read_uint_fixed(std::istream &in) {
-      int c = in.get();
-      assert((c & 0x80) == 0x00);
-      return static_cast<uint8_t>(c);
+    read_val_uint_fixed(const int h) {
+      return static_cast<uint8_t>(h & 0x7F);
     }
 
     inline uint8_t
-    read_uint8(std::istream &in) {
+    read_val_uint8(std::istream &in) {
       uint8_t x;
-      const int h = in.get();
-      assert(h == header::UINT_8);
-      read_bytes_8(in, &x);
+      read_bytes8(in, x);
       return x;
     }
 
     inline uint16_t
-    read_uint16(std::istream &in) {
+    read_val_uint16(std::istream &in) {
       uint16_t x;
-      const int h = in.get();
-      assert(h == header::UINT_16);
-      read_bytes_16(in, &x);
+      read_bytes16(in, x);
       return x;
     }
 
     inline uint32_t
-    read_uint32(std::istream &in) {
+    read_val_uint32(std::istream &in) {
       uint32_t x;
-      const int h = in.get();
-      assert(h == header::UINT_32);
-      read_bytes_32(in, &x);
+      read_bytes32(in, x);
       return x;
+    }
+
+    inline uint64_t
+    read_val_uint64(std::istream &in) {
+      uint64_t x;
+      read_bytes64(in, x);
+      return x;
+    }
+
+    inline uint8_t
+    read_uint_fixed(std::istream &in) {
+      const int h = in.get();
+      if (header_type(h) != WireType::FIXNUM_POSITIVE)
+        throw ReadException("Failed to read FIXNUM_POSITIVE", h);
+      return read_val_uint_fixed(h);
+    }
+
+    inline uint8_t
+    read_uint8(std::istream &in) {
+      const int h = in.get();
+      if (header_type(h) != WireType::UINT_8)
+        throw ReadException("Failed to read UINT_8", h, header::UINT_8);
+      return read_val_uint8(in);
+    }
+
+    inline uint16_t
+    read_uint16(std::istream &in) {
+      const int h = in.get();
+      if (header_type(h) != WireType::UINT_16)
+        throw ReadException("Failed to read UINT_16", h, header::UINT_16);
+      return read_val_uint16(in);
+    }
+
+    inline uint32_t
+    read_uint32(std::istream &in) {
+      const int h = in.get();
+      if (header_type(h) != WireType::UINT_32)
+        throw ReadException("Failed to read UINT_32", h, header::UINT_32);
+      return read_val_uint32(in);
     }
 
     inline uint64_t
     read_uint64(std::istream &in) {
-      uint64_t x;
       const int h = in.get();
-      assert(h == header::UINT_64);
-      read_bytes_64(in, &x);
-      return x;
+      if (header_type(h) != WireType::UINT_64)
+        throw ReadException("Failed to read UINT_64", h, header::UINT_64);
+      return read_val_uint64(in);
     }
 
     inline uint64_t
     read_uint(std::istream &in) {
-      const WireType type = peek_type(in);
+      const int h = in.get();
+      const WireType type = header_type(h);
       switch (type) {
-      case WireType::FIXNUM_POSITIVE: return read_uint_fixed(in);
-      case WireType::UINT_8: return read_uint8(in);
-      case WireType::UINT_16: return read_uint16(in);
-      case WireType::UINT_32: return read_uint32(in);
-      case WireType::UINT_64: return read_uint64(in);
+      case WireType::FIXNUM_POSITIVE: return read_val_uint_fixed(h);
+      case WireType::UINT_8: return read_val_uint8(in);
+      case WireType::UINT_16: return read_val_uint16(in);
+      case WireType::UINT_32: return read_val_uint32(in);
+      case WireType::UINT_64: return read_val_uint64(in);
       default:
-        assert(!"Did not find a uint to read");
-        return 0;
+        throw ReadException("Did not find an unsigned integer to read", h);
       }
     }
 
     inline size_t
     read_array_size(std::istream &in) {
-      const WireType type = peek_type(in);
-      const int h = in.get();
+      const int header = in.get();
+      const WireType type = header_type(header);
       uint16_t s16;
       uint32_t s32;
       switch (type) {
       case WireType::ARRAY_FIXED:
-        return h & 0x0F;
+        return header & 0x0F;
       case WireType::ARRAY_16:
-        read_bytes_16(in, &s16);
+        read_bytes16(in, s16);
         return s16;
       case WireType::ARRAY_32:
-        read_bytes_32(in, &s32);
+        read_bytes32(in, s32);
         return s32;
       default:
         assert(!"header is not an array");
@@ -383,18 +428,18 @@ namespace schwa {
 
     inline size_t
     read_map_size(std::istream &in) {
-      const WireType type = peek_type(in);
-      const int h = in.get();
+      const int header = in.get();
+      const WireType type = header_type(header);
       uint16_t s16;
       uint32_t s32;
       switch (type) {
       case WireType::MAP_FIXED:
-        return h & 0x0F;
+        return header & 0x0F;
       case WireType::MAP_16:
-        read_bytes_16(in, &s16);
+        read_bytes16(in, s16);
         return s16;
       case WireType::MAP_32:
-        read_bytes_32(in, &s32);
+        read_bytes32(in, s32);
         return s32;
       default:
         assert(!"header is not a map");
@@ -404,21 +449,21 @@ namespace schwa {
 
     inline std::string
     read_raw(std::istream &in) {
-      const WireType type = peek_type(in);
-      const int h = in.get();
+      const int header = in.get();
+      const WireType type = header_type(header);
       uint16_t s16;
       uint32_t s32;
 
       switch (type) {
       case WireType::RAW_FIXED:
-        s32 = h & 0x1F;
+        s32 = header & 0x1F;
         break;
       case WireType::MAP_16:
-        read_bytes_16(in, &s16);
+        read_bytes16(in, s16);
         s32 = s16;
         break;
       case WireType::MAP_32:
-        read_bytes_32(in, &s32);
+        read_bytes32(in, s32);
         break;
       default:
         assert(!"header is not a raw");
