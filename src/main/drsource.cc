@@ -59,9 +59,9 @@ read_doc(std::istream &in, std::ostream &out) {
 
 int
 main(int argc, char *argv[]) {
-  cf::OpGroup cfg("drsend", "A docrep parallelisation source");
+  cf::OpGroup cfg("drsource", "A docrep parallelisation source");
   cf::IStreamOp op_in(cfg, "input", "The input file");
-  cf::Op<std::string> op_bind(cfg, "bind", "The network binding for the ZMQ server", "tcp://*:5555");
+  cf::Op<std::string> op_bind(cfg, "bind", "The network binding for the ZMQ server", "tcp://*:7300");
   cf::Op<bool> op_quiet(cfg, "quiet", "Quiet mode", false);
   try {
     if (!cfg.process(argc - 1, argv + 1))
@@ -79,40 +79,32 @@ main(int argc, char *argv[]) {
 
   // prepare the ZMQ context and socket
   zmq::context_t context(1);
-  zmq::socket_t socket(context, ZMQ_REP);
+  zmq::socket_t sender(context, ZMQ_PUSH);
   if (noisy)
     std::cerr << "binding server to " << op_bind() << std::endl;
-  socket.bind(op_bind().c_str());
+  sender.bind(op_bind().c_str());
 
-  // listen for incomming connections
+  zmq::message_t msg;
   while (true) {
-    // accept incomming requests
-    zmq::message_t request;
-    if (noisy)
-      std::cerr << "waiting for request..." << std::endl;
-    socket.recv(&request);
-
     // lazily read the next document off the input stream
     std::stringstream ss;
     const bool doc_found = read_doc(in, ss);
     if (noisy)
-      std::cerr << "  received! doc_found=" << doc_found << std::endl;
+      std::cerr << "  doc_found=" << doc_found << std::endl;
+    if (!doc_found)
+      break;
 
-    if (doc_found) {
-      // if we have a document to send, reply in the affirmative
-      const size_t size = ss.tellp();
-      ss.seekg(0);
+    // if we have a document to send, send it through
+    const size_t size = ss.tellp();
+    ss.seekg(0);
 
-      zmq::message_t reply(size);
-      std::memcpy(reply.data(), ss.str().c_str(), size);
-      socket.send(reply);
-    }
-    else {
-      // no documents left, so reply in the negative
-      zmq::message_t reply;
-      socket.send(reply);
-    }
+    msg.rebuild(size);
+    std::memcpy(msg.data(), ss.str().c_str(), size);
+    sender.send(msg);
   }
+
+  if (noisy)
+    std::cerr << "shutting down" << std::endl;
 
   return 0;
 }

@@ -12,37 +12,31 @@ static void
 loop(std::ostream &out, const bool noisy, const std::string &bind) {
   // prepare the ZMQ context and socket
   zmq::context_t context(1);
-  zmq::socket_t socket(context, ZMQ_REQ);
+  zmq::socket_t socket(context, ZMQ_PULL);
   if (noisy)
     std::cerr << "connecting to server " << bind << std::endl;
-  socket.connect(bind.c_str());
+  socket.bind(bind.c_str());
 
   while (true) {
-    // send the server a notice that we are ready to accept documents
-    zmq::message_t request;
-    socket.send(request);
-
-    // wait for a reply
-    zmq::message_t reply;
+    // wait for a request
+    zmq::message_t msg;
     if (noisy)
-      std::cerr << "waiting for reply ..." << std::endl;
-    socket.recv(&reply);
-    std::cerr << "  recieved! size=" << reply.size() << std::endl;
+      std::cerr << "waiting for a message..." << std::endl;
+    socket.recv(&msg);
+    std::cerr << "  recieved! size=" << msg.size() << std::endl;
 
-    // empty message signals no more work to do
-    if (reply.size() == 0)
-      break;
-
-    out.write(static_cast<const char *>(reply.data()), reply.size());
+    // write the contents out to the ostream
+    out.write(static_cast<const char *>(msg.data()), msg.size());
+    out.flush();
   }
 }
 
 
 int
 main(int argc, char *argv[]) {
-  cf::OpGroup cfg("drreceiver", "A docrep parallelisation sink");
+  cf::OpGroup cfg("drsink", "A docrep parallelisation sink");
   cf::OStreamOp op_out(cfg, "output", "The output file");
-  cf::Op<std::string> op_bind(cfg, "bind", "The network binding for the ZMQ server", "tcp://localhost:5555");
+  cf::Op<std::string> op_bind(cfg, "bind", "The network binding for the ZMQ server", "tcp://*:7301");
   cf::Op<bool> op_quiet(cfg, "quiet", "Quiet mode", false);
   try {
     if (!cfg.process(argc - 1, argv + 1))
