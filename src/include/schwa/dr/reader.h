@@ -3,8 +3,8 @@
 namespace schwa {
   namespace dr {
 
-    class BaseDocumentSchema;
-    class Document;
+    class BaseDocSchema;
+    class Doc;
 
     class ReaderException : public Exception {
     public:
@@ -17,17 +17,17 @@ namespace schwa {
     class Reader {
     protected:
       std::istream &_in;
-      BaseDocumentSchema &_dschema;
+      BaseDocSchema &_dschema;
       bool _has_more;
 
     public:
-      Reader(std::istream &in, BaseDocumentSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
+      Reader(std::istream &in, BaseDocSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
       ~Reader(void) { }
 
-      Reader &read(Document &doc);
+      Reader &read(Doc &doc);
 
       inline operator bool(void) const { return _has_more; }
-      inline Reader &operator >>(Document &doc) { return read(doc); }
+      inline Reader &operator >>(Doc &doc) { return read(doc); }
     };
 
   }

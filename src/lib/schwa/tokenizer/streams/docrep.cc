@@ -7,7 +7,7 @@ namespace schwa { namespace tokenizer {
 
 
 Token::Schema::Schema(void) :
-  dr::AnnotationSchema<Token>("Token", "The token class", "Token"),
+  dr::Ann::Schema<Token>("Token", "The token class", "Token"),
   slice(*this, "slice", "the beginning and end byte offsets of the token", dr::LOAD_RW, "slice"),
   raw(*this, "raw", "the raw token", dr::LOAD_RW, "raw"),
   norm(*this, "norm", "the normalised token", dr::LOAD_RW, "norm")
@@ -16,14 +16,14 @@ Token::Schema::~Schema(void) { }
 
 
 Sent::Schema::Schema(void) :
-  dr::AnnotationSchema<Sent>("Sent", "The sentence class", "Sent"),
+  dr::Ann::Schema<Sent>("Sent", "The sentence class", "Sent"),
   slice(*this, "slice", "the slice of the sentence", dr::LOAD_RW, "slice")
   { }
 Sent::Schema::~Schema(void) { }
 
 
 Doc::Schema::Schema(void) :
-  dr::DocumentSchema<Doc>("Doc", "The document class"),
+  dr::Doc::Schema<Doc>("Doc", "The document class"),
   tokens(*this, "tokens", "The store for the tokens", dr::LOAD_RW, "tokens"),
   sents(*this, "sents", "The store for the sentences", dr::LOAD_RW, "sents")
   { }
