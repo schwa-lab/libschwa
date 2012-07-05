@@ -29,10 +29,10 @@ write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_sch
 
     // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
     if (field->is_pointer) {
-      const ptrdiff_t field_store_offset = field->store_offset(doc);
+      const ptrdiff_t field_store_offset = field->store_offset(&doc);
       size_t store_id = 0;
       for (auto &store : dschema.stores()) {
-        if (store->store_offset(doc) == field_store_offset)
+        if (store->store_offset(&doc) == field_store_offset)
           break;
         ++store_id;
       }
