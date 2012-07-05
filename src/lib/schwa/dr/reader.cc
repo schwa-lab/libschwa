@@ -6,6 +6,37 @@ namespace mp = schwa::msgpack;
 
 namespace schwa { namespace dr {
 
+class WireField {
+public:
+  const BaseFieldDef *const field;
+  const size_t index;
+  const size_t store_id;
+  const bool is_pointer;
+
+  WireField(const BaseFieldDef *field, size_t index, size_t store_id, size_t is_pointer) : field(field), index(index), store_id(store_id), is_pointer(is_pointer) { }
+  WireField(const WireField &o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer) { }
+  WireField(const WireField &&o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer) { }
+};
+
+
+class WireKlass {
+private:
+  const BaseSchema *const _klass;
+  std::vector<WireField> _fields;
+
+public:
+  WireKlass(const BaseSchema *klass) : _klass(klass) { }
+  WireKlass(const WireKlass &o) : _klass(o._klass), _fields(o._fields) { }
+  WireKlass(const WireKlass &&o) : _klass(o._klass), _fields(o._fields) { }
+
+  inline const BaseSchema *klass(void) const { return _klass; }
+  inline const std::vector<WireField> &fields(void) const { return _fields; }
+
+  inline void add_field(WireField f) { _fields.push_back(f); }
+
+  inline WireField &operator [](size_t index) { return _fields[index]; }
+};
+
 
 Reader &
 Reader::read(Doc &doc) {
@@ -27,10 +58,7 @@ Reader::read(Doc &doc) {
   // read the klasses header
   // <klasses> ::= [ <klass> ]
   const size_t nklasses = mp::read_array_size(_in);
-  std::vector<const BaseSchema *> klasses;
-  std::vector<std::vector<size_t>> klass_fields;
-  klasses.reserve(nklasses);
-  klass_fields.resize(nklasses);
+  std::vector<WireKlass> klasses;
 
   for (size_t k = 0; k != nklasses; ++k) {
     // <klass> ::= ( <klass_name>, <fields> )
@@ -50,7 +78,7 @@ Reader::read(Doc &doc) {
       throw ReaderException(ss.str());
     };
     const BaseSchema *const schema = kit->second;
-    klasses.push_back(schema);
+    klasses.push_back(WireKlass(schema));
 
     // keep track of the klass_id of __meta__
     if (klass_name == "__meta__") {
@@ -109,7 +137,7 @@ Reader::read(Doc &doc) {
         throw ReaderException(ss.str());
       }
 
-      klass_fields[k].push_back(index);
+      klasses.back().add_field(WireField(field, index, store_id, is_pointer));
     } // for each field
 
   } // for each klass
@@ -159,7 +187,7 @@ Reader::read(Doc &doc) {
 
     // ensure that the stream store and the static store agree on the klass they're storing
     const TypeInfo &store_ptr_type = store->pointer_type();
-    const TypeInfo &klass_ptr_type = klasses[klass_id]->type;
+    const TypeInfo &klass_ptr_type = klasses[klass_id].klass()->type;
     if (store_ptr_type != klass_ptr_type) {
       std::stringstream ss;
       ss << "Store '" << store_name << "' points to " << store_ptr_type << " but the stream says it points to " << klass_ptr_type;
@@ -170,6 +198,27 @@ Reader::read(Doc &doc) {
     store->resize(doc, nitems);
     stores.push_back(std::make_pair(store, klass_id));
   }
+
+
+  // sanity check each of the pointer fields point to valid stores
+  for (auto &klass : klasses)
+    for (auto &field : klass.fields())
+      if (field.is_pointer) {
+        // sanity check on the value of store_id
+        if (field.store_id >= stores.size()) {
+          std::stringstream ss;
+          ss << "store_id value " << field.store_id << " >= number of stores (" << stores.size() << ")";
+          throw ReaderException(ss.str());
+        }
+
+        const ptrdiff_t field_store_offset = field.field->store_offset(nullptr);
+        const ptrdiff_t store_store_offset = stores[field.store_id].first->store_offset(nullptr);
+        if (field_store_offset != store_store_offset) {
+          std::stringstream ss;
+          ss << "field_store_offset (" << field_store_offset << ") != store_store_offset (" << store_store_offset << ")";
+          throw ReaderException(ss.str());
+        }
+      }
 
 
   // read the document instance
@@ -183,7 +232,7 @@ Reader::read(Doc &doc) {
     const size_t size = mp::read_map_size(_in);
     for (size_t i = 0; i != size; ++i) {
       const size_t key = mp::read_uint(_in);
-      const size_t index = klass_fields[klass_id_meta][key];
+      const size_t index = klasses[klass_id_meta][key].index;
       readers[index](_in, static_cast<void *>(&doc), static_cast<void *>(&doc));
     }
   }
@@ -201,7 +250,7 @@ Reader::read(Doc &doc) {
 
     const size_t delta = schema->read_size();
     char *objects = schema->read_begin(doc);
-    auto readers = klasses[klass_id]->readers();
+    auto readers = klasses[klass_id].klass()->readers();
 
     // <instances> ::= [ <instance> ]
     const size_t ninstances = mp::read_array_size(_in);
@@ -210,7 +259,7 @@ Reader::read(Doc &doc) {
       const size_t size = mp::read_map_size(_in);
       for (size_t j = 0; j != size; ++j) {
         const size_t key = mp::read_uint(_in);
-        const size_t index = klass_fields[klass_id][key];
+        const size_t index = klasses[klass_id][key].index;
         readers[index](_in, objects, static_cast<void *>(&doc));
       }
 
