@@ -46,7 +46,7 @@ namespace schwa {
     public:
       virtual ~BaseFieldDef(void) { }
 
-      virtual ptrdiff_t store_offset(const Doc &) const { assert(!"this should never be invoked"); return -1; }
+      virtual ptrdiff_t store_offset(const Doc *) const { assert(!"this should never be invoked"); return -1; }
     };
 
 
@@ -60,7 +60,7 @@ namespace schwa {
       virtual void resize(Doc &doc, const size_t size) const = 0;
 
       virtual size_t size(const Doc &doc) const = 0;
-      virtual ptrdiff_t store_offset(const Doc &) const = 0;
+      virtual ptrdiff_t store_offset(const Doc *) const = 0;
       virtual void write(std::ostream &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Doc &, const BaseSchema &, const void *const)) const = 0;
 
       virtual char *read_begin(Doc &_doc) const = 0;
@@ -113,7 +113,7 @@ namespace schwa {
       virtual ~FieldDefWithStore(void) { }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      ptrdiff_t store_offset(const Doc &doc) const { return reinterpret_cast<const char *>(&(static_cast<const D &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(&doc); }
     };
 
 
@@ -139,7 +139,7 @@ namespace schwa {
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
       size_t size(const Doc &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
-      ptrdiff_t store_offset(const Doc &doc) const { return reinterpret_cast<const char *>(&(static_cast<const T &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(&doc); }
 
       char *
       read_begin(Doc &_doc) const {

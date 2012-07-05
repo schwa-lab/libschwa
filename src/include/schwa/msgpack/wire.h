@@ -459,11 +459,11 @@ namespace schwa {
       case WireType::RAW_FIXED:
         s32 = header & 0x1F;
         break;
-      case WireType::MAP_16:
+      case WireType::RAW_16:
         read_bytes16(in, s16);
         s32 = s16;
         break;
-      case WireType::MAP_32:
+      case WireType::RAW_32:
         read_bytes32(in, s32);
         break;
       default:
