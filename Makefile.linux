@@ -2,10 +2,10 @@ INCLUDE = -Isrc/include -isystem ext/include
 LIBS = -Llib -Lext/lib -lboost_iostreams
 DEFINES =
 
-BASE_CXXFLAGS = -std=c++0x -g -O3 -fPIC $(INCLUDE) $(DEFINES)
+BASE_CXXFLAGS = -std=c++0x -g -O0 -fPIC $(INCLUDE) $(DEFINES)
 
-CXX = g++
-CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -pedantic
+CXX = clang++
+CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -Werror -pedantic
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
