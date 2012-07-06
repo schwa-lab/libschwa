@@ -197,7 +197,7 @@ run_sink(zmq::context_t &context, std::ostream &out, const std::string &sink_bin
 
 int
 main(int argc, char *argv[]) {
-  cf::OpGroup cfg("drdist", "A docrep parallelisation source and sink");
+  cf::OpMain cfg("drdist", "A docrep parallelisation source and sink");
   cf::IStreamOp op_in(cfg, "input", "The input file");
   cf::OStreamOp op_out(cfg, "output", "The output file");
   cf::Op<std::string> op_source(cfg, "source", "The network binding for the ZMQ source", "tcp://*:7300");

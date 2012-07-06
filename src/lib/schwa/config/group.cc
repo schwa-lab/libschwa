@@ -43,8 +43,41 @@ OpGroup::help(std::ostream &out, const std::string &prefix, unsigned int depth) 
 }
 
 
+void
+OpGroup::set(const std::string &value) {
+  throw ConfigException("Cannot set the value of a option group", _name, value);
+}
+
+
+void
+OpGroup::validate(void) {
+  for (auto &child : _children)
+    child->validate();
+}
+
+
+
+OptionBase *
+OpMain::find(const std::string &orig_key, const std::string key) {
+  for (auto &child : _children) {
+    OptionBase *const p = child->find(orig_key, key);
+    if (p != nullptr)
+      return p;
+  }
+  return nullptr;
+}
+
+
+void
+OpMain::help(std::ostream &out, const std::string &prefix, unsigned int depth) const {
+  out << port::BOLD << _name << port::OFF << ": " << _desc << std::endl;
+  for (auto &child : _children)
+    child->help(out, prefix, depth);
+}
+
+
 bool
-OpGroup::process(const int argc, const char *const argv[], std::ostream &help_ostream) {
+OpMain::process(const int argc, const char *const argv[], std::ostream &help_ostream) {
   // do an initial pass for "--help"
   for (int i = 0; i != argc; ++i)
     if (std::strcmp(argv[i], "--help") == 0) {
@@ -75,20 +108,6 @@ OpGroup::process(const int argc, const char *const argv[], std::ostream &help_os
   validate();
   return true;
 }
-
-
-void
-OpGroup::set(const std::string &value) {
-  throw ConfigException("Cannot set the value of a option group", _name, value);
-}
-
-
-void
-OpGroup::validate(void) {
-  for (auto &child : _children)
-    child->validate();
-}
-
 
 
 } }
