@@ -111,7 +111,7 @@ do_read(std::istream &in, std::ostream &out) {
 
 int
 main(int argc, char *argv[]) {
-  config::OpGroup cfg("test", "this is the toplevel help");
+  config::OpMain cfg("test", "this is the toplevel help");
   config::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
   config::IStreamOp op_in(cfg, "input", "The input file");
   config::OStreamOp op_out(cfg, "output", "The output file");
@@ -120,7 +120,7 @@ main(int argc, char *argv[]) {
       return 1;
   }
   catch (config::ConfigException &e) {
-    std::cerr << print_exception("ConfigException", e);
+    std::cerr << print_exception("ConfigException", e) << std::endl;
     cfg.help(std::cerr);
     return 1;
   }
