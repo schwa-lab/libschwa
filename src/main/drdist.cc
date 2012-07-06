@@ -162,7 +162,7 @@ run_sink(zmq::context_t &context, std::ostream &out, const std::string &sink_bin
 
   // wait for messages
   bool ndocs_expected_set = false;
-  uint64_t ndocs_recv = 0, ndocs_expected;
+  uint64_t ndocs_recv = 0, ndocs_expected = 0;
   while (true) {
     // wait for a request
     zmq::message_t msg;
