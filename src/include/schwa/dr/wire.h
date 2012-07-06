@@ -79,8 +79,8 @@ namespace schwa {
         static inline void
         write(std::ostream &out, const Slice<T> &val) {
           mp::write_array_size(out, 2);
-          mp::write<T>(out, val.start);
-          mp::write<T>(out, val.stop);
+          mp::write(out, val.start);
+          mp::write(out, val.stop);
         }
 
         static inline void
