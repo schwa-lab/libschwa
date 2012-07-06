@@ -97,12 +97,12 @@ read_doc(std::istream &in, std::ostream &out) {
 
 static void
 run_source(zmq::context_t &context, std::istream &in, const std::string &source_bind) {
-  // prepare the ZMQ source socket
+  // prepare the ØMQ source socket
   zmq::socket_t source(context, ZMQ_PUSH);
   if (noisy) std::cerr << "[source] binding to " << source_bind << std::endl;
   source.bind(source_bind.c_str());
 
-  // prepare the ZMQ socket for notifying the sink how many documents to expect
+  // prepare the ØMQ socket for notifying the sink how many documents to expect
   zmq::socket_t ndocs_socket(context, ZMQ_PAIR);
   inproc_ndocs.wait_until(1);
   ndocs_socket.connect("inproc://ndocs");
@@ -144,12 +144,12 @@ run_source(zmq::context_t &context, std::istream &in, const std::string &source_
 
 static void
 run_sink(zmq::context_t &context, std::ostream &out, const std::string &sink_bind) {
-  // prepare the ZMQ sink socket
+  // prepare the ØMQ sink socket
   zmq::socket_t sink(context, ZMQ_PULL);
   if (noisy) std::cerr << "[sink] binding to " << sink_bind << std::endl;
   sink.bind(sink_bind.c_str());
 
-  // prepare the ZMQ socket for receiving how many documents to expect from the source
+  // prepare the ØMQ socket for receiving how many documents to expect from the source
   zmq::socket_t ndocs_socket(context, ZMQ_PAIR);
   ndocs_socket.bind("inproc://ndocs");
   inproc_ndocs.increment();
@@ -200,8 +200,8 @@ main(int argc, char *argv[]) {
   cf::OpMain cfg("drdist", "A docrep parallelisation source and sink");
   cf::IStreamOp op_in(cfg, "input", "The input file");
   cf::OStreamOp op_out(cfg, "output", "The output file");
-  cf::Op<std::string> op_source(cfg, "source", "The network binding for the ZMQ source", "tcp://*:7300");
-  cf::Op<std::string> op_sink(cfg, "sink", "The network binding for the ZMQ sink", "tcp://*:7301");
+  cf::Op<std::string> op_source(cfg, "source", "The network binding for the ØMQ source", "tcp://*:7300");
+  cf::Op<std::string> op_sink(cfg, "sink", "The network binding for the ØMQ sink", "tcp://*:7301");
   cf::Op<bool> op_quiet(cfg, "quiet", "Quiet mode", false);
   try {
     if (!cfg.process(argc - 1, argv + 1))
@@ -218,7 +218,7 @@ main(int argc, char *argv[]) {
   std::ostream &out = op_out.file();
   noisy = !op_quiet();
 
-  // prepare the ZMQ context and sockets
+  // prepare the ØMQ context and sockets
   zmq::context_t context(1);
 
   // run the threads
