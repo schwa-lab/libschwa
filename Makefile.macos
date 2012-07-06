@@ -2,7 +2,7 @@ INCLUDE = -Isrc/include -isystem ext/include
 LIBS = -Llib -Lext/lib -lboost_iostreams
 DEFINES =
 
-BASE_CXXFLAGS = -std=c++0x -g -O0 -fPIC $(INCLUDE) $(DEFINES)
+BASE_CXXFLAGS = -std=c++0x -O4 -fPIC $(INCLUDE) $(DEFINES)
 
 CXX = g++
 CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -Werror
@@ -17,7 +17,7 @@ TEST_LDFLAGS = -lboost_unit_test_framework -lschwa
 PORT_OBJECTS = src/lib/schwa/port/bsd.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
 
 RAGEL = ragel
-RAGEL_CXXFLAGS = -O3 -W -Wall -Wextra -fPIC $(INCLUDE) $(DEFINES)
+RAGEL_CXXFLAGS = -O4 -W -Wall -Wextra -fPIC $(INCLUDE) $(DEFINES)
 
 PYTHON_VERSION=2.7
 PYTHON_INCLUDE=-isystem /System/Library/Frameworks/Python.framework/Versions/$(PYTHON_VERSION)/include/python$(PYTHON_VERSION)
