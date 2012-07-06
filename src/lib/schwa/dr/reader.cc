@@ -8,26 +8,38 @@ namespace schwa { namespace dr {
 
 class WireField {
 public:
-  const BaseFieldDef *const field;
-  const size_t index;
-  const size_t store_id;
-  const bool is_pointer;
+  const BaseFieldDef *field;
+  size_t index;
+  size_t store_id;
+  bool is_pointer;
 
   WireField(const BaseFieldDef *field, size_t index, size_t store_id, size_t is_pointer) : field(field), index(index), store_id(store_id), is_pointer(is_pointer) { }
   WireField(const WireField &o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer) { }
   WireField(const WireField &&o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer) { }
+  WireField &operator =(const WireField &o) {
+    field = o.field;
+    index = o.index;
+    store_id = o.store_id;
+    is_pointer = o.is_pointer;
+    return *this;
+  }
 };
 
 
 class WireKlass {
 private:
-  const BaseSchema *const _klass;
+  const BaseSchema *_klass;
   std::vector<WireField> _fields;
 
 public:
   WireKlass(const BaseSchema *klass) : _klass(klass) { }
   WireKlass(const WireKlass &o) : _klass(o._klass), _fields(o._fields) { }
   WireKlass(const WireKlass &&o) : _klass(o._klass), _fields(o._fields) { }
+  WireKlass &operator =(const WireKlass &o) {
+    _klass = o._klass;
+    _fields = o._fields;
+    return *this;
+  }
 
   inline const BaseSchema *klass(void) const { return _klass; }
   inline const std::vector<WireField> &fields(void) const { return _fields; }
@@ -91,7 +103,7 @@ Reader::read(Doc &doc) {
 
     for (size_t f = 0; f != nfields; ++f) {
       std::string field_name;
-      size_t store_id;
+      size_t store_id = 0;
       bool is_pointer = false, is_slice = false;
 
       // <field> ::= { <field_type> : <field_val> }
