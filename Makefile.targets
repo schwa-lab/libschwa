@@ -4,12 +4,13 @@ SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 BASE_OBJECTS = src/lib/schwa/exception.o
 CONFIG_OBJECTS = src/lib/schwa/config/base.o src/lib/schwa/config/group.o src/lib/schwa/config/op.o
 DR_OBJECTS = src/lib/schwa/dr/reader.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o src/lib/schwa/dr/config.o
+IO_OBJECTS = src/lib/schwa/io/buffer.o
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/exception.o src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/docrep.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 
-OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
-UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
@@ -39,13 +40,13 @@ wc:
 %.h.gch: %.h
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
-bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -lzmq -o $@
 
-bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)

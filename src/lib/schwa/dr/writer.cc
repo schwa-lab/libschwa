@@ -52,12 +52,12 @@ write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_sch
 
 
 static void
-write_instance(std::ostream &out, const Doc &doc, const BaseSchema &schema, const void *const obj) {
-  std::stringstream ss;
+write_instance(io::WriteBuffer &out, const Doc &doc, const BaseSchema &schema, const void *const obj) {
+  io::WriteBuffer buf;
   size_t nfields = 0;
   unsigned int key = 0;
   for (auto &writer : schema.writers()) {
-    const bool wrote = writer(ss, key, obj, static_cast<const void *>(&doc));
+    const bool wrote = writer(buf, key, obj, static_cast<const void *>(&doc));
     if (wrote)
       ++nfields;
     ++key;
@@ -65,7 +65,7 @@ write_instance(std::ostream &out, const Doc &doc, const BaseSchema &schema, cons
 
   mp::write_map_size(out, nfields);
   if (nfields != 0)
-    out << ss.rdbuf();
+    out.copy_from(buf);
 }
 
 
@@ -104,24 +104,24 @@ Writer::write(const Doc &doc) {
   }
 
   // <doc_instance> ::= <instances_nbytes> <instance>
-  std::stringstream ss;
-  write_instance(ss, doc, _dschema, &doc);
-  mp::write_uint(_out, ss.tellp());
-  _out << ss.rdbuf();
+  {
+    io::WriteBuffer buf;
+    write_instance(buf, doc, _dschema, &doc);
+    mp::write_uint(_out, buf.size());
+    buf.copy_to(_out);
+  }
 
   // <instances_groups> ::= <instances_group>*
   for (auto &store : _dschema.stores()) {
-    // reset the stringstream
-    ss.str("");
-    ss.clear();
+    io::WriteBuffer buf;
 
     auto it = schema_map.find(store->pointer_type());
     assert(it != schema_map.end());
-    store->write(ss, doc, *(it->second), &write_instance);
+    store->write(buf, doc, *(it->second), &write_instance);
 
     // <instances_group> ::= <instances_nbytes> <instances>
-    mp::write_uint(_out, ss.tellp());
-    _out << ss.rdbuf();
+    mp::write_uint(_out, buf.size());
+    buf.copy_to(_out);
   }
 
   // flush since we've finished writing a whole document
