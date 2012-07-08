@@ -1,7 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config.h>
 #include <schwa/dr.h>
-#include <schwa/io/buffer.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -129,15 +128,13 @@ main(int argc, char *argv[]) {
     return 1;
   }
 
-  io::WriteBuffer buf(8, 8, 16, 8);
-  std::ostream out(&buf);
-  std::cout << "out is at " << &out << std::endl;
-  std::cout << out.good() << " " << out.eof() << " " << out.bad() << std::endl;
-  out << 1 << " hello " << 2 << std::endl;
-  std::cout << out.good() << " " << out.eof() << " " << out.bad() << std::endl;
+  io::WriteBuffer out(8, 8, 16, 8);
   mp::write_uint(out, 42);
-  std::cout << out.good() << " " << out.eof() << " " << out.bad() << std::endl;
-  std::cout << buf.size() << std::endl;
+  mp::write_uint(out, 4096);
+  mp::write_raw(out, "Hello", 5);
+  mp::write_uint(out, 4096);
+  std::cout << out.size() << std::endl;
+  out.debug(std::cout);
   return 0;
 
   try {

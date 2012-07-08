@@ -3,7 +3,7 @@
 namespace schwa {
   namespace io {
 
-    class WriteBuffer : public std::streambuf {
+    class WriteBuffer {
     public:
       static constexpr size_t DEFAULT_BLOCK_SIZE = 64;
       static constexpr size_t DEFAULT_POOL_SIZE = 4096;
@@ -30,6 +30,12 @@ namespace schwa {
       size_t _current_block;
       size_t _nblocks;
 
+      size_t _size;
+
+      size_t _lb_capacity;
+      size_t _lb_size;
+      char * _lb_upto;
+
       inline void
       next_block(void) {
         ++_current_block;
@@ -50,62 +56,20 @@ namespace schwa {
         }
       }
 
-    protected:
-      virtual int
-      overflow(const int c=EOF) override {
-        std::cout << "WriteBuffer::overflow(0x" << std::hex << c << std::dec << ")" << std::endl;
-        if (c == EOF)
-          return c;
-
-        // create a new block
-        _blocks[_current_block].size = pptr() - pbase();
-        next_block();
-
-        // move to the next pool if the current pool is full
-        if (_pool_used == _pool_size) {
+      inline void
+      require_pool(const size_t nbytes) {
+        if (_pool_used + nbytes > _pool_size) {
           next_pool();
 
-          char *p = static_cast<char *>(std::malloc(_pool_size));
+          char *p = static_cast<char *>(std::malloc(std::max(_pool_size, nbytes)));
           assert(p != nullptr);
           _pools[_current_pool] = p;
           _pool_used = 0;
         }
-
-        // initialise the new block with memory from a pool
-        char *const write_buf = &(_pools[_current_pool][_pool_used]);
-        new (_blocks + _current_block) Block(_block_size, write_buf);
-        _pool_used += _block_size;
-
-        // tell std::streambuf where the new write buffer is and write the overflow character
-        setp(write_buf, write_buf + _block_size);
-        *write_buf = static_cast<char>(c);
-        pbump(1);
-
-        return c;
       }
-
-      virtual std::streamsize
-      xsputn(const char *const data, const std::streamsize nbytes) override {
-        std::cout << "WriteBuffer::xsputn(" << nbytes << ")" << std::endl;
-        // create a new block
-        _blocks[_current_block].size = pptr() - pbase();
-        next_block();
-
-        // initialise the new block with the provided data
-        char *const write_buf = const_cast<char *>(data);
-        new (_blocks + _current_block) Block(nbytes, write_buf, nbytes);
-
-        // tell std::streambuf where the new write buffer is
-        setp(write_buf, write_buf + nbytes);
-        pbump(nbytes);
-
-        return nbytes;
-      }
-
 
     public:
       explicit WriteBuffer(size_t block_size=DEFAULT_BLOCK_SIZE, size_t nblocks=DEFAULT_NBLOCKS, size_t pool_size=DEFAULT_POOL_SIZE, size_t npools=DEFAULT_NPOOLS) :
-          std::streambuf(),
           _pool_size(pool_size),
           _pools(static_cast<char **>(std::malloc(npools * sizeof(char *)))),
           _npools(npools),
@@ -114,7 +78,8 @@ namespace schwa {
           _block_size(block_size),
           _blocks(static_cast<Block *>(std::malloc(nblocks * sizeof(Block)))),
           _current_block(0),
-          _nblocks(nblocks) {
+          _nblocks(nblocks),
+          _size(0) {
         assert(_pools != nullptr);
         assert(_blocks != nullptr);
 
@@ -126,23 +91,95 @@ namespace schwa {
         new (_blocks + _current_block) Block(block_size, write_buf);
         _pool_used += _block_size;
 
-        // tell std::streambuf where the write buffer is
-        setp(write_buf, write_buf + _block_size);
+        _lb_capacity = block_size;
+        _lb_size = 0;
+        _lb_upto = write_buf;
       }
 
-      virtual ~WriteBuffer(void) {
+      ~WriteBuffer(void) {
         for (size_t i = 0; i <= _current_pool; ++i)
           std::free(_pools[i]);
         std::free(_pools);
         std::free(_blocks);
       }
 
-      size_t
-      size(void) const {
-        size_t size = 0;
-        for (size_t i = 0; i <= _current_block; ++i)
-          size += _blocks[i].size;
-        return size;
+      inline size_t size(void) const { return _size; }
+
+      void
+      put(const char c) {
+        if (_lb_size == _lb_capacity) {
+          _blocks[_current_block].size = _lb_size;
+          next_block();
+          require_pool(_block_size);
+
+          char *const write_buf = &(_pools[_current_pool][_pool_used]);
+          new (_blocks + _current_block) Block(_block_size, write_buf);
+          _pool_used += _block_size;
+
+          _lb_capacity = _block_size;
+          _lb_size = 0;
+          _lb_upto = write_buf;
+        }
+
+        *_lb_upto = c;
+        _lb_upto += 1;
+        _lb_size += 1;
+        _size += 1;
+      }
+
+      WriteBuffer &
+      write(const char *const data, const size_t nbytes) {
+        if (_lb_size + nbytes > _lb_capacity) {
+          _blocks[_current_block].size = _lb_size;
+          next_block();
+          require_pool(nbytes);
+
+          char *const write_buf = &(_pools[_current_pool][_pool_used]);
+          new (_blocks + _current_block) Block(nbytes, write_buf);
+          _pool_used += nbytes;
+
+          _lb_capacity = nbytes;
+          _lb_size = 0;
+          _lb_upto = write_buf;
+        }
+
+        std::memcpy(_lb_upto, data, nbytes);
+        _lb_upto += nbytes;
+        _lb_size += nbytes;
+        _size += nbytes;
+
+        return *this;
+      }
+
+      WriteBuffer &
+      write_zerocopy(const char *const data, const size_t nbytes) {
+        std::cout << "write_zerocopy" << std::endl;
+        _blocks[_current_block].size = _lb_size;
+        next_block();
+
+        char *const write_buf = const_cast<char *>(data);
+        new (_blocks + _current_block) Block(nbytes, write_buf, nbytes);
+
+        _lb_capacity = nbytes;
+        _lb_size = nbytes;
+        _lb_upto = write_buf + nbytes;
+        _size += nbytes;
+
+        return *this;
+      }
+
+      void
+      debug(std::ostream &out) const {
+        _blocks[_current_block].size = _lb_size;
+        out << "npools=" << _npools << " current=" << _current_pool << std::endl;
+        out << "nblocks=" << _nblocks << " current=" << _current_block << std::endl;
+        for (size_t i = 0; i <= _current_block; ++i) {
+          out << i << "] size=" << _blocks[i].size << " cap=" << _blocks[i].capacity << " data=";
+          out << std::hex;
+          for (size_t s = 0; s != _blocks[i].size; ++s)
+            out << static_cast<unsigned int>(_blocks[i].data[s]) << " ";
+          out << std::dec << std::endl;
+        }
       }
     };
 
