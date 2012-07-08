@@ -5,17 +5,17 @@ namespace schwa {
 
     template <typename T>
     struct Traits {
-      static inline T &
+      static inline void
       write_zerocopy(T &out, const char *data, const size_t nbytes) {
-        return out.write(data, nbytes);
+        out.write(data, nbytes);
       }
     };
 
     template <>
     struct Traits<WriteBuffer> {
-      static inline WriteBuffer &
+      static inline void
       write_zerocopy(WriteBuffer &out, const char *data, const size_t nbytes) {
-        return out.write_zerocopy(data, nbytes);
+        out.write_zerocopy(data, nbytes);
       }
     };
 
