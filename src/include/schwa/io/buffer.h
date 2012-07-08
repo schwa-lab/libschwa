@@ -127,7 +127,7 @@ namespace schwa {
         _size += 1;
       }
 
-      WriteBuffer &
+      void
       write(const char *const data, const size_t nbytes) {
         if (_lb_size + nbytes > _lb_capacity) {
           _blocks[_current_block].size = _lb_size;
@@ -147,13 +147,10 @@ namespace schwa {
         _lb_upto += nbytes;
         _lb_size += nbytes;
         _size += nbytes;
-
-        return *this;
       }
 
-      WriteBuffer &
+      void
       write_zerocopy(const char *const data, const size_t nbytes) {
-        std::cout << "write_zerocopy" << std::endl;
         _blocks[_current_block].size = _lb_size;
         next_block();
 
@@ -164,8 +161,6 @@ namespace schwa {
         _lb_size = nbytes;
         _lb_upto = write_buf + nbytes;
         _size += nbytes;
-
-        return *this;
       }
 
       void
