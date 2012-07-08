@@ -2,7 +2,7 @@ INCLUDE = -Isrc/include -isystem ext/include
 LIBS = -Llib -Lext/lib -lboost_iostreams
 DEFINES =
 
-BASE_CXXFLAGS = -std=c++0x -O4 -fPIC $(INCLUDE) $(DEFINES)
+BASE_CXXFLAGS = -std=c++0x -O0 -g -fPIC $(INCLUDE) $(DEFINES)
 
 CXX = g++
 CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -Werror
