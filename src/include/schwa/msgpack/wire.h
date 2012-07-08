@@ -109,44 +109,47 @@ namespace schwa {
     // ========================================================================
     // Writing API
     // ========================================================================
-    template <typename OS> inline void write_nil(OS &out);
-    template <typename OS> inline void write_bool(OS &out, const bool x);
-    template <typename OS> inline void write_int(OS &out, const int64_t x);
-    template <typename OS> inline void write_uint(OS &out, const uint64_t x);
-    template <typename OS> inline void write_float(OS &out, const float x);
-    template <typename OS> inline void write_double(OS &out, const double x);
+    inline void write_nil(std::ostream &out);
+    inline void write_bool(std::ostream &out, const bool x);
+    inline void write_int(std::ostream &out, const int64_t x);
+    inline void write_uint(std::ostream &out, const uint64_t x);
+    inline void write_float(std::ostream &out, const float x);
+    inline void write_double(std::ostream &out, const double x);
 
-    template <typename OS> inline void write_array_size(OS &out, const size_t size);
-    template <typename OS> inline void write_map_size(OS &out, const size_t size);
+    inline void write_array_size(std::ostream &out, const size_t size);
+    inline void write_map_size(std::ostream &out, const size_t size);
 
-    template <typename OS> inline void write_raw(OS &out, const std::string &data);
-    template <typename OS> inline void write_raw(OS &out, const char *const data, const size_t size);
+    inline void write_raw(std::ostream &out, const std::string &data);
+    inline void write_raw(std::ostream &out, const char *const data, const size_t size);
 
-    template <typename OS> inline void write_int_fixed(OS &out, const int8_t x);
-    template <typename OS> inline void write_int8(OS &out, const int8_t x);
-    template <typename OS> inline void write_int16(OS &out, const int16_t x);
-    template <typename OS> inline void write_int32(OS &out, const int32_t x);
-    template <typename OS> inline void write_int64(OS &out, const int64_t x);
+    inline void write_int_fixed(std::ostream &out, const int8_t x);
+    inline void write_int8(std::ostream &out, const int8_t x);
+    inline void write_int16(std::ostream &out, const int16_t x);
+    inline void write_int32(std::ostream &out, const int32_t x);
+    inline void write_int64(std::ostream &out, const int64_t x);
 
-    template <typename OS> inline void write_uint_fixed(OS &out, const uint8_t x);
-    template <typename OS> inline void write_uint8(OS &out, const uint8_t x);
-    template <typename OS> inline void write_uint16(OS &out, const uint16_t x);
-    template <typename OS> inline void write_uint32(OS &out, const uint32_t x);
-    template <typename OS> inline void write_uint64(OS &out, const uint64_t x);
+    inline void write_uint_fixed(std::ostream &out, const uint8_t x);
+    inline void write_uint8(std::ostream &out, const uint8_t x);
+    inline void write_uint16(std::ostream &out, const uint16_t x);
+    inline void write_uint32(std::ostream &out, const uint32_t x);
+    inline void write_uint64(std::ostream &out, const uint64_t x);
 
 
-    template <typename OS> inline void write(OS &out, const int8_t &val) { return write_int8(out, val); }
-    template <typename OS> inline void write(OS &out, const int16_t &val) { return write_int16(out, val); }
-    template <typename OS> inline void write(OS &out, const int32_t &val) { return write_int32(out, val); }
-    template <typename OS> inline void write(OS &out, const int64_t &val) { return write_int64(out, val); }
-    template <typename OS> inline void write(OS &out, const uint8_t &val) { return write_uint8(out, val); }
-    template <typename OS> inline void write(OS &out, const uint16_t &val) { return write_uint16(out, val); }
-    template <typename OS> inline void write(OS &out, const uint32_t &val) { return write_uint32(out, val); }
-    template <typename OS> inline void write(OS &out, const uint64_t &val) { return write_uint64(out, val); }
-    template <typename OS> inline void write(OS &out, const float &val) { return write_float(out, val); }
-    template <typename OS> inline void write(OS &out, const double &val) { return write_double(out, val); }
-    template <typename OS> inline void write(OS &out, const bool &val) { return write_bool(out, val); }
-    template <typename OS> inline void write(OS &out, const std::string &val) { return write_raw(out, val); }
+    template <typename T>
+    inline void write(std::ostream &out, const T &val);
+
+    template <> inline void write(std::ostream &out, const int8_t &val) { return write_int8(out, val); }
+    template <> inline void write(std::ostream &out, const int16_t &val) { return write_int16(out, val); }
+    template <> inline void write(std::ostream &out, const int32_t &val) { return write_int32(out, val); }
+    template <> inline void write(std::ostream &out, const int64_t &val) { return write_int64(out, val); }
+    template <> inline void write(std::ostream &out, const uint8_t &val) { return write_uint8(out, val); }
+    template <> inline void write(std::ostream &out, const uint16_t &val) { return write_uint16(out, val); }
+    template <> inline void write(std::ostream &out, const uint32_t &val) { return write_uint32(out, val); }
+    template <> inline void write(std::ostream &out, const uint64_t &val) { return write_uint64(out, val); }
+    template <> inline void write(std::ostream &out, const float &val) { return write_float(out, val); }
+    template <> inline void write(std::ostream &out, const double &val) { return write_double(out, val); }
+    template <> inline void write(std::ostream &out, const bool &val) { return write_bool(out, val); }
+    template <> inline void write(std::ostream &out, const std::string &val) { return write_raw(out, val); }
 
 
     // ========================================================================
@@ -478,115 +481,105 @@ namespace schwa {
     // ========================================================================
     // Writing API implementations
     // ========================================================================
-    template <typename OS, typename T>
+    template <typename T>
     inline void
-    write_bytes_8(OS &out, const T _x) {
+    write_bytes_8(std::ostream &out, const T _x) {
       const unsigned char *x = reinterpret_cast<const unsigned char *>(&_x);
+      std::cout << "write_bytes_8(out=" << &out << ", _x=0x" << std::hex << static_cast<unsigned int>(x[0]) << std::dec << ")" << std::endl;
       out.put(x[0]);
     }
 
-    template <typename OS, typename T>
+    template <typename T>
     inline void
-    write_bytes_16(OS &out, const T _x) {
+    write_bytes_16(std::ostream &out, const T _x) {
       const uint16_t x = port::h_to_be16(static_cast<uint16_t>(_x));
       out.write(reinterpret_cast<const char *>(&x), 2);
     }
 
-    template <typename OS, typename T>
+    template <typename T>
     inline void
-    write_bytes_32(OS &out, const T _x) {
+    write_bytes_32(std::ostream &out, const T _x) {
       const uint32_t x = port::h_to_be32(static_cast<uint32_t>(_x));
       out.write(reinterpret_cast<const char *>(&x), 4);
     }
 
-    template <typename OS, typename T>
+    template <typename T>
     inline void
-    write_bytes_64(OS &out, const T _x) {
+    write_bytes_64(std::ostream &out, const T _x) {
       const uint64_t x = port::h_to_be64(static_cast<uint64_t>(_x));
       out.write(reinterpret_cast<const char *>(&x), 8);
     }
 
-    template <typename OS> inline void write_raw_uint8(OS &out, const uint8_t x) { write_bytes_8<OS, uint8_t>(out, x); }
-    template <typename OS> inline void write_raw_uint16(OS &out, const uint16_t x) { write_bytes_16<OS, uint16_t>(out, x); }
-    template <typename OS> inline void write_raw_uint32(OS &out, const uint32_t x) { write_bytes_32<OS, uint32_t>(out, x); }
-    template <typename OS> inline void write_raw_uint64(OS &out, const uint64_t x) { write_bytes_64<OS, uint64_t>(out, x); }
+    inline void write_raw_uint8(std::ostream &out, const uint8_t x) { write_bytes_8<uint8_t>(out, x); }
+    inline void write_raw_uint16(std::ostream &out, const uint16_t x) { write_bytes_16<uint16_t>(out, x); }
+    inline void write_raw_uint32(std::ostream &out, const uint32_t x) { write_bytes_32<uint32_t>(out, x); }
+    inline void write_raw_uint64(std::ostream &out, const uint64_t x) { write_bytes_64<uint64_t>(out, x); }
 
-    template <typename OS> inline void write_raw_int8(OS &out, const int8_t x) { write_bytes_8<OS, int8_t>(out, x); }
-    template <typename OS> inline void write_raw_int16(OS &out, const int16_t x) { write_bytes_16<OS, int16_t>(out, x); }
-    template <typename OS> inline void write_raw_int32(OS &out, const int32_t x) { write_bytes_32<OS, int32_t>(out, x); }
-    template <typename OS> inline void write_raw_int64(OS &out, const int64_t x) { write_bytes_64<OS, int64_t>(out, x); }
+    inline void write_raw_int8(std::ostream &out, const int8_t x) { write_bytes_8<int8_t>(out, x); }
+    inline void write_raw_int16(std::ostream &out, const int16_t x) { write_bytes_16<int16_t>(out, x); }
+    inline void write_raw_int32(std::ostream &out, const int32_t x) { write_bytes_32<int32_t>(out, x); }
+    inline void write_raw_int64(std::ostream &out, const int64_t x) { write_bytes_64<int64_t>(out, x); }
 
-    template <typename OS>
     inline void
-    write_uint_fixed(OS &out, const uint8_t x) {
+    write_uint_fixed(std::ostream &out, const uint8_t x) {
       write_raw_uint8(out, x & 0x7F);
     }
 
-    template <typename OS>
     inline void
-    write_uint8(OS &out, const uint8_t x) {
+    write_uint8(std::ostream &out, const uint8_t x) {
       out.put(header::UINT_8);
       write_raw_uint8(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_uint16(OS &out, const uint16_t x) {
+    write_uint16(std::ostream &out, const uint16_t x) {
       out.put(header::UINT_16);
       write_raw_uint16(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_uint32(OS &out, const uint32_t x) {
+    write_uint32(std::ostream &out, const uint32_t x) {
       out.put(header::UINT_32);
       write_raw_uint32(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_uint64(OS &out, const uint64_t x) {
+    write_uint64(std::ostream &out, const uint64_t x) {
       out.put(header::UINT_64);
       write_raw_uint64(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_int_fixed(OS &out, const int8_t x) {
+    write_int_fixed(std::ostream &out, const int8_t x) {
       write_raw_uint8(out, ~(*reinterpret_cast<const uint8_t *>(&x)) & 0xE0);
     }
 
-    template <typename OS>
     inline void
-    write_int8(OS &out, const int8_t x) {
+    write_int8(std::ostream &out, const int8_t x) {
       out.put(header::INT_8);
       write_raw_int8(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_int16(OS &out, const int16_t x) {
+    write_int16(std::ostream &out, const int16_t x) {
       out.put(header::INT_16);
       write_raw_int16(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_int32(OS &out, const int32_t x) {
+    write_int32(std::ostream &out, const int32_t x) {
       out.put(header::INT_32);
       write_raw_int32(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_int64(OS &out, const int64_t x) {
+    write_int64(std::ostream &out, const int64_t x) {
       out.put(header::INT_64);
       write_raw_int64(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_array_size(OS &out, const size_t size) {
+    write_array_size(std::ostream &out, const size_t size) {
       if (size <= 15)
         out.put(static_cast<unsigned char>(header::ARRAY_FIXED | size));
       else if (size <= std::numeric_limits<uint16_t>::max()) {
@@ -599,9 +592,8 @@ namespace schwa {
       }
     }
 
-    template <typename OS>
     inline void
-    write_map_size(OS &out, const size_t size) {
+    write_map_size(std::ostream &out, const size_t size) {
       if (size <= 15)
         out.put(static_cast<unsigned char>(header::MAP_FIXED | size));
       else if (size <= std::numeric_limits<uint16_t>::max()) {
@@ -614,21 +606,18 @@ namespace schwa {
       }
     }
 
-    template <typename OS>
     inline void
-    write_nil(OS &out) {
+    write_nil(std::ostream &out) {
       out.put(header::NIL);
     }
 
-    template <typename OS>
     inline void
-    write_bool(OS &out, const bool x) {
+    write_bool(std::ostream &out, const bool x) {
       out.put(x ? header::TRUE : header::FALSE);
     }
 
-    template <typename OS>
     inline void
-    write_uint(OS &out, const uint64_t x) {
+    write_uint(std::ostream &out, const uint64_t x) {
       if (x <= 127)
         write_uint_fixed(out, static_cast<uint8_t>(x));
       else if (x <= std::numeric_limits<uint8_t>::max())
@@ -641,9 +630,8 @@ namespace schwa {
         write_uint64(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_int(OS &out, const int64_t x) {
+    write_int(std::ostream &out, const int64_t x) {
       if (x >= -32 && x <= -1)
         write_int_fixed(out, static_cast<int8_t>(x));
       else if (x >= 0 && x <= 127)
@@ -658,23 +646,20 @@ namespace schwa {
         write_int64(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_float(OS &out, const float x) {
+    write_float(std::ostream &out, const float x) {
       out.put(header::FLOAT);
       write_bytes_32(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_double(OS &out, const double x) {
+    write_double(std::ostream &out, const double x) {
       out.put(header::DOUBLE);
       write_bytes_64(out, x);
     }
 
-    template <typename OS>
     inline void
-    write_raw(OS &out, const char *const data, const size_t size) {
+    write_raw(std::ostream &out, const char *const data, const size_t size) {
       if (size <= 31)
         out.put(static_cast<unsigned char>(header::RAW_FIXED | size));
       else if (size <= std::numeric_limits<uint16_t>::max()) {
@@ -688,9 +673,8 @@ namespace schwa {
       out.write(data, size);
     }
 
-    template <typename OS>
     inline void
-    write_raw(OS &out, const std::string &data) {
+    write_raw(std::ostream &out, const std::string &data) {
       write_raw(out, data.c_str(), data.size());
     }
   }
