@@ -1,8 +1,12 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config.h>
 #include <schwa/dr.h>
+#include <schwa/io/buffer.h>
 
-using namespace schwa;
+namespace cf = schwa::config;
+namespace dr = schwa::dr;
+namespace io = schwa::io;
+namespace mp = schwa::msgpack;
 
 
 class Token : public dr::Ann {
@@ -111,19 +115,30 @@ do_read(std::istream &in, std::ostream &out) {
 
 int
 main(int argc, char *argv[]) {
-  config::OpMain cfg("test", "this is the toplevel help");
-  config::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
-  config::IStreamOp op_in(cfg, "input", "The input file");
-  config::OStreamOp op_out(cfg, "output", "The output file");
+  cf::OpMain cfg("test", "this is the toplevel help");
+  cf::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
+  cf::IStreamOp op_in(cfg, "input", "The input file");
+  cf::OStreamOp op_out(cfg, "output", "The output file");
   try {
     if (!cfg.process(argc - 1, argv + 1))
       return 1;
   }
-  catch (config::ConfigException &e) {
-    std::cerr << print_exception("ConfigException", e) << std::endl;
+  catch (cf::ConfigException &e) {
+    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
     cfg.help(std::cerr);
     return 1;
   }
+
+  io::WriteBuffer buf(8, 8, 16, 8);
+  std::ostream out(&buf);
+  std::cout << "out is at " << &out << std::endl;
+  std::cout << out.good() << " " << out.eof() << " " << out.bad() << std::endl;
+  out << 1 << " hello " << 2 << std::endl;
+  std::cout << out.good() << " " << out.eof() << " " << out.bad() << std::endl;
+  mp::write_uint(out, 42);
+  std::cout << out.good() << " " << out.eof() << " " << out.bad() << std::endl;
+  std::cout << buf.size() << std::endl;
+  return 0;
 
   try {
     if (op_mode() == "write")
@@ -131,8 +146,8 @@ main(int argc, char *argv[]) {
     else
       do_read(op_in.file(), op_out.file());
   }
-  catch (Exception &e) {
-    std::cerr << print_exception(e) << std::endl;
+  catch (schwa::Exception &e) {
+    std::cerr << schwa::print_exception(e) << std::endl;
     return 1;
   }
 
