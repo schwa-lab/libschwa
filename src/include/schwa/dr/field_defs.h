@@ -61,7 +61,7 @@ namespace schwa {
 
       virtual size_t size(const Doc &doc) const = 0;
       virtual ptrdiff_t store_offset(const Doc *) const = 0;
-      virtual void write(std::ostream &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Doc &, const BaseSchema &, const void *const)) const = 0;
+      virtual void write(io::WriteBuffer &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const BaseSchema &, const void *const)) const = 0;
 
       virtual char *read_begin(Doc &_doc) const = 0;
       virtual size_t read_size(void) const = 0;
@@ -151,7 +151,7 @@ namespace schwa {
       inline size_t read_size(void) const { return sizeof(S); }
 
       void
-      write(std::ostream &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Doc &, const BaseSchema &, const void *const)) const {
+      write(io::WriteBuffer &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const BaseSchema &, const void *const)) const {
         namespace mp = schwa::msgpack;
         const T &doc = static_cast<const T &>(_doc);
         const Store<S> &store = doc.*store_ptr;

@@ -76,18 +76,18 @@ Reader::read(Doc &doc) {
     // <klass> ::= ( <klass_name>, <fields> )
     const size_t npair = mp::read_array_size(_in);
     if (npair != 2) {
-      std::stringstream ss;
-      ss << "Invalid sized tuple read in: expected 2 elements but found " << npair;
-      throw ReaderException(ss.str());
+      std::stringstream msg;
+      msg << "Invalid sized tuple read in: expected 2 elements but found " << npair;
+      throw ReaderException(msg.str());
     }
 
     // read in the class name and check that we have a registered class with this name
     const std::string klass_name = mp::read_raw(_in);
     const auto &kit = klass_name_map.find(klass_name);
     if (kit == klass_name_map.end()) {
-      std::stringstream ss;
-      ss << "Class name '" << klass_name << "' found on input stream, but no known class matches that name";
-      throw ReaderException(ss.str());
+      std::stringstream msg;
+      msg << "Class name '" << klass_name << "' found on input stream, but no known class matches that name";
+      throw ReaderException(msg.str());
     };
     const BaseSchema *const schema = kit->second;
     klasses.push_back(WireKlass(schema));
@@ -115,9 +115,9 @@ Reader::read(Doc &doc) {
         case 1: store_id = mp::read_uint(_in); is_pointer = true; break;
         case 2: is_slice = mp::read_bool(_in); break;
         default:
-          std::stringstream ss;
-          ss << "Unknown value " << static_cast<unsigned int>(key) << " as key in <field> map";
-          throw ReaderException(ss.str());
+          std::stringstream msg;
+          msg << "Unknown value " << static_cast<unsigned int>(key) << " as key in <field> map";
+          throw ReaderException(msg.str());
         }
       }
 
@@ -132,21 +132,21 @@ Reader::read(Doc &doc) {
         ++index;
       }
       if (field == nullptr) {
-        std::stringstream ss;
-        ss << "Field name '" << field_name << "' found on the input stream does not exist on the class '" << klass_name << "'";
-        throw ReaderException(ss.str());
+        std::stringstream msg;
+        msg << "Field name '" << field_name << "' found on the input stream does not exist on the class '" << klass_name << "'";
+        throw ReaderException(msg.str());
       }
 
       // perform some sanity checks that the type of data on the stream is what we're expecting
       if (is_pointer && !field->is_pointer) {
-        std::stringstream ss;
-        ss << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_POINTER on the stream, but not on the class's field";
-        throw ReaderException(ss.str());
+        std::stringstream msg;
+        msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_POINTER on the stream, but not on the class's field";
+        throw ReaderException(msg.str());
       }
       if (is_slice && !field->is_slice) {
-        std::stringstream ss;
-        ss << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_SLICE on the stream, but not on the class's field";
-        throw ReaderException(ss.str());
+        std::stringstream msg;
+        msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_SLICE on the stream, but not on the class's field";
+        throw ReaderException(msg.str());
       }
 
       klasses.back().add_field(WireField(field, index, store_id, is_pointer));
@@ -168,9 +168,9 @@ Reader::read(Doc &doc) {
     // <store> ::= ( <store_name>, <klass_id>, <store_nelem> )
     const size_t ntriple = mp::read_array_size(_in);
     if (ntriple != 3) {
-      std::stringstream ss;
-      ss << "Invalid sized tuple read in: expected 3 elements but found " << ntriple;
-      throw ReaderException(ss.str());
+      std::stringstream msg;
+      msg << "Invalid sized tuple read in: expected 3 elements but found " << ntriple;
+      throw ReaderException(msg.str());
     }
     const std::string store_name = mp::read_raw(_in);
     const size_t klass_id = mp::read_uint(_in);
@@ -185,25 +185,25 @@ Reader::read(Doc &doc) {
       }
     }
     if (store == nullptr) {
-      std::stringstream ss;
-      ss << "Store name '" << store_name << "' found on the input stream does not exist on the document '" << _dschema.name << "'";
-      throw ReaderException(ss.str());
+      std::stringstream msg;
+      msg << "Store name '" << store_name << "' found on the input stream does not exist on the document '" << _dschema.name << "'";
+      throw ReaderException(msg.str());
     }
 
     // sanity check on the value of the klass_id
     if (klass_id >= klasses.size()) {
-      std::stringstream ss;
-      ss << "klass_id value " << klass_id << " >= number of klasses (" << klasses.size() << ")";
-      throw ReaderException(ss.str());
+      std::stringstream msg;
+      msg << "klass_id value " << klass_id << " >= number of klasses (" << klasses.size() << ")";
+      throw ReaderException(msg.str());
     }
 
     // ensure that the stream store and the static store agree on the klass they're storing
     const TypeInfo &store_ptr_type = store->pointer_type();
     const TypeInfo &klass_ptr_type = klasses[klass_id].klass()->type;
     if (store_ptr_type != klass_ptr_type) {
-      std::stringstream ss;
-      ss << "Store '" << store_name << "' points to " << store_ptr_type << " but the stream says it points to " << klass_ptr_type;
-      throw ReaderException(ss.str());
+      std::stringstream msg;
+      msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the stream says it points to " << klass_ptr_type;
+      throw ReaderException(msg.str());
     }
 
     // resize the store to house the correct number of instances
@@ -218,17 +218,17 @@ Reader::read(Doc &doc) {
       if (field.is_pointer) {
         // sanity check on the value of store_id
         if (field.store_id >= stores.size()) {
-          std::stringstream ss;
-          ss << "store_id value " << field.store_id << " >= number of stores (" << stores.size() << ")";
-          throw ReaderException(ss.str());
+          std::stringstream msg;
+          msg << "store_id value " << field.store_id << " >= number of stores (" << stores.size() << ")";
+          throw ReaderException(msg.str());
         }
 
         const ptrdiff_t field_store_offset = field.field->store_offset(nullptr);
         const ptrdiff_t store_store_offset = stores[field.store_id].first->store_offset(nullptr);
         if (field_store_offset != store_store_offset) {
-          std::stringstream ss;
-          ss << "field_store_offset (" << field_store_offset << ") != store_store_offset (" << store_store_offset << ")";
-          throw ReaderException(ss.str());
+          std::stringstream msg;
+          msg << "field_store_offset (" << field_store_offset << ") != store_store_offset (" << store_store_offset << ")";
+          throw ReaderException(msg.str());
         }
       }
 
