@@ -45,11 +45,11 @@ public:
 
   Schema(void) :
     dr::Ann::Schema<Token>("Token", "Some help text about Token", "Token"),
-    slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
-    slice2(*this, "slice2", "some help text about slice2", dr::LOAD_RO, "slice2"),
-    raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
-    norm(*this, "norm", "some help text about norm", dr::LOAD_RW, "norm"),
-    parent(*this, "parent", "some help text about parent", dr::LOAD_RW, "parent")
+    slice(*this, "slice", "some help text about slice", dr::FieldMode::READ_ONLY, "slice"),
+    slice2(*this, "slice2", "some help text about slice2", dr::FieldMode::READ_ONLY, "slice2"),
+    raw(*this, "raw", "some help text about raw", dr::FieldMode::READ_WRITE, "raw"),
+    norm(*this, "norm", "some help text about norm", dr::FieldMode::READ_WRITE, "norm"),
+    parent(*this, "parent", "some help text about parent", dr::FieldMode::READ_WRITE, "parent")
     { }
   virtual ~Schema(void) { }
 };
@@ -63,9 +63,9 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<Doc>("Doc", "Some help text about this Doc class"),
-    filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
-    tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens"),
-    tokens2(*this, "tokens2", "some help text about Token2 store", dr::LOAD_RW, "tokens2")
+    filename(*this, "filename", "some help text about filename", dr::FieldMode::READ_ONLY, "filename"),
+    tokens(*this, "tokens", "some help text about Token store", dr::FieldMode::READ_WRITE, "tokens"),
+    tokens2(*this, "tokens2", "some help text about Token2 store", dr::FieldMode::READ_WRITE, "tokens2")
     { }
   virtual ~Schema(void) { }
 };
@@ -127,15 +127,6 @@ main(int argc, char *argv[]) {
     cfg.help(std::cerr);
     return 1;
   }
-
-  io::WriteBuffer out(8, 8, 16, 8);
-  mp::write_uint(out, 42);
-  mp::write_uint(out, 4096);
-  mp::write_raw(out, "Hello", 5);
-  mp::write_uint(out, 4096);
-  std::cout << out.size() << std::endl;
-  out.debug(std::cout);
-  return 0;
 
   try {
     if (op_mode() == "write")

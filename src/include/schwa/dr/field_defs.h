@@ -6,10 +6,12 @@ namespace schwa {
     // ========================================================================
     // Constants
     // ========================================================================
-    typedef uint8_t loadmode_t;
-    static const loadmode_t LOAD_RW = 1;
-    static const loadmode_t LOAD_RO = 2;
-    static const loadmode_t LOAD_LAZY = 3;
+    enum class FieldMode : uint8_t {
+      READ_WRITE = 1,
+      READ_ONLY = 2,
+      DELETE = 3,
+      LAZY = 4
+    };
 
 
     // ========================================================================
@@ -19,13 +21,13 @@ namespace schwa {
     public:
       const std::string name;
       const std::string help;
-      const loadmode_t mode;
+      const FieldMode mode;
       std::string serial;
 
     protected:
-      BaseDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial) {
-        if (!(mode == LOAD_RW || mode == LOAD_RO))
-          throw ValueException("Invalid `mode' value: must be either LOAD_RW or LOAD_RO");
+      BaseDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial) {
+        if (mode == FieldMode::LAZY)
+          throw ValueException("Invalid `mode' value: must either be READ_WRITE, READ_ONLY, or DELETE");
       }
 
     public:
@@ -41,7 +43,7 @@ namespace schwa {
       const bool is_slice;
 
     protected:
-      BaseFieldDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial, const bool is_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_slice(is_slice) { }
+      BaseFieldDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial, const bool is_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_slice(is_slice) { }
 
     public:
       virtual ~BaseFieldDef(void) { }
@@ -52,7 +54,7 @@ namespace schwa {
 
     class BaseStoreDef : public BaseDef {
     protected:
-      BaseStoreDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial) { }
+      BaseStoreDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseDef(name, help, mode, serial) { }
 
     public:
       virtual ~BaseStoreDef(void) { }
@@ -82,7 +84,7 @@ namespace schwa {
       typedef R value_type;
       typedef T annotation_type;
 
-      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
         schema.add(this);
       }
       virtual ~FieldDef(void) { }
@@ -107,7 +109,7 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~FieldDefWithStore(void) { }
@@ -130,7 +132,7 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+      StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~StoreDef(void) { }
