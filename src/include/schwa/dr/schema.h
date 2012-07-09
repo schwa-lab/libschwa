@@ -74,11 +74,25 @@ namespace schwa {
     // Base classes
     // ========================================================================
     class Ann {
-    protected:
-      Ann(void) { }
-      Ann(const Ann &) { }
-      Ann(const Ann &&) { }
-      Ann &operator =(const Ann &) { return *this; }
+    private:
+      const char * _lazy;
+      uint32_t _lazy_nelem;
+      uint32_t _lazy_nbytes;
+
+    public:
+      explicit Ann(void) : _lazy(nullptr), _lazy_nelem(0), _lazy_nbytes(0) { }
+      Ann(const char *lazy, const uint32_t nelem, const uint32_t nbytes) : _lazy(lazy), _lazy_nelem(nelem), _lazy_nbytes(nbytes) { }
+      Ann(const Ann &o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
+      Ann(const Ann &&o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
+      ~Ann(void) { }
+
+      Ann &
+      operator =(const Ann &o) {
+        _lazy = o._lazy;
+        _lazy_nelem = o._lazy_nelem;
+        _lazy_nbytes = o._lazy_nbytes;
+        return *this;
+      }
 
       template <typename T> class Schema;
     };
