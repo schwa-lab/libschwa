@@ -1,6 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/base.h>
-#include <schwa/msgpack.h>
 #include <schwa/dr.h>
 #include "test_utils.h"
 

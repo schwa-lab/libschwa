@@ -10,7 +10,7 @@ namespace schwa {
       READ_WRITE = 1,
       READ_ONLY = 2,
       DELETE = 3,
-      LAZY = 4
+      STREAM_ONLY = 4
     };
 
 
@@ -26,7 +26,7 @@ namespace schwa {
 
     protected:
       BaseDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial) {
-        if (mode == FieldMode::LAZY)
+        if (mode == FieldMode::STREAM_ONLY)
           throw ValueException("Invalid `mode' value: must either be READ_WRITE, READ_ONLY, or DELETE");
       }
 

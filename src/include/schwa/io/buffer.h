@@ -64,5 +64,65 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
     };
 
+
+    class ArrayReader {
+    private:
+      const char *const _data;
+      const size_t _nbytes;
+      const char *_upto;
+      size_t _left;
+
+    public:
+      explicit ArrayReader(const char *data, size_t nbytes) : _data(data), _nbytes(nbytes), _upto(_data), _left(nbytes) { }
+      ~ArrayReader(void) { }
+
+      inline const char *data(void) const { return _data; }
+      inline const char *upto(void) const { return _upto; }
+
+      inline int
+      get(void) {
+        std::cout << "ArrayReader::get(_left=" << _left << ")" << std::endl;
+        if (_left == 0)
+          return EOF;
+        const char c = *_upto++;
+        std::cout << "ArrayReader::get(_c=" << std::hex << static_cast<unsigned int>(*reinterpret_cast<const unsigned char *>(&c)) << std::dec << ")" << std::endl;
+        --_left;
+        return *reinterpret_cast<const unsigned char *>(&c);
+      }
+
+      inline void
+      read(char *const buf, const size_t amount) {
+        const size_t n = std::min(_left, amount);
+        std::memcpy(buf, _upto, n);
+        _upto += n;
+        _left -= n;
+      }
+    };
+
+
+    class UnsafeArrayWriter {
+    private:
+      char *const _data;
+      char *_upto;
+
+    public:
+      explicit UnsafeArrayWriter(char *data) : _data(data), _upto(data) { }
+      ~UnsafeArrayWriter(void) { }
+
+      inline char *data(void) const { return _data; }
+      inline char *upto(void) const { return _upto; }
+
+      inline void
+      put(const char c) {
+        *_upto++ = c;
+      }
+
+      inline void
+      write(const char *const data, const size_t nbytes) {
+        std::memcpy(_upto, data, nbytes);
+        _upto += nbytes;
+      }
+    };
+
   }
 }
