@@ -52,59 +52,57 @@ namespace schwa {
     // ========================================================================
     inline WireType header_type(const int header);
 
-    inline void     read_nil(std::istream &in);
-    inline bool     read_bool(std::istream &in);
-    inline float    read_float(std::istream &in);
-    inline double   read_double(std::istream &in);
-    inline int64_t  read_int(std::istream &in);
-    inline uint64_t read_uint(std::istream &in);
+    template <typename IN> inline void     read_nil(IN &in);
+    template <typename IN> inline bool     read_bool(IN &in);
+    template <typename IN> inline float    read_float(IN &in);
+    template <typename IN> inline double   read_double(IN &in);
+    template <typename IN> inline int64_t  read_int(IN &in);
+    template <typename IN> inline uint64_t read_uint(IN &in);
 
-    inline size_t   read_array_size(std::istream &in);
-    inline size_t   read_map_size(std::istream &in);
+    template <typename IN> inline size_t   read_array_size(IN &in);
+    template <typename IN> inline size_t   read_map_size(IN &in);
 
-    inline std::string read_raw(std::istream &in);
+    template <typename IN> inline std::string read_raw(IN &in);
 
     inline int8_t   read_val_int_fixed(const int h);
-    inline int8_t   read_val_int8(std::istream &in);
-    inline int16_t  read_val_int16(std::istream &in);
-    inline int32_t  read_val_int32(std::istream &in);
-    inline int64_t  read_val_int64(std::istream &in);
+    template <typename IN> inline int8_t   read_val_int8(IN &in);
+    template <typename IN> inline int16_t  read_val_int16(IN &in);
+    template <typename IN> inline int32_t  read_val_int32(IN &in);
+    template <typename IN> inline int64_t  read_val_int64(IN &in);
 
     inline uint8_t  read_val_uint_fixed(const int h);
-    inline uint8_t  read_val_uint8(std::istream &in);
-    inline uint16_t read_val_uint16(std::istream &in);
-    inline uint32_t read_val_uint32(std::istream &in);
-    inline uint64_t read_val_uint64(std::istream &in);
+    template <typename IN> inline uint8_t  read_val_uint8(IN &in);
+    template <typename IN> inline uint16_t read_val_uint16(IN &in);
+    template <typename IN> inline uint32_t read_val_uint32(IN &in);
+    template <typename IN> inline uint64_t read_val_uint64(IN &in);
 
-    inline int8_t   read_int_fixed(std::istream &in);
-    inline int8_t   read_int8(std::istream &in);
-    inline int16_t  read_int16(std::istream &in);
-    inline int32_t  read_int32(std::istream &in);
-    inline int64_t  read_int64(std::istream &in);
+    template <typename IN> inline int8_t   read_int_fixed(IN &in);
+    template <typename IN> inline int8_t   read_int8(IN &in);
+    template <typename IN> inline int16_t  read_int16(IN &in);
+    template <typename IN> inline int32_t  read_int32(IN &in);
+    template <typename IN> inline int64_t  read_int64(IN &in);
 
-    inline uint8_t  read_uint_fixed(std::istream &in);
-    inline uint8_t  read_uint8(std::istream &in);
-    inline uint16_t read_uint16(std::istream &in);
-    inline uint32_t read_uint32(std::istream &in);
-    inline uint64_t read_uint64(std::istream &in);
+    template <typename IN> inline uint8_t  read_uint_fixed(IN &in);
+    template <typename IN> inline uint8_t  read_uint8(IN &in);
+    template <typename IN> inline uint16_t read_uint16(IN &in);
+    template <typename IN> inline uint32_t read_uint32(IN &in);
+    template <typename IN> inline uint64_t read_uint64(IN &in);
 
-    template <typename T>
-    inline void read(std::istream &in, T &val);
+    template <typename IN> inline void read(IN &in, int8_t &val) { val = read_int8(in); }
+    template <typename IN> inline void read(IN &in, int16_t &val) { val = read_int16(in); }
+    template <typename IN> inline void read(IN &in, int32_t &val) { val = read_int32(in); }
+    template <typename IN> inline void read(IN &in, int64_t &val) { val = read_int64(in); }
+    template <typename IN> inline void read(IN &in, uint8_t &val) { val = read_uint8(in); }
+    template <typename IN> inline void read(IN &in, uint16_t &val) { val = read_uint16(in); }
+    template <typename IN> inline void read(IN &in, uint32_t &val) { val = read_uint32(in); }
+    template <typename IN> inline void read(IN &in, uint64_t &val) { val = read_uint64(in); }
+    template <typename IN> inline void read(IN &in, float &val) { val = read_float(in); }
+    template <typename IN> inline void read(IN &in, double &val) { val = read_double(in); }
+    template <typename IN> inline void read(IN &in, bool &val) { val = read_bool(in); }
+    template <typename IN> inline void read(IN &in, std::string &val) { val = read_raw(in); }
 
-    template <> inline void read(std::istream &in, int8_t &val) { val = read_int8(in); }
-    template <> inline void read(std::istream &in, int16_t &val) { val = read_int16(in); }
-    template <> inline void read(std::istream &in, int32_t &val) { val = read_int32(in); }
-    template <> inline void read(std::istream &in, int64_t &val) { val = read_int64(in); }
-    template <> inline void read(std::istream &in, uint8_t &val) { val = read_uint8(in); }
-    template <> inline void read(std::istream &in, uint16_t &val) { val = read_uint16(in); }
-    template <> inline void read(std::istream &in, uint32_t &val) { val = read_uint32(in); }
-    template <> inline void read(std::istream &in, uint64_t &val) { val = read_uint64(in); }
-    template <> inline void read(std::istream &in, float &val) { val = read_float(in); }
-    template <> inline void read(std::istream &in, double &val) { val = read_double(in); }
-    template <> inline void read(std::istream &in, bool &val) { val = read_bool(in); }
-    template <> inline void read(std::istream &in, std::string &val) { val = read_raw(in); }
-
-    bool read_lazy(std::istream &in, std::ostream &out, WireType &type);
+    template <typename IN, typename OUT>
+    bool read_lazy(IN &in, OUT &out, WireType &type);
 
     // ========================================================================
     // Writing API
@@ -151,33 +149,33 @@ namespace schwa {
     // ========================================================================
     // Reading API implementations
     // ========================================================================
-    template <typename T>
+    template <typename IN, typename T>
     inline void
-    read_bytes8(std::istream &in, T &x) {
+    read_bytes8(IN &in, T &x) {
       uint8_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 1);
       x = tmp;
     }
 
-    template <typename T>
+    template <typename IN, typename T>
     inline void
-    read_bytes16(std::istream &in, T &x) {
+    read_bytes16(IN &in, T &x) {
       uint16_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 2);
       x = port::be16_to_h(tmp);
     }
 
-    template <typename T>
+    template <typename IN, typename T>
     inline void
-    read_bytes32(std::istream &in, T &x) {
+    read_bytes32(IN &in, T &x) {
       uint32_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 4);
       x = port::be32_to_h(tmp);
     }
 
-    template <typename T>
+    template <typename IN, typename T>
     inline void
-    read_bytes64(std::istream &in, T &x) {
+    read_bytes64(IN &in, T &x) {
       uint64_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 8);
       x = port::be64_to_h(tmp);
@@ -190,14 +188,16 @@ namespace schwa {
       return TABLE[header & 0xFF];
     }
 
+    template <typename IN>
     inline void
-    read_nil(std::istream &in) {
+    read_nil(IN &in) {
       const int h = in.get();
       assert(h == header::NIL);
     }
 
+    template <typename IN>
     inline bool
-    read_bool(std::istream &in) {
+    read_bool(IN &in) {
       const int h = in.get();
       if (h == header::TRUE)
         return true;
@@ -207,8 +207,9 @@ namespace schwa {
       return false;
     }
 
+    template <typename IN>
     inline float
-    read_float(std::istream &in) {
+    read_float(IN &in) {
       float x;
       const int h = in.get();
       assert(h == header::FLOAT);
@@ -216,8 +217,9 @@ namespace schwa {
       return x;
     }
 
+    template <typename IN>
     inline double
-    read_double(std::istream &in) {
+    read_double(IN &in) {
       double x;
       const int h = in.get();
       assert(h == header::DOUBLE);
@@ -230,76 +232,86 @@ namespace schwa {
       return static_cast<int8_t>(h & 0x1F);
     }
 
+    template <typename IN>
     inline int8_t
-    read_val_int8(std::istream &in) {
+    read_val_int8(IN &in) {
       int8_t x;
       read_bytes8(in, x);
       return x;
     }
 
+    template <typename IN>
     inline int16_t
-    read_val_int16(std::istream &in) {
+    read_val_int16(IN &in) {
       int16_t x;
       read_bytes16(in, x);
       return x;
     }
 
+    template <typename IN>
     inline int32_t
-    read_val_int32(std::istream &in) {
+    read_val_int32(IN &in) {
       int32_t x;
       read_bytes32(in, x);
       return x;
     }
 
+    template <typename IN>
     inline int64_t
-    read_val_int64(std::istream &in) {
+    read_val_int64(IN &in) {
       int64_t x;
       read_bytes64(in, x);
       return x;
     }
 
+    template <typename IN>
     inline int8_t
-    read_int_fixed(std::istream &in) {
+    read_int_fixed(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::FIXNUM_NEGATIVE)
         throw ReadException("Failed to read FIXNUM_NEGATIVE", h);
       return read_val_int_fixed(h);
     }
 
+    template <typename IN>
     inline int8_t
-    read_int8(std::istream &in) {
+    read_int8(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::INT_8)
         throw ReadException("Failed to read INT_8", h, header::INT_8);
       return read_val_int8(in);
     }
 
+    template <typename IN>
     inline int16_t
-    read_int16(std::istream &in) {
+    read_int16(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::INT_16)
         throw ReadException("Failed to read INT_16", h, header::INT_16);
       return read_val_int16(in);
     }
 
+    template <typename IN>
     inline int32_t
-    read_int32(std::istream &in) {
+    read_int32(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::INT_32)
         throw ReadException("Failed to read INT_32", h, header::INT_32);
       return read_val_int32(in);
     }
 
+    template <typename IN>
     inline int64_t
-    read_int64(std::istream &in) {
+    read_int64(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::INT_64)
         throw ReadException("Failed to read INT_64", h, header::INT_64);
       return read_val_int64(in);
     }
 
+    template <typename IN>
     inline int64_t
-    read_int(std::istream &in) {
+    read_int(IN &in) {
       const int h = in.get();
       const WireType type = header_type(h);
       switch (type) {
@@ -319,76 +331,86 @@ namespace schwa {
       return static_cast<uint8_t>(h & 0x7F);
     }
 
+    template <typename IN>
     inline uint8_t
-    read_val_uint8(std::istream &in) {
+    read_val_uint8(IN &in) {
       uint8_t x;
       read_bytes8(in, x);
       return x;
     }
 
+    template <typename IN>
     inline uint16_t
-    read_val_uint16(std::istream &in) {
+    read_val_uint16(IN &in) {
       uint16_t x;
       read_bytes16(in, x);
       return x;
     }
 
+    template <typename IN>
     inline uint32_t
-    read_val_uint32(std::istream &in) {
+    read_val_uint32(IN &in) {
       uint32_t x;
       read_bytes32(in, x);
       return x;
     }
 
+    template <typename IN>
     inline uint64_t
-    read_val_uint64(std::istream &in) {
+    read_val_uint64(IN &in) {
       uint64_t x;
       read_bytes64(in, x);
       return x;
     }
 
+    template <typename IN>
     inline uint8_t
-    read_uint_fixed(std::istream &in) {
+    read_uint_fixed(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::FIXNUM_POSITIVE)
         throw ReadException("Failed to read FIXNUM_POSITIVE", h);
       return read_val_uint_fixed(h);
     }
 
+    template <typename IN>
     inline uint8_t
-    read_uint8(std::istream &in) {
+    read_uint8(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::UINT_8)
         throw ReadException("Failed to read UINT_8", h, header::UINT_8);
       return read_val_uint8(in);
     }
 
+    template <typename IN>
     inline uint16_t
-    read_uint16(std::istream &in) {
+    read_uint16(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::UINT_16)
         throw ReadException("Failed to read UINT_16", h, header::UINT_16);
       return read_val_uint16(in);
     }
 
+    template <typename IN>
     inline uint32_t
-    read_uint32(std::istream &in) {
+    read_uint32(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::UINT_32)
         throw ReadException("Failed to read UINT_32", h, header::UINT_32);
       return read_val_uint32(in);
     }
 
+    template <typename IN>
     inline uint64_t
-    read_uint64(std::istream &in) {
+    read_uint64(IN &in) {
       const int h = in.get();
       if (header_type(h) != WireType::UINT_64)
         throw ReadException("Failed to read UINT_64", h, header::UINT_64);
       return read_val_uint64(in);
     }
 
+    template <typename IN>
     inline uint64_t
-    read_uint(std::istream &in) {
+    read_uint(IN &in) {
       const int h = in.get();
       const WireType type = header_type(h);
       switch (type) {
@@ -402,10 +424,12 @@ namespace schwa {
       }
     }
 
+    template <typename IN>
     inline size_t
-    read_array_size(std::istream &in) {
+    read_array_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
+      std::cout << "[read_array_size] " << std::hex << header << std::dec << std::endl;
       uint16_t s16;
       uint32_t s32;
       switch (type) {
@@ -423,10 +447,12 @@ namespace schwa {
       }
     }
 
+    template <typename IN>
     inline size_t
-    read_map_size(std::istream &in) {
+    read_map_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
+      std::cout << "[read_map_size] " << std::hex << header << std::dec << std::endl;
       uint16_t s16;
       uint32_t s32;
       switch (type) {
@@ -444,10 +470,12 @@ namespace schwa {
       }
     }
 
+    template <typename IN>
     inline std::string
-    read_raw(std::istream &in) {
+    read_raw(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
+      std::cout << "[read_raw_size] " << std::hex << header << std::dec << std::endl;
       uint16_t s16;
       uint32_t s32;
 
@@ -471,6 +499,113 @@ namespace schwa {
       s.resize(s32);
       in.read(&s[0], s32);
       return s;
+    }
+
+
+    template <typename IN, typename OUT>
+    bool
+    read_lazy(IN &in, OUT &out, WireType &type) {
+      char buf[8];
+      uint16_t s16;
+      uint32_t s32;
+      bool recurse = false, raw = false;
+
+      const int h = in.get();
+      if (h == EOF)
+        return false;
+      out.put(h);
+
+      type = header_type(h);
+      switch (type) {
+      case WireType::FIXNUM_POSITIVE:
+      case WireType::FIXNUM_NEGATIVE:
+      case WireType::NIL:
+      case WireType::TRUE:
+      case WireType::FALSE:
+        break;
+      case WireType::INT_8:
+      case WireType::UINT_8:
+        in.read(buf, 1);
+        out.write(buf, 1);
+        break;
+      case WireType::INT_16:
+      case WireType::UINT_16:
+        in.read(buf, 2);
+        out.write(buf, 2);
+        break;
+      case WireType::FLOAT:
+      case WireType::INT_32:
+      case WireType::UINT_32:
+        in.read(buf, 4);
+        out.write(buf, 4);
+        break;
+      case WireType::DOUBLE:
+      case WireType::INT_64:
+      case WireType::UINT_64:
+        in.read(buf, 8);
+        out.write(buf, 8);
+        break;
+      case WireType::ARRAY_FIXED:
+        s32 = h & 0x0F;
+        recurse = true;
+        break;
+      case WireType::ARRAY_16:
+        read_bytes16(in, s16);
+        s32 = s16;
+        recurse = true;
+        break;
+      case WireType::ARRAY_32:
+        read_bytes32(in, s32);
+        recurse = true;
+        break;
+      case WireType::MAP_FIXED:
+        s32 = h & 0x0F;
+        s32 *= 2;
+        recurse = true;
+        break;
+      case WireType::MAP_16:
+        read_bytes16(in, s16);
+        s32 = 2 * s16;
+        recurse = true;
+        break;
+      case WireType::MAP_32:
+        read_bytes32(in, s32);
+        s32 *= 2;
+        recurse = true;
+        break;
+      case WireType::RAW_FIXED:
+        s32 = h & 0x1F;
+        raw = true;
+        break;
+      case WireType::RAW_16:
+        read_bytes16(in, s16);
+        s32 = s16;
+        raw = true;
+        break;
+      case WireType::RAW_32:
+        read_bytes32(in, s32);
+        raw = true;
+        break;
+      case WireType::RESERVED:
+        break;
+      }
+
+      if (recurse) {
+        WireType t;
+        for (uint32_t i = 0; i != s32; ++i)
+          if (!read_lazy(in, out, t))
+            return false;
+      }
+      else if (raw) {
+        for (uint32_t i = 0; i != s32; ++i) {
+          int c = in.get();
+          if (c == EOF)
+            return false;
+          out.put(c);
+        }
+      }
+
+      return true;
     }
 
 

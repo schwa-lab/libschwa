@@ -12,15 +12,18 @@ public:
   size_t index;
   size_t store_id;
   bool is_pointer;
+  FieldMode mode;
 
-  WireField(const BaseFieldDef *field, size_t index, size_t store_id, size_t is_pointer) : field(field), index(index), store_id(store_id), is_pointer(is_pointer) { }
-  WireField(const WireField &o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer) { }
-  WireField(const WireField &&o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer) { }
+  explicit WireField(size_t index) : field(nullptr), index(index), store_id(0), is_pointer(false), mode(FieldMode::STREAM_ONLY) { }
+  WireField(const BaseFieldDef *field, size_t index, size_t store_id, size_t is_pointer) : field(field), index(index), store_id(store_id), is_pointer(is_pointer), mode(field->mode) { }
+  WireField(const WireField &o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer), mode(o.mode) { }
+  WireField(const WireField &&o) : field(o.field), index(o.index), store_id(o.store_id), is_pointer(o.is_pointer), mode(o.mode) { }
   WireField &operator =(const WireField &o) {
     field = o.field;
     index = o.index;
     store_id = o.store_id;
     is_pointer = o.is_pointer;
+    mode = o.mode;
     return *this;
   }
 };
@@ -131,25 +134,30 @@ Reader::read(Doc &doc) {
         }
         ++index;
       }
+#if 0
       if (field == nullptr) {
         std::stringstream msg;
         msg << "Field name '" << field_name << "' found on the input stream does not exist on the class '" << klass_name << "'";
         throw ReaderException(msg.str());
       }
+#endif
 
-      // perform some sanity checks that the type of data on the stream is what we're expecting
-      if (is_pointer && !field->is_pointer) {
-        std::stringstream msg;
-        msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_POINTER on the stream, but not on the class's field";
-        throw ReaderException(msg.str());
+      if (field == nullptr)
+        klasses.back().add_field(WireField(index));
+      else {
+        // perform some sanity checks that the type of data on the stream is what we're expecting
+        if (is_pointer && !field->is_pointer) {
+          std::stringstream msg;
+          msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_POINTER on the stream, but not on the class's field";
+          throw ReaderException(msg.str());
+        }
+        if (is_slice && !field->is_slice) {
+          std::stringstream msg;
+          msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_SLICE on the stream, but not on the class's field";
+          throw ReaderException(msg.str());
+        }
+        klasses.back().add_field(WireField(field, index, store_id, is_pointer));
       }
-      if (is_slice && !field->is_slice) {
-        std::stringstream msg;
-        msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_SLICE on the stream, but not on the class's field";
-        throw ReaderException(msg.str());
-      }
-
-      klasses.back().add_field(WireField(field, index, store_id, is_pointer));
     } // for each field
 
   } // for each klass
@@ -232,20 +240,76 @@ Reader::read(Doc &doc) {
         }
       }
 
+  // buffer for reading the <instances> into
+  const char *instances_bytes = nullptr;
+  size_t instances_bytes_size = 0;
 
   // read the document instance
   // <doc_instance> ::= <instances_nbytes> <instance>
   {
-    const size_t nbytes = mp::read_uint(_in);
-    static_cast<void>(nbytes); // unused
+    const size_t instances_nbytes = mp::read_uint(_in);
+
+    // read in all of the instances data in one go into a buffer
+    if (instances_nbytes > instances_bytes_size) {
+      delete [] instances_bytes;
+      instances_bytes = new char[instances_nbytes];
+      instances_bytes_size = instances_nbytes;
+      assert(instances_bytes != nullptr);
+    }
+    _in.read(const_cast<char *>(instances_bytes), instances_nbytes);
+    if (!_in.good()) {
+      std::stringstream msg;
+      msg << "Failed to read in " << instances_nbytes << " from the input stream";
+      throw ReaderException(msg.str());
+    }
+
+    // wrap the read in instances in a reader
+    std::cout << "created reader to read " << instances_nbytes << " bytes" << std::endl;
+    io::ArrayReader reader(instances_bytes, instances_nbytes);
+
+    // allocate space to write the lazy attributes to
+    char *const lazy_bytes = new char[instances_nbytes];
+    assert(lazy_bytes != nullptr);
+    uint32_t lazy_nfields = 0;
+
+    // wrap the lazy bytes in a writer
+    io::UnsafeArrayWriter lazy_writer(lazy_bytes);
 
     // <instance> ::= { <field_id> : <obj_val> }
     auto readers = _dschema.readers();
-    const size_t size = mp::read_map_size(_in);
+    const size_t size = mp::read_map_size(reader);
     for (size_t i = 0; i != size; ++i) {
-      const size_t key = mp::read_uint(_in);
-      const size_t index = klasses[klass_id_meta][key].index;
-      readers[index](_in, static_cast<void *>(&doc), static_cast<void *>(&doc));
+      const size_t key = mp::read_uint(reader);
+      WireField &field = klasses[klass_id_meta][key];
+
+      // deserialize the field value if required
+      const char *const before = reader.upto();
+      if (field.mode != FieldMode::STREAM_ONLY)
+        readers[field.index](reader, static_cast<void *>(&doc), static_cast<void *>(&doc));
+      else {
+        mp::WireType type;
+        ++lazy_nfields;
+        mp::write_uint(lazy_writer, key);
+        mp::read_lazy(reader, lazy_writer, type);
+      }
+      const char *const after = reader.upto();
+
+      // keep a lazy serialized copy of the field if required
+      if (field.mode == FieldMode::READ_ONLY) {
+        ++lazy_nfields;
+        mp::write_uint(lazy_writer, key);
+        lazy_writer.write(before, after - before);
+      }
+    }
+
+    // check whether or not the lazy slab was used
+    if (lazy_writer.data() == lazy_writer.upto())
+      delete [] lazy_bytes;
+    else {
+      doc._lazy_buffers.push_back(lazy_bytes);
+      doc._lazy = lazy_bytes;
+      doc._lazy_nelem = lazy_nfields;
+      doc._lazy_nbytes = lazy_writer.upto() - lazy_bytes;
     }
   }
 
@@ -254,30 +318,87 @@ Reader::read(Doc &doc) {
   // <instances_groups> ::= <instances_group>*
   for (auto &pair : stores) {
     // <instances_group>  ::= <instances_nbytes> <instances>
-    const size_t nbytes = mp::read_uint(_in);
-    static_cast<void>(nbytes); // unused
+    const size_t instances_nbytes = mp::read_uint(_in);
+    std::cout << "[reader] reading <instances_groups> nbytes=" << instances_nbytes << std::endl;
+
+    // read in all of the instances data in one go into a buffer
+    if (instances_nbytes > instances_bytes_size) {
+      delete [] instances_bytes;
+      instances_bytes = new char[instances_nbytes];
+      instances_bytes_size = instances_nbytes;
+      assert(instances_bytes != nullptr);
+    }
+    _in.read(const_cast<char *>(instances_bytes), instances_nbytes);
+    if (!_in.good()) {
+      std::stringstream msg;
+      msg << "Failed to read in " << instances_nbytes << " from the input stream";
+      throw ReaderException(msg.str());
+    }
+
+    // wrap the read in instances in a reader
+    io::ArrayReader reader(instances_bytes, instances_nbytes);
+
+    // allocate space to write the lazy attributes to
+    char *const lazy_bytes = new char[instances_nbytes];
+    assert(lazy_bytes != nullptr);
+
+    // wrap the lazy bytes in a writer
+    io::UnsafeArrayWriter lazy_writer(lazy_bytes);
+
 
     const BaseStoreDef *const schema = pair.first;
     const size_t klass_id = pair.second;
-
-    const size_t delta = schema->read_size();
     char *objects = schema->read_begin(doc);
+    const size_t objects_delta = schema->read_size();
     auto readers = klasses[klass_id].klass()->readers();
 
     // <instances> ::= [ <instance> ]
-    const size_t ninstances = mp::read_array_size(_in);
+    const size_t ninstances = mp::read_array_size(reader);
     for (size_t i = 0; i != ninstances; ++i) {
+      const char *const lazy_before = lazy_writer.upto();
+      uint32_t lazy_nfields = 0;
+
       // <instance> ::= { <field_id> : <obj_val> }
-      const size_t size = mp::read_map_size(_in);
+      const size_t size = mp::read_map_size(reader);
       for (size_t j = 0; j != size; ++j) {
-        const size_t key = mp::read_uint(_in);
-        const size_t index = klasses[klass_id][key].index;
-        readers[index](_in, objects, static_cast<void *>(&doc));
+        const size_t key = mp::read_uint(reader);
+        WireField &field = klasses[klass_id][key];
+
+        // deserialize the field value if required
+        const char *const before = reader.upto();
+        if (field.mode != FieldMode::STREAM_ONLY)
+          readers[field.index](reader, objects, static_cast<void *>(&doc));
+        else {
+          mp::WireType type;
+          ++lazy_nfields;
+          mp::write_uint(lazy_writer, key);
+          mp::read_lazy(reader, lazy_writer, type);
+        }
+        const char *const after = reader.upto();
+
+        // keep a lazy serialized copy of the field if required
+        if (field.mode == FieldMode::READ_ONLY) {
+          ++lazy_nfields;
+          mp::write_uint(lazy_writer, key);
+          lazy_writer.write(before, after - before);
+        }
       }
 
-      objects += delta;
+      // check whether or not the Ann instance used any of the lazy buffer
+      const char *const lazy_after = lazy_writer.upto();
+      if (lazy_after != lazy_before) {
+        Ann &ann = *reinterpret_cast<Ann *>(objects);
+        ann._lazy = lazy_before;
+        ann._lazy_nelem = lazy_nfields;
+        ann._lazy_nbytes = lazy_after - lazy_before;
+      }
+
+      // move on to the next annotation instance
+      objects += objects_delta;
     }
   }
+
+  delete [] instances_bytes;
 
   _has_more = true;
   return *this;

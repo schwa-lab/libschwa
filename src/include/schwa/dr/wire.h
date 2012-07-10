@@ -22,7 +22,7 @@ namespace schwa {
       struct WireTraits {
         //static bool should_write(const T &val);
         //template <typename OUT> static void write(OUT &out, const T &val);
-        //static void read(std::istream &in, T &val);
+        //template <typename IN> static void read(IN &in, T &val);
       };
 
 
@@ -39,8 +39,9 @@ namespace schwa {
           mp::write(out, val);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, T &val) {
+        read(IN &in, T &val) {
           mp::read(in, val);
         }
       };
@@ -72,8 +73,9 @@ namespace schwa {
           mp::write(out, val);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, std::string &val) {
+        read(IN &in, std::string &val) {
           mp::read(in, val);
         }
       };
@@ -89,8 +91,9 @@ namespace schwa {
           mp::write_uint(out, val.ptr - &front);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, Pointer<T> &val, T &front) {
+        read(IN &in, Pointer<T> &val, T &front) {
           const size_t offset = mp::read_uint(in);
           val.ptr = &front + offset;
         }
@@ -109,12 +112,13 @@ namespace schwa {
           mp::write(out, val.stop);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, Slice<T> &val) {
+        read(IN &in, Slice<T> &val) {
           const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
-          mp::read<T>(in, val.start);
-          mp::read<T>(in, val.stop);
+          mp::read<IN>(in, val.start);
+          mp::read<IN>(in, val.stop);
         }
       };
 
@@ -131,8 +135,9 @@ namespace schwa {
           mp::write_uint(out, val.stop - &front);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, Slice<T> &val, typename FieldTraits<Slice<T>>::value_type &front) {
+        read(IN &in, Slice<T> &val, typename FieldTraits<Slice<T>>::value_type &front) {
           const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
           size_t offset = mp::read_uint(in);
@@ -147,9 +152,9 @@ namespace schwa {
       struct WireTraits<Slice<T>> : public WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
 
 
-      template <typename R, typename T, R T::*field_ptr>
+      template <typename IN, typename R, typename T, R T::*field_ptr>
       inline void
-      read_field(std::istream &in, void *const _ann, void *const _doc) {
+      read_field(IN &in, void *const _ann, void *const _doc) {
         static_cast<void>(_doc);
         T &ann = *static_cast<T *>(_ann);
         R &val = ann.*field_ptr;
@@ -172,9 +177,9 @@ namespace schwa {
       }
 
 
-      template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+      template <typename IN, typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
       inline void
-      read_field(std::istream &in, void *const _ann, void *const _doc) {
+      read_field(IN &in, void *const _ann, void *const _doc) {
         D &doc = *static_cast<D *>(_doc);
         T &ann = *static_cast<T *>(_ann);
         R &val = ann.*field_ptr;
