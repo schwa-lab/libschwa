@@ -76,8 +76,8 @@ namespace schwa {
     // ========================================================================
     // Base classes
     // ========================================================================
-    class Ann {
-    private:
+    class Lazy {
+    protected:
       const char *_lazy;
       uint32_t _lazy_nelem;
       uint32_t _lazy_nbytes;
@@ -85,52 +85,59 @@ namespace schwa {
       friend class Reader;
       friend class Writer;
 
-    public:
-      explicit Ann(void) : _lazy(nullptr), _lazy_nelem(0), _lazy_nbytes(0) { }
-      Ann(const char *lazy, const uint32_t nelem, const uint32_t nbytes) : _lazy(lazy), _lazy_nelem(nelem), _lazy_nbytes(nbytes) { }
-      Ann(const Ann &o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
-      Ann(const Ann &&o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
-      ~Ann(void) { }
+      Lazy(void) : _lazy(nullptr), _lazy_nelem(0), _lazy_nbytes(0) { }
+      Lazy(const char *lazy, const uint32_t nelem, const uint32_t nbytes) : _lazy(lazy), _lazy_nelem(nelem), _lazy_nbytes(nbytes) { }
+      Lazy(const Lazy &o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
+      Lazy(const Lazy &&o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
 
-      Ann &
-      operator =(const Ann &o) {
+      Lazy &
+      operator =(const Lazy &o) {
         _lazy = o._lazy;
         _lazy_nelem = o._lazy_nelem;
         _lazy_nbytes = o._lazy_nbytes;
         return *this;
       }
 
+    public:
+      ~Lazy(void) { }
+
       inline const char *lazy(void) const { return _lazy; }
       inline uint32_t lazy_nelem(void) const { return _lazy_nelem; }
       inline uint32_t lazy_nbytes(void) const { return _lazy_nbytes; }
+    };
+
+
+    class Ann : public Lazy {
+    public:
+      explicit Ann(void) : Lazy() { }
+      Ann(const char *lazy, const uint32_t nelem, const uint32_t nbytes) : Lazy(lazy, nelem, nbytes) { }
+      Ann(const Ann &o) : Lazy(o) { }
+      Ann(const Ann &&o) : Lazy(o) { }
+      ~Ann(void) { }
+
+      Ann &operator =(const Ann &) { return *this; }
 
       template <typename T> class Schema;
     };
 
 
-    class Doc {
+    class Doc : public Lazy {
     private:
       std::vector<const char *> _lazy_buffers;
-      const char *_lazy;
-      uint32_t _lazy_nelem;
-      uint32_t _lazy_nbytes;
 
       friend class Reader;
       friend class Writer;
 
     protected:
-      Doc(void) { }
+      Doc(void) : Lazy() { }
       Doc(const Doc &) = delete;
       Doc(const Doc &&) = delete;
+
+    public:
       ~Doc(void) {
         for (auto &p : _lazy_buffers)
           delete [] p;
       }
-
-    public:
-      inline const char *lazy(void) const { return _lazy; }
-      inline uint32_t lazy_nelem(void) const { return _lazy_nelem; }
-      inline uint32_t lazy_nbytes(void) const { return _lazy_nbytes; }
 
       template <typename T> class Schema;
     };
@@ -208,6 +215,7 @@ namespace schwa {
     public:
       static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
 
+      Schema(const std::string &name, const std::string &help) : Schema(name, help, name) { }
       Schema(const std::string &name, const std::string &help, const std::string &serial) : BaseAnnSchema(name, help, serial, TypeInfo::create<T>()) { }
       virtual ~Schema(void) { }
     };
