@@ -5,7 +5,7 @@ namespace schwa {
 
     class Token : public dr::Ann {
     public:
-      dr::Slice<uint64_t> slice;
+      dr::Slice<uint64_t> span;
       std::string raw;
       std::string norm;
 
@@ -15,7 +15,7 @@ namespace schwa {
 
     class Sent : public dr::Ann {
     public:
-      dr::Slice<Token *> slice;
+      dr::Slice<Token *> span;
 
       class Schema;
     };
@@ -32,7 +32,7 @@ namespace schwa {
 
     class Token::Schema : public dr::Ann::Schema<Token> {
     public:
-      DR_FIELD(&Token::slice) slice;
+      DR_FIELD(&Token::span) span;
       DR_FIELD(&Token::raw) raw;
       DR_FIELD(&Token::norm) norm;
 
@@ -43,7 +43,7 @@ namespace schwa {
 
     class Sent::Schema : public dr::Ann::Schema<Sent> {
     public:
-      DR_POINTER(&Sent::slice, &Doc::tokens) slice;
+      DR_POINTER(&Sent::span, &Doc::tokens) span;
 
       Schema(void);
       virtual ~Schema(void);
@@ -67,7 +67,8 @@ namespace schwa {
       Doc *_doc;
       const bool _normalise;
       bool _new_document;
-      bool _new_sentence;
+      size_t _ntokens;
+      size_t _begin_sent;
 
       void ensure_doc(void);
 
