@@ -34,6 +34,7 @@ namespace schwa {
       virtual ~BaseDef(void) { }
 
       virtual const TypeInfo &pointer_type(void) const { return *static_cast<const TypeInfo *>(nullptr); }
+      virtual ptrdiff_t store_offset(const Doc *) const = 0;
     };
 
 
@@ -48,7 +49,7 @@ namespace schwa {
     public:
       virtual ~BaseFieldDef(void) { }
 
-      virtual ptrdiff_t store_offset(const Doc *) const { assert(!"this should never be invoked"); return -1; }
+      ptrdiff_t store_offset(const Doc *) const { assert(!"this should never be invoked"); return -1; }
     };
 
 
@@ -62,7 +63,6 @@ namespace schwa {
       virtual void resize(Doc &doc, const size_t size) const = 0;
 
       virtual size_t size(const Doc &doc) const = 0;
-      virtual ptrdiff_t store_offset(const Doc *) const = 0;
       virtual void write(io::WriteBuffer &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const BaseSchema &, const void *const)) const = 0;
 
       virtual char *read_begin(Doc &_doc) const = 0;
@@ -84,6 +84,7 @@ namespace schwa {
       typedef R value_type;
       typedef T annotation_type;
 
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDef(schema, name, help, mode, name) { }
       FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
         schema.add(this);
       }
@@ -109,6 +110,7 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDefWithStore(schema, name, help, mode, name) { }
       FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
@@ -132,6 +134,7 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
+      StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : StoreDef(schema, name, help, mode, name) { }
       StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
@@ -166,9 +169,9 @@ namespace schwa {
     };
 
 
-    #define DR_FIELD(member_obj_ptr) schwa::dr::FieldDef<decltype(member_obj_ptr), member_obj_ptr>
+    #define DR_FIELD(member_obj_ptr)                  schwa::dr::FieldDef<decltype(member_obj_ptr), member_obj_ptr>
     #define DR_POINTER(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<decltype(member_obj_ptr), member_obj_ptr, decltype(store_obj_ptr), store_obj_ptr>
-    #define DR_STORE(member_obj_ptr) schwa::dr::StoreDef<decltype(member_obj_ptr), member_obj_ptr>
+    #define DR_STORE(member_obj_ptr)                  schwa::dr::StoreDef<decltype(member_obj_ptr), member_obj_ptr>
 
   }
 }
