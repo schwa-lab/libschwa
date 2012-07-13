@@ -6,6 +6,7 @@ namespace mp = schwa::msgpack;
 
 namespace schwa { namespace dr {
 
+
 static void
 write_klass_header(std::ostream &out, const BaseSchema &s, const bool is_doc_schema, const Doc &doc, const BaseDocSchema &dschema) {
   // <klass> ::= ( <klass_name>, <fields> )

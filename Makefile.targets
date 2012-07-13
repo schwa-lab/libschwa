@@ -3,7 +3,7 @@ SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
 BASE_OBJECTS = src/lib/schwa/exception.o
 CONFIG_OBJECTS = src/lib/schwa/config/base.o src/lib/schwa/config/group.o src/lib/schwa/config/op.o
-DR_OBJECTS = src/lib/schwa/dr/reader.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o src/lib/schwa/dr/config.o
+DR_OBJECTS = src/lib/schwa/dr/config.o src/lib/schwa/dr/reader.o src/lib/schwa/dr/runtime.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o
 IO_OBJECTS = src/lib/schwa/io/buffer.o
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/exception.o src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/docrep.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
