@@ -15,6 +15,8 @@ namespace schwa {
     template <typename T, T fn>
     class StoreDef;
 
+    class RTManager;
+
     class Reader;
     class Writer;
 
@@ -25,8 +27,6 @@ namespace schwa {
     class BaseSchema {
     public:
       typedef std::vector<BaseFieldDef *> field_container;
-      typedef std::vector<void (*)(io::ArrayReader &in, void *, void *)> readers_container;
-      typedef std::vector<bool (*)(io::WriteBuffer &out, const unsigned int, const void *, const void *)> writers_container;
 
       const std::string name;
       const std::string help;
@@ -35,8 +35,6 @@ namespace schwa {
 
     protected:
       field_container _fields;
-      readers_container _readers;
-      writers_container _writers;
 
       BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : name(name), help(help), serial(serial), type(type) { }
 
@@ -46,22 +44,20 @@ namespace schwa {
       template <typename T, T fn>
       inline void add(FieldDef<T, fn> *const field) {
         typedef FieldDef<T, fn> F;
+        field->reader = &wire::read_field<io::ArrayReader, typename F::value_type, typename F::annotation_type, fn>;
+        field->writer = &wire::write_field<io::WriteBuffer, typename F::value_type, typename F::annotation_type, fn>;
         _fields.push_back(field);
-        _readers.push_back(&wire::read_field<io::ArrayReader, typename F::value_type, typename F::annotation_type, fn>);
-        _writers.push_back(&wire::write_field<io::WriteBuffer, typename F::value_type, typename F::annotation_type, fn>);
       }
 
       template <typename T1, T1 fn1, typename T2, T2 fn2>
       inline void add(FieldDefWithStore<T1, fn1, T2, fn2> *const field) {
         typedef FieldDefWithStore<T1, fn1, T2, fn2> F;
+        field->reader = &wire::read_field<io::ArrayReader, typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>;
+        field->writer = &wire::write_field<io::WriteBuffer, typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>;
         _fields.push_back(field);
-        _readers.push_back(&wire::read_field<io::ArrayReader, typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>);
-        _writers.push_back(&wire::write_field<io::WriteBuffer, typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>);
       }
 
       inline const field_container &fields(void) const { return _fields; }
-      inline const readers_container &readers(void) const { return _readers; }
-      inline const writers_container &writers(void) const { return _writers; }
 
       virtual std::ostream &dump(std::ostream &out) const;
     };
@@ -123,21 +119,18 @@ namespace schwa {
 
     class Doc : public Lazy {
     private:
-      std::vector<const char *> _lazy_buffers;
+      RTManager *_rt;
 
       friend class Reader;
       friend class Writer;
 
     protected:
-      Doc(void) : Lazy() { }
+      Doc(void) : Lazy(), _rt(nullptr) { }
       Doc(const Doc &) = delete;
       Doc(const Doc &&) = delete;
 
     public:
-      ~Doc(void) {
-        for (auto &p : _lazy_buffers)
-          delete [] p;
-      }
+      ~Doc(void);
 
       template <typename T> class Schema;
     };
