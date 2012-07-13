@@ -48,9 +48,9 @@ Reader::read(Doc &doc) {
     {
       const auto &kit = klass_name_map.find(klass_name);
       if (kit == klass_name_map.end())
-        rtschema = new RTSchema(k);
+        rtschema = new RTSchema(k, klass_name);
       else
-        rtschema = new RTSchema(k, kit->second);
+        rtschema = new RTSchema(k, klass_name, kit->second);
       assert(rtschema != nullptr);
     }
     rt.klasses.push_back(rtschema);

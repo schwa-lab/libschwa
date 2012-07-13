@@ -3,6 +3,8 @@
 namespace schwa {
   namespace dr {
 
+    class RTSchema;
+
     // ========================================================================
     // Constants
     // ========================================================================
@@ -20,7 +22,7 @@ namespace schwa {
     class BaseDef {
     public:
       typedef void (*reader_type)(io::ArrayReader &in, void *, void *);
-      typedef void (*writer_type)(io::WriteBuffer &out, const unsigned int, const void *, const void *);
+      typedef bool (*writer_type)(io::WriteBuffer &out, const uint32_t, const void *, const void *);
 
       const std::string name;
       const std::string help;
@@ -68,7 +70,7 @@ namespace schwa {
       virtual void resize(Doc &doc, const size_t size) const = 0;
 
       virtual size_t size(const Doc &doc) const = 0;
-      virtual void write(io::WriteBuffer &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const BaseSchema &, const void *const)) const = 0;
+      virtual void write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const RTSchema &, const void *const)) const = 0;
 
       virtual char *read_begin(Doc &_doc) const = 0;
       virtual size_t read_size(void) const = 0;
@@ -161,7 +163,7 @@ namespace schwa {
       inline size_t read_size(void) const { return sizeof(S); }
 
       void
-      write(io::WriteBuffer &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const BaseSchema &, const void *const)) const {
+      write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const RTSchema &, const void *const)) const {
         namespace mp = schwa::msgpack;
         const T &doc = static_cast<const T &>(_doc);
         const Store<S> &store = doc.*store_ptr;
