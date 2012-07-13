@@ -25,9 +25,9 @@ RTStoreDef::RTStoreDef(const RTStoreDef &&o) : def(o.def), klass(o.klass), lazy_
 // ============================================================================
 // RTSchema
 // ============================================================================
-RTSchema::RTSchema(uint32_t klass_id, const BaseSchema *def) : def(def), klass_id(klass_id) { }
+RTSchema::RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def) : def(def), klass_id(klass_id), serial(serial) { }
 
-RTSchema::RTSchema(const RTSchema &&o) : def(o.def), fields(o.fields), stores(o.stores), klass_id(o.klass_id) { }
+RTSchema::RTSchema(const RTSchema &&o) : def(o.def), fields(o.fields), stores(o.stores), klass_id(o.klass_id), serial(o.serial) { }
 
 RTSchema::~RTSchema(void) {
   for (auto &f : fields)
@@ -77,6 +77,8 @@ merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::m
       ++field_id;
     }
   }
+  std::sort(rtschema.fields.begin(), rtschema.fields.end(), [](const RTFieldDef *a, const RTFieldDef *b) { return a->field_id < b->field_id; });
+  assert(rtschema.fields.back()->field_id == rtschema.fields.size());
 }
 
 
@@ -85,12 +87,12 @@ build_rt(const BaseDocSchema &dschema) {
   RTManager *const rt = new RTManager();
   assert(rt != nullptr);
 
-  RTSchema *const rtdschema = new RTSchema(0, &dschema);
+  RTSchema *const rtdschema = new RTSchema(0, "__meta__", &dschema);
   assert(rtdschema != nullptr);
   rt->doc = rtdschema;
   rt->klasses.push_back(rtdschema);
 
-  merge_rt(rt, dschema);
+  return merge_rt(rt, dschema);
 
 #if 0
   // construct the RTStoreDef's
@@ -127,12 +129,10 @@ build_rt(const BaseDocSchema &dschema) {
     ++store_id;
   }
 #endif
-
-  return rt;
 }
 
 
-void
+RTManager *
 merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
   RTSchema *const rtdschema = const_cast<RTSchema *>(rt->doc);
 
@@ -176,6 +176,8 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
       rtstore = const_cast<RTStoreDef *>(it->second);
     store_offsets.insert(std::make_pair(store->store_offset(nullptr), rtstore));
   }
+  std::sort(rtdschema->stores.begin(), rtdschema->stores.end(), [](const RTStoreDef *a, const RTStoreDef *b) { return a->store_id < b->store_id; });
+  assert(rtdschema->stores.back()->store_id == rtdschema->stores.size());
 
   // construct the documents RTFieldDef's
   merge_rtschema_fields(*rtdschema, dschema, store_offsets);
@@ -186,7 +188,7 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
     RTSchema *rtschema;
     const auto &it = known_klasses.find(schema);
     if (it == known_klasses.end()) {
-      rtschema = new RTSchema(klass_id, schema);
+      rtschema = new RTSchema(klass_id, schema->serial, schema);
       assert(rtschema != nullptr);
       merge_rtschema_fields(*rtschema, *schema, store_offsets);
       rt->klasses.push_back(rtschema);
@@ -198,6 +200,8 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
     }
     typeinfo_to_schema.insert(std::make_pair(schema->type, rtschema));
   }
+  std::sort(rt->klasses.begin(), rt->klasses.end(), [](const RTSchema *a, const RTSchema *b) { return a->klass_id < b->klass_id; });
+  assert(rt->klasses.back()->klass_id == rt->klasses.size());
 
   // back-fill the RTStoreDef's RTSchema pointers now that they exist
   for (auto &store : dschema.stores()) {
@@ -205,6 +209,8 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
     if (rtstore->klass == nullptr)
       rtstore->klass = typeinfo_to_schema.find(store->pointer_type())->second;
   }
+
+  return rt;
 }
 
 

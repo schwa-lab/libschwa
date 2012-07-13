@@ -164,7 +164,7 @@ namespace schwa {
 
       template <typename OUT, typename R, typename T, R T::*field_ptr>
       inline bool
-      write_field(OUT &out, const unsigned int key, const void *const _ann, const void *const _doc) {
+      write_field(OUT &out, const uint32_t key, const void *const _ann, const void *const _doc) {
         static_cast<void>(_doc);
         const T &ann = *static_cast<const T *>(_ann);
         const R &val = ann.*field_ptr;
@@ -189,7 +189,7 @@ namespace schwa {
 
       template <typename OUT, typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
       inline bool
-      write_field(OUT &out, const unsigned int key, const void *const _ann, const void *const _doc) {
+      write_field(OUT &out, const uint32_t key, const void *const _ann, const void *const _doc) {
         const D &doc = *static_cast<const D *>(_doc);
         const T &ann = *static_cast<const T *>(_ann);
         const R &val = ann.*field_ptr;

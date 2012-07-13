@@ -48,8 +48,9 @@ namespace schwa {
       std::vector<RTFieldDef *> fields;
       std::vector<RTStoreDef *> stores;
       uint32_t klass_id;
+      std::string serial;
 
-      explicit RTSchema(uint32_t klass_id, const BaseSchema *def=nullptr);
+      explicit RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
       RTSchema(const RTSchema &&o);
       ~RTSchema(void);
 
@@ -68,7 +69,7 @@ namespace schwa {
 
 
     RTManager *build_rt(const BaseDocSchema &dschema);
-    void merge_rt(RTManager *const rt, const BaseDocSchema &dschema);
+    RTManager *merge_rt(RTManager *const rt, const BaseDocSchema &dschema);
 
   }
 }
