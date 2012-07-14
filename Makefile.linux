@@ -2,22 +2,22 @@ INCLUDE = -Isrc/include -isystem ext/include
 LIBS = -Llib -Lext/lib -lboost_iostreams
 DEFINES =
 
-BASE_CXXFLAGS = -std=c++0x -O4 -fPIC $(INCLUDE) $(DEFINES)
+BASE_CXXFLAGS = -std=c++0x -O0 -f -fPIC -W -Wall -Wextra -Werror -pedantic $(INCLUDE) $(DEFINES)
 
 CXX = g++
-CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -pedantic
+CXXFLAGS = $(BASE_CXXFLAGS)
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
 
 TEST_INCLUDE = -Isrc/tests/unit_tests
-TEST_CXXFLAGS = $(BASE_CXXFLAGS) -W -Wall -Wextra -DBOOST_TEST_DYN_LINK $(TEST_INCLUDE)
+TEST_CXXFLAGS = $(BASE_CXXFLAGS) -DBOOST_TEST_DYN_LINK $(TEST_INCLUDE)
 TEST_LDFLAGS = -lboost_unit_test_framework -lschwa
 
 PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
 
 RAGEL = ragel
-RAGEL_CXXFLAGS = -O4 -W -Wall -Wextra -fPIC $(INCLUDE) $(DEFINES)
+RAGEL_CXXFLAGS = $(BASE_CXXFLAGS)
 
 PYTHON_VERSION=2.7
 PYTHON_INCLUDE=-isystem /usr/include/python$(PYTHON_VERSION)
