@@ -1,6 +1,8 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/dr.h>
 
+#include <unordered_map>
+
 
 namespace schwa { namespace dr {
 
