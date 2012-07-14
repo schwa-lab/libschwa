@@ -124,7 +124,7 @@ namespace schwa {
       virtual ~FieldDefWithStore(void) { }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc); }
     };
 
 
@@ -151,7 +151,7 @@ namespace schwa {
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
       size_t size(const Doc &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
-      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc); }
 
       char *
       read_begin(Doc &_doc) const {

@@ -20,6 +20,8 @@ namespace schwa {
       ~RTFieldDef(void) { }
 
       inline bool is_lazy(void) const { return def == nullptr; }
+
+      std::ostream &dump(std::ostream &out) const;
     };
 
 
@@ -39,6 +41,8 @@ namespace schwa {
       ~RTStoreDef(void) { }
 
       inline bool is_lazy(void) const { return def == nullptr; }
+
+      std::ostream &dump(std::ostream &out) const;
     };
 
 
@@ -55,6 +59,8 @@ namespace schwa {
       ~RTSchema(void);
 
       inline bool is_lazy(void) const { return def == nullptr; }
+
+      std::ostream &dump(std::ostream &out) const;
     };
 
 
@@ -65,6 +71,8 @@ namespace schwa {
       std::vector<char *> lazy_buffers;
 
       ~RTManager(void);
+
+      std::ostream &dump(std::ostream &out) const;
     };
 
 
