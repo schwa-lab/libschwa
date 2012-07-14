@@ -233,7 +233,6 @@ Reader::read(Doc &doc) {
     }
 
     // wrap the read in instances in a reader
-    std::cout << "created reader to read " << instances_nbytes << " bytes" << std::endl;
     io::ArrayReader reader(instances_bytes, instances_nbytes);
 
     // allocate space to write the lazy attributes to
@@ -288,7 +287,6 @@ Reader::read(Doc &doc) {
   for (auto &store : rt.klasses[klass_id_meta]->stores) {
     // <instances_group>  ::= <instances_nbytes> <instances>
     const size_t instances_nbytes = mp::read_uint(_in);
-    std::cout << "[reader] reading <instances_groups> nbytes=" << instances_nbytes << std::endl;
 
     // allocate space to write the lazy attributes to
     char *const lazy_bytes = new char[instances_nbytes];

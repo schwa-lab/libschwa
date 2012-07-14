@@ -113,12 +113,8 @@ merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::m
     const auto &it = known_fields.find(field->name);
     if (it == known_fields.end()) {
       const RTStoreDef *pointer = nullptr;
-      if (field->is_pointer) {
-        const auto &oit = store_offsets.find(field->store_offset(nullptr));
-        std::cout << "find end?=" << (oit == store_offsets.end()) << " offset=" << field->store_offset(nullptr) << std::endl;
-        std::cout << "'" << field->name << "' '" << field->help << "' '" << field->serial << "' " << field->is_pointer << " " << field->is_slice << " " << field->pointer_type() << " " << field->store_offset(nullptr) << std::endl;
+      if (field->is_pointer)
         pointer = store_offsets.find(field->store_offset(nullptr))->second;
-      }
       rtfield = new RTFieldDef(field_id, field->serial, pointer, field->is_slice, field);
       assert(rtfield != nullptr);
       rtschema.fields.push_back(rtfield);
@@ -138,9 +134,6 @@ merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::m
 
 RTManager *
 merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
-  std::cout << "[merge_rt before]" << std::endl;
-  rt->dump(std::cout);
-
   RTSchema *const rtdschema = const_cast<RTSchema *>(rt->doc);
 
   uint32_t klass_id = 0;
@@ -222,8 +215,6 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
       rtstore->klass = typeinfo_to_schema.find(store->pointer_type())->second;
   }
 
-  std::cout << "[merge_rt after]" << std::endl;
-  rt->dump(std::cout);
   return rt;
 }
 
