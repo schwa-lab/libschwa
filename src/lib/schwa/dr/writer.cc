@@ -68,9 +68,6 @@ Writer::write(const Doc &doc) {
       // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
       if (field->pointer != nullptr) {
         mp::write_uint_fixed(_out, 1);
-        std::cout << "!!!" << field->pointer << " " << field->pointer->store_id;
-        //field->pointer->dump(std::cout);
-        std::cout << "!!!" << std::endl;
         mp::write_uint(_out, field->pointer->store_id);
       }
 

@@ -81,11 +81,9 @@ namespace schwa {
 
       inline int
       get(void) {
-        std::cout << "ArrayReader::get(_left=" << _left << ")" << std::endl;
         if (_left == 0)
           return EOF;
         const char c = *_upto++;
-        std::cout << "ArrayReader::get(_c=" << std::hex << static_cast<unsigned int>(*reinterpret_cast<const unsigned char *>(&c)) << std::dec << ")" << std::endl;
         --_left;
         return *reinterpret_cast<const unsigned char *>(&c);
       }

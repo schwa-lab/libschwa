@@ -429,7 +429,6 @@ namespace schwa {
     read_array_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
-      std::cout << "[read_array_size] " << std::hex << header << std::dec << std::endl;
       uint16_t s16;
       uint32_t s32;
       switch (type) {
@@ -452,7 +451,6 @@ namespace schwa {
     read_map_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
-      std::cout << "[read_map_size] " << std::hex << header << std::dec << std::endl;
       uint16_t s16;
       uint32_t s32;
       switch (type) {
@@ -475,7 +473,6 @@ namespace schwa {
     read_raw(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
-      std::cout << "[read_raw_size] " << std::hex << header << std::dec << std::endl;
       uint16_t s16;
       uint32_t s32;
 
