@@ -9,18 +9,24 @@ namespace schwa { namespace dr {
 static void
 write_instance(io::WriteBuffer &out, const Doc &doc, const RTSchema &schema, const void *const obj) {
   io::WriteBuffer buf;
-  uint32_t nfields = 0;
+  const Lazy *const lazy_obj = reinterpret_cast<const Lazy *>(obj);
+
+  uint32_t nfields_new = 0;
   for (auto &field : schema.fields) {
     if (!field->is_lazy() && field->def->mode == FieldMode::READ_WRITE) {
       const bool wrote = field->def->writer(buf, field->field_id, obj, static_cast<const void *>(&doc));
       if (wrote)
-        ++nfields;
+        ++nfields_new;
     }
   }
 
+  const uint32_t nfields = nfields_new + lazy_obj->lazy_nelem();
   mp::write_map_size(out, nfields);
-  if (nfields != 0)
+  if (nfields != 0) {
+    if (lazy_obj->lazy_nbytes() != 0)
+      out.write(lazy_obj->lazy_data(), lazy_obj->lazy_nbytes());
     out.copy_from(buf);
+  }
 }
 
 
@@ -62,6 +68,9 @@ Writer::write(const Doc &doc) {
       // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
       if (field->pointer != nullptr) {
         mp::write_uint_fixed(_out, 1);
+        std::cout << "!!!" << field->pointer << " " << field->pointer->store_id;
+        //field->pointer->dump(std::cout);
+        std::cout << "!!!" << std::endl;
         mp::write_uint(_out, field->pointer->store_id);
       }
 

@@ -53,10 +53,10 @@ public:
   DR_FIELD(&A::v_bool) v_bool;
 
   Schema(void) :
-    dr::Ann::Schema<A>("A", "Some text about A", "A"),
-    v_str(*this, "v_str", "some text about v_str", dr::FieldMode::READ_WRITE, "v_str"),
-    v_uint8(*this, "v_uint8", "some text about v_uint8", dr::FieldMode::READ_WRITE, "v_uint8"),
-    v_bool(*this, "v_bool", "some text about v_bool", dr::FieldMode::READ_WRITE, "v_bool")
+    dr::Ann::Schema<A>("A", "Some text about A"),
+    v_str(*this, "v_str", "some text about v_str", dr::FieldMode::READ_WRITE),
+    v_uint8(*this, "v_uint8", "some text about v_uint8", dr::FieldMode::READ_WRITE),
+    v_bool(*this, "v_bool", "some text about v_bool", dr::FieldMode::READ_WRITE)
     { }
   virtual ~Schema(void) { }
 };
@@ -69,10 +69,10 @@ public:
   DR_FIELD(&B::is_first) is_first;
 
   Schema(void) :
-    dr::Ann::Schema<B>("B", "Some text about B", "B"),
-    word(*this, "word", "some text about word", dr::FieldMode::READ_ONLY, "word"),
-    upper(*this, "upper", "some text about upper", dr::FieldMode::READ_WRITE, "upper"),
-    is_first(*this, "is_first", "some text about is_first", dr::FieldMode::READ_ONLY, "is_first")
+    dr::Ann::Schema<B>("B", "Some text about B"),
+    word(*this, "word", "some text about word", dr::FieldMode::READ_ONLY),
+    upper(*this, "upper", "some text about upper", dr::FieldMode::READ_WRITE),
+    is_first(*this, "is_first", "some text about is_first", dr::FieldMode::READ_ONLY)
     { }
   virtual ~Schema(void) { }
 };
@@ -84,7 +84,7 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<DocA>("DocA", "Some text about DocA"),
-    as(*this, "as", "some text about as", dr::FieldMode::READ_WRITE, "as")
+    as(*this, "as", "some text about as", dr::FieldMode::READ_WRITE)
     { }
   virtual ~Schema(void) { }
 };
@@ -96,7 +96,7 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<DocB>("DocB", "Some text about DocB"),
-    bs(*this, "bs", "some text about bs", dr::FieldMode::READ_WRITE, "as")
+    bs(*this, "bs", "some text about bs", dr::FieldMode::READ_WRITE)
     { }
   virtual ~Schema(void) { }
 };
@@ -109,6 +109,36 @@ BOOST_AUTO_TEST_SUITE(schwa_dr_lazy)
 BOOST_AUTO_TEST_CASE(lazy_test0) {
   static const char *WORDS[] = {"The", "quick", "brown", "fox", "jumped"};
   static constexpr size_t NWORDS = sizeof(WORDS)/sizeof(char *);
+  static constexpr uint8_t stream0_expected[] = {
+    0x92,
+      0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
+      0x92, 0xA1, 'A', 0x93, 0x81, 0x00, 0xA5, 'v', '_', 's', 't', 'r', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA6, 'v', '_', 'b', 'o', 'o', 'l',
+    0x91,
+      0x93, 0xA2, 'a', 's', 0x01, 0x05,
+    0x01,
+      0x80,
+    0x3F, 0x95,
+      0x83, 0x00, 0xA3, 'T', 'h', 'e', 0x01, 0xCC, 0x00, 0x02, 0xC3,
+      0x83, 0x00, 0xA5, 'q', 'u', 'i', 'c', 'k', 0x01, 0xCC, 0x01, 0x02, 0xC2,
+      0x83, 0x00, 0xA5, 'b', 'r', 'o', 'w', 'n', 0x01, 0xCC, 0x02, 0x02, 0xC2,
+      0x83, 0x00, 0xA3, 'f', 'o', 'x', 0x01, 0xCC, 0x03, 0x02, 0xC2,
+      0x83, 0x00, 0xA6, 'j', 'u', 'm', 'p', 'e', 'd', 0x01, 0xCC, 0x04, 0x02, 0xC2,
+  };
+  static constexpr uint8_t stream1_expected[] = {
+    0x92,
+      0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
+      0x92, 0xA1, 'B', 0x94, 0x81, 0x00, 0xA4, 'w', 'o', 'r', 'd', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA8, 'i', 's', '_', 'f', 'i', 'r', 's', 't', 0x81, 0x00, 0xA5, 'u', 'p', 'p', 'e', 'r',
+    0x91,
+      0x93, 0xA2, 'b', 's', 0x01, 0x05,
+    0x01,
+      0x80,
+    0x5F, 0x95,
+      0x84, 0x00, 0xA3, 'T', 'h', 'e', 0x01, 0xCC, 0x00, 0x02, 0xC3, 0x03, 0xA3, 'T', 'H', 'E',
+      0x84, 0x00, 0xA5, 'q', 'u', 'i', 'c', 'k', 0x01, 0xCC, 0x01, 0x02, 0xC2, 0x03, 0xA5, 'Q', 'U', 'I', 'C', 'K',
+      0x84, 0x00, 0xA5, 'b', 'r', 'o', 'w', 'n', 0x01, 0xCC, 0x02, 0x02, 0xC2, 0x03, 0xA5, 'B', 'R', 'O', 'W', 'N',
+      0x84, 0x00, 0xA3, 'f', 'o', 'x', 0x01, 0xCC, 0x03, 0x02, 0xC2, 0x03, 0xA3, 'F', 'O', 'X',
+      0x84, 0x00, 0xA6, 'j', 'u', 'm', 'p', 'e', 'd', 0x01, 0xCC, 0x04, 0x02, 0xC2, 0x03, 0xA6, 'J', 'U', 'M', 'P', 'E', 'D',
+  };
   std::stringstream stream0, stream1;
 
   DocA doc0;
@@ -124,7 +154,10 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
   }
   writer0 << doc0;
 
+  BOOST_CHECK( compare_bytes(stream0.str(), stream0_expected, sizeof(stream0_expected)/sizeof(uint8_t)) );
+
   DocB::Schema schema1_in, schema1_out;
+  schema1_in.bs.serial = "as";
   schema1_in.types<B>().serial = "A";
   schema1_in.types<B>().word.serial = "v_str";
   schema1_in.types<B>().is_first.serial = "v_bool";
@@ -148,14 +181,14 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
     }
 
     // check document lazy
-    BOOST_CHECK_EQUAL(static_cast<const void *>(doc1.lazy()), static_cast<const void *>(nullptr));
+    BOOST_CHECK_EQUAL(static_cast<const void *>(doc1.lazy_data()), static_cast<const void *>(nullptr));
     BOOST_CHECK_EQUAL(doc1.lazy_nbytes(), 0);
     BOOST_CHECK_EQUAL(doc1.lazy_nelem(), 0);
 
     // check annotation lazy
     for (uint8_t i = 0; i != NWORDS; ++i) {
       B &b = doc1.bs[i];
-      BOOST_CHECK_NE(static_cast<const void *>(b.lazy()), static_cast<const void *>(nullptr));
+      BOOST_CHECK_NE(static_cast<const void *>(b.lazy_data()), static_cast<const void *>(nullptr));
       BOOST_CHECK_EQUAL(b.lazy_nelem(), 3);
       BOOST_CHECK_EQUAL(b.lazy_nbytes(), 3 + (b.word.size() + 1) + 2 + 1);
     }
@@ -172,7 +205,10 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
   }
   BOOST_CHECK_EQUAL(ndocs_read1, 1);
 
+  BOOST_CHECK( compare_bytes(stream1.str(), stream1_expected, sizeof(stream1_expected)/sizeof(uint8_t)) );
+
   DocA::Schema schema2;
+  schema2.as.serial = "bs";
   schema2.types<A>().serial = "B";
   schema2.types<A>().v_str.serial = "word";
   schema2.types<A>().v_bool.serial = "is_first";
@@ -195,14 +231,14 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
     }
 
     // check document lazy
-    BOOST_CHECK_EQUAL(static_cast<const void *>(doc2.lazy()), static_cast<const void *>(nullptr));
+    BOOST_CHECK_EQUAL(static_cast<const void *>(doc2.lazy_data()), static_cast<const void *>(nullptr));
     BOOST_CHECK_EQUAL(doc2.lazy_nbytes(), 0);
     BOOST_CHECK_EQUAL(doc2.lazy_nelem(), 0);
 
     // check annotation lazy
     for (uint8_t i = 0; i != NWORDS; ++i) {
       A &a = doc2.as[i];
-      BOOST_CHECK_NE(static_cast<const void *>(a.lazy()), static_cast<const void *>(nullptr));
+      BOOST_CHECK_NE(static_cast<const void *>(a.lazy_data()), static_cast<const void *>(nullptr));
       BOOST_CHECK_EQUAL(a.lazy_nelem(), 1);
       BOOST_CHECK_EQUAL(a.lazy_nbytes(), 1 + (a.v_str.size() + 1));
     }

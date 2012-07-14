@@ -97,7 +97,7 @@ namespace schwa {
     public:
       ~Lazy(void) { }
 
-      inline const char *lazy(void) const { return _lazy; }
+      inline const char *lazy_data(void) const { return _lazy; }
       inline uint32_t lazy_nelem(void) const { return _lazy_nelem; }
       inline uint32_t lazy_nbytes(void) const { return _lazy_nbytes; }
     };

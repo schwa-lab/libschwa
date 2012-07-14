@@ -122,7 +122,7 @@ Reader::read(Doc &doc) {
 
   if (!found_klass_id_meta)
     throw ReaderException("Did not read in a __meta__ class");
-
+  rt.doc = rt.klasses[klass_id_meta];
 
   // read the stores header
   // <stores> ::= [ <store> ]
