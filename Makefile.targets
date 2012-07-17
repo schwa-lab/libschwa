@@ -79,11 +79,11 @@ lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
 # generated sources
 # -------------------------------------------------------------------------------
 ifdef RELEASE_VERSION
-src/lib/schwa/version.cc:
-	@echo 'namespace schwa { const char *const VERSION = "$(RELEASE_VERSION) (release)"; }' > $@
+src/lib/schwa/version.cc: .force
+	@echo 'namespace schwa { const char *VERSION = "$(RELEASE_VERSION) (release)"; }' > $@
 else
-src/lib/schwa/version.cc:
-	@echo 'namespace schwa { const char *const VERSION = "git:' $(shell git log --pretty=format:'%h' -n 1) ' (develop)"; }' > $@
+src/lib/schwa/version.cc: .force
+	@echo 'namespace schwa { const char *VERSION = "git:' $(shell git log --pretty=format:'%h' -n 1) ' (develop)"; }' > $@
 endif
 
 src/lib/schwa/tokenizer/tokenizer.o: src/lib/schwa/tokenizer/tokenizer.cc
@@ -107,3 +107,5 @@ tests: $(UNIT_TEST_BINARY)
 test: tests
 	LD_LIBRARY_PATH=lib:ext/lib $(UNIT_TEST_BINARY)
 
+
+.force:

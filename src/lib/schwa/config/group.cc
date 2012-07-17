@@ -78,12 +78,18 @@ OpMain::help(std::ostream &out, const std::string &prefix, unsigned int depth) c
 
 bool
 OpMain::process(const int argc, const char *const argv[], std::ostream &help_ostream) {
-  // do an initial pass for "--help"
-  for (int i = 0; i != argc; ++i)
+  // do an initial pass for "--help" and "--version"
+  for (int i = 0; i != argc; ++i) {
     if (std::strcmp(argv[i], "--help") == 0) {
       help(help_ostream);
       return false;
     }
+    if (std::strcmp(argv[i], "--version") == 0) {
+      help_ostream << VERSION << std::endl;
+      return false;
+    }
+  }
+
 
   // ensure we have key/value pairs
   if (argc % 2 != 0) {
