@@ -59,18 +59,18 @@ namespace schwa {
     template <typename IN> inline int64_t  read_int(IN &in);
     template <typename IN> inline uint64_t read_uint(IN &in);
 
-    template <typename IN> inline size_t   read_array_size(IN &in);
-    template <typename IN> inline size_t   read_map_size(IN &in);
+    template <typename IN> inline uint32_t read_array_size(IN &in);
+    template <typename IN> inline uint32_t read_map_size(IN &in);
 
     template <typename IN> inline std::string read_raw(IN &in);
 
-    inline int8_t   read_val_int_fixed(const int h);
+    inline int8_t                          read_val_int_fixed(const int h);
     template <typename IN> inline int8_t   read_val_int8(IN &in);
     template <typename IN> inline int16_t  read_val_int16(IN &in);
     template <typename IN> inline int32_t  read_val_int32(IN &in);
     template <typename IN> inline int64_t  read_val_int64(IN &in);
 
-    inline uint8_t  read_val_uint_fixed(const int h);
+    inline uint8_t                         read_val_uint_fixed(const int h);
     template <typename IN> inline uint8_t  read_val_uint8(IN &in);
     template <typename IN> inline uint16_t read_val_uint16(IN &in);
     template <typename IN> inline uint32_t read_val_uint32(IN &in);
@@ -425,7 +425,7 @@ namespace schwa {
     }
 
     template <typename IN>
-    inline size_t
+    inline uint32_t
     read_array_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
@@ -447,7 +447,7 @@ namespace schwa {
     }
 
     template <typename IN>
-    inline size_t
+    inline uint32_t
     read_map_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
