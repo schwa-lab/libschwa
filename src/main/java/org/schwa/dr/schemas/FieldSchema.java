@@ -3,17 +3,17 @@ package org.schwa.dr.schemas;
 import java.lang.reflect.Field;
 
 
-public class AbstractFieldSchema {
+public class FieldSchema {
   protected final FieldType fieldType;
   protected final Field field;
   protected final String name;
   protected String serial;
 
-  public AbstractFieldSchema(FieldType fieldType, Field field, String name) {
+  public FieldSchema(FieldType fieldType, Field field, String name) {
     this(fieldType, field, name, name);
   }
 
-  public AbstractFieldSchema(FieldType fieldType, Field field, String name, String serial) {
+  public FieldSchema(FieldType fieldType, Field field, String name, String serial) {
     this.fieldType = fieldType;
     this.field = field;
     this.name = name;

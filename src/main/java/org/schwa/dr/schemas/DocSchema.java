@@ -24,19 +24,19 @@ import org.schwa.dr.annotations.DRPointer;
 import org.schwa.dr.annotations.DRStore;
 
 
-public class DocSchema extends BaseAnnSchema {
-  protected Set<BaseAnnSchema> anns;
-  protected Set<StoreSchema> stores;
+public class DocSchema extends AnnSchema {
+  protected Set<AnnSchema> annSchemas;
+  protected Set<StoreSchema> storeSchemas;
 
   private DocSchema(Class<?> klass, String name) {
     super(klass, name, "__meta__");
-    anns = new HashSet();
-    stores = new HashSet();
+    annSchemas = new HashSet();
+    storeSchemas = new HashSet();
     traverseDocKlass();
   }
 
   private boolean hasStore(final String name) {
-    for (StoreSchema s : stores)
+    for (StoreSchema s : storeSchemas)
       if (s.getName().equals(name))
         return true;
     return false;
@@ -70,25 +70,25 @@ public class DocSchema extends BaseAnnSchema {
           storeSchema = new StoreSchema(storedKlass, field, field.getName());
         else
           storeSchema = new StoreSchema(storedKlass, field, field.getName(), drStore.serial());
-        stores.add(storeSchema);
+        storeSchemas.add(storeSchema);
 
         // create the AnnSchema object
-        BaseAnnSchema annSchema;
+        AnnSchema annSchema;
         if (drAnn.serial().isEmpty())
-          annSchema = new BaseAnnSchema(storedKlass, storedKlass.getName());
+          annSchema = new AnnSchema(storedKlass, storedKlass.getName());
         else
-          annSchema = new BaseAnnSchema(storedKlass, storedKlass.getName(), drAnn.serial());
-        anns.add(annSchema);
+          annSchema = new AnnSchema(storedKlass, storedKlass.getName(), drAnn.serial());
+        annSchemas.add(annSchema);
       }
     }
 
     // discover all the DRField's and DRPointer's for all of the classes
     traverseAnnSchema(this);
-    for (BaseAnnSchema s : anns)
+    for (AnnSchema s : annSchemas)
       traverseAnnSchema(s);
   }
 
-  private void traverseAnnSchema(final BaseAnnSchema annSchema) {
+  private void traverseAnnSchema(final AnnSchema annSchema) {
     for (Field field : annSchema.getKlass().getFields()) {
       final Class<?> fieldKlass = field.getType();
       final DRField drField = field.getAnnotation(DRField.class);
@@ -122,11 +122,11 @@ public class DocSchema extends BaseAnnSchema {
     final Class<?> fieldKlass = field.getType();
     for (Class<?> k : ALLOWED_KLASSES) {
       if (fieldKlass.equals(k)) {
-        AbstractFieldSchema fieldSchema;
+        FieldSchema fieldSchema;
         if (drField.serial().isEmpty())
-          fieldSchema = new AbstractFieldSchema(k == Slice.class ? FieldType.SLICE : FieldType.PRIMITIVE, field, field.getName());
+          fieldSchema = new FieldSchema(k == Slice.class ? FieldType.SLICE : FieldType.PRIMITIVE, field, field.getName());
         else
-          fieldSchema = new AbstractFieldSchema(k == Slice.class ? FieldType.SLICE : FieldType.PRIMITIVE, field, field.getName(), drField.serial());
+          fieldSchema = new FieldSchema(k == Slice.class ? FieldType.SLICE : FieldType.PRIMITIVE, field, field.getName(), drField.serial());
         // TODO
         return;
       }

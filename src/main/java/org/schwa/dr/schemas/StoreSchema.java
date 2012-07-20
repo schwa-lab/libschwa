@@ -5,7 +5,7 @@ import java.lang.reflect.Field;
 import org.schwa.dr.BaseAnn;
 
 
-public class StoreSchema extends AbstractFieldSchema {
+public class StoreSchema extends FieldSchema {
   protected final Class<? extends BaseAnn> storedKlass;
 
   StoreSchema(Class<? extends BaseAnn> storedKlass, Field field, String name) {

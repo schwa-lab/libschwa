@@ -4,21 +4,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-public class BaseAnnSchema {
+public class AnnSchema {
   protected final Class<?> klass;
   protected final String name;
   protected String serial;
-  protected Set<AbstractFieldSchema> fields;
+  protected Set<FieldSchema> fieldSchemas;
 
-  public BaseAnnSchema(Class<?> klass, String name) {
+  public AnnSchema(Class<?> klass, String name) {
     this(klass, name, name);
   }
 
-  public BaseAnnSchema(Class<?> klass, String name, String serial) {
+  public AnnSchema(Class<?> klass, String name, String serial) {
     this.klass = klass;
     this.name = name;
     this.serial = serial;
-    this.fields = new HashSet();
+    this.fieldSchemas = new HashSet();
   }
 
   public Class<?> getKlass() {
