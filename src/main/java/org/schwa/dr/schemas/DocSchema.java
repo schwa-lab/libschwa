@@ -14,7 +14,6 @@ import java.util.Set;
 import org.schwa.dr.AnnSlice;
 import org.schwa.dr.BaseAnn;
 import org.schwa.dr.BaseDoc;
-import org.schwa.dr.IllegalAnnotationException;
 import org.schwa.dr.Slice;
 import org.schwa.dr.Store;
 import org.schwa.dr.annotations.DRAnn;
@@ -22,6 +21,7 @@ import org.schwa.dr.annotations.DRDoc;
 import org.schwa.dr.annotations.DRField;
 import org.schwa.dr.annotations.DRPointer;
 import org.schwa.dr.annotations.DRStore;
+import org.schwa.dr.annotations.IllegalAnnotationException;
 
 
 public class DocSchema extends AnnSchema {

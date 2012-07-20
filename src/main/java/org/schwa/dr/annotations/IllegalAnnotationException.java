@@ -1,4 +1,4 @@
-package org.schwa.dr;
+package org.schwa.dr.annotations;
 
 
 public class IllegalAnnotationException extends RuntimeException {
