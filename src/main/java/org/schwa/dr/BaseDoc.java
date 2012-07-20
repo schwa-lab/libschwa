@@ -1,11 +1,11 @@
 package org.schwa.dr;
 
 
-public class BaseDoc {
+public abstract class BaseDoc {
   byte[] lazy;
   Integer drIndex;
 
-  protected BaseDoc() {
+  public BaseDoc() {
     lazy = null;
     drIndex= null;
   }

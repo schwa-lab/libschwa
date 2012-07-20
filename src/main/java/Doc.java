@@ -9,7 +9,6 @@ public class Doc extends BaseDoc {
   @DRStore
   public Store<Chunk> chunks;
 
-  public Doc() {
-    super();
-  }
+  @DRField
+  public String filename;
 }

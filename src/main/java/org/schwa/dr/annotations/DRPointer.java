@@ -17,6 +17,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface DRPointer {
+  String store();
   String serial() default "";
-  String store() default "";
 }

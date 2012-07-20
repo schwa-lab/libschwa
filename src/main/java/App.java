@@ -10,11 +10,10 @@ import org.schwa.dr.annotations.*;
 class Chunk extends BaseAnn {
   @DRPointer(store="tokens")
   public AnnSlice<Token> span;
-  @DRPointer
+  @DRPointer(store="chunks")
   public Chunk parent;
-  @DRPointer
+  @DRPointer(store="chunks")
   public List<Chunk> children;
-
   @DRField(serial="gold_tag")
   public String tag;
 }
@@ -27,5 +26,7 @@ public class App {
     DocSchema docSchema0 = new DocSchema(Doc.class);
     System.out.println(docSchema0);
 
+    Doc doc = new Doc();
+    System.out.println(doc);
   }
 }
