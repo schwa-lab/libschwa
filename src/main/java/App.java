@@ -1,3 +1,5 @@
+import java.util.List;
+
 import org.schwa.dr.*;
 import org.schwa.dr.annotations.*;
 
@@ -7,7 +9,12 @@ import org.schwa.dr.annotations.*;
 @DRAnn(serial="MyChunk")
 class Chunk extends BaseAnn {
   @DRPointer(store="tokens")
-  public Slice<Token> span;
+  public AnnSlice<Token> span;
+  @DRPointer
+  public Chunk parent;
+  @DRPointer
+  public List<Chunk> children;
+
   @DRField(serial="gold_tag")
   public String tag;
 }
@@ -16,5 +23,9 @@ class Chunk extends BaseAnn {
 public class App {
   public static void main(String[] args) {
     System.out.println("Hello World!");
+
+    DocSchema docSchema0 = new DocSchema(Doc.class);
+    System.out.println(docSchema0);
+
   }
 }

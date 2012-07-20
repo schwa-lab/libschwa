@@ -6,6 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 
+/**
+ * DRPointer can annotate:
+ * * org.schwa.dr.AnnSlice
+ * * T, for T extends org.schwa.dr.BaseAnn
+ * * java.util.List&lt;T&gt;, for T extends org.schwa.dr.BaseAnn
+ *
+ * @author Tim Dawborn
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
 public @interface DRPointer {

@@ -18,7 +18,7 @@ public class BaseAnn {
       return false;
     else if (!(o instanceof BaseAnn))
       return false;
-    final BaseAnn a = (BaseAnn)o;
+    final BaseAnn a = (BaseAnn) o;
     if (drIndex == null || a.drIndex == null)
       return false;
     return drIndex == a.drIndex;

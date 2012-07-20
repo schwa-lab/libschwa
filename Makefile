@@ -14,7 +14,7 @@ compile:
 package:
 	mvn package
 
-run:
+run: compile
 	mvn exec:java -Dexec.mainClass=$(MAIN_CLASS)
 
 test:

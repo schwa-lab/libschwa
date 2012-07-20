@@ -1,12 +1,12 @@
 package org.schwa.dr;
 
 
-public class Slice {
-  public int start;
-  public int stop;
+public class AnnSlice<T extends BaseAnn> {
+  public T start;
+  public T stop;
 
-  public Slice() { }
-  public Slice(int start, int stop) {
+  public AnnSlice() { }
+  public AnnSlice(T start, T stop) {
     this.start = start;
     this.stop = stop;
   }
@@ -19,12 +19,12 @@ public class Slice {
       return false;
     else if (!(o instanceof Slice))
       return false;
-    final Slice s = (Slice)o;
-    return s.start == start && s.stop == stop;
+    final AnnSlice<T> s = (AnnSlice<T>) o;
+    return s.start.equals(start) && s.stop.equals(stop);
   }
 
   @Override
   public int hashCode() {
-    return 31*start + stop;
+    return 31*start.hashCode() + stop.hashCode();
   }
 }

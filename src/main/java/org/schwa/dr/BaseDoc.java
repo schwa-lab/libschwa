@@ -16,9 +16,9 @@ public class BaseDoc {
       return true;
     else if (o == null)
       return false;
-    else if (!(o instanceof Ann))
+    else if (!(o instanceof BaseDoc))
       return false;
-    final Ann a = (Ann)o;
+    final BaseDoc a = (BaseDoc) o;
     if (drIndex == null || a.drIndex == null)
       return false;
     return drIndex == a.drIndex;

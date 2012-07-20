@@ -5,6 +5,8 @@ import org.schwa.dr.annotations.*;
 @DRAnn
 public class Token extends BaseAnn {
   @DRField
+  public Slice span;
+  @DRField
   public String raw;
   @DRField
   public String lemma;
