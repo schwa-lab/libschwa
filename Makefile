@@ -1,4 +1,4 @@
-MAIN_CLASS = org.schwa.dr.App
+MAIN_CLASS = App
 
 
 .PHONY: all clean compile package run test
