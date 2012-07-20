@@ -1,7 +1,7 @@
 MAIN_CLASS = App
 
 
-.PHONY: all clean compile package run test
+.PHONY: all clean compile package run test wc
 
 all: compile
 
@@ -19,3 +19,6 @@ run: compile
 
 test:
 	mvn test
+
+wc:
+	find src/main/java/org/schwa/dr -name '*.java' | xargs wc -l

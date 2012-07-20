@@ -10,11 +10,11 @@ public class BaseAnnSchema {
   protected String serial;
   protected Set<AbstractFieldSchema> fields;
 
-  protected BaseAnnSchema(Class<?> klass, String name) {
-    BaseSchema(klass, name, name);
+  public BaseAnnSchema(Class<?> klass, String name) {
+    this(klass, name, name);
   }
 
-  protected BaseAnnSchema(Class<?> klass, String name, String serial) {
+  public BaseAnnSchema(Class<?> klass, String name, String serial) {
     this.klass = klass;
     this.name = name;
     this.serial = serial;

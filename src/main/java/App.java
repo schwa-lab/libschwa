@@ -1,7 +1,9 @@
 import java.util.List;
 
-import org.schwa.dr.*;
+import org.schwa.dr.AnnSlice;
+import org.schwa.dr.BaseAnn;
 import org.schwa.dr.annotations.*;
+import org.schwa.dr.schemas.DocSchema;
 
 
 // need a place for lazy
@@ -23,7 +25,7 @@ public class App {
   public static void main(String[] args) {
     System.out.println("Hello World!");
 
-    DocSchema docSchema0 = new DocSchema(Doc.class);
+    DocSchema docSchema0 = DocSchema.create(Doc.class);
     System.out.println(docSchema0);
 
     Doc doc = new Doc();

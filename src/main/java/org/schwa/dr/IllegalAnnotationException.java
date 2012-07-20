@@ -1,8 +1,8 @@
 package org.schwa.dr;
 
 
-class IllegalAnnotationExecption extends RuntimeException {
-  public IllegalAnnotationExecption(String msg) {
+public class IllegalAnnotationException extends RuntimeException {
+  public IllegalAnnotationException(String msg) {
     super(msg);
   }
 }
