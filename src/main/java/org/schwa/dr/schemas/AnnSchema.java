@@ -21,6 +21,10 @@ public class AnnSchema {
     this.fieldSchemas = new HashSet();
   }
 
+  public void addField(final FieldSchema fieldSchema) {
+    fieldSchemas.add(fieldSchema);
+  }
+
   public Class<?> getKlass() {
     return klass;
   }

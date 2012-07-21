@@ -35,6 +35,14 @@ public class DocSchema extends AnnSchema {
     traverseDocKlass();
   }
 
+  public void addAnn(final AnnSchema annSchema) {
+    annSchemas.add(annSchema);
+  }
+
+  public void addStore(final StoreSchema storeSchema) {
+    storeSchemas.add(storeSchema);
+  }
+
   private boolean hasStore(final String name) {
     for (StoreSchema s : storeSchemas)
       if (s.getName().equals(name))
@@ -57,7 +65,6 @@ public class DocSchema extends AnnSchema {
         final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
         assert types.length == 1;
         final Class<? extends BaseAnn> storedKlass = (Class<? extends BaseAnn>) types[0];
-        System.out.println("found store: " + fieldKlass + "<" + storedKlass + "> ");
 
         // ensure the generic argument is annotated with DRAnn
         final DRAnn drAnn = storedKlass.getAnnotation(DRAnn.class);
@@ -65,12 +72,8 @@ public class DocSchema extends AnnSchema {
           throw new IllegalAnnotationException("The stored class '" + storedKlass + "' in field '" + field + "' is not annotated with DRAnn");
 
         // create the StoreSchema object
-        StoreSchema storeSchema;
-        if (drStore.serial().isEmpty())
-          storeSchema = new StoreSchema(storedKlass, field, field.getName());
-        else
-          storeSchema = new StoreSchema(storedKlass, field, field.getName(), drStore.serial());
-        storeSchemas.add(storeSchema);
+        final StoreSchema storeSchema = StoreSchema.create(storedKlass, field, drStore);
+        addStore(storeSchema);
 
         // create the AnnSchema object
         AnnSchema annSchema;
@@ -78,7 +81,7 @@ public class DocSchema extends AnnSchema {
           annSchema = new AnnSchema(storedKlass, storedKlass.getName());
         else
           annSchema = new AnnSchema(storedKlass, storedKlass.getName(), drAnn.serial());
-        annSchemas.add(annSchema);
+        addAnn(annSchema);
       }
     }
 
@@ -98,71 +101,71 @@ public class DocSchema extends AnnSchema {
       if (drField != null) {
         if (drPointer != null || drStore != null)
           throw new IllegalAnnotationException("Field '" + field + "' cannot be annotated with DRField as well as DRStore or DRPointer");
-        System.out.println("found field: " + field);
-        checkDRFieldField(field, drField);
+        checkDRFieldField(field, drField, annSchema);
       }
       else if (drPointer != null) {
         if (drStore != null)
           throw new IllegalAnnotationException("Field '" + field + "' cannot be annotated with DRPointer as well as DRStore");
-        System.out.println("found pointer: " + field);
-
         if (!hasStore(drPointer.store()))
           throw new IllegalAnnotationException("Store name '" + drPointer.store() + "' on field '" + field + "' is unknown");
-
-        checkDRPointerField(field, drPointer);
+        checkDRPointerField(field, drPointer, annSchema);
       }
     }
   }
 
-  private void checkDRFieldField(final Field field, final DRField drField) {
+  private void checkDRFieldField(final Field field, final DRField drField, final AnnSchema annSchema) {
     // DRField can annotate:
     // * {char,short,int,long,float,double,boolean,String}
     // * org.schwa.dr.Slice
     final Class<?>[] ALLOWED_KLASSES = {char.class, short.class, int.class, long.class, float.class, double.class, boolean.class, String.class, Slice.class};
     final Class<?> fieldKlass = field.getType();
+    FieldSchema fieldSchema = null;
     for (Class<?> k : ALLOWED_KLASSES) {
       if (fieldKlass.equals(k)) {
-        FieldSchema fieldSchema;
-        if (drField.serial().isEmpty())
-          fieldSchema = new FieldSchema(k == Slice.class ? FieldType.SLICE : FieldType.PRIMITIVE, field, field.getName());
+        if (k == Slice.class)
+          fieldSchema = FieldSchema.createSliceField(field, drField);
         else
-          fieldSchema = new FieldSchema(k == Slice.class ? FieldType.SLICE : FieldType.PRIMITIVE, field, field.getName(), drField.serial());
-        // TODO
-        return;
+          fieldSchema = FieldSchema.createPrimitiveField(field, drField);
+        break;
       }
     }
-    throw new IllegalAnnotationException("Field '" + field + "' which is annotated with DRField is of an invalid type");
+    if (fieldSchema == null)
+      throw new IllegalAnnotationException("Field '" + field + "' which is annotated with DRField is of an invalid type");
+    annSchema.addField(fieldSchema);
   }
 
-
-  private void checkDRPointerField(final Field field, final DRPointer drPointer) {
+  private void checkDRPointerField(final Field field, final DRPointer drPointer, final AnnSchema annSchema) {
     // DRPointer can annotate:
     // * org.schwa.dr.AnnSlice
     // * T, for T extends org.schwa.dr.BaseAnn
     // * java.util.List<T>, for T extends org.schwa.dr.BaseAnn
+    FieldSchema fieldSchema;
     final Class<?> fieldKlass = field.getType();
     if (fieldKlass.equals(AnnSlice.class)) {
-      // TODO
+      final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
+      final Class<? extends BaseAnn> pointedToKlass = (Class<? extends BaseAnn>) types[0];
+      fieldSchema = PointerSchema.createSlice(field, drPointer, pointedToKlass);
     }
     else if (BaseAnn.class.isAssignableFrom(fieldKlass)) {
-      // TODO
+      final Class<? extends BaseAnn> pointedToKlass = (Class<? extends BaseAnn>) fieldKlass;
+      fieldSchema = PointerSchema.createPointer(field, drPointer, pointedToKlass);
     }
     else if (List.class.isAssignableFrom(fieldKlass)) {
       // ensure the generic of the List is a BaseAnn subclass
       final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-      assert types.length == 1;
       final Class<?> listKlass = (Class<?>) types[0];
       if (!BaseAnn.class.isAssignableFrom(listKlass))
         throw new IllegalAnnotationException("Field '" + field + "' cannot be annotated with DRPointer when the generic type T of List<T> is not a org.schwa.dr.BaseAnn subclass");
-      // TODO
+      final Class<? extends BaseAnn> pointedToKlass = (Class<? extends BaseAnn>) listKlass;
+      fieldSchema = PointerSchema.createPointers(field, drPointer, pointedToKlass);
     }
     else
       throw new IllegalAnnotationException("Field '" + field + "' which is annotated with DRPointer is of an invalid type");
+    annSchema.addField(fieldSchema);
   }
 
   public static <T extends BaseDoc> DocSchema create(final Class<T> klass) {
-    final DRDoc ann = klass.getAnnotation(DRDoc.class);
-    if (ann == null)
+    if (!klass.isAnnotationPresent(DRDoc.class))
       throw new IllegalArgumentException("The provided class is not annotated with DRDoc");
     return new DocSchema(klass, klass.getName());
   }
