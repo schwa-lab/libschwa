@@ -31,4 +31,8 @@ public abstract class Ann {
   public byte[] getLazy() {
     return lazy;
   }
+
+  void setDrIndex(int index) {
+    drIndex = index;
+  }
 }

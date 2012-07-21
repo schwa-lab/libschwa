@@ -30,8 +30,8 @@ public class DocSchema extends AnnSchema {
 
   private DocSchema(Class<?> klass, String name) {
     super(klass, name, "__meta__");
-    annSchemas = new HashSet();
-    storeSchemas = new HashSet();
+    annSchemas = new HashSet<AnnSchema>();
+    storeSchemas = new HashSet<StoreSchema>();
     traverseDocKlass();
   }
 

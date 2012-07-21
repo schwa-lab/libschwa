@@ -18,7 +18,7 @@ public class AnnSchema {
     this.klass = klass;
     this.name = name;
     this.serial = serial;
-    this.fieldSchemas = new HashSet();
+    this.fieldSchemas = new HashSet<FieldSchema>();
   }
 
   public void addField(final FieldSchema fieldSchema) {

@@ -11,4 +11,9 @@ public class Doc extends org.schwa.dr.Doc {
 
   @DRField
   public String filename;
+
+  public Doc() {
+    tokens = new Store<Token>();
+    chunks = new Store<Chunk>();
+  }
 }

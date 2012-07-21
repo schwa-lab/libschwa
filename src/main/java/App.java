@@ -1,6 +1,9 @@
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import org.schwa.dr.AnnSlice;
+import org.schwa.dr.Slice;
+import org.schwa.dr.Writer;
 import org.schwa.dr.annotations.*;
 import org.schwa.dr.schemas.DocSchema;
 
@@ -22,12 +25,32 @@ class Chunk extends org.schwa.dr.Ann {
 
 public class App {
   public static void main(String[] args) {
-    System.out.println("Hello World!");
-
-    DocSchema docSchema0 = DocSchema.create(Doc.class);
-    System.out.println(docSchema0);
+    DocSchema docSchema = DocSchema.create(Doc.class);
+    System.out.println(docSchema);
 
     Doc doc = new Doc();
-    System.out.println(doc);
+
+    Token t = new Token();
+    t.span = new Slice(0, 5);
+    t.raw = "Hello";
+    doc.tokens.add(t);
+
+    t = new Token();
+    t.span = new Slice(6, 10);
+    t.raw = "world";
+    doc.tokens.add(t);
+
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    Writer writer = new Writer(bos, docSchema);
+    writer.write(doc);
+    final byte[] bytes = bos.toByteArray();
+    for (int i = 0; i != bytes.length; ++i) {
+      if (i != 0 && i % 16 == 0)
+        System.out.print('\n');
+      System.out.print(Integer.toString(bytes[i], 16));
+      System.out.print(' ');
+    }
+    System.out.flush();
+
   }
 }
