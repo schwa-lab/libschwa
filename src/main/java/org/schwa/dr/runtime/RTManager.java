@@ -1,14 +1,19 @@
 package org.schwa.dr.runtime;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 
-public class RTManager {
+public final class RTManager {
   RTAnnSchema docSchema;
-  Set<RTAnnSchema> annSchemas;
+  List<RTAnnSchema> annSchemas;
 
-  public RTManager() {
-    annSchemas = new HashSet<RTAnnSchema>();
+  RTManager(RTAnnSchema docSchema) {
+    this.docSchema = docSchema;
+    this.annSchemas = new ArrayList<RTAnnSchema>();
+  }
+
+  void addAnn(RTAnnSchema annSchema) {
+    annSchemas.add(annSchema);
   }
 }
