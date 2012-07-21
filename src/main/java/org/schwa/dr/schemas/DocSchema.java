@@ -43,6 +43,14 @@ public class DocSchema extends AnnSchema {
     storeSchemas.add(storeSchema);
   }
 
+  public Set<AnnSchema> getAnns() {
+    return annSchemas;
+  }
+
+  public Set<StoreSchema> getStores() {
+    return storeSchemas;
+  }
+
   private boolean hasStore(final String name) {
     for (StoreSchema s : storeSchemas)
       if (s.getName().equals(name))

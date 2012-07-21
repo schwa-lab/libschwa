@@ -29,6 +29,10 @@ public class AnnSchema {
     return klass;
   }
 
+  public Set<FieldSchema> getFields() {
+    return fieldSchemas;
+  }
+
   public String getName() {
     return name;
   }

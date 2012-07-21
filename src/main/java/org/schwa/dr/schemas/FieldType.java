@@ -1,7 +1,7 @@
 package org.schwa.dr.schemas;
 
 
-enum FieldType {
+public enum FieldType {
   PRIMITIVE, SLICE,
   ANN_SLICE, POINTER, POINTERS,
   STORE
