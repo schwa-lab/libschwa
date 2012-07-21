@@ -1,11 +1,11 @@
 package org.schwa.dr;
 
 
-public abstract class BaseDoc {
-  byte[] lazy;
-  Integer drIndex;
+public abstract class Ann {
+  protected byte[] lazy;
+  protected Integer drIndex;
 
-  public BaseDoc() {
+  protected Ann() {
     lazy = null;
     drIndex= null;
   }
@@ -16,9 +16,9 @@ public abstract class BaseDoc {
       return true;
     else if (o == null)
       return false;
-    else if (!(o instanceof BaseDoc))
+    else if (!(o instanceof Ann))
       return false;
-    final BaseDoc a = (BaseDoc) o;
+    final Ann a = (Ann) o;
     if (drIndex == null || a.drIndex == null)
       return false;
     return drIndex == a.drIndex;
@@ -26,5 +26,9 @@ public abstract class BaseDoc {
 
   public Integer getDrIndex() {
     return drIndex;
+  }
+
+  public byte[] getLazy() {
+    return lazy;
   }
 }

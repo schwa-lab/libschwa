@@ -3,7 +3,7 @@ import org.schwa.dr.annotations.*;
 
 
 @DRDoc
-public class Doc extends BaseDoc {
+public class Doc extends org.schwa.dr.Doc {
   @DRStore
   public Store<Token> tokens;
   @DRStore

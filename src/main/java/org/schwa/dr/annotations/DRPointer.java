@@ -9,8 +9,8 @@ import java.lang.annotation.Target;
 /**
  * DRPointer can annotate:
  * * org.schwa.dr.AnnSlice
- * * T, for T extends org.schwa.dr.BaseAnn
- * * java.util.List&lt;T&gt;, for T extends org.schwa.dr.BaseAnn
+ * * T, for T extends org.schwa.dr.Ann
+ * * java.util.List&lt;T&gt;, for T extends org.schwa.dr.Ann
  *
  * @author Tim Dawborn
  */

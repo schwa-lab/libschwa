@@ -1,9 +1,11 @@
-import org.schwa.dr.*;
-import org.schwa.dr.annotations.*;
+import org.schwa.dr.Ann;
+import org.schwa.dr.Slice;
+import org.schwa.dr.annotations.DRAnn;
+import org.schwa.dr.annotations.DRField;
 
 
 @DRAnn
-public class Token extends BaseAnn {
+public class Token extends Ann {
   @DRField
   public Slice span;
   @DRField

@@ -1,11 +1,15 @@
 package org.schwa.dr;
 
 
-public class AnnSlice<T extends BaseAnn> {
+public class AnnSlice<T extends Ann> {
   public T start;
   public T stop;
 
-  public AnnSlice() { }
+  public AnnSlice() {
+    this.start = null;
+    this.stop = null;
+  }
+
   public AnnSlice(T start, T stop) {
     this.start = start;
     this.stop = stop;

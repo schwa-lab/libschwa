@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * DRAnn can annotate:
- * * T, for T extends org.schwa.dr.BaseAnn
+ * * T, for T extends org.schwa.dr.Ann
  *
  * @author Tim Dawborn
  */

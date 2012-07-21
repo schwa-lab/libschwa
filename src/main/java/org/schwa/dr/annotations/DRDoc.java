@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * DRDoc can annotate:
- * * T, for T extends org.schwa.dr.BaseDoc
+ * * T, for T extends org.schwa.dr.Doc
  *
  * @author Tim Dawborn
  */

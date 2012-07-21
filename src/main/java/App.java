@@ -1,7 +1,6 @@
 import java.util.List;
 
 import org.schwa.dr.AnnSlice;
-import org.schwa.dr.BaseAnn;
 import org.schwa.dr.annotations.*;
 import org.schwa.dr.schemas.DocSchema;
 
@@ -9,7 +8,7 @@ import org.schwa.dr.schemas.DocSchema;
 // need a place for lazy
 // need _dr_index or something like that
 @DRAnn(serial="MyChunk")
-class Chunk extends BaseAnn {
+class Chunk extends org.schwa.dr.Ann {
   @DRPointer(store="tokens")
   public AnnSlice<Token> span;
   @DRPointer(store="chunks")

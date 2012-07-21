@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.schwa.dr.AnnSlice;
-import org.schwa.dr.BaseAnn;
-import org.schwa.dr.BaseDoc;
+import org.schwa.dr.Ann;
+import org.schwa.dr.Doc;
 import org.schwa.dr.Slice;
 import org.schwa.dr.Store;
 import org.schwa.dr.annotations.DRAnn;
@@ -64,7 +64,7 @@ public class DocSchema extends AnnSchema {
         // find the generic argument to the store
         final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
         assert types.length == 1;
-        final Class<? extends BaseAnn> storedKlass = (Class<? extends BaseAnn>) types[0];
+        final Class<? extends Ann> storedKlass = (Class<? extends Ann>) types[0];
 
         // ensure the generic argument is annotated with DRAnn
         final DRAnn drAnn = storedKlass.getAnnotation(DRAnn.class);
@@ -137,26 +137,26 @@ public class DocSchema extends AnnSchema {
   private void checkDRPointerField(final Field field, final DRPointer drPointer, final AnnSchema annSchema) {
     // DRPointer can annotate:
     // * org.schwa.dr.AnnSlice
-    // * T, for T extends org.schwa.dr.BaseAnn
-    // * java.util.List<T>, for T extends org.schwa.dr.BaseAnn
+    // * T, for T extends org.schwa.dr.Ann
+    // * java.util.List<T>, for T extends org.schwa.dr.Ann
     FieldSchema fieldSchema;
     final Class<?> fieldKlass = field.getType();
     if (fieldKlass.equals(AnnSlice.class)) {
       final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-      final Class<? extends BaseAnn> pointedToKlass = (Class<? extends BaseAnn>) types[0];
+      final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) types[0];
       fieldSchema = PointerSchema.createSlice(field, drPointer, pointedToKlass);
     }
-    else if (BaseAnn.class.isAssignableFrom(fieldKlass)) {
-      final Class<? extends BaseAnn> pointedToKlass = (Class<? extends BaseAnn>) fieldKlass;
+    else if (Ann.class.isAssignableFrom(fieldKlass)) {
+      final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) fieldKlass;
       fieldSchema = PointerSchema.createPointer(field, drPointer, pointedToKlass);
     }
     else if (List.class.isAssignableFrom(fieldKlass)) {
-      // ensure the generic of the List is a BaseAnn subclass
+      // ensure the generic of the List is a Ann subclass
       final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
       final Class<?> listKlass = (Class<?>) types[0];
-      if (!BaseAnn.class.isAssignableFrom(listKlass))
-        throw new IllegalAnnotationException("Field '" + field + "' cannot be annotated with DRPointer when the generic type T of List<T> is not a org.schwa.dr.BaseAnn subclass");
-      final Class<? extends BaseAnn> pointedToKlass = (Class<? extends BaseAnn>) listKlass;
+      if (!Ann.class.isAssignableFrom(listKlass))
+        throw new IllegalAnnotationException("Field '" + field + "' cannot be annotated with DRPointer when the generic type T of List<T> is not a org.schwa.dr.Ann subclass");
+      final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) listKlass;
       fieldSchema = PointerSchema.createPointers(field, drPointer, pointedToKlass);
     }
     else
@@ -164,7 +164,7 @@ public class DocSchema extends AnnSchema {
     annSchema.addField(fieldSchema);
   }
 
-  public static <T extends BaseDoc> DocSchema create(final Class<T> klass) {
+  public static <T extends Doc> DocSchema create(final Class<T> klass) {
     if (!klass.isAnnotationPresent(DRDoc.class))
       throw new IllegalArgumentException("The provided class is not annotated with DRDoc");
     return new DocSchema(klass, klass.getName());
