@@ -11,6 +11,7 @@ import org.schwa.dr.Ann;
 import org.schwa.dr.schemas.AnnSchema;
 import org.schwa.dr.schemas.DocSchema;
 import org.schwa.dr.schemas.FieldSchema;
+import org.schwa.dr.schemas.FieldType;
 import org.schwa.dr.schemas.PointerSchema;
 import org.schwa.dr.schemas.StoreSchema;
 
@@ -53,7 +54,6 @@ public final class RTFactory {
     }
 
     // construct the new RTStoreSchema's
-    Map<Field, RTStoreSchema> storeFields = new HashMap<Field, RTStoreSchema>();
     for (StoreSchema store : docSchema.getStores()) {
       RTStoreSchema rtStore = knownStores.get(store.getName());
       if (rtStore == null) {
@@ -64,7 +64,6 @@ public final class RTFactory {
       }
       else
         rtStore.def = store;
-      storeFields.put(rtStore.def.getField(), rtStore);
     }
     if (!rtDocSchema.stores.isEmpty()) {
       Collections.sort(rtDocSchema.stores, new Comparator<RTStoreSchema>() {
@@ -77,7 +76,7 @@ public final class RTFactory {
     }
 
     // construct the documents RTFieldDef's
-    mergeFields(rtDocSchema, docSchema, storeFields);
+    mergeFields(rtDocSchema, docSchema, knownStores);
 
     // construct each of the klasses
     Map<Class<? extends Ann>, RTAnnSchema> annKlassToRTAnn = new HashMap<Class<? extends Ann>, RTAnnSchema>();
@@ -91,7 +90,7 @@ public final class RTFactory {
       }
       else
         rtAnn.def = ann;
-      mergeFields(rtAnn, ann, storeFields);
+      mergeFields(rtAnn, ann, knownStores);
       annKlassToRTAnn.put(ann.getKlass(), rtAnn);
     }
     Collections.sort(rt.annSchemas, new Comparator<RTAnnSchema>() {
@@ -112,7 +111,44 @@ public final class RTFactory {
     return rt;
   }
 
-  private static void mergeFields(final RTAnnSchema rtSchema, final AnnSchema schema, final Map<Field, RTStoreSchema> storeFields) {
-    // TODO
+  private static void mergeFields(final RTAnnSchema rtSchema, final AnnSchema schema, final Map<String, RTStoreSchema> knownStores) {
+    // discover existing fields
+    int fieldId = 0;
+    Map<String, RTFieldSchema> knownFields = new HashMap<String, RTFieldSchema>();
+    if (!rtSchema.fields.isEmpty()) {
+      for (RTFieldSchema f : rtSchema.fields) {
+        if (!f.isLazy())
+          knownFields.put(f.def.getName(), f);
+        if (f.fieldId > fieldId)
+          fieldId = f.fieldId;
+      }
+      fieldId++;
+    }
+
+    // construct the new RTFieldSchemas
+    for (FieldSchema field : schema.getFields()) {
+      RTFieldSchema rtField = knownFields.get(field.getName());
+      if (rtField == null) {
+        final FieldType type = field.getFieldType();
+        final boolean isSlice = type == FieldType.SLICE || type == FieldType.ANN_SLICE;
+        RTStoreSchema rtStore = null;
+        if (type == FieldType.ANN_SLICE || type == FieldType.POINTER || type == FieldType.POINTERS)
+          rtStore = knownStores.get(((PointerSchema) field).getStoreName());
+        rtField = new RTFieldSchema(fieldId, field.getSerial(), rtStore, isSlice, field);
+        rtSchema.addField(rtField);
+        fieldId++;
+      }
+      else
+        rtField.def = field;
+    }
+    if (!rtSchema.fields.isEmpty()) {
+      Collections.sort(rtSchema.fields, new Comparator<RTFieldSchema>() {
+        public int compare(final RTFieldSchema a, final RTFieldSchema b) {
+          return a.fieldId == b.fieldId ? 0 : (a.fieldId < b.fieldId ? -1 : 1);
+        }
+      });
+      if (rtSchema.fields.get(rtSchema.fields.size() - 1).fieldId + 1 != rtSchema.fields.size())
+        throw new AssertionError();
+    }
   }
 }
