@@ -28,7 +28,7 @@ public class DocSchema extends AnnSchema {
   protected Set<AnnSchema> annSchemas;
   protected Set<StoreSchema> storeSchemas;
 
-  private DocSchema(Class<?> klass, String name) {
+  private DocSchema(Class<? extends Ann> klass, String name) {
     super(klass, name, "__meta__");
     annSchemas = new HashSet<AnnSchema>();
     storeSchemas = new HashSet<StoreSchema>();

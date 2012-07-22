@@ -3,18 +3,20 @@ package org.schwa.dr.schemas;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.schwa.dr.Ann;
+
 
 public class AnnSchema {
-  protected final Class<?> klass;
+  protected final Class<? extends Ann> klass;
   protected final String name;
   protected String serial;
   protected Set<FieldSchema> fieldSchemas;
 
-  public AnnSchema(Class<?> klass, String name) {
+  public AnnSchema(Class<? extends Ann> klass, String name) {
     this(klass, name, name);
   }
 
-  public AnnSchema(Class<?> klass, String name, String serial) {
+  public AnnSchema(Class<? extends Ann> klass, String name, String serial) {
     this.klass = klass;
     this.name = name;
     this.serial = serial;
@@ -25,7 +27,7 @@ public class AnnSchema {
     fieldSchemas.add(fieldSchema);
   }
 
-  public Class<?> getKlass() {
+  public Class<? extends Ann> getKlass() {
     return klass;
   }
 

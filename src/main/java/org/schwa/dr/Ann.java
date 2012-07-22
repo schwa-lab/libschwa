@@ -32,7 +32,7 @@ public abstract class Ann {
     return lazy;
   }
 
-  void setDrIndex(int index) {
+  void setDrIndex(Integer index) {
     drIndex = index;
   }
 }

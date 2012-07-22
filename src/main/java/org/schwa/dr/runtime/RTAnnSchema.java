@@ -36,5 +36,4 @@ public final class RTAnnSchema {
   boolean isLazy() {
     return def == null;
   }
-
 }
