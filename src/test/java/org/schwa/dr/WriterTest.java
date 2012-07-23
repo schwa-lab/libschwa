@@ -23,6 +23,18 @@ public class WriterTest {
     public String name;
   }
 
+  @DRAnn
+  public static class A extends Ann {
+    @DRField public String v_str;
+    @DRField public byte v_uint8;
+    @DRField public boolean v_bool;
+  }
+
+  @DRDoc
+  public static class DocWithA extends Doc {
+    @DRStore public Store<A> as;
+  }
+
 
   @Test
   public void test_DocWithField__name_isnull() throws IOException {
@@ -87,6 +99,69 @@ public class WriterTest {
     Assert.assertArrayEquals(expected.toByteArray(), actual.toByteArray());
   }
 
+
+  @Test
+  public void test_DocWithFieldSerial__name_isnull() throws IOException {
+    ByteArrayOutputStream actual = new ByteArrayOutputStream();
+    DocSchema schema = DocSchema.create(DocWithFieldSerial.class);
+    Writer writer = new Writer(actual, schema);
+    byte[] str;
+
+    DocWithFieldSerial d = new DocWithFieldSerial();
+    writer.write(d);
+
+    ByteArrayOutputStream expected = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(expected);
+
+    dos.write((byte) 0x91);  // <klasses>: 1-element array
+    dos.write((byte) 0x92);  // <klass>: 2-element array
+    dos.write((byte) 0xa8);  // <klass_name>: 8-bytes of utf-8 encoded "__meta__"
+    str = "__meta__".getBytes("UTF-8"); dos.write(str, 0, str.length);
+    dos.write((byte) 0x91);  // <fields>: 1-element array
+    dos.write((byte) 0x81);  // <field>: 1-element map
+    dos.write((byte) 0x00);  // 0: NAME
+    dos.write((byte) 0xa8);  // 8-bytes of utf-8 encoded "filename"
+    str = "filename".getBytes("UTF-8"); dos.write(str, 0, str.length);
+    dos.write((byte) 0x90);  // <stores>: 0-element array
+    dos.write((byte) 0x01);  // <instance_nbytes>: 1 byte after this
+    dos.write((byte) 0x80);  // <instance>: 0-element map
+
+    Assert.assertArrayEquals(expected.toByteArray(), actual.toByteArray());
+  }
+
+
+  @Test
+  public void test_DocWithFieldSerial__name() throws IOException {
+    ByteArrayOutputStream actual = new ByteArrayOutputStream();
+    DocSchema schema = DocSchema.create(DocWithFieldSerial.class);
+    Writer writer = new Writer(actual, schema);
+    byte[] str;
+
+    DocWithFieldSerial d = new DocWithFieldSerial();
+    d.name = "/etc/passwd";
+    writer.write(d);
+
+    ByteArrayOutputStream expected = new ByteArrayOutputStream();
+    DataOutputStream dos = new DataOutputStream(expected);
+
+    dos.write((byte) 0x91);  // <klasses>: 1-element array
+    dos.write((byte) 0x92);  // <klass>: 2-element array
+    dos.write((byte) 0xa8);  // <klass_name>: 8-bytes of utf-8 encoded "__meta__"
+    str = "__meta__".getBytes("UTF-8"); dos.write(str, 0, str.length);
+    dos.write((byte) 0x91);  // <fields>: 1-element array
+    dos.write((byte) 0x81);  // <field>: 1-element map
+    dos.write((byte) 0x00);  // 0: NAME
+    dos.write((byte) 0xa8);  // 8-bytes of utf-8 encoded "filename"
+    str = "filename".getBytes("UTF-8"); dos.write(str, 0, str.length);
+    dos.write((byte) 0x90);  // <stores>: 0-element array
+    dos.write((byte) 0x0e);  // <instance_nbytes>: 14 bytes after this
+    dos.write((byte) 0x81);  // <instance>: 1-element map
+    dos.write((byte) 0x00);  // 0: field number 0 (=> name;
+    dos.write((byte) 0xab);  // utf-8 encoded "/etc/passwd"
+    str = "/etc/passwd".getBytes("UTF-8"); dos.write(str, 0, str.length);
+
+    Assert.assertArrayEquals(expected.toByteArray(), actual.toByteArray());
+  }
 
   private static void compareByteArrays(final byte[] e, final byte[] a) {
     int ei = 0, ai = 0;
