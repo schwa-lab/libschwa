@@ -11,6 +11,7 @@
 #include <schwa/dr/schema.h>
 #include <schwa/dr/fields.h>
 #include <schwa/dr/field_defs.h>
+#include <schwa/dr/runtime.h>
 #include <schwa/dr/reader.h>
 #include <schwa/dr/writer.h>
 

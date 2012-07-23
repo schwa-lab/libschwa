@@ -1,6 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/base.h>
-#include <schwa/msgpack.h>
 #include <schwa/dr.h>
 #include "test_utils.h"
 
@@ -25,7 +23,7 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<DocWithField>("Doc", "Some help text about this Doc class"),
-    name(*this, "name", "some help text about name", dr::LOAD_RW, "name")
+    name(*this, "name", "some help text about name", dr::FieldMode::READ_WRITE, "name")
     { }
   virtual ~Schema(void) { }
 };
@@ -46,7 +44,7 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<DocWithFieldWithSerial>("Doc", "Some help text about this Doc class"),
-    name(*this, "name", "some help text about name", dr::LOAD_RW, "filename")
+    name(*this, "name", "some help text about name", dr::FieldMode::READ_WRITE, "filename")
     { }
   virtual ~Schema(void) { }
 };
@@ -104,7 +102,7 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<DocWithA>("Doc", "Some help text about this Doc class"),
-    as(*this, "as", "some help text about as", dr::LOAD_RW, "as")
+    as(*this, "as", "some help text about as", dr::FieldMode::READ_WRITE, "as")
     { }
   virtual ~Schema(void) { }
 };
@@ -117,9 +115,9 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<DocWithAYZ>("Doc", "Some help text about this Doc class"),
-    as(*this, "as", "some help text about as", dr::LOAD_RW, "as"),
-    ys(*this, "ys", "some help text about ys", dr::LOAD_RW, "ys"),
-    zs(*this, "zs", "some help text about zs", dr::LOAD_RW, "zs")
+    as(*this, "as", "some help text about as", dr::FieldMode::READ_WRITE, "as"),
+    ys(*this, "ys", "some help text about ys", dr::FieldMode::READ_WRITE, "ys"),
+    zs(*this, "zs", "some help text about zs", dr::FieldMode::READ_WRITE, "zs")
     { }
   virtual ~Schema(void) { }
 };
@@ -132,9 +130,9 @@ public:
 
   Schema(void) :
     dr::Ann::Schema<A>("A", "Some help text about A", "A"),
-    v_str(*this, "v_str", "some help text about v_str", dr::LOAD_RW, "v_str"),
-    v_uint8(*this, "v_uint8", "some help text about v_uint8", dr::LOAD_RW, "v_uint8"),
-    v_bool(*this, "v_bool", "some help text about v_bool", dr::LOAD_RW, "v_bool")
+    v_str(*this, "v_str", "some help text about v_str", dr::FieldMode::READ_WRITE, "v_str"),
+    v_uint8(*this, "v_uint8", "some help text about v_uint8", dr::FieldMode::READ_WRITE, "v_uint8"),
+    v_bool(*this, "v_bool", "some help text about v_bool", dr::FieldMode::READ_WRITE, "v_bool")
     { }
   virtual ~Schema(void) { }
 };
@@ -145,7 +143,7 @@ public:
 
   Schema(void) :
     dr::Ann::Schema<Y>("Y", "Some help text about Y", "Y"),
-    p(*this, "p", "some help text about p", dr::LOAD_RW, "p")
+    p(*this, "p", "some help text about p", dr::FieldMode::READ_WRITE, "p")
     { }
   virtual ~Schema(void) { }
 };
@@ -157,8 +155,8 @@ public:
 
   Schema(void) :
     dr::Ann::Schema<Z>("Z", "Some help text about Z", "Z"),
-    p(*this, "p", "some help text about p", dr::LOAD_RW, "p"),
-    value(*this, "value", "some help text about value", dr::LOAD_RW, "value")
+    p(*this, "p", "some help text about p", dr::FieldMode::READ_WRITE, "p"),
+    value(*this, "value", "some help text about value", dr::FieldMode::READ_WRITE, "value")
     { }
   virtual ~Schema(void) { }
 };

@@ -1,22 +1,25 @@
-BINARIES = bin/drsink bin/drsource bin/tokenizer
+SHELL = /bin/bash
+
+BINARIES = bin/drdist bin/tokenizer
 SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
 
-BASE_OBJECTS = src/lib/schwa/exception.o
+BASE_OBJECTS = src/lib/schwa/exception.o src/lib/schwa/version.o
 CONFIG_OBJECTS = src/lib/schwa/config/base.o src/lib/schwa/config/group.o src/lib/schwa/config/op.o
-DR_OBJECTS = src/lib/schwa/dr/reader.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o src/lib/schwa/dr/config.o
+DR_OBJECTS = src/lib/schwa/dr/config.o src/lib/schwa/dr/reader.o src/lib/schwa/dr/runtime.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o
+IO_OBJECTS = src/lib/schwa/io/buffer.o
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/exception.o src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/docrep.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 
-OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
-UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/lazy.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
 GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends test wc
+.PHONY: all clean depends install release test wc src/lib/schwa/version.cc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
@@ -29,6 +32,27 @@ clean:
 depends:
 	src/scripts/depends "$(CXX) -std=c++0x -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
+install:
+	install -d -v $(DESTDIR)$(prefix)/{bin,include,lib}
+	# install the header files
+	for d in `find src/include -type d`; do \
+		install -d -v $${d/src/$(DESTDIR)$(prefix)}; \
+	done
+	for f in `find src/include -type f -name '*.h'`; do \
+		install -p -v $${f} $${f/src/$(DESTDIR)$(prefix)}; \
+	done
+	# install the shared libraries
+	for f in $(SHARED_LIBS); do \
+		install -p -v $${f} $(DESTDIR)$(prefix)/lib; \
+	done
+	# install the binaries
+	for f in $(BINARIES); do \
+		install -p -v $${f} $(DESTDIR)$(prefix)/bin; \
+	done
+
+release:
+	src/scripts/make-release $(RELEASE_VERSION)
+
 wc:
 	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l
 
@@ -39,25 +63,29 @@ wc:
 %.h.gch: %.h
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
-bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-bin/drsink: src/main/drsink.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -lzmq -o $@
 
-bin/drsource: src/main/drsource.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) -lzmq -o $@
-
-bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
 	$(CXX) $(SHARED_LIB_LDFLAGS) -o $@ $^ $(LIBS)
 
-
 # -------------------------------------------------------------------------------
 # generated sources
 # -------------------------------------------------------------------------------
+ifdef RELEASE_VERSION
+src/lib/schwa/version.cc:
+	@echo 'namespace schwa { const char *const VERSION = "$(RELEASE_VERSION) (release)"; }' > $@
+else
+src/lib/schwa/version.cc:
+	@echo 'namespace schwa { const char *const VERSION = "git:' $(shell git log --pretty=format:'%h' -n 1) ' (develop)"; }' > $@
+endif
+
 src/lib/schwa/tokenizer/tokenizer.o: src/lib/schwa/tokenizer/tokenizer.cc
 	$(CXX) $(RAGEL_CXXFLAGS) -c -o $@ $<
 

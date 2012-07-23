@@ -6,21 +6,21 @@
 #include <schwa/tokenizer/streams/docrep.h>
 #include <schwa/tokenizer/streams/text.h>
 
-namespace cfg = schwa::config;
-namespace dr  = schwa::dr;
+namespace cf = schwa::config;
+namespace dr = schwa::dr;
 namespace tok = schwa::tokenizer;
 
 
-class Config : public cfg::OpGroup {
+class Config : public cf::OpMain {
 public:
-  cfg::IStreamOp input;
-  cfg::OStreamOp output;
-  cfg::EnumOp<std::string> printer;
-  cfg::Op<size_t> input_buffer;
+  cf::IStreamOp input;
+  cf::OStreamOp output;
+  cf::EnumOp<std::string> printer;
+  cf::Op<size_t> input_buffer;
   dr::DocrepOpGroup dr;
 
   Config(dr::BaseDocSchema &dschema) :
-    cfg::OpGroup("tok", "Schwa-Lab tokenizer"),
+    cf::OpMain("tok", "Schwa-Lab tokenizer"),
     input(*this, "input", "input filename"),
     output(*this, "output", "output filename"),
     printer(*this, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text"),
@@ -42,7 +42,7 @@ main(int argc, char *argv[]) {
     if (!c.process(argc - 1, argv + 1))
       return 1;
   }
-  catch (cfg::ConfigException &e) {
+  catch (cf::ConfigException &e) {
     std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
     c.help(std::cerr);
     return 1;
@@ -61,7 +61,7 @@ main(int argc, char *argv[]) {
   else if (c.printer() == "docrep")
     stream = new tok::DocrepStream(out, schema);
   else
-    throw cfg::ConfigException("Unknown value", "printer", c.printer());
+    throw cf::ConfigException("Unknown value", "printer", c.printer());
 
   tok::Tokenizer t;
   t.tokenize_stream(*stream, in, c.input_buffer());

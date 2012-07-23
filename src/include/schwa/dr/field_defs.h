@@ -3,13 +3,17 @@
 namespace schwa {
   namespace dr {
 
+    class RTSchema;
+
     // ========================================================================
     // Constants
     // ========================================================================
-    typedef uint8_t loadmode_t;
-    static const loadmode_t LOAD_RW = 1;
-    static const loadmode_t LOAD_RO = 2;
-    static const loadmode_t LOAD_LAZY = 3;
+    enum class FieldMode : uint8_t {
+      READ_WRITE = 1,
+      READ_ONLY = 2,
+      DELETE = 3,
+      STREAM_ONLY = 4
+    };
 
 
     // ========================================================================
@@ -17,21 +21,27 @@ namespace schwa {
     // ========================================================================
     class BaseDef {
     public:
+      typedef void (*reader_type)(io::ArrayReader &in, void *, void *);
+      typedef bool (*writer_type)(io::WriteBuffer &out, const uint32_t, const void *, const void *);
+
       const std::string name;
       const std::string help;
-      const loadmode_t mode;
+      const FieldMode mode;
       std::string serial;
+      reader_type reader;
+      writer_type writer;
 
     protected:
-      BaseDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial) {
-        if (!(mode == LOAD_RW || mode == LOAD_RO))
-          throw ValueException("Invalid `mode' value: must be either LOAD_RW or LOAD_RO");
+      BaseDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial), reader(nullptr), writer(nullptr) {
+        if (mode == FieldMode::STREAM_ONLY)
+          throw ValueException("Invalid `mode' value: must either be READ_WRITE, READ_ONLY, or DELETE");
       }
 
     public:
       virtual ~BaseDef(void) { }
 
       virtual const TypeInfo &pointer_type(void) const { return *static_cast<const TypeInfo *>(nullptr); }
+      virtual ptrdiff_t store_offset(const Doc *) const = 0;
     };
 
 
@@ -41,18 +51,18 @@ namespace schwa {
       const bool is_slice;
 
     protected:
-      BaseFieldDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial, const bool is_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_slice(is_slice) { }
+      BaseFieldDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial, const bool is_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_slice(is_slice) { }
 
     public:
       virtual ~BaseFieldDef(void) { }
 
-      virtual ptrdiff_t store_offset(const Doc &) const { assert(!"this should never be invoked"); return -1; }
+      ptrdiff_t store_offset(const Doc *) const { assert(!"this should never be invoked"); return -1; }
     };
 
 
     class BaseStoreDef : public BaseDef {
     protected:
-      BaseStoreDef(const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseDef(name, help, mode, serial) { }
+      BaseStoreDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseDef(name, help, mode, serial) { }
 
     public:
       virtual ~BaseStoreDef(void) { }
@@ -60,8 +70,7 @@ namespace schwa {
       virtual void resize(Doc &doc, const size_t size) const = 0;
 
       virtual size_t size(const Doc &doc) const = 0;
-      virtual ptrdiff_t store_offset(const Doc &) const = 0;
-      virtual void write(std::ostream &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Doc &, const BaseSchema &, const void *const)) const = 0;
+      virtual void write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const RTSchema &, const void *const)) const = 0;
 
       virtual char *read_begin(Doc &_doc) const = 0;
       virtual size_t read_size(void) const = 0;
@@ -82,7 +91,8 @@ namespace schwa {
       typedef R value_type;
       typedef T annotation_type;
 
-      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDef(schema, name, help, mode, name) { }
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
         schema.add(this);
       }
       virtual ~FieldDef(void) { }
@@ -107,13 +117,14 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDefWithStore(schema, name, help, mode, name) { }
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~FieldDefWithStore(void) { }
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      ptrdiff_t store_offset(const Doc &doc) const { return reinterpret_cast<const char *>(&(static_cast<const D &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc); }
     };
 
 
@@ -130,7 +141,8 @@ namespace schwa {
       const TypeInfo _pointer_type;
 
     public:
-      StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const loadmode_t mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
+      StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : StoreDef(schema, name, help, mode, name) { }
+      StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseStoreDef(name, help, mode, serial), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~StoreDef(void) { }
@@ -139,7 +151,7 @@ namespace schwa {
 
       const TypeInfo &pointer_type(void) const { return _pointer_type; }
       size_t size(const Doc &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
-      ptrdiff_t store_offset(const Doc &doc) const { return reinterpret_cast<const char *>(&(static_cast<const T &>(doc).*store_ptr)) - reinterpret_cast<const char *>(&doc); }
+      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc); }
 
       char *
       read_begin(Doc &_doc) const {
@@ -151,7 +163,7 @@ namespace schwa {
       inline size_t read_size(void) const { return sizeof(S); }
 
       void
-      write(std::ostream &out, const Doc &_doc, const BaseSchema &schema, void (*writer)(std::ostream &, const Doc &, const BaseSchema &, const void *const)) const {
+      write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const RTSchema &, const void *const)) const {
         namespace mp = schwa::msgpack;
         const T &doc = static_cast<const T &>(_doc);
         const Store<S> &store = doc.*store_ptr;
@@ -164,9 +176,9 @@ namespace schwa {
     };
 
 
-    #define DR_FIELD(member_obj_ptr) schwa::dr::FieldDef<decltype(member_obj_ptr), member_obj_ptr>
+    #define DR_FIELD(member_obj_ptr)                  schwa::dr::FieldDef<decltype(member_obj_ptr), member_obj_ptr>
     #define DR_POINTER(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<decltype(member_obj_ptr), member_obj_ptr, decltype(store_obj_ptr), store_obj_ptr>
-    #define DR_STORE(member_obj_ptr) schwa::dr::StoreDef<decltype(member_obj_ptr), member_obj_ptr>
+    #define DR_STORE(member_obj_ptr)                  schwa::dr::StoreDef<decltype(member_obj_ptr), member_obj_ptr>
 
   }
 }

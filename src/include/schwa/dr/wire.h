@@ -21,16 +21,29 @@ namespace schwa {
       template <typename T>
       struct WireTraits {
         //static bool should_write(const T &val);
-        //static void write(std::ostream &out, const T &val);
-        //static void read(std::istream &in, T &val);
+        //template <typename OUT> static void write(OUT &out, const T &val);
+        //template <typename IN> static void read(IN &in, T &val);
       };
 
 
       template <typename T>
       struct WireTraitsPrimative {
-        static constexpr inline bool should_write(const T &) { return true; }
-        static inline void write(std::ostream &out, const T &val) { mp::write(out, val); }
-        static inline void read(std::istream &in, T &val) { mp::read(in, val); }
+        static constexpr inline bool
+        should_write(const T &) {
+          return true;
+        }
+
+        template <typename OUT>
+        static inline void
+        write(OUT &out, const T &val) {
+          mp::write(out, val);
+        }
+
+        template <typename IN>
+        static inline void
+        read(IN &in, T &val) {
+          mp::read(in, val);
+        }
       };
 
 
@@ -49,9 +62,22 @@ namespace schwa {
 
       template <>
       struct WireTraits<std::string> {
-        static inline bool should_write(const std::string &val) { return !val.empty(); }
-        static inline void write(std::ostream &out, const std::string &val) { mp::write(out, val); }
-        static inline void read(std::istream &in, std::string &val) { mp::read(in, val); }
+        static inline bool
+        should_write(const std::string &val) {
+          return !val.empty();
+        }
+
+        template <typename OUT>
+        static inline void
+        write(OUT &out, const std::string &val) {
+          mp::write(out, val);
+        }
+
+        template <typename IN>
+        static inline void
+        read(IN &in, std::string &val) {
+          mp::read(in, val);
+        }
       };
 
 
@@ -59,13 +85,15 @@ namespace schwa {
       struct WireTraits<Pointer<T>> {
         static inline bool should_write(const Pointer<T> &val) { return val.ptr != nullptr; }
 
+        template <typename OUT>
         static inline void
-        write(std::ostream &out, const Pointer<T> &val, const T &front) {
+        write(OUT &out, const Pointer<T> &val, const T &front) {
           mp::write_uint(out, val.ptr - &front);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, Pointer<T> &val, T &front) {
+        read(IN &in, Pointer<T> &val, T &front) {
           const size_t offset = mp::read_uint(in);
           val.ptr = &front + offset;
         }
@@ -76,19 +104,21 @@ namespace schwa {
       struct WireTraitsSliceTraits {
         static inline bool should_write(const Slice<T> &val) { return !(val.start == T() && val.stop == T()); }
 
+        template <typename OUT>
         static inline void
-        write(std::ostream &out, const Slice<T> &val) {
+        write(OUT &out, const Slice<T> &val) {
           mp::write_array_size(out, 2);
-          mp::write<T>(out, val.start);
-          mp::write<T>(out, val.stop);
+          mp::write(out, val.start);
+          mp::write(out, val.stop);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, Slice<T> &val) {
+        read(IN &in, Slice<T> &val) {
           const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
-          mp::read<T>(in, val.start);
-          mp::read<T>(in, val.stop);
+          mp::read<IN>(in, val.start);
+          mp::read<IN>(in, val.stop);
         }
       };
 
@@ -97,15 +127,17 @@ namespace schwa {
       struct WireTraitsSliceTraits<T, true> {
         static inline bool should_write(const Slice<T> &val) { return !(val.start == nullptr && val.stop == nullptr); }
 
+        template <typename OUT>
         static inline void
-        write(std::ostream &out, const Slice<T> &val, const typename FieldTraits<Slice<T>>::value_type &front) {
+        write(OUT &out, const Slice<T> &val, const typename FieldTraits<Slice<T>>::value_type &front) {
           mp::write_array_size(out, 2);
           mp::write_uint(out, val.start - &front);
           mp::write_uint(out, val.stop - &front);
         }
 
+        template <typename IN>
         static inline void
-        read(std::istream &in, Slice<T> &val, typename FieldTraits<Slice<T>>::value_type &front) {
+        read(IN &in, Slice<T> &val, typename FieldTraits<Slice<T>>::value_type &front) {
           const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
           size_t offset = mp::read_uint(in);
@@ -120,9 +152,9 @@ namespace schwa {
       struct WireTraits<Slice<T>> : public WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
 
 
-      template <typename R, typename T, R T::*field_ptr>
+      template <typename IN, typename R, typename T, R T::*field_ptr>
       inline void
-      read_field(std::istream &in, void *const _ann, void *const _doc) {
+      read_field(IN &in, void *const _ann, void *const _doc) {
         static_cast<void>(_doc);
         T &ann = *static_cast<T *>(_ann);
         R &val = ann.*field_ptr;
@@ -130,9 +162,9 @@ namespace schwa {
       }
 
 
-      template <typename R, typename T, R T::*field_ptr>
+      template <typename OUT, typename R, typename T, R T::*field_ptr>
       inline bool
-      write_field(std::ostream &out, const unsigned int key, const void *const _ann, const void *const _doc) {
+      write_field(OUT &out, const uint32_t key, const void *const _ann, const void *const _doc) {
         static_cast<void>(_doc);
         const T &ann = *static_cast<const T *>(_ann);
         const R &val = ann.*field_ptr;
@@ -145,9 +177,9 @@ namespace schwa {
       }
 
 
-      template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+      template <typename IN, typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
       inline void
-      read_field(std::istream &in, void *const _ann, void *const _doc) {
+      read_field(IN &in, void *const _ann, void *const _doc) {
         D &doc = *static_cast<D *>(_doc);
         T &ann = *static_cast<T *>(_ann);
         R &val = ann.*field_ptr;
@@ -155,9 +187,9 @@ namespace schwa {
       }
 
 
-      template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+      template <typename OUT, typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
       inline bool
-      write_field(std::ostream &out, const unsigned int key, const void *const _ann, const void *const _doc) {
+      write_field(OUT &out, const uint32_t key, const void *const _ann, const void *const _doc) {
         const D &doc = *static_cast<const D *>(_doc);
         const T &ann = *static_cast<const T *>(_ann);
         const R &val = ann.*field_ptr;

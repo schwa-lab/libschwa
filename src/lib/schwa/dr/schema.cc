@@ -34,4 +34,9 @@ BaseDocSchema::dump(std::ostream &out) const {
   return out;
 }
 
+
+Doc::~Doc(void) {
+  delete _rt;
+}
+
 } }

@@ -2,7 +2,10 @@
 #include <schwa/config.h>
 #include <schwa/dr.h>
 
-using namespace schwa;
+namespace cf = schwa::config;
+namespace dr = schwa::dr;
+namespace io = schwa::io;
+namespace mp = schwa::msgpack;
 
 
 class Token : public dr::Ann {
@@ -42,11 +45,11 @@ public:
 
   Schema(void) :
     dr::Ann::Schema<Token>("Token", "Some help text about Token", "Token"),
-    slice(*this, "slice", "some help text about slice", dr::LOAD_RO, "slice"),
-    slice2(*this, "slice2", "some help text about slice2", dr::LOAD_RO, "slice2"),
-    raw(*this, "raw", "some help text about raw", dr::LOAD_RW, "raw"),
-    norm(*this, "norm", "some help text about norm", dr::LOAD_RW, "norm"),
-    parent(*this, "parent", "some help text about parent", dr::LOAD_RW, "parent")
+    slice(*this, "slice", "some help text about slice", dr::FieldMode::READ_ONLY, "slice"),
+    slice2(*this, "slice2", "some help text about slice2", dr::FieldMode::READ_ONLY, "slice2"),
+    raw(*this, "raw", "some help text about raw", dr::FieldMode::READ_WRITE, "raw"),
+    norm(*this, "norm", "some help text about norm", dr::FieldMode::READ_WRITE, "norm"),
+    parent(*this, "parent", "some help text about parent", dr::FieldMode::READ_WRITE, "parent")
     { }
   virtual ~Schema(void) { }
 };
@@ -60,9 +63,9 @@ public:
 
   Schema(void) :
     dr::Doc::Schema<Doc>("Doc", "Some help text about this Doc class"),
-    filename(*this, "filename", "some help text about filename", dr::LOAD_RO, "filename"),
-    tokens(*this, "tokens", "some help text about Token store", dr::LOAD_RW, "tokens"),
-    tokens2(*this, "tokens2", "some help text about Token2 store", dr::LOAD_RW, "tokens2")
+    filename(*this, "filename", "some help text about filename", dr::FieldMode::READ_ONLY, "filename"),
+    tokens(*this, "tokens", "some help text about Token store", dr::FieldMode::READ_WRITE, "tokens"),
+    tokens2(*this, "tokens2", "some help text about Token2 store", dr::FieldMode::READ_WRITE, "tokens2")
     { }
   virtual ~Schema(void) { }
 };
@@ -111,16 +114,16 @@ do_read(std::istream &in, std::ostream &out) {
 
 int
 main(int argc, char *argv[]) {
-  config::OpGroup cfg("test", "this is the toplevel help");
-  config::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
-  config::IStreamOp op_in(cfg, "input", "The input file");
-  config::OStreamOp op_out(cfg, "output", "The output file");
+  cf::OpMain cfg("test", "this is the toplevel help");
+  cf::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
+  cf::IStreamOp op_in(cfg, "input", "The input file");
+  cf::OStreamOp op_out(cfg, "output", "The output file");
   try {
     if (!cfg.process(argc - 1, argv + 1))
       return 1;
   }
-  catch (config::ConfigException &e) {
-    std::cerr << print_exception("ConfigException", e);
+  catch (cf::ConfigException &e) {
+    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
     cfg.help(std::cerr);
     return 1;
   }
@@ -131,8 +134,8 @@ main(int argc, char *argv[]) {
     else
       do_read(op_in.file(), op_out.file());
   }
-  catch (Exception &e) {
-    std::cerr << print_exception(e) << std::endl;
+  catch (schwa::Exception &e) {
+    std::cerr << schwa::print_exception(e) << std::endl;
     return 1;
   }
 
