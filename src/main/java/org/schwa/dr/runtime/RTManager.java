@@ -16,4 +16,12 @@ public final class RTManager {
   void addAnn(RTAnnSchema annSchema) {
     annSchemas.add(annSchema);
   }
+
+  public RTAnnSchema getDocSchema() {
+    return docSchema;
+  }
+
+  public List<RTAnnSchema> getSchemas() {
+    return annSchemas;
+  }
 }

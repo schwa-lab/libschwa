@@ -33,7 +33,27 @@ public final class RTAnnSchema {
     stores.add(store);
   }
 
-  boolean isLazy() {
+  public AnnSchema getDef() {
+    return def;
+  }
+
+  public List<RTFieldSchema> getFields() {
+    return fields;
+  }
+
+  public int getKlassId() {
+    return klassId;
+  }
+
+  public String getSerial() {
+    return serial;
+  }
+
+  public List<RTStoreSchema> getStores() {
+    return stores;
+  }
+
+  public boolean isLazy() {
     return def == null;
   }
 }

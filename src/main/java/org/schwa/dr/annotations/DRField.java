@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * DRField can annotate:
- * * {char,short,int,long,float,double,boolean,String}
+ * * {byte,char,short,int,long,float,double,boolean,String}
  * * org.schwa.dr.Slice
  *
  * @author Tim Dawborn

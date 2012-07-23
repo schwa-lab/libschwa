@@ -123,9 +123,9 @@ public class DocSchema extends AnnSchema {
 
   private void checkDRFieldField(final Field field, final DRField drField, final AnnSchema annSchema) {
     // DRField can annotate:
-    // * {char,short,int,long,float,double,boolean,String}
+    // * {byte,char,short,int,long,float,double,boolean,String}
     // * org.schwa.dr.Slice
-    final Class<?>[] ALLOWED_KLASSES = {char.class, short.class, int.class, long.class, float.class, double.class, boolean.class, String.class, Slice.class};
+    final Class<?>[] ALLOWED_KLASSES = {byte.class, char.class, short.class, int.class, long.class, float.class, double.class, boolean.class, String.class, Slice.class};
     final Class<?> fieldKlass = field.getType();
     FieldSchema fieldSchema = null;
     for (Class<?> k : ALLOWED_KLASSES) {

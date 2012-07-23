@@ -1,4 +1,6 @@
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import java.util.List;
 
 import org.schwa.dr.AnnSlice;
@@ -24,7 +26,7 @@ class Chunk extends org.schwa.dr.Ann {
 
 
 public class App {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     DocSchema docSchema = DocSchema.create(Doc.class);
     System.out.println(docSchema);
 
@@ -46,10 +48,10 @@ public class App {
     final byte[] bytes = bos.toByteArray();
     for (int i = 0; i != bytes.length; ++i) {
       if (i != 0 && i % 16 == 0)
-        System.out.print('\n');
-      System.out.print(Integer.toString(bytes[i], 16));
-      System.out.print(' ');
+        System.out.println();
+      System.out.printf("%02x ", (int)(bytes[i] & 0xff));
     }
+    System.out.println();
     System.out.flush();
 
   }

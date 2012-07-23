@@ -26,6 +26,30 @@ public final class RTStoreSchema {
     this.nLazyElements = nLazyElements;
   }
 
+  public StoreSchema getDef() {
+    return def;
+  }
+
+  public byte[] getLazyData() {
+    return lazyData;
+  }
+
+  public int getLazyNElem() {
+    return nLazyElements;
+  }
+
+  public String getSerial() {
+    return serial;
+  }
+
+  public RTAnnSchema getStoredKlass() {
+    return storedKlass;
+  }
+
+  public int getStoreId() {
+    return storeId;
+  }
+
   public boolean isLazy() {
     return def == null;
   }

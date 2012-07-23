@@ -22,7 +22,31 @@ public final class RTFieldSchema {
     this.def = def;
   }
 
+  public RTStoreSchema getContainingStore() {
+    return containingStore;
+  }
+
+  public FieldSchema getDef() {
+    return def;
+  }
+
+  public int getFieldId() {
+    return fieldId;
+  }
+
+  public String getSerial() {
+    return serial;
+  }
+
   public boolean isLazy() {
     return def == null;
+  }
+
+  public boolean isPointer() {
+    return containingStore != null;
+  }
+
+  public boolean isSlice() {
+    return isSlice;
   }
 }

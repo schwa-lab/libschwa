@@ -16,9 +16,9 @@ public class Store<T extends Ann> implements List<T> {
 
   @Override
   public boolean add(T obj) {
-    if (obj.getDrIndex() != null)
-      throw new IllegalArgumentException("Cannot insert an object into a Store which is already in a store (drIndex=" + obj.getDrIndex() + ")");
-    obj.setDrIndex(items.size());
+    if (obj.getDRIndex() != null)
+      throw new IllegalArgumentException("Cannot insert an object into a Store which is already in a store (drIndex=" + obj.getDRIndex() + ")");
+    obj.setDRIndex(items.size());
     return items.add(obj);
   }
 
@@ -30,10 +30,10 @@ public class Store<T extends Ann> implements List<T> {
   @Override
   public boolean addAll(Collection<? extends T> c) {
     for (T obj : c)
-      if (obj.getDrIndex() != null)
-        throw new IllegalArgumentException("Cannot insert an object into a Store which is already in a store (drIndex=" + obj.getDrIndex() + ")");
+      if (obj.getDRIndex() != null)
+        throw new IllegalArgumentException("Cannot insert an object into a Store which is already in a store (drIndex=" + obj.getDRIndex() + ")");
     for (T obj : c)
-      obj.setDrIndex(items.size());
+      obj.setDRIndex(items.size());
     return items.addAll(c);
   }
 
@@ -45,7 +45,7 @@ public class Store<T extends Ann> implements List<T> {
   @Override
   public void clear() {
     for (T obj : items)
-      obj.setDrIndex(null);
+      obj.setDRIndex(null);
     items.clear();
   }
 

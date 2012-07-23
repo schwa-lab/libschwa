@@ -2,13 +2,11 @@ package org.schwa.dr;
 
 
 public abstract class Ann {
-  protected byte[] lazy;
-  protected Integer drIndex;
+  private byte[] lazy;
+  private int lazyNElem;
+  private Integer drIndex;
 
-  protected Ann() {
-    lazy = null;
-    drIndex= null;
-  }
+  protected Ann() { }
 
   @Override
   public boolean equals(Object o) {
@@ -24,15 +22,19 @@ public abstract class Ann {
     return drIndex == a.drIndex;
   }
 
-  public Integer getDrIndex() {
+  public final Integer getDRIndex() {
     return drIndex;
   }
 
-  public byte[] getLazy() {
+  public final byte[] getLazy() {
     return lazy;
   }
 
-  void setDrIndex(Integer index) {
+  public final int getLazyNElem() {
+    return lazyNElem;
+  }
+
+  final void setDRIndex(Integer index) {
     drIndex = index;
   }
 }

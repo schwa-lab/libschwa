@@ -2,6 +2,7 @@ package org.schwa.dr.schemas;
 
 import java.lang.reflect.Field;
 
+import org.schwa.dr.Ann;
 import org.schwa.dr.annotations.DRField;
 
 
@@ -37,6 +38,15 @@ public class FieldSchema {
 
   public void setSerial(String serial) {
     this.serial = serial;
+  }
+
+  public Object getFieldValue(Ann ann) {
+    try {
+      return field.get(ann);
+    }
+    catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static FieldSchema createPrimitiveField(final Field field, final DRField drField) {
