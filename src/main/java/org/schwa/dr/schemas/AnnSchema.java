@@ -1,7 +1,7 @@
 package org.schwa.dr.schemas;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.schwa.dr.Ann;
 
@@ -10,7 +10,7 @@ public class AnnSchema {
   protected final Class<? extends Ann> klass;
   protected final String name;
   protected String serial;
-  protected Set<FieldSchema> fieldSchemas;
+  protected List<FieldSchema> fieldSchemas;
 
   public AnnSchema(Class<? extends Ann> klass, String name) {
     this(klass, name, name);
@@ -20,7 +20,7 @@ public class AnnSchema {
     this.klass = klass;
     this.name = name;
     this.serial = serial;
-    this.fieldSchemas = new HashSet<FieldSchema>();
+    this.fieldSchemas = new ArrayList<FieldSchema>();
   }
 
   public void addField(final FieldSchema fieldSchema) {
@@ -31,7 +31,14 @@ public class AnnSchema {
     return klass;
   }
 
-  public Set<FieldSchema> getFields() {
+  public FieldSchema getField(String name) {
+    for (FieldSchema field : fieldSchemas)
+      if (field.getName().equals(name))
+        return field;
+    return null;
+  }
+
+  public List<FieldSchema> getFields() {
     return fieldSchemas;
   }
 

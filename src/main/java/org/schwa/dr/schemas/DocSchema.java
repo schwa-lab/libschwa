@@ -7,9 +7,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.schwa.dr.AnnSlice;
 import org.schwa.dr.Ann;
@@ -25,13 +24,13 @@ import org.schwa.dr.annotations.IllegalAnnotationException;
 
 
 public class DocSchema extends AnnSchema {
-  protected Set<AnnSchema> annSchemas;
-  protected Set<StoreSchema> storeSchemas;
+  protected List<AnnSchema> annSchemas;
+  protected List<StoreSchema> storeSchemas;
 
   private DocSchema(Class<? extends Ann> klass, String name) {
     super(klass, name, "__meta__");
-    annSchemas = new HashSet<AnnSchema>();
-    storeSchemas = new HashSet<StoreSchema>();
+    annSchemas = new ArrayList<AnnSchema>();
+    storeSchemas = new ArrayList<StoreSchema>();
     traverseDocKlass();
   }
 
@@ -43,11 +42,25 @@ public class DocSchema extends AnnSchema {
     storeSchemas.add(storeSchema);
   }
 
-  public Set<AnnSchema> getAnns() {
+  public AnnSchema getAnn(Class<? extends Ann> klass) {
+    for (AnnSchema ann : annSchemas)
+      if (ann.klass.equals(klass))
+        return ann;
+    return null;
+  }
+
+  public List<AnnSchema> getAnns() {
     return annSchemas;
   }
 
-  public Set<StoreSchema> getStores() {
+  public StoreSchema getStore(String name) {
+    for (StoreSchema store : storeSchemas)
+      if (store.getName().equals(name))
+        return store;
+    return null;
+  }
+
+  public List<StoreSchema> getStores() {
     return storeSchemas;
   }
 
@@ -86,9 +99,9 @@ public class DocSchema extends AnnSchema {
         // create the AnnSchema object
         AnnSchema annSchema;
         if (drAnn.serial().isEmpty())
-          annSchema = new AnnSchema(storedKlass, storedKlass.getName());
+          annSchema = new AnnSchema(storedKlass, storedKlass.getSimpleName());
         else
-          annSchema = new AnnSchema(storedKlass, storedKlass.getName(), drAnn.serial());
+          annSchema = new AnnSchema(storedKlass, storedKlass.getSimpleName(), drAnn.serial());
         addAnn(annSchema);
       }
     }
