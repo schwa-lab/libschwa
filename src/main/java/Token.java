@@ -1,15 +1,12 @@
-import org.schwa.dr.Ann;
-import org.schwa.dr.Slice;
-import org.schwa.dr.annotations.DRAnn;
-import org.schwa.dr.annotations.DRField;
+import org.schwa.dr.*;
 
 
-@DRAnn
+@dr.Ann
 public class Token extends Ann {
-  @DRField public Slice span;
-  @DRField public String raw;
-  @DRField public String lemma;
-  @DRField public String pos;
+  @dr.Field public Slice span;
+  @dr.Field public String raw;
+  @dr.Field public String lemma;
+  @dr.Field public String pos;
 
   @Override
   public String toString() {

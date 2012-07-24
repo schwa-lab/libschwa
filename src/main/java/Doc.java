@@ -1,19 +1,9 @@
 import org.schwa.dr.*;
-import org.schwa.dr.annotations.*;
 
 
-@DRDoc
+@dr.Doc
 public class Doc extends org.schwa.dr.Doc {
-  @DRStore
-  public Store<Token> tokens;
-  @DRStore
-  public Store<Chunk> chunks;
-
-  @DRField
-  public String filename;
-
-  public Doc() {
-    tokens = new Store<Token>();
-    chunks = new Store<Chunk>();
-  }
+  @dr.Store public Store<Token> tokens = new Store<Token>();
+  @dr.Store public Store<Chunk> chunks = new Store<Chunk>();
+  @dr.Field public String filename;
 }

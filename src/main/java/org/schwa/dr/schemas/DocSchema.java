@@ -2,7 +2,6 @@ package org.schwa.dr.schemas;
 
 import java.lang.IllegalArgumentException;
 import java.lang.RuntimeException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

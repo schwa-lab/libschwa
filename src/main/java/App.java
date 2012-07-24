@@ -5,24 +5,24 @@ import java.io.IOException;
 import java.util.List;
 
 import org.schwa.dr.AnnSlice;
-import org.schwa.dr.Slice;
+import org.schwa.dr.dr;
 import org.schwa.dr.Reader;
+import org.schwa.dr.Slice;
 import org.schwa.dr.Writer;
-import org.schwa.dr.annotations.*;
 import org.schwa.dr.schemas.DocSchema;
 
 
 // need a place for lazy
 // need _dr_index or something like that
-@DRAnn(serial="MyChunk")
+@dr.Ann(serial="MyChunk")
 class Chunk extends org.schwa.dr.Ann {
-  @DRPointer(store="tokens")
+  @dr.Pointer(store="tokens")
   public AnnSlice<Token> span;
-  @DRPointer(store="chunks")
+  @dr.Pointer(store="chunks")
   public Chunk parent;
-  @DRPointer(store="chunks")
+  @dr.Pointer(store="chunks")
   public List<Chunk> children;
-  @DRField(serial="gold_tag")
+  @dr.Field(serial="gold_tag")
   public String tag;
 }
 
