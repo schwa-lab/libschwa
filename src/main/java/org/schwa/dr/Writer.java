@@ -20,7 +20,7 @@ import org.schwa.dr.schemas.DocSchema;
 import org.schwa.dr.schemas.FieldSchema;
 
 
-public class Writer {
+public final class Writer {
   private final OutputStream out;
   private final DocSchema docSchema;
   private final MessagePack msgpack;
@@ -37,19 +37,19 @@ public class Writer {
         break;
       case BYTE_SLICE:
         return writeByteSlice(p, fieldId, (ByteSlice) value);
-      case ANN_SLICE:
-        return writeAnnSlice(p, fieldId, (AnnSlice<? extends Ann>) value);
       case POINTER:
         return writePointer(p, fieldId, (Ann) value);
       case POINTERS:
         return writePointers(p, fieldId, (List<? extends Ann>) value);
+      case SLICE:
+        return writeSlice(p, fieldId, (Slice<? extends Ann>) value);
       default:
         throw new AssertionError("Field type is unknown (" + def.getFieldType() + ")");
       }
 
       final Class<?> type = def.getField().getType();
       if (type.equals(String.class))
-        return write(p, fieldId, (String) value);
+        return writeString(p, fieldId, (String) value);
       else if (type.equals(byte.class) || type.equals(Byte.class)) {
         final Byte v = (Byte) value;
         if (v != null) {
@@ -119,17 +119,6 @@ public class Writer {
       return false;
     }
 
-    private static boolean writeAnnSlice(final Packer p, final int fieldId, final AnnSlice<? extends Ann> slice) throws IOException {
-      if (slice == null)
-        return false;
-      p.write(fieldId);
-      p.writeArrayBegin(2);
-      p.write(slice.start.getDRIndex());
-      p.write(slice.stop.getDRIndex() - slice.start.getDRIndex());
-      p.writeArrayEnd();
-      return true;
-    }
-
     private static boolean writeByteSlice(final Packer p, final int fieldId, final ByteSlice slice) throws IOException {
       if (slice == null)
         return false;
@@ -160,7 +149,18 @@ public class Writer {
       return true;
     }
 
-    private static boolean write(final Packer p, final int fieldId, final String s) throws IOException {
+    private static boolean writeSlice(final Packer p, final int fieldId, final Slice<? extends Ann> slice) throws IOException {
+      if (slice == null)
+        return false;
+      p.write(fieldId);
+      p.writeArrayBegin(2);
+      p.write(slice.start.getDRIndex());
+      p.write(slice.stop.getDRIndex() - slice.start.getDRIndex());
+      p.writeArrayEnd();
+      return true;
+    }
+
+    private static boolean writeString(final Packer p, final int fieldId, final String s) throws IOException {
       if (s == null || s.isEmpty())
         return false;
       p.write(fieldId);

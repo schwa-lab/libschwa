@@ -9,12 +9,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.schwa.dr.AnnSlice;
 import org.schwa.dr.Ann;
 import org.schwa.dr.ByteSlice;
 import org.schwa.dr.Doc;
 import org.schwa.dr.dr;
 import org.schwa.dr.IllegalAnnotationException;
+import org.schwa.dr.Slice;
 import org.schwa.dr.Store;
 
 
@@ -152,15 +152,15 @@ public class DocSchema extends AnnSchema {
 
   private void checkDRPointerField(final Field field, final dr.Pointer drPointer, final AnnSchema annSchema) {
     // dr.Pointer can annotate:
-    // * org.schwa.dr.AnnSlice
+    // * org.schwa.dr.Slice
     // * T, for T extends org.schwa.dr.Ann
     // * java.util.List<T>, for T extends org.schwa.dr.Ann
     FieldSchema fieldSchema;
     final Class<?> fieldKlass = field.getType();
-    if (fieldKlass.equals(AnnSlice.class)) {
+    if (fieldKlass.equals(Slice.class)) {
       final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
       final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) types[0];
-      fieldSchema = FieldSchema.createAnnSlice(field, drPointer, pointedToKlass);
+      fieldSchema = FieldSchema.createSlice(field, drPointer, pointedToKlass);
     }
     else if (Ann.class.isAssignableFrom(fieldKlass)) {
       final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) fieldKlass;

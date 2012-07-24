@@ -65,7 +65,7 @@ public final class dr {
   /**
    * {@link dr.Pointer} can annotate public member fields of the form:
    * <ul>
-   * <li>{@link AnnSlice}</li>
+   * <li>{@link Slice}</li>
    * <li>Any object which is a subclass of {@link Ann}</li>
    * <li>A {@link java.util.List} of subclasses of {@link Ann}</li>
    * </ul>

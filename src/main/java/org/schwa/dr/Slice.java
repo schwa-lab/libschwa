@@ -1,12 +1,12 @@
 package org.schwa.dr;
 
 
-public class AnnSlice <T extends Ann> {
+public class Slice <T extends Ann> {
   public T start;
   public T stop;
 
-  public AnnSlice() { }
-  public AnnSlice(T start, T stop) {
+  public Slice() { }
+  public Slice(T start, T stop) {
     this.start = start;
     this.stop = stop;
   }
@@ -17,9 +17,9 @@ public class AnnSlice <T extends Ann> {
       return true;
     else if (o == null)
       return false;
-    else if (!(o instanceof AnnSlice))
+    else if (!(o instanceof Slice))
       return false;
-    final AnnSlice<T> s = (AnnSlice<T>) o;
+    final Slice<T> s = (Slice<T>) o;
     return s.start.equals(start) && s.stop.equals(stop);
   }
 

@@ -58,11 +58,11 @@ public final class FieldSchema {
   }
 
   public boolean isPointer() {
-    return fieldType == FieldType.ANN_SLICE || fieldType == FieldType.POINTER || fieldType == FieldType.POINTERS;
+    return fieldType == FieldType.POINTER || fieldType == FieldType.POINTERS || fieldType == FieldType.SLICE;
   }
 
   public boolean isSlice() {
-    return fieldType == FieldType.ANN_SLICE || fieldType == FieldType.BYTE_SLICE;
+    return fieldType == FieldType.BYTE_SLICE || fieldType == FieldType.SLICE;
   }
 
   public void setSerial(String serial) {
@@ -73,14 +73,6 @@ public final class FieldSchema {
     return new FieldSchema(FieldType.BYTE_SLICE, field, field.getName(), drField.serial(), null, null);
   }
 
-  public static FieldSchema createPrimitive(Field field, dr.Field drField) {
-    return new FieldSchema(FieldType.PRIMITIVE, field, field.getName(), drField.serial(), null, null);
-  }
-
-  public static FieldSchema createAnnSlice(Field field, dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
-    return new FieldSchema(FieldType.ANN_SLICE, field, field.getName(), drPointer.serial(), pointedToKlass, drPointer.store());
-  }
-
   public static FieldSchema createPointer(Field field, dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
     return new FieldSchema(FieldType.POINTER, field, field.getName(), drPointer.serial(), pointedToKlass, drPointer.store());
   }
@@ -88,4 +80,13 @@ public final class FieldSchema {
   public static FieldSchema createPointers(Field field, dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
     return new FieldSchema(FieldType.POINTERS, field, field.getName(), drPointer.serial(), pointedToKlass, drPointer.store());
   }
+
+  public static FieldSchema createPrimitive(Field field, dr.Field drField) {
+    return new FieldSchema(FieldType.PRIMITIVE, field, field.getName(), drField.serial(), null, null);
+  }
+
+  public static FieldSchema createSlice(Field field, dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
+    return new FieldSchema(FieldType.SLICE, field, field.getName(), drPointer.serial(), pointedToKlass, drPointer.store());
+  }
+
 }

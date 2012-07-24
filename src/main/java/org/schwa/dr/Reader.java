@@ -54,8 +54,8 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       case BYTE_SLICE:
         readByteSlice(field, ann, unpacker);
         break;
-      case ANN_SLICE:
-        readAnnSlice(field, ann, storeSchema, doc, unpacker);
+      case SLICE:
+        readSlice(field, ann, storeSchema, doc, unpacker);
         break;
       case POINTER:
         readPointer(field, ann, storeSchema, doc, unpacker);
@@ -126,23 +126,6 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       unpacker.readArrayEnd();
     }
 
-    private static void readAnnSlice(final Field field, final Ann ann, final StoreSchema storeSchema, final Doc doc, final Unpacker unpacker) throws IOException, IllegalAccessException {
-      final Store<? extends Ann> store = storeSchema.getStore(doc);
-      final int npair = unpacker.readArrayBegin();
-      if (npair != 2)
-        throw new ReaderException("Invalid sized list read in for SLICE: expected 2 elements but found " + npair);
-      final int a = unpacker.readInt();
-      final int b = unpacker.readInt();
-      AnnSlice slice = (AnnSlice) field.get(ann);
-      if (slice == null) {
-        slice = new AnnSlice();
-        field.set(ann, slice);
-      }
-      slice.start = store.get(a);
-      slice.stop = store.get(a + b);
-      unpacker.readArrayEnd();
-    }
-
     private static void readPointer(final Field field, final Ann ann, final StoreSchema storeSchema, final Doc doc, final Unpacker unpacker) throws IOException, IllegalAccessException {
       final Store<? extends Ann> store = storeSchema.getStore(doc);
       final int index = unpacker.readInt();
@@ -159,6 +142,23 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       }
       unpacker.readArrayEnd();
       field.set(ann, list);
+    }
+
+    private static void readSlice(final Field field, final Ann ann, final StoreSchema storeSchema, final Doc doc, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final Store<? extends Ann> store = storeSchema.getStore(doc);
+      final int npair = unpacker.readArrayBegin();
+      if (npair != 2)
+        throw new ReaderException("Invalid sized list read in for SLICE: expected 2 elements but found " + npair);
+      final int a = unpacker.readInt();
+      final int b = unpacker.readInt();
+      Slice slice = (Slice) field.get(ann);
+      if (slice == null) {
+        slice = new Slice();
+        field.set(ann, slice);
+      }
+      slice.start = store.get(a);
+      slice.stop = store.get(a + b);
+      unpacker.readArrayEnd();
     }
   }
 
