@@ -1,5 +1,7 @@
 package org.schwa.dr;
 
+import java.lang.reflect.Field;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,8 +37,49 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
   private T doc;
 
   private static class ReadHelper {
-    public static void read(final FieldSchema field, final Ann ann, final Unpacker unpacker) {
+    public static void read(final FieldSchema fieldSchema, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final Field field = fieldSchema.getField();
+      switch (fieldSchema.getFieldType()) {
+      case PRIMITIVE:
+        readPrimitive(field, ann, unpacker);
+        break;
+      case SLICE:
+        readSlice(field, ann, unpacker);
+        break;
+      case ANN_SLICE:
+        readAnnSlice(field, ann, unpacker);
+        break;
+      case POINTER:
+        break;
+      case POINTERS:
+        break;
+      case STORE:
+        throw new AssertionError("Field type of type STORE should never exist here");
+      default:
+        throw new AssertionError("Field type is unknown (" + fieldSchema.getFieldType() + ")");
+      }
+    }
 
+    private static void readPrimitive(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
+    }
+
+    private static void readSlice(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final int npair = unpacker.readArrayBegin();
+      if (npair != 2)
+        throw new ReaderException("Invalid sized list read in for SLICE: expected 2 elements but found " + npair);
+      final long a = unpacker.readLong();
+      final long b = unpacker.readLong();
+      Slice slice = (Slice) field.get(ann);
+      if (slice == null) {
+        slice = new Slice();
+        field.set(ann, slice);
+      }
+      slice.start = a;
+      slice.stop = a + b;
+      unpacker.readMapEnd();
+    }
+
+    private static void readAnnSlice(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
     }
   }
 
@@ -205,7 +248,7 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       // <store> ::= ( <store_name>, <klass_id>, <store_nelem> )
       final int ntriple = unpacker.readArrayBegin();
       if (ntriple != 3)
-        throw new RuntimeException("Invalid sized tuple read in: expected 3 elements but found " + ntriple);
+        throw new ReaderException("Invalid sized tuple read in: expected 3 elements but found " + ntriple);
       final String storeName = unpacker.readString();
       final int klassId = unpacker.readInt();
       final int nelem = unpacker.readInt();
@@ -237,7 +280,7 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
         final Class<? extends Ann> storeKlass = def.getStoredKlass();
         final Class<? extends Ann> klassKlass = klass.getDef().getKlass();
         if (!storeKlass.equals(klassKlass))
-          throw new RuntimeException("Store '" + storeName + "' points to " + storeKlass + " but the stream says it points to " + klassKlass);
+          throw new ReaderException("Store '" + storeName + "' points to " + storeKlass + " but the stream says it points to " + klassKlass);
 
         // resize the store to house the correct number of instances
         def.resize(nelem, doc);

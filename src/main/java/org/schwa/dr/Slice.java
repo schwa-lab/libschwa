@@ -2,11 +2,11 @@ package org.schwa.dr;
 
 
 public class Slice {
-  public int start;
-  public int stop;
+  public long start;
+  public long stop;
 
   public Slice() { }
-  public Slice(int start, int stop) {
+  public Slice(long start, long stop) {
     this.start = start;
     this.stop = stop;
   }
@@ -25,6 +25,6 @@ public class Slice {
 
   @Override
   public int hashCode() {
-    return 31*start + stop;
+    return (int)(31*start + stop);
   }
 }
