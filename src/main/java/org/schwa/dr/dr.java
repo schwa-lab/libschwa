@@ -15,9 +15,9 @@ public final class dr {
   private dr() { }
 
   /**
-   * {@link Doc} can annotate:
+   * {@link dr.Doc} can annotate public classes of the form:
    * <ul>
-   * <li>{@code T}, for {@code T extends org.schwa.dr.Doc}</li>
+   * <li>Any subclass of {@link Doc}</li>
    * </ul>
    */
   @Retention(RetentionPolicy.RUNTIME)
@@ -26,9 +26,9 @@ public final class dr {
   }
 
   /**
-   * {@link Ann} can annotate:
+   * {@link dr.Ann} can annotate public classes of the form:
    * <ul>
-   * <li>{@code T}, for {@code T extends org.schwa.dr.Ann}</li>
+   * <li>Any subclass of {@link Ann}</li>
    * </ul>
    */
   @Retention(RetentionPolicy.RUNTIME)
@@ -38,9 +38,9 @@ public final class dr {
   }
 
   /**
-   * {@link Store} can annotate:
+   * {@link dr.Store} can annotate public member fields of the form:
    * <ul>
-   * <li>{@link org.schwa.dr.Store}</li>
+   * <li>{@link Store}</li>
    * </ul>
    */
   @Retention(RetentionPolicy.RUNTIME)
@@ -50,10 +50,10 @@ public final class dr {
   }
 
   /**
-   * {@link Field} can annotate:
+   * {@link dr.Field} can annotate public member fields of the form:
    * <ul>
-   * <li>{@literal {byte,char,short,int,long,float,double,boolean,String}}</li>
-   * <li>{@link org.schwa.dr.Slice}</li>
+   * <li>Any primitive: {@code byte}, {@code char}, {@code short}, {@code int}, {@code long}, {@code float}, {@code double}, {@code boolean}, {@code String}</li>
+   * <li>{@link Slice}</li>
    * </ul>
    */
   @Retention(RetentionPolicy.RUNTIME)
@@ -63,11 +63,11 @@ public final class dr {
   }
 
   /**
-   * Pointer can annotate:
+   * {@link dr.Pointer} can annotate public member fields of the form:
    * <ul>
-   * <li>{@link org.schwa.dr.AnnSlice}</li>
-   * <li>{@code T}, for {@code T extends org.schwa.dr.Ann}</li>
-   * <li>{@link java.util.List<T>}, for {@code T extends org.schwa.dr.Ann}</li>
+   * <li>{@link AnnSlice}</li>
+   * <li>Any object which is a subclass of {@link Ann}</li>
+   * <li>A {@link java.util.List} of subclasses of {@link Ann}</li>
    * </ul>
    */
   @Retention(RetentionPolicy.RUNTIME)

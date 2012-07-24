@@ -1,7 +1,7 @@
 MAIN_CLASS = App
 
 
-.PHONY: all clean compile package run test wc
+.PHONY: all clean compile javadoc package run test wc
 
 all: compile
 
@@ -10,6 +10,9 @@ clean:
 
 compile:
 	mvn compile
+
+javadoc:
+	mvn javadoc:aggregate
 
 package:
 	mvn package
