@@ -8,16 +8,30 @@ import org.schwa.dr.dr;
 import org.schwa.dr.Store;
 
 
-public class StoreSchema extends FieldSchema {
-  protected final Class<? extends Ann> storedKlass;
+public final class StoreSchema {
+  private final Field field;
+  private final String name;
+  private final Class<? extends Ann> storedKlass;
+  private String serial;
 
-  protected StoreSchema(Class<? extends Ann> storedKlass, Field field, String name, String serial) {
-    super(FieldType.STORE, field, name, serial);
+  private StoreSchema(Field field, Class<? extends Ann> storedKlass, String name, String serial) {
+    this.field = field;
+    this.name = name;
     this.storedKlass = storedKlass;
+    serial = serial.trim();
+    this.serial = serial.isEmpty() ? name : serial;
   }
 
-  public static StoreSchema create(Class<? extends Ann> storedKlass, final Field field, final dr.Store drStore) {
-    return new StoreSchema(storedKlass, field, field.getName(), drStore.serial());
+  public Field getField() {
+    return field;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getSerial() {
+    return serial;
   }
 
   public Store<? extends Ann> getStore(final Doc doc) {
@@ -49,7 +63,6 @@ public class StoreSchema extends FieldSchema {
     }
   }
 
-
   public int size(final Doc doc) {
     try {
       return ((Store<?>) field.get(doc)).size();
@@ -57,5 +70,9 @@ public class StoreSchema extends FieldSchema {
     catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static StoreSchema create(Field field, Class<? extends Ann> storedKlass, dr.Store drStore) {
+    return new StoreSchema(field, storedKlass, field.getName(), drStore.serial());
   }
 }

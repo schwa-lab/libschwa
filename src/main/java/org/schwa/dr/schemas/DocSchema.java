@@ -88,7 +88,7 @@ public class DocSchema extends AnnSchema {
           throw new IllegalAnnotationException("The stored class '" + storedKlass + "' in field '" + field + "' is not annotated with dr.Ann");
 
         // create the StoreSchema object
-        final StoreSchema storeSchema = StoreSchema.create(storedKlass, field, drStore);
+        final StoreSchema storeSchema = StoreSchema.create(field, storedKlass, drStore);
         addStore(storeSchema);
 
         // create the AnnSchema object
@@ -139,9 +139,9 @@ public class DocSchema extends AnnSchema {
     for (Class<?> k : ALLOWED_KLASSES) {
       if (fieldKlass.equals(k)) {
         if (k == Slice.class)
-          fieldSchema = FieldSchema.createSliceField(field, drField);
+          fieldSchema = FieldSchema.createSlice(field, drField);
         else
-          fieldSchema = FieldSchema.createPrimitiveField(field, drField);
+          fieldSchema = FieldSchema.createPrimitive(field, drField);
         break;
       }
     }
@@ -160,11 +160,11 @@ public class DocSchema extends AnnSchema {
     if (fieldKlass.equals(AnnSlice.class)) {
       final Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
       final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) types[0];
-      fieldSchema = PointerSchema.createSlice(field, drPointer, pointedToKlass);
+      fieldSchema = FieldSchema.createAnnSlice(field, drPointer, pointedToKlass);
     }
     else if (Ann.class.isAssignableFrom(fieldKlass)) {
       final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) fieldKlass;
-      fieldSchema = PointerSchema.createPointer(field, drPointer, pointedToKlass);
+      fieldSchema = FieldSchema.createPointer(field, drPointer, pointedToKlass);
     }
     else if (List.class.isAssignableFrom(fieldKlass)) {
       // ensure the generic of the List is a Ann subclass
@@ -173,7 +173,7 @@ public class DocSchema extends AnnSchema {
       if (!Ann.class.isAssignableFrom(listKlass))
         throw new IllegalAnnotationException("Field '" + field + "' cannot be annotated with dr.Pointer when the generic type T of List<T> is not a org.schwa.dr.Ann subclass");
       final Class<? extends Ann> pointedToKlass = (Class<? extends Ann>) listKlass;
-      fieldSchema = PointerSchema.createPointers(field, drPointer, pointedToKlass);
+      fieldSchema = FieldSchema.createPointers(field, drPointer, pointedToKlass);
     }
     else
       throw new IllegalAnnotationException("Field '" + field + "' which is annotated with dr.Pointer is of an invalid type");

@@ -43,8 +43,6 @@ public class Writer {
         return writePointer(p, fieldId, (Ann) value);
       case POINTERS:
         return writePointers(p, fieldId, (List<? extends Ann>) value);
-      case STORE:
-        throw new AssertionError("Field type of type STORE should never exist here");
       default:
         throw new AssertionError("Field type is unknown (" + def.getFieldType() + ")");
       }

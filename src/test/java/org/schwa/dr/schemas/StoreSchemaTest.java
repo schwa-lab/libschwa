@@ -39,13 +39,11 @@ public class StoreSchemaTest {
     });
 
     StoreSchema s = schemas.get(0);
-    Assert.assertEquals(FieldType.STORE, s.getFieldType());
     Assert.assertEquals("anotherStoreOfAs", s.getName());
     Assert.assertEquals("foo", s.getSerial());
     Assert.assertEquals(A.class, s.getStoredKlass());
 
     s = schemas.get(1);
-    Assert.assertEquals(FieldType.STORE, s.getFieldType());
     Assert.assertEquals("storeOfAs", s.getName());
     Assert.assertEquals("storeOfAs", s.getSerial());
     Assert.assertEquals(A.class, s.getStoredKlass());

@@ -63,8 +63,6 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       case POINTERS:
         readPointers(field, ann, storeSchema, doc, unpacker);
         break;
-      case STORE:
-        throw new AssertionError("Field type of type STORE should never exist here");
       default:
         throw new AssertionError("Field type is unknown (" + fieldSchema.getFieldType() + ")");
       }

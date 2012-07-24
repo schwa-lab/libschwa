@@ -12,7 +12,6 @@ import org.schwa.dr.schemas.AnnSchema;
 import org.schwa.dr.schemas.DocSchema;
 import org.schwa.dr.schemas.FieldSchema;
 import org.schwa.dr.schemas.FieldType;
-import org.schwa.dr.schemas.PointerSchema;
 import org.schwa.dr.schemas.StoreSchema;
 
 
@@ -137,7 +136,7 @@ public final class RTFactory {
         final boolean isSlice = type == FieldType.SLICE || type == FieldType.ANN_SLICE;
         RTStoreSchema rtStore = null;
         if (type == FieldType.ANN_SLICE || type == FieldType.POINTER || type == FieldType.POINTERS)
-          rtStore = knownStores.get(((PointerSchema) field).getStoreName());
+          rtStore = knownStores.get(field.getStoreName());
         rtField = new RTFieldSchema(fieldId, field.getSerial(), rtStore, isSlice, field);
         rtSchema.addField(rtField);
         fieldId++;
