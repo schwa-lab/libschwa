@@ -4,12 +4,12 @@ import org.schwa.dr.StoreSchema;
 
 
 public final class RTStoreSchema {
-  int storeId;
-  String serial;
-  RTAnnSchema storedKlass;
-  StoreSchema def;
-  byte[] lazy;
-  int lazyNElem;
+  private int storeId;
+  private String serial;
+  private RTAnnSchema storedKlass;
+  private StoreSchema def;
+  private byte[] lazy;
+  private int lazyNElem;
 
   public RTStoreSchema(int storeId, String serial, RTAnnSchema storedKlass, StoreSchema def) {
     this.storeId = storeId;
@@ -54,12 +54,15 @@ public final class RTStoreSchema {
     return def == null;
   }
 
+  public void setDef(StoreSchema def) {
+    this.def = def;
+  }
+
   public void setLazy(byte[] lazy) {
     this.lazy = lazy;
   }
 
-  @Override
-  public String toString() {
-    return "RTStoreSchema(" + storeId + " '" + serial + "' " + def + ")";
+  public void setStoredKlass(RTAnnSchema storedKlass) {
+    this.storedKlass = storedKlass;
   }
 }

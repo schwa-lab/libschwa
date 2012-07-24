@@ -5,8 +5,8 @@ import java.util.List;
 
 
 public final class RTManager {
-  RTAnnSchema docSchema;
-  List<RTAnnSchema> annSchemas;
+  private RTAnnSchema docSchema;
+  private List<RTAnnSchema> annSchemas;
 
   RTManager(RTAnnSchema docSchema) {
     this.docSchema = docSchema;

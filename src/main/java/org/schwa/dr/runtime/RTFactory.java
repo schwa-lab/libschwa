@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.schwa.dr.Ann;
@@ -28,17 +29,17 @@ public final class RTFactory {
   }
 
   public static RTManager merge(final RTManager rt, final DocSchema docSchema) {
-    final RTAnnSchema rtDocSchema = rt.docSchema;
+    final RTAnnSchema rtDocSchema = rt.getDocSchema();
 
     // discover existing klasses
     int klassId = 0;
     Map<String, RTAnnSchema> knownKlasses = new HashMap<String, RTAnnSchema>();
-    if (!rt.annSchemas.isEmpty()) {
-      for (RTAnnSchema s : rt.annSchemas) {
+    if (!rt.getSchemas().isEmpty()) {
+      for (RTAnnSchema s : rt.getSchemas()) {
         if (!s.isLazy())
-          knownKlasses.put(s.def.getName(), s);
-        if (s.klassId > klassId)
-          klassId = s.klassId;
+          knownKlasses.put(s.getDef().getName(), s);
+        if (s.getKlassId() > klassId)
+          klassId = s.getKlassId();
       }
       klassId++;
     }
@@ -46,12 +47,12 @@ public final class RTFactory {
     // discover existing stores
     int storeId = 0;
     Map<String, RTStoreSchema> knownStores = new HashMap<String, RTStoreSchema>();
-    if (!rtDocSchema.stores.isEmpty()) {
-      for (RTStoreSchema s : rtDocSchema.stores) {
+    if (!rtDocSchema.getStores().isEmpty()) {
+      for (RTStoreSchema s : rtDocSchema.getStores()) {
         if (!s.isLazy())
-          knownStores.put(s.def.getName(), s);
-        if (s.storeId > storeId)
-          storeId = s.storeId;
+          knownStores.put(s.getDef().getName(), s);
+        if (s.getStoreId() > storeId)
+          storeId = s.getStoreId();
       }
       storeId++;
     }
@@ -66,15 +67,17 @@ public final class RTFactory {
         storeId++;
       }
       else
-        rtStore.def = store;
+        rtStore.setDef(store);
     }
-    if (!rtDocSchema.stores.isEmpty()) {
-      Collections.sort(rtDocSchema.stores, new Comparator<RTStoreSchema>() {
+    final List<RTStoreSchema> rtStores = rtDocSchema.getStores();
+    if (!rtStores.isEmpty()) {
+      Collections.sort(rtStores, new Comparator<RTStoreSchema>() {
         public int compare(final RTStoreSchema a, final RTStoreSchema b) {
-          return a.storeId == b.storeId ? 0 : (a.storeId < b.storeId ? -1 : 1);
+          return a.getStoreId() == b.getStoreId() ? 0 : (a.getStoreId() < b.getStoreId() ? -1 : 1);
         }
       });
-      if (rtDocSchema.stores.get(rtDocSchema.stores.size() - 1).storeId + 1 != rtDocSchema.stores.size())
+      final RTStoreSchema last = rtStores.get(rtStores.size() - 1);
+      if (last.getStoreId() + 1 != rtStores.size())
         throw new AssertionError();
     }
 
@@ -92,23 +95,27 @@ public final class RTFactory {
         klassId++;
       }
       else
-        rtAnn.def = ann;
+        rtAnn.setDef(ann);
       mergeFields(rtAnn, ann, knownStores);
       annKlassToRTAnn.put(ann.getKlass(), rtAnn);
     }
-    Collections.sort(rt.annSchemas, new Comparator<RTAnnSchema>() {
-      public int compare(final RTAnnSchema a, final RTAnnSchema b) {
-        return a.klassId == b.klassId ? 0 : (a.klassId < b.klassId ? -1 : 1);
-      }
-    });
-    if (rt.annSchemas.get(rt.annSchemas.size() - 1).klassId + 1 != rt.annSchemas.size())
-      throw new AssertionError();
+    {
+      final List<RTAnnSchema> rtAnnSchemas = rt.getSchemas();
+      Collections.sort(rtAnnSchemas, new Comparator<RTAnnSchema>() {
+        public int compare(final RTAnnSchema a, final RTAnnSchema b) {
+          return a.getKlassId() == b.getKlassId() ? 0 : (a.getKlassId() < b.getKlassId() ? -1 : 1);
+        }
+      });
+      final RTAnnSchema last = rtAnnSchemas.get(rtAnnSchemas.size() - 1);
+      if (last.getKlassId() + 1 != rtAnnSchemas.size())
+        throw new AssertionError();
+    }
 
     // back-fill the RTStoreDef's RTAnnSchema pointers now that they exist
     for (StoreSchema store : docSchema.getStores()) {
       RTStoreSchema rtStore = knownStores.get(store.getName());
-      if (rtStore.storedKlass == null)
-        rtStore.storedKlass = annKlassToRTAnn.get(store.getStoredKlass());
+      if (rtStore.getStoredKlass() == null)
+        rtStore.setStoredKlass(annKlassToRTAnn.get(store.getStoredKlass()));
     }
 
     return rt;
@@ -118,12 +125,12 @@ public final class RTFactory {
     // discover existing fields
     int fieldId = 0;
     Map<String, RTFieldSchema> knownFields = new HashMap<String, RTFieldSchema>();
-    if (!rtSchema.fields.isEmpty()) {
-      for (RTFieldSchema f : rtSchema.fields) {
+    if (!rtSchema.getFields().isEmpty()) {
+      for (RTFieldSchema f : rtSchema.getFields()) {
         if (!f.isLazy())
-          knownFields.put(f.def.getName(), f);
-        if (f.fieldId > fieldId)
-          fieldId = f.fieldId;
+          knownFields.put(f.getDef().getName(), f);
+        if (f.getFieldId() > fieldId)
+          fieldId = f.getFieldId();
       }
       fieldId++;
     }
@@ -141,16 +148,20 @@ public final class RTFactory {
         fieldId++;
       }
       else
-        rtField.def = field;
+        rtField.setDef(field);
     }
-    if (!rtSchema.fields.isEmpty()) {
-      Collections.sort(rtSchema.fields, new Comparator<RTFieldSchema>() {
-        public int compare(final RTFieldSchema a, final RTFieldSchema b) {
-          return a.fieldId == b.fieldId ? 0 : (a.fieldId < b.fieldId ? -1 : 1);
-        }
-      });
-      if (rtSchema.fields.get(rtSchema.fields.size() - 1).fieldId + 1 != rtSchema.fields.size())
-        throw new AssertionError();
+    {
+      final List<RTFieldSchema> rtFields = rtSchema.getFields();
+      if (!rtFields.isEmpty()) {
+        Collections.sort(rtFields, new Comparator<RTFieldSchema>() {
+          public int compare(final RTFieldSchema a, final RTFieldSchema b) {
+            return a.getFieldId() == b.getFieldId() ? 0 : (a.getFieldId() < b.getFieldId() ? -1 : 1);
+          }
+        });
+        final RTFieldSchema last = rtFields.get(rtFields.size() - 1);
+        if (last.getFieldId() + 1 != rtFields.size())
+          throw new AssertionError();
+      }
     }
   }
 }

@@ -4,11 +4,11 @@ import org.schwa.dr.FieldSchema;
 
 
 public final class RTFieldSchema {
-  int fieldId;
-  String serial;
-  RTStoreSchema containingStore;
-  boolean isSlice;
-  FieldSchema def;
+  private int fieldId;
+  private String serial;
+  private RTStoreSchema containingStore;
+  private boolean isSlice;
+  private FieldSchema def;
 
   public RTFieldSchema(int fieldId, String serial, RTStoreSchema containingStore, boolean isSlice) {
     this(fieldId, serial, containingStore, isSlice, null);
@@ -52,5 +52,9 @@ public final class RTFieldSchema {
 
   public void setContainingStore(RTStoreSchema containingStore) {
     this.containingStore = containingStore;
+  }
+
+  public void setDef(FieldSchema def) {
+    this.def = def;
   }
 }

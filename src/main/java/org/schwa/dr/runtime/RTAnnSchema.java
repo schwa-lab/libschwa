@@ -7,11 +7,11 @@ import org.schwa.dr.AnnSchema;
 
 
 public final class RTAnnSchema {
-  int klassId;
-  String serial;
-  AnnSchema def;
-  List<RTFieldSchema> fields;
-  List<RTStoreSchema> stores;
+  private int klassId;
+  private String serial;
+  private AnnSchema def;
+  private List<RTFieldSchema> fields;
+  private List<RTStoreSchema> stores;
 
   public RTAnnSchema(int klassId, String serial) {
     this(klassId, serial, null);
@@ -63,5 +63,9 @@ public final class RTAnnSchema {
 
   public boolean isLazy() {
     return def == null;
+  }
+
+  public void setDef(AnnSchema def) {
+    this.def = def;
   }
 }
