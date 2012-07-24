@@ -6,54 +6,53 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import org.schwa.dr.*;
-import org.schwa.dr.annotations.*;
 import org.schwa.dr.schemas.DocSchema;
 
 
 public class WriterTest {
 
-  @DRDoc
+  @dr.Doc
   public static class DocWithField extends Doc {
-    @DRField public String name;
+    @dr.Field public String name;
   }
 
-  @DRDoc
+  @dr.Doc
   public static class DocWithFieldSerial extends Doc {
-    @DRField(serial="filename")
+    @dr.Field(serial="filename")
     public String name;
   }
 
-  @DRAnn
+  @dr.Ann
   public static class A extends Ann {
-    @DRField public String v_str;
-    @DRField public byte v_uint8;
-    @DRField public boolean v_bool;
+    @dr.Field public String v_str;
+    @dr.Field public byte v_uint8;
+    @dr.Field public boolean v_bool;
   }
 
-  @DRAnn
+  @dr.Ann
   public static class Y extends Ann {
-    @DRPointer(store="as")
+    @dr.Pointer(store="as")
     public A p;
   }
 
-  @DRAnn
+  @dr.Ann
   public static class Z extends Ann {
-    @DRPointer(store="as")
+    @dr.Pointer(store="as")
     public A p;
-    @DRField
+    @dr.Field
     public boolean value;
   }
 
-  @DRDoc
+  @dr.Doc
   public static class DocWithA extends Doc {
-    @DRStore public Store<A> as = new Store<A>();
+    @dr.Store public Store<A> as = new Store<A>();
   }
 
-  @DRDoc
+  @dr.Doc
   public static class DocWithAYZ extends Doc {
-    @DRStore public Store<A> as = new Store<A>();
-    @DRStore public Store<Y> ys = new Store<Y>();
-    @DRStore public Store<Z> zs = new Store<Z>();
+    @dr.Store public Store<A> as = new Store<A>();
+    @dr.Store public Store<Y> ys = new Store<Y>();
+    @dr.Store public Store<Z> zs = new Store<Z>();
   }
 
 

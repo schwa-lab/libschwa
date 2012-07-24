@@ -7,24 +7,22 @@ import org.junit.Test;
 
 import org.schwa.dr.Ann;
 import org.schwa.dr.Doc;
+import org.schwa.dr.dr;
 import org.schwa.dr.Store;
-import org.schwa.dr.annotations.DRAnn;
-import org.schwa.dr.annotations.DRDoc;
-import org.schwa.dr.annotations.DRStore;
 
 
 public class StoreSchemaTest {
-  @DRAnn
+  @dr.Ann
   static class A extends Ann {
   }
 
   @Test
   public void testStores() {
-    @DRDoc
+    @dr.Doc
     class TD extends Doc {
-      @DRStore
+      @dr.Store
       public Store<A> storeOfAs;
-      @DRStore(serial="foo")
+      @dr.Store(serial="foo")
       public Store<A> anotherStoreOfAs;
     }
 

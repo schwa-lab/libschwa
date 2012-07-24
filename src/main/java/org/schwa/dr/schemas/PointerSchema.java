@@ -3,7 +3,7 @@ package org.schwa.dr.schemas;
 import java.lang.reflect.Field;
 
 import org.schwa.dr.Ann;
-import org.schwa.dr.annotations.DRPointer;
+import org.schwa.dr.dr;
 
 
 public class PointerSchema extends FieldSchema {
@@ -24,15 +24,15 @@ public class PointerSchema extends FieldSchema {
     return storeName;
   }
 
-  public static PointerSchema createSlice(final Field field, final DRPointer drPointer, Class<? extends Ann> pointedToKlass) {
+  public static PointerSchema createSlice(final Field field, final dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
     return new PointerSchema(FieldType.ANN_SLICE, field, field.getName(), drPointer.serial(), drPointer.store(), pointedToKlass);
   }
 
-  public static PointerSchema createPointer(final Field field, final DRPointer drPointer, Class<? extends Ann> pointedToKlass) {
+  public static PointerSchema createPointer(final Field field, final dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
     return new PointerSchema(FieldType.POINTER, field, field.getName(), drPointer.serial(), drPointer.store(), pointedToKlass);
   }
 
-  public static PointerSchema createPointers(final Field field, final DRPointer drPointer, Class<? extends Ann> pointedToKlass) {
+  public static PointerSchema createPointers(final Field field, final dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
     return new PointerSchema(FieldType.POINTERS, field, field.getName(), drPointer.serial(), drPointer.store(), pointedToKlass);
   }
 }

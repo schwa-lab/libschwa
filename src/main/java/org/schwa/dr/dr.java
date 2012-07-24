@@ -11,7 +11,9 @@ import java.lang.annotation.Target;
  *
  * @author Tim Dawborn
  */
-public class dr {
+public final class dr {
+  private dr() { }
+
   /**
    * {@link Doc} can annotate:
    * <ul>

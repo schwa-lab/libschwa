@@ -3,7 +3,7 @@ package org.schwa.dr.schemas;
 import java.lang.reflect.Field;
 
 import org.schwa.dr.Ann;
-import org.schwa.dr.annotations.DRField;
+import org.schwa.dr.dr;
 
 
 public class FieldSchema {
@@ -57,11 +57,11 @@ public class FieldSchema {
     }
   }
 
-  public static FieldSchema createPrimitiveField(final Field field, final DRField drField) {
+  public static FieldSchema createPrimitiveField(final Field field, final dr.Field drField) {
     return new FieldSchema(FieldType.PRIMITIVE, field, field.getName(), drField.serial());
   }
 
-  public static FieldSchema createSliceField(final Field field, final DRField drField) {
+  public static FieldSchema createSliceField(final Field field, final dr.Field drField) {
     return new FieldSchema(FieldType.SLICE, field, field.getName(), drField.serial());
   }
 }

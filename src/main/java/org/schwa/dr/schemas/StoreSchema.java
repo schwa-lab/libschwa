@@ -4,8 +4,8 @@ import java.lang.reflect.Field;
 
 import org.schwa.dr.Ann;
 import org.schwa.dr.Doc;
+import org.schwa.dr.dr;
 import org.schwa.dr.Store;
-import org.schwa.dr.annotations.DRStore;
 
 
 public class StoreSchema extends FieldSchema {
@@ -16,7 +16,7 @@ public class StoreSchema extends FieldSchema {
     this.storedKlass = storedKlass;
   }
 
-  public static StoreSchema create(Class<? extends Ann> storedKlass, final Field field, final DRStore drStore) {
+  public static StoreSchema create(Class<? extends Ann> storedKlass, final Field field, final dr.Store drStore) {
     return new StoreSchema(storedKlass, field, field.getName(), drStore.serial());
   }
 
