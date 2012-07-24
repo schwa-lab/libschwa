@@ -49,4 +49,8 @@ public final class RTFieldSchema {
   public boolean isSlice() {
     return isSlice;
   }
+
+  public void setContainingStore(RTStoreSchema containingStore) {
+    this.containingStore = containingStore;
+  }
 }

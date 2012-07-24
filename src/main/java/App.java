@@ -60,6 +60,10 @@ public class App {
     Reader<Doc> reader = new Reader<Doc>(bis, docSchema);
     for (Doc d : reader) {
       System.out.println("read in " + d);
+      System.out.println("tokens = " + d.tokens.size());
+      for (Token x : d.tokens) {
+        System.out.println("  token = " + x);
+      }
     }
   }
 }

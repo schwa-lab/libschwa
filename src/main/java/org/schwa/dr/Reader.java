@@ -3,11 +3,14 @@ package org.schwa.dr;
 import java.lang.reflect.Field;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.msgpack.MessagePack;
@@ -37,8 +40,13 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
   private T doc;
 
   private static class ReadHelper {
-    public static void read(final FieldSchema fieldSchema, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
+    public static void read(final RTFieldSchema rtFieldSchema, final Ann ann, final Doc doc, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final FieldSchema fieldSchema = rtFieldSchema.getDef();
       final Field field = fieldSchema.getField();
+      final RTStoreSchema rtStoreSchema = rtFieldSchema.getContainingStore();
+      final StoreSchema storeSchema = (rtStoreSchema == null) ? null : rtStoreSchema.getDef();
+      if (rtFieldSchema.isPointer() && rtStoreSchema.isLazy())
+        throw new ReaderException("Pointer field '" + field + "' cannot point into a lazy store");
       switch (fieldSchema.getFieldType()) {
       case PRIMITIVE:
         readPrimitive(field, ann, unpacker);
@@ -47,11 +55,13 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
         readSlice(field, ann, unpacker);
         break;
       case ANN_SLICE:
-        readAnnSlice(field, ann, unpacker);
+        readAnnSlice(field, ann, storeSchema, doc, unpacker);
         break;
       case POINTER:
+        readPointer(field, ann, storeSchema, doc, unpacker);
         break;
       case POINTERS:
+        readPointers(field, ann, storeSchema, doc, unpacker);
         break;
       case STORE:
         throw new AssertionError("Field type of type STORE should never exist here");
@@ -61,6 +71,45 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
     }
 
     private static void readPrimitive(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final Class<?> type = field.getType();
+      if (type.equals(String.class)) {
+        final String value = unpacker.readString();
+        field.set(ann, value);
+      }
+      else if (type.equals(byte.class) || type.equals(Byte.class)) {
+        final byte value = unpacker.readByte();
+        field.set(ann, value);
+      }
+      else if (type.equals(char.class) || type.equals(Character.class)) {
+        final char value = (char) unpacker.readInt();
+        field.set(ann, value);
+      }
+      else if (type.equals(short.class) || type.equals(Short.class)) {
+        final short value = unpacker.readShort();
+        field.set(ann, value);
+      }
+      else if (type.equals(int.class) || type.equals(Integer.class)) {
+        final int value = unpacker.readInt();
+        field.set(ann, value);
+      }
+      else if (type.equals(long.class) || type.equals(Long.class)) {
+        final long value = unpacker.readLong();
+        field.set(ann, value);
+      }
+      else if (type.equals(float.class) || type.equals(Float.class)) {
+        final float value = unpacker.readFloat();
+        field.set(ann, value);
+      }
+      else if (type.equals(double.class) || type.equals(Double.class)) {
+        final double value = unpacker.readDouble();
+        field.set(ann, value);
+      }
+      else if (type.equals(boolean.class) || type.equals(Boolean.class)) {
+        final boolean value = unpacker.readBoolean();
+        field.set(ann, value);
+      }
+      else
+        throw new ReaderException("Unknown type (" + type + ") of field '" + field + "'");
     }
 
     private static void readSlice(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
@@ -76,12 +125,45 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       }
       slice.start = a;
       slice.stop = a + b;
-      unpacker.readMapEnd();
+      unpacker.readArrayEnd();
     }
 
-    private static void readAnnSlice(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
+    private static void readAnnSlice(final Field field, final Ann ann, final StoreSchema storeSchema, final Doc doc, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final Store<? extends Ann> store = storeSchema.getStore(doc);
+      final int npair = unpacker.readArrayBegin();
+      if (npair != 2)
+        throw new ReaderException("Invalid sized list read in for SLICE: expected 2 elements but found " + npair);
+      final int a = unpacker.readInt();
+      final int b = unpacker.readInt();
+      AnnSlice slice = (AnnSlice) field.get(ann);
+      if (slice == null) {
+        slice = new AnnSlice();
+        field.set(ann, slice);
+      }
+      slice.start = store.get(a);
+      slice.stop = store.get(a + b);
+      unpacker.readArrayEnd();
+    }
+
+    private static void readPointer(final Field field, final Ann ann, final StoreSchema storeSchema, final Doc doc, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final Store<? extends Ann> store = storeSchema.getStore(doc);
+      final int index = unpacker.readInt();
+      field.set(ann, store.get(index));
+    }
+
+    private static void readPointers(final Field field, final Ann ann, final StoreSchema storeSchema, final Doc doc, final Unpacker unpacker) throws IOException, IllegalAccessException {
+      final Store<? extends Ann> store = storeSchema.getStore(doc);
+      List<Ann> list = new ArrayList<Ann>();
+      final int nitems = unpacker.readArrayBegin();
+      for (int i = 0; i != nitems; i++) {
+        final int index = unpacker.readInt();
+        list.add(store.get(index));
+      }
+      unpacker.readArrayEnd();
+      field.set(ann, list);
     }
   }
+
 
   public Reader(InputStream in, DocSchema docSchema) {
     this.in = in;
@@ -148,12 +230,17 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
 
     // read the klasses header
     // <klasses> ::= [ <klass> ]
-    final int nklasses = unpacker.readArrayBegin();
-    System.out.println("nklasses = " + nklasses);
+    int nklasses;
+    try {
+      nklasses = unpacker.readArrayBegin();
+    }
+    catch (EOFException e) {
+      doc = null;
+      return;
+    }
     for (int k = 0; k != nklasses; k++) {
       // <klass> ::= ( <klass_name>, <fields> )
       final int npair = unpacker.readArrayBegin();
-      System.out.println("npair = " + npair);
       if (npair != 2)
         throw new ReaderException("Invalid sized tuple read in: expected 2 elements but found " + npair);
 
@@ -235,11 +322,11 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       unpacker.readArrayEnd();
     } // for each klass
     unpacker.readArrayEnd();
-    System.out.println(rtFieldSchemaStoreIds);
 
     if (klassIdMeta == null)
       throw new ReaderException("Did not read in a __meta__ class");
-    rt.setDocSchema(rt.getSchema(klassIdMeta));
+    final RTAnnSchema rtDocSchema = rt.getSchema(klassIdMeta);
+    rt.setDocSchema(rtDocSchema);
 
     // read the stores header
     // <stores> ::= [ <store> ]
@@ -273,7 +360,7 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
         rtStoreSchema = new RTStoreSchema(n, storeName, klass, null, nelem);
       else
         rtStoreSchema = new RTStoreSchema(n, storeName, klass, def);
-      rt.getSchema(klassIdMeta).addStore(rtStoreSchema);
+      rtDocSchema.addStore(rtStoreSchema);
 
       // ensure that the stream store and the static store agree on the klass they're storing
       if (!rtStoreSchema.isLazy()) {
@@ -290,14 +377,27 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
 
 
     // back-fill each of the pointer fields to point to the actual RTStoreSchema instance
-    // TODO
+    for (RTAnnSchema rtSchema : rt.getSchemas()) {
+      for (RTFieldSchema rtField : rtSchema.getFields()) {
+        final Integer storeIdObj = rtFieldSchemaStoreIds.get(rtField);
+        if (storeIdObj == null)
+          continue;
+
+        // sanity check on the value of store_id
+        final int storeId = storeIdObj;
+        if (storeId >= rtDocSchema.getStores().size())
+          throw new ReaderException("storeId value " + storeId + " >= number of stores (" + rtDocSchema.getStores().size()+ ")");
+        final RTStoreSchema rtStore = rtDocSchema.getStore(storeId);
+
+        rtField.setContainingStore(rtStore);
+      }
+    }
 
 
     // read the document instance
     // <doc_instance> ::= <instances_nbytes> <instance>
     {
       final long nbytes = unpacker.readLong();
-      System.out.println("doc nbytes = " + nbytes);
 
       final ByteArrayOutputStream lazyBOS = new ByteArrayOutputStream();
       final Packer lazyPacker = msgpack.createPacker(lazyBOS);
@@ -307,7 +407,7 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       final int nitems = unpacker.readMapBegin();
       for (int i = 0; i != nitems; i++) {
         final int key = unpacker.readInt();
-        final RTFieldSchema field = rt.getSchema(klassIdMeta).getField(key);
+        final RTFieldSchema field = rtDocSchema.getField(key);
 
         // deserialize the field value if required
         if (field.isLazy()) {
@@ -317,7 +417,7 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
           lazyNElem++;
         }
         else
-          ReadHelper.read(field.getDef(), doc, unpacker);
+          ReadHelper.read(field, doc, doc, unpacker);
       }
       unpacker.readMapEnd();
 
@@ -330,11 +430,9 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
 
     // read the store instances
     // <instances_groups> ::= <instances_group>*
-    System.out.println("rt.getSchema(" + klassIdMeta + ").getStores() = " + rt.getSchema(klassIdMeta).getStores());
-    for (RTStoreSchema rtStoreSchema : rt.getSchema(klassIdMeta).getStores()) {
+    for (RTStoreSchema rtStoreSchema : rtDocSchema.getStores()) {
       // <instances_group>  ::= <instances_nbytes> <instances>
       final long nbytes = unpacker.readLong();
-      System.out.println("nbytes = " + nbytes);
 
       // <instances> ::= [ <instance> ]
       if (rtStoreSchema.isLazy()) {
@@ -358,7 +456,6 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
 
           // <instance> ::= { <field_id> : <obj_val> }
           final int nitems = unpacker.readMapBegin();
-          System.out.println("nitems = " + nitems);
           for (int i = 0; i != nitems; i++) {
             final int key = unpacker.readInt();
             final RTFieldSchema field = storedKlass.getField(key);
@@ -371,7 +468,7 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
               lazyNElem++;
             }
             else
-              ReadHelper.read(field.getDef(), ann, unpacker);
+              ReadHelper.read(field, ann, doc, unpacker);
           }
           unpacker.readMapEnd();
 
@@ -383,6 +480,5 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
         unpacker.readArrayEnd();
       }
     }
-
   }
 }

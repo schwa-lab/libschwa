@@ -57,4 +57,9 @@ public final class RTStoreSchema {
   public void setLazy(byte[] lazy) {
     this.lazy = lazy;
   }
+
+  @Override
+  public String toString() {
+    return "RTStoreSchema(" + storeId + " '" + serial + "' " + def + ")";
+  }
 }

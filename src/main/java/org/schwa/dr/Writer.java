@@ -122,6 +122,9 @@ public class Writer {
     }
 
     private static boolean writeAnnSlice(final Packer p, final int fieldId, final AnnSlice<? extends Ann> slice) throws IOException {
+      if (slice == null)
+        return false;
+      p.write(fieldId);
       p.writeArrayBegin(2);
       p.write(slice.start.getDRIndex());
       p.write(slice.stop.getDRIndex() - slice.start.getDRIndex());
@@ -132,6 +135,7 @@ public class Writer {
     private static boolean writePointer(final Packer p, final int fieldId, final Ann ann) throws IOException {
       if (ann == null)
         return false;
+      p.write(fieldId);
       p.write(ann.getDRIndex());
       return true;
     }
@@ -139,6 +143,7 @@ public class Writer {
     private static boolean writePointers(final Packer p, final int fieldId, final List<? extends Ann> annotations) throws IOException {
       if (annotations == null || annotations.isEmpty())
         return false;
+      p.write(fieldId);
       p.writeArrayBegin(annotations.size());
       for (Ann ann : annotations)
         p.write(ann.getDRIndex());
@@ -147,6 +152,9 @@ public class Writer {
     }
 
     private static boolean writeSlice(final Packer p, final int fieldId, final Slice slice) throws IOException {
+      if (slice == null)
+        return false;
+      p.write(fieldId);
       p.writeArrayBegin(2);
       p.write(slice.start);
       p.write(slice.stop - slice.start);
