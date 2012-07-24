@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.util.List;
 
 import org.msgpack.MessagePack;
-import org.msgpack.packer.MessagePackPacker;
 import org.msgpack.packer.Packer;
 
 import org.schwa.dr.Ann;
@@ -297,7 +296,6 @@ public class Writer {
     }
     packer.writeArrayEnd(); // <stores>
   }
-
 
   private void writeInstance(final Ann ann, final RTAnnSchema schema, final Doc doc, final DataOutputStream out) throws IOException {
     final ByteArrayOutputStream bos = new ByteArrayOutputStream();

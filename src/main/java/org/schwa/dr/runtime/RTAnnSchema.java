@@ -13,11 +13,11 @@ public final class RTAnnSchema {
   List<RTFieldSchema> fields;
   List<RTStoreSchema> stores;
 
-  RTAnnSchema(int klassId, String serial) {
+  public RTAnnSchema(int klassId, String serial) {
     this(klassId, serial, null);
   }
 
-  RTAnnSchema(int klassId, String serial, AnnSchema def) {
+  public RTAnnSchema(int klassId, String serial, AnnSchema def) {
     this.klassId = klassId;
     this.serial = serial;
     this.def = def;
@@ -25,16 +25,20 @@ public final class RTAnnSchema {
     this.stores = new ArrayList<RTStoreSchema>();
   }
 
-  void addField(RTFieldSchema field) {
+  public void addField(RTFieldSchema field) {
     fields.add(field);
   }
 
-  void addStore(RTStoreSchema store) {
+  public void addStore(RTStoreSchema store) {
     stores.add(store);
   }
 
   public AnnSchema getDef() {
     return def;
+  }
+
+  public RTFieldSchema getField(int index) {
+    return fields.get(index);
   }
 
   public List<RTFieldSchema> getFields() {
@@ -47,6 +51,10 @@ public final class RTAnnSchema {
 
   public String getSerial() {
     return serial;
+  }
+
+  public RTStoreSchema getStore(int index) {
+    return stores.get(index);
   }
 
   public List<RTStoreSchema> getStores() {

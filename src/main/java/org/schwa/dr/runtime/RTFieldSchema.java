@@ -10,11 +10,11 @@ public final class RTFieldSchema {
   boolean isSlice;
   FieldSchema def;
 
-  RTFieldSchema(int fieldId, String serial, RTStoreSchema containingStore, boolean isSlice) {
+  public RTFieldSchema(int fieldId, String serial, RTStoreSchema containingStore, boolean isSlice) {
     this(fieldId, serial, containingStore, isSlice, null);
   }
 
-  RTFieldSchema(int fieldId, String serial, RTStoreSchema containingStore, boolean isSlice, FieldSchema def) {
+  public RTFieldSchema(int fieldId, String serial, RTStoreSchema containingStore, boolean isSlice, FieldSchema def) {
     this.fieldId = fieldId;
     this.serial = serial;
     this.containingStore = containingStore;

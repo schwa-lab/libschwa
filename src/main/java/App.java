@@ -1,3 +1,4 @@
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -5,6 +6,7 @@ import java.util.List;
 
 import org.schwa.dr.AnnSlice;
 import org.schwa.dr.Slice;
+import org.schwa.dr.Reader;
 import org.schwa.dr.Writer;
 import org.schwa.dr.annotations.*;
 import org.schwa.dr.schemas.DocSchema;
@@ -52,7 +54,12 @@ public class App {
       System.out.printf("%02x ", (int)(bytes[i] & 0xff));
     }
     System.out.println();
-    System.out.flush();
+    System.out.println();
 
+    ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+    Reader<Doc> reader = new Reader<Doc>(bis, docSchema);
+    for (Doc d : reader) {
+      System.out.println("read in " + d);
+    }
   }
 }

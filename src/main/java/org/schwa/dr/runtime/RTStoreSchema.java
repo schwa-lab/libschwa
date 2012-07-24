@@ -8,22 +8,22 @@ public final class RTStoreSchema {
   String serial;
   RTAnnSchema storedKlass;
   StoreSchema def;
-  byte[] lazyData;
-  int nLazyElements;
+  byte[] lazy;
+  int lazyNElem;
 
-  RTStoreSchema(int storeId, String serial, RTAnnSchema storedKlass, StoreSchema def) {
+  public RTStoreSchema(int storeId, String serial, RTAnnSchema storedKlass, StoreSchema def) {
     this.storeId = storeId;
     this.serial = serial;
     this.storedKlass = storedKlass;
     this.def = def;
   }
 
-  RTStoreSchema(int storeId, String serial, RTAnnSchema storedKlass, byte[] lazyData, int nLazyElements) {
+  public RTStoreSchema(int storeId, String serial, RTAnnSchema storedKlass, byte[] lazy, int lazyNElem) {
     this.storeId = storeId;
     this.serial = serial;
     this.storedKlass = storedKlass;
-    this.lazyData = lazyData;
-    this.nLazyElements = nLazyElements;
+    this.lazy = lazy;
+    this.lazyNElem = lazyNElem;
   }
 
   public StoreSchema getDef() {
@@ -31,11 +31,11 @@ public final class RTStoreSchema {
   }
 
   public byte[] getLazyData() {
-    return lazyData;
+    return lazy;
   }
 
   public int getLazyNElem() {
-    return nLazyElements;
+    return lazyNElem;
   }
 
   public String getSerial() {
@@ -52,5 +52,9 @@ public final class RTStoreSchema {
 
   public boolean isLazy() {
     return def == null;
+  }
+
+  public void setLazy(byte[] lazy) {
+    this.lazy = lazy;
   }
 }

@@ -13,7 +13,7 @@ public final class RTManager {
     this.annSchemas = new ArrayList<RTAnnSchema>();
   }
 
-  void addAnn(RTAnnSchema annSchema) {
+  public void addAnn(RTAnnSchema annSchema) {
     annSchemas.add(annSchema);
   }
 
@@ -21,7 +21,15 @@ public final class RTManager {
     return docSchema;
   }
 
+  public RTAnnSchema getSchema(int index) {
+    return annSchemas.get(index);
+  }
+
   public List<RTAnnSchema> getSchemas() {
     return annSchemas;
+  }
+
+  public void setDocSchema(RTAnnSchema docSchema) {
+    this.docSchema = docSchema;
   }
 }

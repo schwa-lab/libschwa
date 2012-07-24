@@ -17,6 +17,10 @@ import org.schwa.dr.schemas.StoreSchema;
 
 
 public final class RTFactory {
+  public static RTManager create() {
+    return new RTManager(null);
+  }
+
   public static RTManager build(final DocSchema docSchema) {
     final RTAnnSchema rtDocSchema = new RTAnnSchema(0, "__meta__", docSchema);
     final RTManager rt = new RTManager(rtDocSchema);
@@ -75,7 +79,7 @@ public final class RTFactory {
         throw new AssertionError();
     }
 
-    // construct the documents RTFieldDef's
+    // construct the documents RTFieldSchema's
     mergeFields(rtDocSchema, docSchema, knownStores);
 
     // construct each of the klasses

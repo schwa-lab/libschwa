@@ -31,6 +31,10 @@ public class AnnSchema {
     return klass;
   }
 
+  public FieldSchema getField(int index) {
+    return fieldSchemas.get(index);
+  }
+
   public FieldSchema getField(String name) {
     for (FieldSchema field : fieldSchemas)
       if (field.getName().equals(name))

@@ -34,6 +34,11 @@ public abstract class Ann {
     return lazyNElem;
   }
 
+  final void setLazy(byte[] lazy, int lazyNElem) {
+    this.lazy = lazy;
+    this.lazyNElem = lazyNElem;
+  }
+
   final void setDRIndex(Integer index) {
     drIndex = index;
   }

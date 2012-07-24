@@ -33,6 +33,22 @@ public class StoreSchema extends FieldSchema {
     return storedKlass;
   }
 
+  public void resize(final int size, final Doc doc) {
+    try {
+      Store<Ann> store = (Store<Ann>) field.get(doc);
+      for (int i = 0; i != size; i++) {
+        Ann ann = (Ann) storedKlass.newInstance();
+        store.add(ann);
+      }
+    }
+    catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+    catch (InstantiationException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 
   public int size(final Doc doc) {
     try {

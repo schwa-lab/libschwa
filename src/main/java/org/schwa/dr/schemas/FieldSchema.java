@@ -36,6 +36,14 @@ public class FieldSchema {
     return fieldType;
   }
 
+  public boolean isPointer() {
+    return fieldType == FieldType.ANN_SLICE || fieldType == FieldType.POINTER || fieldType == FieldType.POINTERS;
+  }
+
+  public boolean isSlice() {
+    return fieldType == FieldType.ANN_SLICE || fieldType == FieldType.SLICE;
+  }
+
   public void setSerial(String serial) {
     this.serial = serial;
   }
