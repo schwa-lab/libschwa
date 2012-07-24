@@ -15,15 +15,13 @@ public class StoreSchemaTest {
   public void testStores() {
     @dr.Doc
     class TD extends Doc {
-      @dr.Store
-      public Store<A> storeOfAs;
-      @dr.Store(serial="foo")
-      public Store<A> anotherStoreOfAs;
+      @dr.Store               public Store<A> storeOfAs;
+      @dr.Store(serial="foo") public Store<A> anotherStoreOfAs;
     }
 
     final DocSchema d = DocSchema.create(TD.class);
     Assert.assertEquals(0, d.getFields().size());
-    Assert.assertEquals(2, d.getAnns().size());
+    Assert.assertEquals(2, d.getSchemas().size());
     Assert.assertEquals(2, d.getStores().size());
 
     final List<StoreSchema> schemas = d.getStores();

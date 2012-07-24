@@ -184,7 +184,7 @@ public class WriterTest {
     ByteArrayOutputStream actual = new ByteArrayOutputStream();
     DocSchema docSchema = DocSchema.create(DocWithA.class);
 
-    docSchema.getAnn(A.class).setSerial("writer.A");
+    docSchema.getSchema(A.class).setSerial("writer.A");
 
 
     Writer writer = new Writer(actual, docSchema);
@@ -236,7 +236,7 @@ public class WriterTest {
     ByteArrayOutputStream actual = new ByteArrayOutputStream();
     DocSchema docSchema = DocSchema.create(DocWithA.class);
 
-    docSchema.getAnn(A.class).setSerial("writer.A");
+    docSchema.getSchema(A.class).setSerial("writer.A");
 
 
     Writer writer = new Writer(actual, docSchema);
@@ -299,10 +299,10 @@ public class WriterTest {
     ByteArrayOutputStream actual = new ByteArrayOutputStream();
     DocSchema docSchema = DocSchema.create(DocWithAYZ.class);
 
-    docSchema.getAnn(A.class).setSerial("writer.A");
-    docSchema.getAnn(Y.class).setSerial("writer.Y");
-    docSchema.getAnn(Z.class).setSerial("writer.Z");
-    docSchema.getAnn(Z.class).getField("p").setSerial("zp");
+    docSchema.getSchema(A.class).setSerial("writer.A");
+    docSchema.getSchema(Y.class).setSerial("writer.Y");
+    docSchema.getSchema(Z.class).setSerial("writer.Z");
+    docSchema.getSchema(Z.class).getField("p").setSerial("zp");
 
     Writer writer = new Writer(actual, docSchema);
 

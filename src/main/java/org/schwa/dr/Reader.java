@@ -210,7 +210,7 @@ public final class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
     // map of each of the registered types
     Map<String, AnnSchema> klassNameMap = new HashMap<String, AnnSchema>();
     klassNameMap.put("__meta__", docSchema);
-    for (AnnSchema ann : docSchema.getAnns())
+    for (AnnSchema ann : docSchema.getSchemas())
       klassNameMap.put(ann.getSerial(), ann);
 
     // keeping track of the temporary mapping for the storeId's for fields

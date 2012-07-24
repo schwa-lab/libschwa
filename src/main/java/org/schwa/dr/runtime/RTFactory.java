@@ -86,7 +86,7 @@ public final class RTFactory {
 
     // construct each of the klasses
     Map<Class<? extends Ann>, RTAnnSchema> annKlassToRTAnn = new HashMap<Class<? extends Ann>, RTAnnSchema>();
-    for (AnnSchema ann : docSchema.getAnns()) {
+    for (AnnSchema ann : docSchema.getSchemas()) {
       RTAnnSchema rtAnn = knownKlasses.get(ann.getName());
       if (rtAnn == null) {
         rtAnn = new RTAnnSchema(klassId, ann.getSerial(), ann);

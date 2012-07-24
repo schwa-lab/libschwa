@@ -21,7 +21,7 @@ public class DocSchema extends AnnSchema {
     traverseDocKlass();
   }
 
-  public void addAnn(final AnnSchema annSchema) {
+  public void addSchema(final AnnSchema annSchema) {
     annSchemas.add(annSchema);
   }
 
@@ -29,14 +29,14 @@ public class DocSchema extends AnnSchema {
     storeSchemas.add(storeSchema);
   }
 
-  public AnnSchema getAnn(Class<? extends Ann> klass) {
+  public AnnSchema getSchema(Class<? extends Ann> klass) {
     for (AnnSchema ann : annSchemas)
       if (ann.klass.equals(klass))
         return ann;
     return null;
   }
 
-  public List<AnnSchema> getAnns() {
+  public List<AnnSchema> getSchemas() {
     return annSchemas;
   }
 
@@ -89,7 +89,7 @@ public class DocSchema extends AnnSchema {
           annSchema = new AnnSchema(storedKlass, storedKlass.getSimpleName());
         else
           annSchema = new AnnSchema(storedKlass, storedKlass.getSimpleName(), drAnn.serial());
-        addAnn(annSchema);
+        addSchema(annSchema);
       }
     }
 
