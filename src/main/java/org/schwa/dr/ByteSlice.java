@@ -1,12 +1,12 @@
 package org.schwa.dr;
 
 
-public class Slice {
+public class ByteSlice {
   public long start;
   public long stop;
 
-  public Slice() { }
-  public Slice(long start, long stop) {
+  public ByteSlice() { }
+  public ByteSlice(long start, long stop) {
     this.start = start;
     this.stop = stop;
   }
@@ -17,9 +17,9 @@ public class Slice {
       return true;
     else if (o == null)
       return false;
-    else if (!(o instanceof Slice))
+    else if (!(o instanceof ByteSlice))
       return false;
-    final Slice s = (Slice)o;
+    final ByteSlice s = (ByteSlice) o;
     return s.start == start && s.stop == stop;
   }
 

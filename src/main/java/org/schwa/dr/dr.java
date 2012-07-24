@@ -53,7 +53,7 @@ public final class dr {
    * {@link dr.Field} can annotate public member fields of the form:
    * <ul>
    * <li>Any primitive: {@code byte}, {@code char}, {@code short}, {@code int}, {@code long}, {@code float}, {@code double}, {@code boolean}, {@code String}</li>
-   * <li>{@link Slice}</li>
+   * <li>{@link ByteSlice}</li>
    * </ul>
    */
   @Retention(RetentionPolicy.RUNTIME)

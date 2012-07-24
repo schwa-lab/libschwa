@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.List;
 
 import org.schwa.dr.AnnSlice;
+import org.schwa.dr.ByteSlice;
 import org.schwa.dr.dr;
 import org.schwa.dr.Reader;
-import org.schwa.dr.Slice;
 import org.schwa.dr.Writer;
 import org.schwa.dr.schemas.DocSchema;
 
@@ -35,12 +35,12 @@ public class App {
     Doc doc = new Doc();
 
     Token t = new Token();
-    t.span = new Slice(0, 5);
+    t.span = new ByteSlice(0, 5);
     t.raw = "Hello";
     doc.tokens.add(t);
 
     t = new Token();
-    t.span = new Slice(6, 10);
+    t.span = new ByteSlice(6, 10);
     t.raw = "world";
     doc.tokens.add(t);
 

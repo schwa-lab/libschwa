@@ -11,7 +11,7 @@ import org.msgpack.MessagePack;
 import org.msgpack.packer.Packer;
 
 import org.schwa.dr.Ann;
-import org.schwa.dr.Slice;
+import org.schwa.dr.ByteSlice;
 import org.schwa.dr.runtime.RTAnnSchema;
 import org.schwa.dr.runtime.RTFieldSchema;
 import org.schwa.dr.runtime.RTManager;
@@ -35,8 +35,8 @@ public class Writer {
       switch (def.getFieldType()) {
       case PRIMITIVE:
         break;
-      case SLICE:
-        return writeSlice(p, fieldId, (Slice) value);
+      case BYTE_SLICE:
+        return writeByteSlice(p, fieldId, (ByteSlice) value);
       case ANN_SLICE:
         return writeAnnSlice(p, fieldId, (AnnSlice<? extends Ann>) value);
       case POINTER:
@@ -130,6 +130,17 @@ public class Writer {
       return true;
     }
 
+    private static boolean writeByteSlice(final Packer p, final int fieldId, final ByteSlice slice) throws IOException {
+      if (slice == null)
+        return false;
+      p.write(fieldId);
+      p.writeArrayBegin(2);
+      p.write(slice.start);
+      p.write(slice.stop - slice.start);
+      p.writeArrayEnd();
+      return true;
+    }
+
     private static boolean writePointer(final Packer p, final int fieldId, final Ann ann) throws IOException {
       if (ann == null)
         return false;
@@ -145,17 +156,6 @@ public class Writer {
       p.writeArrayBegin(annotations.size());
       for (Ann ann : annotations)
         p.write(ann.getDRIndex());
-      p.writeArrayEnd();
-      return true;
-    }
-
-    private static boolean writeSlice(final Packer p, final int fieldId, final Slice slice) throws IOException {
-      if (slice == null)
-        return false;
-      p.write(fieldId);
-      p.writeArrayBegin(2);
-      p.write(slice.start);
-      p.write(slice.stop - slice.start);
       p.writeArrayEnd();
       return true;
     }

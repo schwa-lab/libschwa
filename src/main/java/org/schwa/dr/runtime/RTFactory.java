@@ -132,10 +132,9 @@ public final class RTFactory {
     for (FieldSchema field : schema.getFields()) {
       RTFieldSchema rtField = knownFields.get(field.getName());
       if (rtField == null) {
-        final FieldType type = field.getFieldType();
-        final boolean isSlice = type == FieldType.SLICE || type == FieldType.ANN_SLICE;
+        final boolean isSlice = field.isSlice();
         RTStoreSchema rtStore = null;
-        if (type == FieldType.ANN_SLICE || type == FieldType.POINTER || type == FieldType.POINTERS)
+        if (field.isPointer())
           rtStore = knownStores.get(field.getStoreName());
         rtField = new RTFieldSchema(fieldId, field.getSerial(), rtStore, isSlice, field);
         rtSchema.addField(rtField);

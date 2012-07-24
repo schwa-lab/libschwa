@@ -3,7 +3,7 @@ import org.schwa.dr.*;
 
 @dr.Ann
 public class Token extends Ann {
-  @dr.Field public Slice span;
+  @dr.Field public ByteSlice span;
   @dr.Field public String raw;
   @dr.Field public String lemma;
   @dr.Field public String pos;

@@ -11,10 +11,10 @@ import java.util.List;
 
 import org.schwa.dr.AnnSlice;
 import org.schwa.dr.Ann;
+import org.schwa.dr.ByteSlice;
 import org.schwa.dr.Doc;
 import org.schwa.dr.dr;
 import org.schwa.dr.IllegalAnnotationException;
-import org.schwa.dr.Slice;
 import org.schwa.dr.Store;
 
 
@@ -132,14 +132,14 @@ public class DocSchema extends AnnSchema {
   private void checkDRFieldField(final Field field, final dr.Field drField, final AnnSchema annSchema) {
     // dr.Field can annotate:
     // * {byte,char,short,int,long,float,double,boolean,String}
-    // * org.schwa.dr.Slice
-    final Class<?>[] ALLOWED_KLASSES = {byte.class, char.class, short.class, int.class, long.class, float.class, double.class, boolean.class, String.class, Slice.class};
+    // * org.schwa.dr.ByteSlice
+    final Class<?>[] ALLOWED_KLASSES = {byte.class, char.class, short.class, int.class, long.class, float.class, double.class, boolean.class, String.class, ByteSlice.class};
     final Class<?> fieldKlass = field.getType();
     FieldSchema fieldSchema = null;
     for (Class<?> k : ALLOWED_KLASSES) {
       if (fieldKlass.equals(k)) {
-        if (k == Slice.class)
-          fieldSchema = FieldSchema.createSlice(field, drField);
+        if (k == ByteSlice.class)
+          fieldSchema = FieldSchema.createByteSlice(field, drField);
         else
           fieldSchema = FieldSchema.createPrimitive(field, drField);
         break;

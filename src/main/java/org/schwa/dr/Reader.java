@@ -19,8 +19,8 @@ import org.msgpack.type.Value;
 import org.msgpack.unpacker.Unpacker;
 
 import org.schwa.dr.Ann;
+import org.schwa.dr.ByteSlice;
 import org.schwa.dr.Doc;
-import org.schwa.dr.Slice;
 import org.schwa.dr.runtime.RTAnnSchema;
 import org.schwa.dr.runtime.RTFactory;
 import org.schwa.dr.runtime.RTFieldSchema;
@@ -51,8 +51,8 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
       case PRIMITIVE:
         readPrimitive(field, ann, unpacker);
         break;
-      case SLICE:
-        readSlice(field, ann, unpacker);
+      case BYTE_SLICE:
+        readByteSlice(field, ann, unpacker);
         break;
       case ANN_SLICE:
         readAnnSlice(field, ann, storeSchema, doc, unpacker);
@@ -110,15 +110,15 @@ public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
         throw new ReaderException("Unknown type (" + type + ") of field '" + field + "'");
     }
 
-    private static void readSlice(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
+    private static void readByteSlice(final Field field, final Ann ann, final Unpacker unpacker) throws IOException, IllegalAccessException {
       final int npair = unpacker.readArrayBegin();
       if (npair != 2)
         throw new ReaderException("Invalid sized list read in for SLICE: expected 2 elements but found " + npair);
       final long a = unpacker.readLong();
       final long b = unpacker.readLong();
-      Slice slice = (Slice) field.get(ann);
+      ByteSlice slice = (ByteSlice) field.get(ann);
       if (slice == null) {
-        slice = new Slice();
+        slice = new ByteSlice();
         field.set(ann, slice);
       }
       slice.start = a;
