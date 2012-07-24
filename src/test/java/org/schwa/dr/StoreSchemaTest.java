@@ -1,14 +1,9 @@
-package org.schwa.dr.schemas;
+package org.schwa.dr;
 
-import java.util.*;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import org.schwa.dr.Ann;
-import org.schwa.dr.Doc;
-import org.schwa.dr.dr;
-import org.schwa.dr.Store;
 
 
 public class StoreSchemaTest {
@@ -31,21 +26,17 @@ public class StoreSchemaTest {
     Assert.assertEquals(2, d.getAnns().size());
     Assert.assertEquals(2, d.getStores().size());
 
-    final List<StoreSchema> schemas = new ArrayList(d.getStores());
-    Collections.sort(schemas, new Comparator<StoreSchema>() {
-      public int compare(StoreSchema a, StoreSchema b) {
-        return a.getName().compareTo(b.getName());
-      }
-    });
+    final List<StoreSchema> schemas = d.getStores();
+    StoreSchema s;
 
-    StoreSchema s = schemas.get(0);
-    Assert.assertEquals("anotherStoreOfAs", s.getName());
-    Assert.assertEquals("foo", s.getSerial());
+    s = schemas.get(0);
+    Assert.assertEquals("storeOfAs", s.getName());
+    Assert.assertEquals("storeOfAs", s.getSerial());
     Assert.assertEquals(A.class, s.getStoredKlass());
 
     s = schemas.get(1);
-    Assert.assertEquals("storeOfAs", s.getName());
-    Assert.assertEquals("storeOfAs", s.getSerial());
+    Assert.assertEquals("anotherStoreOfAs", s.getName());
+    Assert.assertEquals("foo", s.getSerial());
     Assert.assertEquals(A.class, s.getStoredKlass());
   }
 }

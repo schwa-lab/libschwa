@@ -18,21 +18,14 @@ import org.msgpack.packer.Packer;
 import org.msgpack.type.Value;
 import org.msgpack.unpacker.Unpacker;
 
-import org.schwa.dr.Ann;
-import org.schwa.dr.ByteSlice;
-import org.schwa.dr.Doc;
 import org.schwa.dr.runtime.RTAnnSchema;
 import org.schwa.dr.runtime.RTFactory;
 import org.schwa.dr.runtime.RTFieldSchema;
 import org.schwa.dr.runtime.RTManager;
 import org.schwa.dr.runtime.RTStoreSchema;
-import org.schwa.dr.schemas.AnnSchema;
-import org.schwa.dr.schemas.DocSchema;
-import org.schwa.dr.schemas.FieldSchema;
-import org.schwa.dr.schemas.StoreSchema;
 
 
-public class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
+public final class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
   private final InputStream in;
   private final DocSchema docSchema;
   private final MessagePack msgpack;

@@ -10,14 +10,10 @@ import java.util.List;
 import org.msgpack.MessagePack;
 import org.msgpack.packer.Packer;
 
-import org.schwa.dr.Ann;
-import org.schwa.dr.ByteSlice;
 import org.schwa.dr.runtime.RTAnnSchema;
 import org.schwa.dr.runtime.RTFieldSchema;
 import org.schwa.dr.runtime.RTManager;
 import org.schwa.dr.runtime.RTStoreSchema;
-import org.schwa.dr.schemas.DocSchema;
-import org.schwa.dr.schemas.FieldSchema;
 
 
 public final class Writer {

@@ -3,7 +3,7 @@ package org.schwa.dr.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.schwa.dr.schemas.AnnSchema;
+import org.schwa.dr.AnnSchema;
 
 
 public final class RTAnnSchema {

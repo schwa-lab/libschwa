@@ -1,4 +1,4 @@
-package org.schwa.dr.schemas;
+package org.schwa.dr;
 
 import java.lang.IllegalArgumentException;
 import java.lang.RuntimeException;
@@ -8,14 +8,6 @@ import java.lang.reflect.Type;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.schwa.dr.Ann;
-import org.schwa.dr.ByteSlice;
-import org.schwa.dr.Doc;
-import org.schwa.dr.dr;
-import org.schwa.dr.IllegalAnnotationException;
-import org.schwa.dr.Slice;
-import org.schwa.dr.Store;
 
 
 public class DocSchema extends AnnSchema {

@@ -1,6 +1,6 @@
 package org.schwa.dr.runtime;
 
-import org.schwa.dr.schemas.StoreSchema;
+import org.schwa.dr.StoreSchema;
 
 
 public final class RTStoreSchema {

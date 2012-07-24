@@ -1,12 +1,11 @@
 package org.schwa.dr;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import org.schwa.dr.*;
-import org.schwa.dr.schemas.DocSchema;
 
 
 public class WriterTest {

@@ -1,6 +1,6 @@
 package org.schwa.dr.runtime;
 
-import org.schwa.dr.schemas.FieldSchema;
+import org.schwa.dr.FieldSchema;
 
 
 public final class RTFieldSchema {

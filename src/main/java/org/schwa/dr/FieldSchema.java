@@ -1,9 +1,6 @@
-package org.schwa.dr.schemas;
+package org.schwa.dr;
 
 import java.lang.reflect.Field;
-
-import org.schwa.dr.Ann;
-import org.schwa.dr.dr;
 
 
 public final class FieldSchema {
@@ -88,5 +85,4 @@ public final class FieldSchema {
   public static FieldSchema createSlice(Field field, dr.Pointer drPointer, Class<? extends Ann> pointedToKlass) {
     return new FieldSchema(FieldType.SLICE, field, field.getName(), drPointer.serial(), pointedToKlass, drPointer.store());
   }
-
 }

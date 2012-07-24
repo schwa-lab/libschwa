@@ -8,11 +8,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.schwa.dr.Ann;
-import org.schwa.dr.schemas.AnnSchema;
-import org.schwa.dr.schemas.DocSchema;
-import org.schwa.dr.schemas.FieldSchema;
-import org.schwa.dr.schemas.FieldType;
-import org.schwa.dr.schemas.StoreSchema;
+import org.schwa.dr.AnnSchema;
+import org.schwa.dr.DocSchema;
+import org.schwa.dr.FieldSchema;
+import org.schwa.dr.FieldType;
+import org.schwa.dr.StoreSchema;
 
 
 public final class RTFactory {

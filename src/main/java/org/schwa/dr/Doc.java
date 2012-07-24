@@ -2,7 +2,6 @@ package org.schwa.dr;
 
 import org.schwa.dr.runtime.RTManager;
 import org.schwa.dr.runtime.RTFactory;
-import org.schwa.dr.schemas.DocSchema;
 
 
 public abstract class Doc extends Ann {

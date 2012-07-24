@@ -1,11 +1,6 @@
-package org.schwa.dr.schemas;
+package org.schwa.dr;
 
 import java.lang.reflect.Field;
-
-import org.schwa.dr.Ann;
-import org.schwa.dr.Doc;
-import org.schwa.dr.dr;
-import org.schwa.dr.Store;
 
 
 public final class StoreSchema {

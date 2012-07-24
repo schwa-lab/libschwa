@@ -1,9 +1,7 @@
-package org.schwa.dr.schemas;
+package org.schwa.dr;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.schwa.dr.Ann;
 
 
 public class AnnSchema {

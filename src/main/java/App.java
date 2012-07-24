@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.schwa.dr.ByteSlice;
+import org.schwa.dr.DocSchema;
 import org.schwa.dr.dr;
 import org.schwa.dr.Reader;
 import org.schwa.dr.Slice;
 import org.schwa.dr.Writer;
-import org.schwa.dr.schemas.DocSchema;
 
 
 @dr.Ann(serial="MyChunk")

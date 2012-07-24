@@ -1,4 +1,4 @@
-package org.schwa.dr.schemas;
+package org.schwa.dr;
 
 
 public enum FieldType {
