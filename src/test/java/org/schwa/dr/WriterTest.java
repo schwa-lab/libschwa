@@ -11,31 +11,31 @@ import org.junit.Test;
 public class WriterTest {
 
   @dr.Doc
-  public static class DocWithField extends Doc {
+  public static class DocWithField extends AbstractDoc {
     @dr.Field public String name;
   }
 
   @dr.Doc
-  public static class DocWithFieldSerial extends Doc {
+  public static class DocWithFieldSerial extends AbstractDoc {
     @dr.Field(serial="filename")
     public String name;
   }
 
   @dr.Ann
-  public static class A extends Ann {
+  public static class A extends AbstractAnn {
     @dr.Field public String v_str;
     @dr.Field public byte v_uint8;
     @dr.Field public boolean v_bool;
   }
 
   @dr.Ann
-  public static class Y extends Ann {
+  public static class Y extends AbstractAnn {
     @dr.Pointer(store="as")
     public A p;
   }
 
   @dr.Ann
-  public static class Z extends Ann {
+  public static class Z extends AbstractAnn {
     @dr.Pointer(store="as")
     public A p;
     @dr.Field
@@ -43,12 +43,12 @@ public class WriterTest {
   }
 
   @dr.Doc
-  public static class DocWithA extends Doc {
+  public static class DocWithA extends AbstractDoc {
     @dr.Store public Store<A> as = new Store<A>();
   }
 
   @dr.Doc
-  public static class DocWithAYZ extends Doc {
+  public static class DocWithAYZ extends AbstractDoc {
     @dr.Store public Store<A> as = new Store<A>();
     @dr.Store public Store<Y> ys = new Store<Y>();
     @dr.Store public Store<Z> zs = new Store<Z>();

@@ -2,7 +2,7 @@ import org.schwa.dr.*;
 
 
 @dr.Ann
-public class Token extends Ann {
+public class Token extends AbstractAnn {
   @dr.Field public ByteSlice span;
   @dr.Field public String raw;
   @dr.Field public String lemma;

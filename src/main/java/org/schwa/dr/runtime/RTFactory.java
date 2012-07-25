@@ -21,6 +21,13 @@ public final class RTFactory {
     return new RTManager(null);
   }
 
+  public static RTManager buildOrMerge(final RTManager rt, final DocSchema docSchema) {
+    if (rt == null)
+      return build(docSchema);
+    else
+      return merge(rt, docSchema);
+  }
+
   public static RTManager build(final DocSchema docSchema) {
     final RTAnnSchema rtDocSchema = new RTAnnSchema(0, "__meta__", docSchema);
     final RTManager rt = new RTManager(rtDocSchema);

@@ -11,6 +11,7 @@ import org.msgpack.MessagePack;
 import org.msgpack.packer.Packer;
 
 import org.schwa.dr.runtime.RTAnnSchema;
+import org.schwa.dr.runtime.RTFactory;
 import org.schwa.dr.runtime.RTFieldSchema;
 import org.schwa.dr.runtime.RTManager;
 import org.schwa.dr.runtime.RTStoreSchema;
@@ -173,7 +174,7 @@ public final class Writer {
   }
 
   public void write(final Doc doc) throws IOException {
-    final RTManager rt = doc.createOrMergeRT(docSchema);
+    final RTManager rt = RTFactory.buildOrMerge(doc.getRT(), docSchema);
     final RTAnnSchema rtDocSchema = rt.getDocSchema();
 
     // <klasses>
@@ -309,11 +310,11 @@ public final class Writer {
         nNewElem++;
     p.flush();
 
-    final int nElem = nNewElem + ann.getLazyNElem();
+    final int nElem = nNewElem + ann.getDRLazyNElem();
     writeMapBegin(out, nElem);
     if (nElem != 0) {
-      if (ann.getLazyNElem() != 0) {
-        final byte[] lazy = ann.getLazy();
+      if (ann.getDRLazyNElem() != 0) {
+        final byte[] lazy = ann.getDRLazy();
         out.write(lazy, 0, lazy.length);
       }
       bos.writeTo(out);

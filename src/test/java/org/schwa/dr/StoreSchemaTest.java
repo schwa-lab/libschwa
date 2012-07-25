@@ -8,13 +8,13 @@ import org.junit.Test;
 
 public class StoreSchemaTest {
   @dr.Ann
-  static class A extends Ann {
+  static class A extends AbstractAnn {
   }
 
   @Test
   public void testStores() {
     @dr.Doc
-    class TD extends Doc {
+    class TD extends AbstractDoc {
       @dr.Store               public Store<A> storeOfAs;
       @dr.Store(serial="foo") public Store<A> anotherStoreOfAs;
     }

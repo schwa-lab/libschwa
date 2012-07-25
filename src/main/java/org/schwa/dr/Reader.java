@@ -414,7 +414,8 @@ public final class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
 
       if (lazyNElem != 0) {
         lazyPacker.flush();
-        doc.setLazy(lazyBOS.toByteArray(), lazyNElem);
+        doc.setDRLazy(lazyBOS.toByteArray());
+        doc.setDRLazyNElem(lazyNElem);
       }
     }
 
@@ -465,7 +466,8 @@ public final class Reader <T extends Doc> implements Iterable<T>, Iterator<T> {
 
           if (lazyNElem != 0) {
             lazyPacker.flush();
-            ann.setLazy(lazyBOS.toByteArray(), lazyNElem);
+            ann.setDRLazy(lazyBOS.toByteArray());
+            ann.setDRLazyNElem(lazyNElem);
           }
         }
         unpacker.readArrayEnd();
