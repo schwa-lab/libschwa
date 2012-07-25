@@ -1,6 +1,3 @@
-MAIN_CLASS = App
-
-
 .PHONY: all clean compile javadoc package run test wc
 
 all: compile
@@ -18,7 +15,8 @@ package:
 	mvn package
 
 run: compile
-	mvn exec:java -Dexec.mainClass=$(MAIN_CLASS)
+	javac -cp target/classes test/*.java
+	java -cp `find ${HOME}/.m2/repository -name '*.jar' | tr '\n' ':'`:target/classes:test App
 
 test:
 	mvn test
