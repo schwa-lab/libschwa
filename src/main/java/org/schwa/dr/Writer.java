@@ -111,7 +111,7 @@ public final class Writer {
         }
       }
       else
-        throw new RuntimeException("Unknown type of field (" + type + ")");
+        throw new WriterException("Unknown type of field (" + type + ")");
       return false;
     }
 
@@ -272,7 +272,7 @@ public final class Writer {
     packer.writeArrayEnd(); // <klasses>
   }
 
-  public void writeStoresHeader(final List<RTStoreSchema> stores, final Doc doc) throws IOException {
+  private void writeStoresHeader(final List<RTStoreSchema> stores, final Doc doc) throws IOException {
     // <stores> ::= [ <store> ]
     packer.writeArrayBegin(stores.size());
     for (RTStoreSchema store : stores) {
