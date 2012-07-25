@@ -77,6 +77,8 @@ RTSchema::dump(std::ostream &out) const {
 // ============================================================================
 // RTManager
 // ============================================================================
+RTManager::RTManager(void) : doc(nullptr) { }
+
 RTManager::~RTManager(void) {
   for (auto &k : klasses)
     delete k;
@@ -168,7 +170,7 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
     RTStoreDef *rtstore;
     const auto &it = known_stores.find(store->name);
     if (it == known_stores.end()) {
-      rtstore = new RTStoreDef(store_id, store->name, nullptr, store);
+      rtstore = new RTStoreDef(store_id, store->serial, nullptr, store);
       assert(rtstore != nullptr);
       rtdschema->stores.push_back(rtstore);
       known_stores.insert({store->name, rtstore});

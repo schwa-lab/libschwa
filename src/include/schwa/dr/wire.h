@@ -109,7 +109,7 @@ namespace schwa {
         write(OUT &out, const Slice<T> &val) {
           mp::write_array_size(out, 2);
           mp::write(out, val.start);
-          mp::write(out, val.stop);
+          mp::write(out, val.stop - val.start);
         }
 
         template <typename IN>
@@ -119,6 +119,7 @@ namespace schwa {
           assert(nitems == 2);
           mp::read<IN>(in, val.start);
           mp::read<IN>(in, val.stop);
+          val.stop += val.start;
         }
       };
 
@@ -130,9 +131,11 @@ namespace schwa {
         template <typename OUT>
         static inline void
         write(OUT &out, const Slice<T> &val, const typename FieldTraits<Slice<T>>::value_type &front) {
+          const size_t a = val.start - &front;
+          const size_t b = val.stop - &front;
           mp::write_array_size(out, 2);
-          mp::write_uint(out, val.start - &front);
-          mp::write_uint(out, val.stop - &front);
+          mp::write_uint(out, a);
+          mp::write_uint(out, b - a - 1);
         }
 
         template <typename IN>
@@ -140,10 +143,10 @@ namespace schwa {
         read(IN &in, Slice<T> &val, typename FieldTraits<Slice<T>>::value_type &front) {
           const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
-          size_t offset = mp::read_uint(in);
+          const size_t offset = mp::read_uint(in);
+          const size_t delta = mp::read_uint(in);
           val.start = &front + offset;
-          offset = mp::read_uint(in);
-          val.stop = &front + offset;
+          val.stop = &front + (offset + delta + 1);
         }
       };
 

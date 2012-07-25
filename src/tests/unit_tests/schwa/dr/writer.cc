@@ -343,12 +343,12 @@ BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
   correct << '\x04';  // <store_nelem>: 4
   correct << '\x01';  // <instance_nbytes>: 1 byte after this for the document
   correct << '\x80';  // <instance>: 0-element map
-  correct << '\x20';  // <instance_nbytes>: 32 byte after this for the "as" store
+  correct << '\x1c';  // <instance_nbytes>: 28 byte after this for the "as" store
   correct << '\x94';  // <instance>: 4-element array
-  correct << '\x83' << '\x00' << '\xa5' << "first" << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc2'; // {0: 'first', 1: 0, 2: false}
-  correct << '\x82' << '\x01' << '\xcc' << '\x02' << '\x02' << '\xc2'; // {1: 2, 2: false}
-  correct << '\x82' << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc2'; // {1: 0, 2: false}
-  correct << '\x82' << '\x01' << '\xcc' << '\x00' << '\x02' << '\xc3'; // {1: 0, 2: true}
+  correct << '\x83' << '\x00' << '\xa5' << "first" << '\x01' << '\x00' << '\x02' << '\xc2'; // {0: 'first', 1: 0, 2: false}
+  correct << '\x82' << '\x01' << '\x02' << '\x02' << '\xc2'; // {1: 2, 2: false}
+  correct << '\x82' << '\x01' << '\x00' << '\x02' << '\xc2'; // {1: 0, 2: false}
+  correct << '\x82' << '\x01' << '\x00' << '\x02' << '\xc3'; // {1: 0, 2: true}
 
   BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
 }

@@ -30,7 +30,7 @@ clean:
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	src/scripts/depends "$(CXX) -std=c++0x -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/depends "$(CXX) -std=c++11 -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 install:
 	install -d -v $(DESTDIR)$(prefix)/{bin,include,lib}
@@ -54,7 +54,7 @@ release:
 	src/scripts/make-release $(RELEASE_VERSION)
 
 wc:
-	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l
+	find src/{include,lib,main} -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l
 
 
 # -------------------------------------------------------------------------------
