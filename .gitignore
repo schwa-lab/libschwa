@@ -9,3 +9,6 @@ ext
 ./lib
 tags
 src/lib/schwa/version.cc
+ve
+dist
+schwa.egg-info
