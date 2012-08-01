@@ -70,6 +70,7 @@ namespace schwa {
       std::vector<RTSchema *> klasses;
       std::vector<char *> lazy_buffers;
 
+      RTManager(void);
       ~RTManager(void);
 
       std::ostream &dump(std::ostream &out) const;

@@ -5,5 +5,6 @@
 #include <schwa/std.h>
 #include <schwa/port.h>
 #include <schwa/exception.h>
+#include <schwa/version.h>
 
 #endif

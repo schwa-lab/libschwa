@@ -59,18 +59,18 @@ namespace schwa {
     template <typename IN> inline int64_t  read_int(IN &in);
     template <typename IN> inline uint64_t read_uint(IN &in);
 
-    template <typename IN> inline size_t   read_array_size(IN &in);
-    template <typename IN> inline size_t   read_map_size(IN &in);
+    template <typename IN> inline uint32_t read_array_size(IN &in);
+    template <typename IN> inline uint32_t read_map_size(IN &in);
 
     template <typename IN> inline std::string read_raw(IN &in);
 
-    inline int8_t   read_val_int_fixed(const int h);
+    inline int8_t                          read_val_int_fixed(const int h);
     template <typename IN> inline int8_t   read_val_int8(IN &in);
     template <typename IN> inline int16_t  read_val_int16(IN &in);
     template <typename IN> inline int32_t  read_val_int32(IN &in);
     template <typename IN> inline int64_t  read_val_int64(IN &in);
 
-    inline uint8_t  read_val_uint_fixed(const int h);
+    inline uint8_t                         read_val_uint_fixed(const int h);
     template <typename IN> inline uint8_t  read_val_uint8(IN &in);
     template <typename IN> inline uint16_t read_val_uint16(IN &in);
     template <typename IN> inline uint32_t read_val_uint32(IN &in);
@@ -88,14 +88,14 @@ namespace schwa {
     template <typename IN> inline uint32_t read_uint32(IN &in);
     template <typename IN> inline uint64_t read_uint64(IN &in);
 
-    template <typename IN> inline void read(IN &in, int8_t &val) { val = read_int8(in); }
-    template <typename IN> inline void read(IN &in, int16_t &val) { val = read_int16(in); }
-    template <typename IN> inline void read(IN &in, int32_t &val) { val = read_int32(in); }
-    template <typename IN> inline void read(IN &in, int64_t &val) { val = read_int64(in); }
-    template <typename IN> inline void read(IN &in, uint8_t &val) { val = read_uint8(in); }
-    template <typename IN> inline void read(IN &in, uint16_t &val) { val = read_uint16(in); }
-    template <typename IN> inline void read(IN &in, uint32_t &val) { val = read_uint32(in); }
-    template <typename IN> inline void read(IN &in, uint64_t &val) { val = read_uint64(in); }
+    template <typename IN> inline void read(IN &in, int8_t &val) { val = read_int(in); }
+    template <typename IN> inline void read(IN &in, int16_t &val) { val = read_int(in); }
+    template <typename IN> inline void read(IN &in, int32_t &val) { val = read_int(in); }
+    template <typename IN> inline void read(IN &in, int64_t &val) { val = read_int(in); }
+    template <typename IN> inline void read(IN &in, uint8_t &val) { val = read_uint(in); }
+    template <typename IN> inline void read(IN &in, uint16_t &val) { val = read_uint(in); }
+    template <typename IN> inline void read(IN &in, uint32_t &val) { val = read_uint(in); }
+    template <typename IN> inline void read(IN &in, uint64_t &val) { val = read_uint(in); }
     template <typename IN> inline void read(IN &in, float &val) { val = read_float(in); }
     template <typename IN> inline void read(IN &in, double &val) { val = read_double(in); }
     template <typename IN> inline void read(IN &in, bool &val) { val = read_bool(in); }
@@ -132,14 +132,14 @@ namespace schwa {
     template <typename OUT> inline void write_uint32(OUT &out, const uint32_t x);
     template <typename OUT> inline void write_uint64(OUT &out, const uint64_t x);
 
-    template <typename OUT> inline void write(OUT &out, const int8_t &val) { return write_int8(out, val); }
-    template <typename OUT> inline void write(OUT &out, const int16_t &val) { return write_int16(out, val); }
-    template <typename OUT> inline void write(OUT &out, const int32_t &val) { return write_int32(out, val); }
-    template <typename OUT> inline void write(OUT &out, const int64_t &val) { return write_int64(out, val); }
-    template <typename OUT> inline void write(OUT &out, const uint8_t &val) { return write_uint8(out, val); }
-    template <typename OUT> inline void write(OUT &out, const uint16_t &val) { return write_uint16(out, val); }
-    template <typename OUT> inline void write(OUT &out, const uint32_t &val) { return write_uint32(out, val); }
-    template <typename OUT> inline void write(OUT &out, const uint64_t &val) { return write_uint64(out, val); }
+    template <typename OUT> inline void write(OUT &out, const int8_t &val) { return write_int(out, val); }
+    template <typename OUT> inline void write(OUT &out, const int16_t &val) { return write_int(out, val); }
+    template <typename OUT> inline void write(OUT &out, const int32_t &val) { return write_int(out, val); }
+    template <typename OUT> inline void write(OUT &out, const int64_t &val) { return write_int(out, val); }
+    template <typename OUT> inline void write(OUT &out, const uint8_t &val) { return write_uint(out, val); }
+    template <typename OUT> inline void write(OUT &out, const uint16_t &val) { return write_uint(out, val); }
+    template <typename OUT> inline void write(OUT &out, const uint32_t &val) { return write_uint(out, val); }
+    template <typename OUT> inline void write(OUT &out, const uint64_t &val) { return write_uint(out, val); }
     template <typename OUT> inline void write(OUT &out, const float &val) { return write_float(out, val); }
     template <typename OUT> inline void write(OUT &out, const double &val) { return write_double(out, val); }
     template <typename OUT> inline void write(OUT &out, const bool &val) { return write_bool(out, val); }
@@ -425,7 +425,7 @@ namespace schwa {
     }
 
     template <typename IN>
-    inline size_t
+    inline uint32_t
     read_array_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);
@@ -447,7 +447,7 @@ namespace schwa {
     }
 
     template <typename IN>
-    inline size_t
+    inline uint32_t
     read_map_size(IN &in) {
       const int header = in.get();
       const WireType type = header_type(header);

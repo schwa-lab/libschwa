@@ -8,3 +8,4 @@ build
 ext
 ./lib
 tags
+src/lib/schwa/version.cc

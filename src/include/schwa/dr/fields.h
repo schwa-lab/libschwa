@@ -13,7 +13,7 @@ namespace schwa {
       T start;
       T stop;
 
-      Slice(void) { }
+      Slice(void) : start(T()), stop(T()) { }
       Slice(const T &start, const T &stop) : start(start), stop(stop) { }
     };
 

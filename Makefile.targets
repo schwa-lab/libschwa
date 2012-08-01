@@ -19,7 +19,7 @@ TEST_BINARIES = $(UNIT_TEST_BINARY)
 GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends install release test wc src/lib/schwa/version.cc
+.PHONY: all clean depends install release sharedlibs test wc src/lib/schwa/version.cc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
@@ -30,7 +30,7 @@ clean:
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	src/scripts/depends "$(CXX) -std=c++0x -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/depends "$(CXX) -std=c++11 -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 install:
 	install -d -v $(DESTDIR)$(prefix)/{bin,include,lib}
@@ -53,8 +53,10 @@ install:
 release:
 	src/scripts/make-release $(RELEASE_VERSION)
 
+sharedlibs: $(SHARED_LIBS)
+
 wc:
-	find src -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | xargs wc -l
+	find src/{include,lib,main} -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l
 
 
 # -------------------------------------------------------------------------------
@@ -79,11 +81,11 @@ lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
 # generated sources
 # -------------------------------------------------------------------------------
 ifdef RELEASE_VERSION
-src/lib/schwa/version.cc:
-	@echo 'namespace schwa { const char *const VERSION = "$(RELEASE_VERSION) (release)"; }' > $@
+src/lib/schwa/version.cc: .force
+	@echo 'namespace schwa { const char *VERSION = "$(RELEASE_VERSION) (release)"; }' > $@
 else
-src/lib/schwa/version.cc:
-	@echo 'namespace schwa { const char *const VERSION = "git:' $(shell git log --pretty=format:'%h' -n 1) ' (develop)"; }' > $@
+src/lib/schwa/version.cc: .force
+	@echo 'namespace schwa { const char *VERSION = "git:' $(shell git log --pretty=format:'%h' -n 1) ' (develop)"; }' > $@
 endif
 
 src/lib/schwa/tokenizer/tokenizer.o: src/lib/schwa/tokenizer/tokenizer.cc
@@ -107,3 +109,5 @@ tests: $(UNIT_TEST_BINARY)
 test: tests
 	LD_LIBRARY_PATH=lib:ext/lib $(UNIT_TEST_BINARY)
 
+
+.force:

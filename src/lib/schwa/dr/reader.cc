@@ -83,6 +83,11 @@ Reader::read(Doc &doc) {
           throw ReaderException(msg.str());
         }
       }
+      if (field_name.empty()) {
+        std::stringstream msg;
+        msg << "Field number " << (f + 1) << " did not contain a NAME key";
+        throw ReaderException(msg.str());
+      }
 
       // see if the read in field exists on the registered class's schema
       RTFieldDef *rtfield;
@@ -104,14 +109,14 @@ Reader::read(Doc &doc) {
 
         // perform some sanity checks that the type of data on the stream is what we're expecting
         if (def != nullptr) {
-          if (is_pointer && !def->is_pointer) {
+          if (is_pointer != def->is_pointer) {
             std::stringstream msg;
-            msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_POINTER on the stream, but not on the class's field";
+            msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_POINTER as " << is_pointer << " on the stream, but " << def->is_pointer << " on the class's field";
             throw ReaderException(msg.str());
           }
-          if (is_slice && !def->is_slice) {
+          if (is_slice != def->is_slice) {
             std::stringstream msg;
-            msg << "Field '" << field_name << "' of class '" << klass_name << "' is marked as IS_SLICE on the stream, but not on the class's field";
+            msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_SLICE as " << is_slice << " on the stream, but " << def->is_slice << " on the class's field";
             throw ReaderException(msg.str());
           }
         }
