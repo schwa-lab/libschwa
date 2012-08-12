@@ -19,7 +19,7 @@ TEST_BINARIES = $(UNIT_TEST_BINARY)
 GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends install release test wc src/lib/schwa/version.cc
+.PHONY: all clean depends install release sharedlibs test wc src/lib/schwa/version.cc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
@@ -52,6 +52,8 @@ install:
 
 release:
 	src/scripts/make-release $(RELEASE_VERSION)
+
+sharedlibs: $(SHARED_LIBS)
 
 wc:
 	find src/{include,lib,main} -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l
