@@ -53,3 +53,17 @@
 	* Append "-mt" to library names in Makefile.macos and setup.py
 		boost_iostreams -> boost_iostreams-mt
 		boost_unit_test_framework -> boost_unit_test_framework-mt
+
+= Building, deploying and installing source distributions =
+
+1: Build a virtualenv
+	virtualenv --distribute ve
+	source ve/bin/activate
+
+2: Build the source distribution (or just run publish.sh)
+	./ve/bin/python setup.py clean sdist
+	cp dist/*gz /n/ch2/var/www/sites/downloads/packages/pypi/schwa
+	./ve/bin/python setup.py clean --all
+
+3: This can be installed in another virtualenv directly or as a "requires" item by pip from the schwa index.
+	./ve/bin/pip install schwa --extra-index-url http://downloads.schwa.org/packages/pypi --upgrade
