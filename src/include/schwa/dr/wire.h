@@ -135,7 +135,7 @@ namespace schwa {
           const size_t b = val.stop - &front;
           mp::write_array_size(out, 2);
           mp::write_uint(out, a);
-          mp::write_uint(out, b - a - 1);
+          mp::write_uint(out, b - a);
         }
 
         template <typename IN>
@@ -146,7 +146,7 @@ namespace schwa {
           const size_t offset = mp::read_uint(in);
           const size_t delta = mp::read_uint(in);
           val.start = &front + offset;
-          val.stop = &front + (offset + delta + 1);
+          val.stop = &front + (offset + delta);
         }
       };
 

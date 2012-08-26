@@ -15,7 +15,8 @@
   # unicode U+201b single high-reversed-9 quotation mark
   # "has same semantic as U+2018, but differs in appearance"
   # unicode U+275b heavy single turned comma quotation mark ornament
-  unicode_2018 = 0xe2 0x80 0x98 | "&#8216;" | "&#x2018;"i | "&lsquo;" | 0x91;
+  # Fairfax appears to use 0x18 as a left single quote (may be an db/encoding error)
+  unicode_2018 = 0xe2 0x80 0x98 | "&#8216;" | "&#x2018;"i | "&lsquo;" | 0x91 | 0x18;
   unicode_201b = 0xe2 0x80 0x9b | "&#8219;" | "&#x201b;"i;
   unicode_275b = 0xe2 0x9d 0x9b | "&#10075;" | "&#x275b;"i;
   open_single_quote = "`" | unicode_2018 | unicode_201b | unicode_275b;
@@ -23,11 +24,12 @@
   # unicode U+2019 right single quotation mark
   # windows 1250-1258 code pages 0x92 -> unicode U+2019
   # unicode U+275c heavy single comma quotation mark ornament
-  unicode_2019 = 0xe2 0x80 0x99 | "&#8217;" | "&#x2019;"i | "&rsquo;" | 0x92;
+  # Fairfax appears to use 0x19 as a right single quote (may be an db/encoding error)
+  unicode_2019 = 0xe2 0x80 0x99 | "&#8217;" | "&#x2019;"i | "&rsquo;" | 0x92 | 0x19;
   unicode_275c = 0xe2 0x9d 0x9c | "&#10076;" | "&#x275c;"i;
   close_single_quote = unicode_2019 | unicode_275c;
 
-  possessive = ("'s"i @s2 | "&#39;s"i @s6 | "&apos;" "s"i @s7 | 0xe2 0x80 0x99 "s"i @s4 | "&#8217;" "s"i @s8 | "&#x2019;s"i @s9 | "&rsquo;" "s"i @s8 | 0x91 "s"i @s2) @{n2="'s";};
+  possessive = ("'s"i @s2 | "&#39;s"i @s6 | "&apos;" "s"i @s7 | 0xe2 0x80 0x99 "s"i @s4 | "&#8217;" "s"i @s8 | "&#x2019;s"i @s9 | "&rsquo;" "s"i @s8 | 0x91 "s"i @s2 | 0x92 "s"i @s2 | 0x19 "s"i @s2) @{n2="'s";};
 
   # PTB and LaTeX convention of double back quotes
   # unicode U+201C left double quotation mark
