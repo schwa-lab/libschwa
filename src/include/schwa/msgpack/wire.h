@@ -120,6 +120,10 @@ namespace schwa {
     template <typename OUT> inline void write_raw(OUT &out, const std::string &data);
     template <typename OUT> inline void write_raw(OUT &out, const char *const data, const size_t size);
 
+    template <typename OUT, typename T> inline void write_bytes_8(OUT &out, const T _x);
+    template <typename OUT, typename T> inline void write_bytes_16(OUT &out, const T _x);
+    template <typename OUT, typename T> inline void write_bytes_32(OUT &out, const T _x);
+
     template <typename OUT> inline void write_int_fixed(OUT &out, const int8_t x);
     template <typename OUT> inline void write_int8(OUT &out, const int8_t x);
     template <typename OUT> inline void write_int16(OUT &out, const int16_t x);
@@ -548,11 +552,13 @@ namespace schwa {
         break;
       case WireType::ARRAY_16:
         read_bytes16(in, s16);
+        write_bytes_16(out, s16);
         s32 = s16;
         recurse = true;
         break;
       case WireType::ARRAY_32:
         read_bytes32(in, s32);
+        write_bytes_32(out, s32);
         recurse = true;
         break;
       case WireType::MAP_FIXED:
@@ -562,11 +568,13 @@ namespace schwa {
         break;
       case WireType::MAP_16:
         read_bytes16(in, s16);
+        write_bytes_16(out, s16);
         s32 = 2 * s16;
         recurse = true;
         break;
       case WireType::MAP_32:
         read_bytes32(in, s32);
+        write_bytes_32(out, s32);
         s32 *= 2;
         recurse = true;
         break;
@@ -576,11 +584,13 @@ namespace schwa {
         break;
       case WireType::RAW_16:
         read_bytes16(in, s16);
+        write_bytes_16(out, s16);
         s32 = s16;
         raw = true;
         break;
       case WireType::RAW_32:
         read_bytes32(in, s32);
+        write_bytes_32(out, s32);
         raw = true;
         break;
       case WireType::RESERVED:
