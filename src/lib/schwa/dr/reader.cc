@@ -172,7 +172,15 @@ Reader::read(Doc &doc) {
     // ensure that the stream store and the static store agree on the klass they're storing
     if (!rtstore->is_lazy()) {
       const TypeInfo &store_ptr_type = def->pointer_type();
+
+      if (rt.klasses[klass_id]->def == nullptr) {
+        std::stringstream msg;
+        msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the store on the stream points to a lazy type.";
+        throw ReaderException(msg.str());
+      }
+
       const TypeInfo &klass_ptr_type = rt.klasses[klass_id]->def->type;
+
       if (store_ptr_type != klass_ptr_type) {
         std::stringstream msg;
         msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the stream says it points to " << klass_ptr_type;
