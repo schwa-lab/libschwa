@@ -191,20 +191,24 @@ Reader::read(Doc &doc) {
       if (field->pointer != nullptr) {
         // sanity check on the value of store_id
         const size_t store_id = reinterpret_cast<size_t>(field->pointer);
-        if (store_id >= klass->stores.size()) {
+        if (store_id >= rt.doc->stores.size()) {
           std::stringstream msg;
-          msg << "store_id value " << store_id << " >= number of stores (" << klass->stores.size() << ")";
+          msg << "store_id value " << store_id << " >= number of stores (" << rt.doc->stores.size() << ")";
           throw ReaderException(msg.str());
         }
-        const RTStoreDef *const store = klass->stores[store_id];
+        const RTStoreDef *const store = rt.doc->stores[store_id];
 
-        // ensure they point to the same type
-        const ptrdiff_t field_store_offset = field->def->store_offset(nullptr);
-        const ptrdiff_t store_store_offset = store->def->store_offset(nullptr);
-        if (field_store_offset != store_store_offset) {
-          std::stringstream msg;
-          msg << "field_store_offset (" << field_store_offset << ") != store_store_offset (" << store_store_offset << ")";
-          throw ReaderException(msg.str());
+        if (!field->is_lazy()) {
+          // ensure they point to the same type
+          assert(field->def != nullptr);
+          assert(store->def != nullptr);
+          const ptrdiff_t field_store_offset = field->def->store_offset(nullptr);
+          const ptrdiff_t store_store_offset = store->def->store_offset(nullptr);
+          if (field_store_offset != store_store_offset) {
+            std::stringstream msg;
+            msg << "field_store_offset (" << field_store_offset << ") != store_store_offset (" << store_store_offset << ")";
+            throw ReaderException(msg.str());
+          }
         }
 
         // update the field pointer value
