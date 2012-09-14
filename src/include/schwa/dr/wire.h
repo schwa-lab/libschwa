@@ -118,7 +118,7 @@ namespace schwa {
           const size_t nitems = mp::read_uint(in);
           for (size_t i = 0; i != nitems; ++i) {
             const size_t offset = mp::read_uint(in);
-            val.items.push_back(&front + reinterpret_cast<T *>(offset));
+            val.items.push_back(&front + offset);
           }
         }
       };
