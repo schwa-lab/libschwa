@@ -100,6 +100,30 @@ namespace schwa {
       };
 
 
+      template <typename T>
+      struct WireTraits<Pointers<T>> {
+        static inline bool should_write(const Pointers<T> &val) { return val.items.size() != 0; }
+
+        template <typename OUT>
+        static inline void
+        write(OUT &out, const Pointers<T> &val, const T &front) {
+          mp::write_array_size(out, val.items.size());
+          for (auto &it : val.items)
+            mp::write_uint(out, it - &front);
+        }
+
+        template <typename IN>
+        static inline void
+        read(IN &in, Pointers<T> &val, T &front) {
+          const size_t nitems = mp::read_uint(in);
+          for (size_t i = 0; i != nitems; ++i) {
+            const size_t offset = mp::read_uint(in);
+            val.items.push_back(&front + reinterpret_cast<T *>(offset));
+          }
+        }
+      };
+
+
       template <typename T, bool IS_POINTER>
       struct WireTraitsSliceTraits {
         static inline bool should_write(const Slice<T> &val) { return !(val.start == T() && val.stop == T()); }
