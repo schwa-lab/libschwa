@@ -10,12 +10,12 @@ namespace schwa {
     class RTFieldDef {
     public:
       const BaseFieldDef *def;
-      const RTStoreDef *pointer;
+      const RTStoreDef *points_into;
       std::string serial;
       uint32_t field_id;
       bool is_slice;
 
-      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *pointer, bool is_slice, const BaseFieldDef *def=nullptr);
+      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, const BaseFieldDef *def=nullptr);
       RTFieldDef(const RTFieldDef &&o);
       ~RTFieldDef(void) { }
 

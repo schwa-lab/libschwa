@@ -9,14 +9,14 @@ namespace schwa { namespace dr {
 // ============================================================================
 // RTFieldDef
 // ============================================================================
-RTFieldDef::RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *pointer, bool is_slice, const BaseFieldDef *def) : def(def), pointer(pointer), serial(serial), field_id(field_id), is_slice(is_slice) { }
+RTFieldDef::RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, const BaseFieldDef *def) : def(def), points_into(points_into), serial(serial), field_id(field_id), is_slice(is_slice) { }
 
-RTFieldDef::RTFieldDef(const RTFieldDef &&o) : def(o.def), pointer(o.pointer), serial(o.serial), field_id(o.field_id), is_slice(o.is_slice) { }
+RTFieldDef::RTFieldDef(const RTFieldDef &&o) : def(o.def), points_into(o.points_into), serial(o.serial), field_id(o.field_id), is_slice(o.is_slice) { }
 
 std::ostream &
 RTFieldDef::dump(std::ostream &out) const {
   out << "[RTFieldDef " << this << " id=" << field_id << " serial='" << serial << "'";
-  out << " def=" << def << " pointer=" << pointer << " is_slice=" << is_slice << "]";
+  out << " def=" << def << " points_into=" << points_into << " is_slice=" << is_slice << "]";
   return out;
 }
 
@@ -116,10 +116,10 @@ merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::m
     RTFieldDef *rtfield;
     const auto &it = known_fields.find(field->name);
     if (it == known_fields.end()) {
-      const RTStoreDef *pointer = nullptr;
+      const RTStoreDef *points_into = nullptr;
       if (field->is_pointer)
-        pointer = store_offsets.find(field->store_offset(nullptr))->second;
-      rtfield = new RTFieldDef(field_id, field->serial, pointer, field->is_slice, field);
+        points_into = store_offsets.find(field->store_offset(nullptr))->second;
+      rtfield = new RTFieldDef(field_id, field->serial, points_into, field->is_slice, field);
       assert(rtfield != nullptr);
       rtschema.fields.push_back(rtfield);
       ++field_id;

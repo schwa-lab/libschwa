@@ -116,16 +116,6 @@ namespace schwa {
     };
 
 
-    template <typename T>
-    class Singleton {
-    public:
-      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
-      T *ptr;
-
-      Singleton(T *ptr=nullptr) : ptr(ptr) { }
-    };
-
-
     // ========================================================================
     // FieldTraits
     // ========================================================================

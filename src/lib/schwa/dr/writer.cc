@@ -58,7 +58,7 @@ Writer::write(const Doc &doc) {
     mp::write_array_size(_out, schema->fields.size());
     for (auto &field : schema->fields) {
       // <field> ::= { <field_type> : <field_val> }
-      const uint32_t nelem = 1 + (field->pointer != nullptr) + field->is_slice;
+      const uint32_t nelem = 1 + (field->points_into != nullptr) + field->is_slice;
       mp::write_map_size(_out, nelem);
 
       // <field_type> ::= 0 # NAME => the name of the field
@@ -66,9 +66,9 @@ Writer::write(const Doc &doc) {
       mp::write_raw(_out, field->is_lazy() ? field->serial : field->def->serial);
 
       // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
-      if (field->pointer != nullptr) {
+      if (field->points_into != nullptr) {
         mp::write_uint_fixed(_out, 1);
-        mp::write_uint(_out, field->pointer->store_id);
+        mp::write_uint(_out, field->points_into->store_id);
       }
 
       // <field_type> ::= 2 # IS_SLICE => whether or not this field is a "Slice" field

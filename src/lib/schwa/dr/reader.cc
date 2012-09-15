@@ -196,9 +196,9 @@ Reader::read(Doc &doc) {
   // back-fill each of the pointer fields to point to the actual RTStoreDef instance
   for (auto &klass : rt.klasses) {
     for (auto &field : klass->fields) {
-      if (field->pointer != nullptr) {
+      if (field->points_into != nullptr) {
         // sanity check on the value of store_id
-        const size_t store_id = reinterpret_cast<size_t>(field->pointer);
+        const size_t store_id = reinterpret_cast<size_t>(field->points_into);
         if (store_id >= rt.doc->stores.size()) {
           std::stringstream msg;
           msg << "store_id value " << store_id << " >= number of stores (" << rt.doc->stores.size() << ")";
@@ -220,7 +220,7 @@ Reader::read(Doc &doc) {
         }
 
         // update the field pointer value
-        field->pointer = store;
+        field->points_into = store;
       }
     }
   }

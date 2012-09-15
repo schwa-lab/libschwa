@@ -21,48 +21,58 @@ namespace schwa {
     // ========================================================================
     class BaseDef {
     public:
-      typedef void (*reader_type)(io::ArrayReader &in, void *, void *);
-      typedef bool (*writer_type)(io::WriteBuffer &out, const uint32_t, const void *, const void *);
-
       const std::string name;
       const std::string help;
       const FieldMode mode;
       std::string serial;
-      reader_type reader;
-      writer_type writer;
 
     protected:
-      BaseDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : name(name), help(help), mode(mode), serial(serial), reader(nullptr), writer(nullptr) {
-        if (mode == FieldMode::STREAM_ONLY)
-          throw ValueException("Invalid `mode' value: must either be READ_WRITE, READ_ONLY, or DELETE");
-      }
+      BaseDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial);
 
     public:
       virtual ~BaseDef(void) { }
 
-      virtual const TypeInfo &pointer_type(void) const { return *static_cast<const TypeInfo *>(nullptr); }
+      virtual const TypeInfo &pointer_type(void) const = 0;
       virtual ptrdiff_t store_offset(const Doc *) const = 0;
     };
 
 
     class BaseFieldDef : public BaseDef {
     public:
+      typedef void (*reader_type)(io::ArrayReader &in, void *, void *);
+      typedef bool (*writer_type)(io::WriteBuffer &, const uint32_t, const void *, const void *);
+
       const bool is_pointer;
+      const bool is_self_pointer;
       const bool is_slice;
+      reader_type reader;
+      writer_type writer;
 
     protected:
-      BaseFieldDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial, const bool is_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_slice(is_slice) { }
+      BaseFieldDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial, const bool is_pointer, const bool is_self_pointer, const bool is_slice);
 
     public:
       virtual ~BaseFieldDef(void) { }
 
-      ptrdiff_t store_offset(const Doc *) const { assert(!"this should never be invoked"); return -1; }
+      const TypeInfo &
+      pointer_type(void) const override {
+        assert(!"this should never be invoked");
+        return *static_cast<const TypeInfo *>(nullptr);
+      }
+
+      ptrdiff_t
+      store_offset(const Doc *) const override {
+        assert(!"this should never be invoked");
+        return -1;
+      }
     };
 
 
     class BaseStoreDef : public BaseDef {
     protected:
-      BaseStoreDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseDef(name, help, mode, serial) { }
+      typedef void (*writer_type)(io::WriteBuffer &, const Doc &, const RTSchema &, const void *const);
+
+      BaseStoreDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial);
 
     public:
       virtual ~BaseStoreDef(void) { }
@@ -70,7 +80,7 @@ namespace schwa {
       virtual void resize(Doc &doc, const size_t size) const = 0;
 
       virtual size_t size(const Doc &doc) const = 0;
-      virtual void write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const RTSchema &, const void *const)) const = 0;
+      virtual void write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, writer_type writer) const = 0;
 
       virtual char *read_begin(Doc &_doc) const = 0;
       virtual size_t read_size(void) const = 0;
@@ -92,7 +102,7 @@ namespace schwa {
       typedef T annotation_type;
 
       FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDef(schema, name, help, mode, name) { }
-      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, FieldTraits<R>::is_slice) {
+      FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, false, FieldTraits<R>::is_slice) {
         schema.add(this);
       }
       virtual ~FieldDef(void) { }
@@ -118,13 +128,47 @@ namespace schwa {
 
     public:
       FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDefWithStore(schema, name, help, mode, name) { }
-      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
+      FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, true, false, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<S>()) {
         schema.add(this);
       }
       virtual ~FieldDefWithStore(void) { }
 
-      const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc); }
+      const TypeInfo &
+      pointer_type(void) const override {
+        return _pointer_type;
+      }
+
+      ptrdiff_t
+      store_offset(const Doc *doc) const override {
+        return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc);
+      }
+    };
+
+
+    template <typename T1, T1 fn1>
+    class FieldDefWithSelfStore;
+
+    template <typename R, typename T, R T::*field_ptr>
+    class FieldDefWithSelfStore<R T::*, field_ptr> : public BaseFieldDef {
+    public:
+      static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_SELF must be used with schwa::dr field types only");
+      typedef R value_type;
+      typedef T annotation_type;
+
+    private:
+      const TypeInfo _pointer_type;
+
+    public:
+      FieldDefWithSelfStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDefWithSelfStore(schema, name, help, mode, name) { }
+      FieldDefWithSelfStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseFieldDef(name, help, mode, serial, false, true, FieldTraits<R>::is_slice), _pointer_type(TypeInfo::create<R>()) {
+        schema.add(this);
+      }
+      virtual ~FieldDefWithSelfStore(void) { }
+
+      const TypeInfo &
+      pointer_type(void) const override {
+        return _pointer_type;
+      }
     };
 
 
@@ -147,23 +191,40 @@ namespace schwa {
       }
       virtual ~StoreDef(void) { }
 
-      void resize(Doc &doc, const size_t size) const { (static_cast<T &>(doc).*store_ptr).resize(size); }
-
-      const TypeInfo &pointer_type(void) const { return _pointer_type; }
-      size_t size(const Doc &doc) const { return (static_cast<const T &>(doc).*store_ptr).size(); }
-      ptrdiff_t store_offset(const Doc *doc) const { return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc); }
+      const TypeInfo &
+      pointer_type(void) const override {
+        return _pointer_type;
+      }
 
       char *
-      read_begin(Doc &_doc) const {
+      read_begin(Doc &_doc) const override {
         T &doc = static_cast<T &>(_doc);
         Store<S> &store = doc.*store_ptr;
         return reinterpret_cast<char *>(&store[0]);
       }
 
-      inline size_t read_size(void) const { return sizeof(S); }
+      inline size_t
+      read_size(void) const override {
+        return sizeof(S);
+      }
+
+      inline void
+      resize(Doc &doc, const size_t size) const override {
+        (static_cast<T &>(doc).*store_ptr).resize(size);
+      }
+
+      inline size_t
+      size(const Doc &doc) const override {
+        return (static_cast<const T &>(doc).*store_ptr).size();
+      }
+
+      ptrdiff_t
+      store_offset(const Doc *doc) const override {
+        return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc);
+      }
 
       void
-      write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, void (*writer)(io::WriteBuffer &, const Doc &, const RTSchema &, const void *const)) const {
+      write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, writer_type writer) const override {
         namespace mp = schwa::msgpack;
         const T &doc = static_cast<const T &>(_doc);
         const Store<S> &store = doc.*store_ptr;
