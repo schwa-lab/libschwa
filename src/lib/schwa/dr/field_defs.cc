@@ -10,7 +10,7 @@ BaseDef::BaseDef(const std::string &name, const std::string &help, const FieldMo
 }
 
 
-BaseFieldDef::BaseFieldDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial, const bool is_pointer, const bool is_self_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_self_pointer(is_self_pointer), is_slice(is_slice), reader(nullptr), writer(nullptr) { }
+BaseFieldDef::BaseFieldDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial, const bool is_pointer, const bool is_self_pointer, const bool is_slice) : BaseDef(name, help, mode, serial), is_pointer(is_pointer), is_self_pointer(is_self_pointer), is_slice(is_slice) { }
 
 
 BaseStoreDef::BaseStoreDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) : BaseDef(name, help, mode, serial) { }

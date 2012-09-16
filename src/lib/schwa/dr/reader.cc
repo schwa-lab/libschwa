@@ -275,7 +275,7 @@ Reader::read(Doc &doc) {
       }
       else {
         const char *const before = reader.upto();
-        field.def->reader(reader, static_cast<void *>(&doc), static_cast<void *>(&doc));
+        field.def->read_field(reader, &doc, nullptr, &doc);
         const char *const after = reader.upto();
 
         // keep a lazy serialized copy of the field if required
@@ -348,8 +348,9 @@ Reader::read(Doc &doc) {
     io::UnsafeArrayWriter lazy_writer(lazy_bytes);
 
     // get pointers to the vector of Ann instances
-    char *objects = store->def->read_begin(doc);
-    const size_t objects_delta = store->def->read_size();
+    char *objects = store->def->store_begin(doc);
+    char *const objects_begin = objects;
+    const size_t objects_delta = store->def->store_object_size();
 
     // <instances> ::= [ <instance> ]
     const uint32_t ninstances = mp::read_array_size(reader);
@@ -372,7 +373,7 @@ Reader::read(Doc &doc) {
         }
         else {
           const char *const before = reader.upto();
-          field.def->reader(reader, objects, static_cast<void *>(&doc));
+          field.def->read_field(reader, objects, objects_begin, static_cast<void *>(&doc));
           const char *const after = reader.upto();
 
           // keep a lazy serialized copy of the field if required

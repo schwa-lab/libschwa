@@ -39,14 +39,9 @@ namespace schwa {
 
     class BaseFieldDef : public BaseDef {
     public:
-      typedef void (*reader_type)(io::ArrayReader &in, void *, void *);
-      typedef bool (*writer_type)(io::WriteBuffer &, const uint32_t, const void *, const void *);
-
       const bool is_pointer;
       const bool is_self_pointer;
       const bool is_slice;
-      reader_type reader;
-      writer_type writer;
 
     protected:
       BaseFieldDef(const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial, const bool is_pointer, const bool is_self_pointer, const bool is_slice);
@@ -65,6 +60,9 @@ namespace schwa {
         assert(!"this should never be invoked");
         return -1;
       }
+
+      virtual void read_field(io::ArrayReader &in, void *const _ann, void *const _store, void *const _doc) const = 0;
+      virtual bool write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const _store, const void *const _doc) const = 0;
     };
 
 
@@ -80,10 +78,9 @@ namespace schwa {
       virtual void resize(Doc &doc, const size_t size) const = 0;
 
       virtual size_t size(const Doc &doc) const = 0;
-      virtual void write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, writer_type writer) const = 0;
 
-      virtual char *read_begin(Doc &_doc) const = 0;
-      virtual size_t read_size(void) const = 0;
+      virtual char *store_begin(const Doc &_doc) const = 0;
+      virtual size_t store_object_size(void) const = 0;
     };
 
 
@@ -93,8 +90,8 @@ namespace schwa {
     template <typename T, T fn>
     class FieldDef;
 
-    template <typename R, typename T, R T::*member_obj_ptr>
-    class FieldDef<R T::*, member_obj_ptr> : public BaseFieldDef {
+    template <typename R, typename T, R T::*field_ptr>
+    class FieldDef<R T::*, field_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == false, "DR_FIELD must be used with POD fields only. Use DR_POINTER for schwa::dr field types instead.");
       static_assert(FieldTraits<R>::is_pod_ptr == false, "Fields cannot be POD pointers. Use schwa::dr::Pointer<T> instead.");
@@ -106,6 +103,25 @@ namespace schwa {
         schema.add(this);
       }
       virtual ~FieldDef(void) { }
+
+      virtual void
+      read_field(io::ArrayReader &in, void *const _ann, void *const, void *const) const override {
+        T &ann = *static_cast<T *>(_ann);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val);
+      }
+
+      virtual bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const) const override {
+        const T &ann = *static_cast<const T *>(_ann);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val);
+          return true;
+        }
+        return false;
+      }
     };
 
 
@@ -142,6 +158,27 @@ namespace schwa {
       store_offset(const Doc *doc) const override {
         return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc);
       }
+
+      virtual void
+      read_field(io::ArrayReader &in, void *const _ann, void *const, void *const _doc) const override {
+        D &doc = *static_cast<D *>(_doc);
+        T &ann = *static_cast<T *>(_ann);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val, (doc.*store_ptr).front());
+      }
+
+      virtual bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const _doc) const override {
+        const D &doc = *static_cast<const D *>(_doc);
+        const T &ann = *static_cast<const T *>(_ann);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val, (doc.*store_ptr).front());
+          return true;
+        }
+        return false;
+      }
     };
 
 
@@ -152,6 +189,7 @@ namespace schwa {
     class FieldDefWithSelfStore<R T::*, field_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_SELF must be used with schwa::dr field types only");
+      static_assert(boost::is_same<typename FieldTraits<R>::value_type, T>::value, "DR_SELF must be used on recursive pointers only");
       typedef R value_type;
       typedef T annotation_type;
 
@@ -168,6 +206,25 @@ namespace schwa {
       const TypeInfo &
       pointer_type(void) const override {
         return _pointer_type;
+      }
+
+      virtual void
+      read_field(io::ArrayReader &in, void *const _ann, void *const _store, void *const) const override {
+        T &ann = *static_cast<T *>(_ann);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val, *static_cast<T *>(_store));
+      }
+
+      virtual bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const _store, const void *const) const override {
+        const T &ann = *static_cast<const T *>(_ann);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val, *static_cast<const T *>(_store));
+          return true;
+        }
+        return false;
       }
     };
 
@@ -197,14 +254,14 @@ namespace schwa {
       }
 
       char *
-      read_begin(Doc &_doc) const override {
-        T &doc = static_cast<T &>(_doc);
-        Store<S> &store = doc.*store_ptr;
-        return reinterpret_cast<char *>(&store[0]);
+      store_begin(const Doc &_doc) const override {
+        const T &doc = static_cast<const T &>(_doc);
+        const Store<S> &store = doc.*store_ptr;
+        return const_cast<char *>(reinterpret_cast<const char *>(&store[0]));
       }
 
       inline size_t
-      read_size(void) const override {
+      store_object_size(void) const override {
         return sizeof(S);
       }
 
@@ -222,23 +279,12 @@ namespace schwa {
       store_offset(const Doc *doc) const override {
         return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc);
       }
-
-      void
-      write(io::WriteBuffer &out, const Doc &_doc, const RTSchema &schema, writer_type writer) const override {
-        namespace mp = schwa::msgpack;
-        const T &doc = static_cast<const T &>(_doc);
-        const Store<S> &store = doc.*store_ptr;
-
-        // <instances> ::= [ <instance> ]
-        mp::write_array_size(out, store.size());
-        for (auto &obj : store)
-          writer(out, _doc, schema, &obj);
-      }
     };
 
 
     #define DR_FIELD(member_obj_ptr)                  schwa::dr::FieldDef<decltype(member_obj_ptr), member_obj_ptr>
     #define DR_POINTER(member_obj_ptr, store_obj_ptr) schwa::dr::FieldDefWithStore<decltype(member_obj_ptr), member_obj_ptr, decltype(store_obj_ptr), store_obj_ptr>
+    #define DR_SELF(member_obj_ptr)                   schwa::dr::FieldDefWithSelfStore<decltype(member_obj_ptr), member_obj_ptr>
     #define DR_STORE(member_obj_ptr)                  schwa::dr::StoreDef<decltype(member_obj_ptr), member_obj_ptr>
 
   }

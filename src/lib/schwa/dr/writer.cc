@@ -7,14 +7,14 @@ namespace mp = schwa::msgpack;
 namespace schwa { namespace dr {
 
 static void
-write_instance(io::WriteBuffer &out, const Doc &doc, const RTSchema &schema, const void *const obj) {
+write_instance(io::WriteBuffer &out, const void *const obj, const void *const store, const Doc &doc, const RTSchema &schema) {
   io::WriteBuffer buf;
   const Lazy *const lazy_obj = reinterpret_cast<const Lazy *>(obj);
 
   uint32_t nfields_new = 0;
   for (auto &field : schema.fields) {
     if (!field->is_lazy() && field->def->mode == FieldMode::READ_WRITE) {
-      const bool wrote = field->def->writer(buf, field->field_id, obj, static_cast<const void *>(&doc));
+      const bool wrote = field->def->write_field(buf, field->field_id, obj, store, &doc);
       if (wrote)
         ++nfields_new;
     }
@@ -93,7 +93,7 @@ Writer::write(const Doc &doc) {
   // <doc_instance> ::= <instances_nbytes> <instance>
   {
     io::WriteBuffer buf;
-    write_instance(buf, doc, *rtdschema, &doc);
+    write_instance(buf, &doc, nullptr, doc, *rtdschema);
     mp::write_uint(_out, buf.size());
     buf.copy_to(_out);
   }
@@ -107,7 +107,19 @@ Writer::write(const Doc &doc) {
     }
     else {
       io::WriteBuffer buf;
-      store->def->write(buf, doc, *store->klass, &write_instance);
+
+      char *objects = store->def->store_begin(doc);
+      char *const objects_begin = objects;
+      const size_t objects_delta = store->def->store_object_size();
+      const size_t nitems = store->def->size(doc);
+
+      // <instances> ::= [ <instance> ]
+      msgpack::write_array_size(buf, nitems);
+      for (size_t i = 0; i != nitems; ++i) {
+        write_instance(buf, objects, objects_begin, doc, *store->klass);
+        objects += objects_delta;
+      }
+
       mp::write_uint(_out, buf.size());
       buf.copy_to(_out);
     }

@@ -41,21 +41,7 @@ namespace schwa {
     public:
       virtual ~BaseSchema(void) { }
 
-      template <typename T, T fn>
-      inline void add(FieldDef<T, fn> *const field) {
-        typedef FieldDef<T, fn> F;
-        field->reader = &wire::read_field<io::ArrayReader, typename F::value_type, typename F::annotation_type, fn>;
-        field->writer = &wire::write_field<io::WriteBuffer, typename F::value_type, typename F::annotation_type, fn>;
-        _fields.push_back(field);
-      }
-
-      template <typename T1, T1 fn1, typename T2, T2 fn2>
-      inline void add(FieldDefWithStore<T1, fn1, T2, fn2> *const field) {
-        typedef FieldDefWithStore<T1, fn1, T2, fn2> F;
-        field->reader = &wire::read_field<io::ArrayReader, typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>;
-        field->writer = &wire::write_field<io::WriteBuffer, typename F::value_type, typename F::annotation_type, typename F::store_type, typename F::doc_type, fn1, fn2>;
-        _fields.push_back(field);
-      }
+      inline void add(BaseFieldDef *const field) { _fields.push_back(field); }
 
       inline const field_container &fields(void) const { return _fields; }
 
