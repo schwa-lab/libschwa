@@ -40,6 +40,9 @@ Writer::write(const Doc &doc) {
     rt = merge_rt(doc._rt, _dschema);
   const RTSchema *const rtdschema = rt->doc;
 
+  // <wire_version>
+  mp::write_uint(_out, WIRE_VERSION);
+
   // <klasses> ::= [ <klass> ]
   mp::write_array_size(_out, rt->klasses.size());
   for (auto &schema : rt->klasses) {
@@ -74,7 +77,13 @@ Writer::write(const Doc &doc) {
       // <field_type> ::= 2 # IS_SLICE => whether or not this field is a "Slice" field
       if (field->is_slice) {
         mp::write_uint_fixed(_out, 2);
-        mp::write_bool(_out, true);
+        mp::write_nil(_out);
+      }
+
+      // <field_type>  ::= 3 # IS_SELF_POINTER => whether or not this field is a self-pointer. POINTER_TO and IS_SELF_POINTER are mutually exclusive.
+      if (field->is_self_pointer) {
+        mp::write_uint_fixed(_out, 3);
+        mp::write_nil(_out);
       }
     } // for each field
   } // for each klass

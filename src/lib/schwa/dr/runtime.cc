@@ -9,14 +9,15 @@ namespace schwa { namespace dr {
 // ============================================================================
 // RTFieldDef
 // ============================================================================
-RTFieldDef::RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, const BaseFieldDef *def) : def(def), points_into(points_into), serial(serial), field_id(field_id), is_slice(is_slice) { }
+RTFieldDef::RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, const BaseFieldDef *def) : def(def), points_into(points_into), serial(serial), field_id(field_id), is_slice(is_slice), is_self_pointer(is_self_pointer) { }
 
-RTFieldDef::RTFieldDef(const RTFieldDef &&o) : def(o.def), points_into(o.points_into), serial(o.serial), field_id(o.field_id), is_slice(o.is_slice) { }
+RTFieldDef::RTFieldDef(const RTFieldDef &&o) : def(o.def), points_into(o.points_into), serial(o.serial), field_id(o.field_id), is_slice(o.is_slice), is_self_pointer(o.is_self_pointer) { }
 
 std::ostream &
 RTFieldDef::dump(std::ostream &out) const {
   out << "[RTFieldDef " << this << " id=" << field_id << " serial='" << serial << "'";
-  out << " def=" << def << " points_into=" << points_into << " is_slice=" << is_slice << "]";
+  out << " def=" << def << " points_into=" << points_into << " is_slice=" << is_slice;
+  out << " is_self_pointer=" << is_self_pointer << "]";
   return out;
 }
 
@@ -119,7 +120,7 @@ merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::m
       const RTStoreDef *points_into = nullptr;
       if (field->is_pointer)
         points_into = store_offsets.find(field->store_offset(nullptr))->second;
-      rtfield = new RTFieldDef(field_id, field->serial, points_into, field->is_slice, field);
+      rtfield = new RTFieldDef(field_id, field->serial, points_into, field->is_slice, field->is_self_pointer, field);
       assert(rtfield != nullptr);
       rtschema.fields.push_back(rtfield);
       ++field_id;

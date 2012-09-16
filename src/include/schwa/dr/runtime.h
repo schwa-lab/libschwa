@@ -13,9 +13,10 @@ namespace schwa {
       const RTStoreDef *points_into;
       std::string serial;
       uint32_t field_id;
-      bool is_slice;
+      const bool is_slice;
+      const bool is_self_pointer;
 
-      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, const BaseFieldDef *def=nullptr);
+      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, const BaseFieldDef *def=nullptr);
       RTFieldDef(const RTFieldDef &&o);
       ~RTFieldDef(void) { }
 
@@ -23,6 +24,12 @@ namespace schwa {
 
       std::ostream &dump(std::ostream &out) const;
     };
+
+
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTFieldDef &field) {
+      return field.dump(out);
+    }
 
 
     class RTStoreDef {

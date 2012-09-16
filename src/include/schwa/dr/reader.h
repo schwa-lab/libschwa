@@ -15,6 +15,9 @@ namespace schwa {
 
 
     class Reader {
+    public:
+      static constexpr uint64_t WIRE_VERSION = 2;
+
     protected:
       std::istream &_in;
       BaseDocSchema &_dschema;

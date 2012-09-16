@@ -8,6 +8,9 @@ namespace schwa {
 
 
     class Writer {
+    public:
+      static constexpr uint64_t WIRE_VERSION = 2;
+
     protected:
       std::ostream &_out;
       BaseDocSchema &_dschema;

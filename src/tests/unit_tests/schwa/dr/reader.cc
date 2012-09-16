@@ -170,6 +170,7 @@ BOOST_AUTO_TEST_SUITE(schwa_dr_reader)
 
 BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
   std::stringstream correct;
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: 8-bytes of utf-8 encoded "__meta__"
@@ -199,6 +200,7 @@ BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
 
 BOOST_AUTO_TEST_CASE(DocWithField__name) {
   std::stringstream correct;
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -231,6 +233,7 @@ BOOST_AUTO_TEST_CASE(DocWithField__name) {
 
 BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name_is_null) {
   std::stringstream correct;
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: 8-bytes of utf-8 encoded "__meta__"
@@ -260,6 +263,7 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name_is_null) {
 
 BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name) {
   std::stringstream correct;
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -292,6 +296,7 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name) {
 
 BOOST_AUTO_TEST_CASE(DocWithA__empty) {
   std::stringstream correct;
+  correct << '\x02';  // <wire_version>
   correct << '\x92';  // <klasses>: 2-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -338,6 +343,7 @@ BOOST_AUTO_TEST_CASE(DocWithA__empty) {
 
 BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
   std::stringstream correct;
+  correct << '\x02';  // <wire_version>
   correct << '\x92';  // <klasses>: 2-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -397,93 +403,5 @@ BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
   BOOST_CHECK_EQUAL(static_cast<bool>(reader), false);
   delete doc;
 }
-
-
-#if 0
-BOOST_AUTO_TEST_CASE(DocWithAYZ__empty) {
-  std::stringstream out, correct;
-  DocWithAYZ::Schema schema;
-  dr::Writer writer(out, schema);
-
-  schema.types<A>().serial = "writer.A";
-  schema.types<Y>().serial = "writer.Y";
-  schema.types<Z>().serial = "writer.Z";
-  schema.types<Z>().p.serial = "zp";
-
-  DocWithAYZ d;
-  writer << d;
-
-  correct << '\x94';  // <klasses>: 4-element array
-  correct << '\x92';  // <klass>: 2-element array
-
-  correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
-  correct << '\x90';  // <fields>: 0-element array
-
-  correct << '\x92';  // <klass>: 2-element array
-  correct << '\xa8' << "writer.A";  // <klass_name>: utf-8 encoded "writer.A"
-  correct << '\x93';  // <fields>: 1-element array
-  correct << '\x81';  // <field>: 1-element map
-  correct << '\x00';  // 0: NAME
-  correct << '\xa5' << "v_str";  // utf-8 encoded "v_str"
-  correct << '\x81';  // <field>: 1-element map
-  correct << '\x00';  // 0: NAME
-  correct << '\xa7' << "v_uint8";  // utf-8 encoded "v_uint8"
-  correct << '\x81';  // <field>: 1-element map
-  correct << '\x00';  // 0: NAME
-  correct << '\xa6' << "v_bool";  // utf-8 encoded "v_bool"
-
-  correct << '\x92';  // <klass>: 2-element array
-  correct << '\xa8' << "writer.Y";  // <klass_name>: utf-8 encoded "writer.Y"
-  correct << '\x91';  // <fields>: 1-element array
-  correct << '\x82';  // <field>: 2-element map
-  correct << '\x00';  // 0: NAME
-  correct << '\xa1' << "p";  // utf-8 encoded "p"
-  correct << '\x01';  // 1: POINTER_TO
-  correct << '\x00';  // <store_id>: 0
-
-  correct << '\x92';  // <klass>: 2-element array
-  correct << '\xa8' << "writer.Z";  // <klass_name>: utf-8 encoded "writer.Z"
-  correct << '\x92';  // <fields>: 2-element array
-  correct << '\x82';  // <field>: 2-element map
-  correct << '\x00';  // 0: NAME
-  correct << '\xa2' << "zp";  // utf-8 encoded "zp"
-  correct << '\x01';  // 1: POINTER_TO
-  correct << '\x00';  // <store_id>: 0
-  correct << '\x81';  // <field>: 1-element map
-  correct << '\x00';  // 0: NAME
-  correct << '\xa5' << "value";  // utf-8 encoded "value"
-
-  correct << '\x93';  // <stores>: 3-element array
-
-  correct << '\x93';  // <store>: 3-element array
-  correct << '\xa2' << "as";  // <store_name>: utf-8 encoded "as"
-  correct << '\x01';  // <klass_id>: 1
-  correct << '\x00';  // <store_nelem>: 0
-
-  correct << '\x93';  // <store>: 3-element array
-  correct << '\xa2' << "ys";  // <store_name>: utf-8 encoded "ys"
-  correct << '\x02';  // <klass_id>: 2
-  correct << '\x00';  // <store_nelem>: 0
-
-  correct << '\x93';  // <store>: 3-element array
-  correct << '\xa2' << "zs";  // <store_name>: utf-8 encoded "zs"
-  correct << '\x03';  // <klass_id>: 3
-  correct << '\x00';  // <store_nelem>: 0
-
-  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the document
-  correct << '\x80';  // <instance>: 0-element map
-
-  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "as" store
-  correct << '\x90';  // <instance>: 0-element array
-
-  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "ys" store
-  correct << '\x90';  // <instance>: 0-element array
-
-  correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "zs" store
-  correct << '\x90';  // <instance>: 0-element array
-
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
-}
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()
