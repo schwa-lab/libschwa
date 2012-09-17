@@ -16,7 +16,7 @@ namespace schwa {
       BaseDocSchema &_dschema;
 
     public:
-      Writer(std::ostream &out, BaseDocSchema &dschema) : _out(out), _dschema(dschema) { }
+      Writer(std::ostream &out, BaseDocSchema &dschema);
       ~Writer(void) { }
 
       void write(const Doc &doc);

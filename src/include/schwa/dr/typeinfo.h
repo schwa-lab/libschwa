@@ -24,8 +24,9 @@ namespace schwa {
       static TypeInfo create(void) { return TypeInfo(typeid(T).name()); }
     };
 
+
     inline std::ostream &
-    operator <<(std::ostream &out, const TypeInfo &type ) {
+    operator <<(std::ostream &out, const TypeInfo &type) {
       return out << type.name;
     }
 

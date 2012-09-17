@@ -20,6 +20,7 @@ namespace schwa {
       virtual void validate(void);
     };
 
+
     class DocrepClassOp : public config::OptionBase {
     protected:
       BaseSchema &_schema;

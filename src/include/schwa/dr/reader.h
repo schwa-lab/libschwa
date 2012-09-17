@@ -24,7 +24,7 @@ namespace schwa {
       bool _has_more;
 
     public:
-      Reader(std::istream &in, BaseDocSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
+      Reader(std::istream &in, BaseDocSchema &dschema);
       ~Reader(void) { }
 
       Reader &read(Doc &doc);

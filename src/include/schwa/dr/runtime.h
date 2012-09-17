@@ -11,8 +11,8 @@ namespace schwa {
     public:
       const BaseFieldDef *def;
       const RTStoreDef *points_into;
-      std::string serial;
-      uint32_t field_id;
+      const std::string serial;
+      const uint32_t field_id;
       const bool is_slice;
       const bool is_self_pointer;
 
@@ -39,8 +39,8 @@ namespace schwa {
       const char *lazy_data;
       uint32_t lazy_nbytes;
       uint32_t lazy_nelem;
-      uint32_t store_id;
-      std::string serial;
+      const uint32_t store_id;
+      const std::string serial;
 
       RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const BaseStoreDef *def);
       RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const char *lazy_data, uint32_t lazy_nbytes, uint32_t lazy_nelem);
@@ -58,8 +58,8 @@ namespace schwa {
       const BaseSchema *def;
       std::vector<RTFieldDef *> fields;
       std::vector<RTStoreDef *> stores;
-      uint32_t klass_id;
-      std::string serial;
+      const uint32_t klass_id;
+      const std::string serial;
 
       explicit RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
       RTSchema(const RTSchema &&o);

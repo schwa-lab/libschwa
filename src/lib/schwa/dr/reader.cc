@@ -11,6 +11,9 @@ static inline bool is_uint(const mp::WireType t) {
 }
 
 
+Reader::Reader(std::istream &in, BaseDocSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
+
+
 Reader &
 Reader::read(Doc &doc) {
   if (_in.peek() == EOF || _in.eof()) {

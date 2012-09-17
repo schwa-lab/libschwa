@@ -6,6 +6,9 @@ namespace mp = schwa::msgpack;
 
 namespace schwa { namespace dr {
 
+Writer::Writer(std::ostream &out, BaseDocSchema &dschema) : _out(out), _dschema(dschema) { }
+
+
 static void
 write_instance(io::WriteBuffer &out, const void *const obj, const void *const store, const Doc &doc, const RTSchema &schema) {
   io::WriteBuffer buf;

@@ -83,7 +83,10 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits<Pointer<T>> {
-        static inline bool should_write(const Pointer<T> &val) { return val.ptr != nullptr; }
+        static inline bool
+        should_write(const Pointer<T> &val) {
+          return val.ptr != nullptr;
+        }
 
         template <typename OUT>
         static inline void
@@ -102,7 +105,10 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits<Pointers<T>> {
-        static inline bool should_write(const Pointers<T> &val) { return val.items.size() != 0; }
+        static inline bool
+        should_write(const Pointers<T> &val) {
+          return val.items.size() != 0;
+        }
 
         template <typename OUT>
         static inline void
@@ -126,7 +132,10 @@ namespace schwa {
 
       template <typename T, bool IS_POINTER>
       struct WireTraitsSliceTraits {
-        static inline bool should_write(const Slice<T> &val) { return !(val.start == T() && val.stop == T()); }
+        static inline bool
+        should_write(const Slice<T> &val) {
+          return !(val.start == T() && val.stop == T());
+        }
 
         template <typename OUT>
         static inline void
@@ -150,7 +159,10 @@ namespace schwa {
 
       template <typename T>
       struct WireTraitsSliceTraits<T, true> {
-        static inline bool should_write(const Slice<T> &val) { return !(val.start == nullptr && val.stop == nullptr); }
+        static inline bool
+        should_write(const Slice<T> &val) {
+          return !(val.start == nullptr && val.stop == nullptr);
+        }
 
         template <typename OUT>
         static inline void
