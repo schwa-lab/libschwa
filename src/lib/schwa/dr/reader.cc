@@ -6,11 +6,31 @@ namespace mp = schwa::msgpack;
 
 namespace schwa { namespace dr {
 
+static inline bool is_uint(const mp::WireType t) {
+  return t == mp::WireType::FIXNUM_POSITIVE || t == mp::WireType::UINT_8 || t == mp::WireType::UINT_16 || t == mp::WireType::UINT_32 || t == mp::WireType::UINT_64;
+}
+
+
+Reader::Reader(std::istream &in, BaseDocSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
+
+
 Reader &
 Reader::read(Doc &doc) {
   if (_in.peek() == EOF || _in.eof()) {
     _has_more = false;
     return *this;
+  }
+
+  // check the wire format version before anything else
+  {
+    uint64_t version = 1;
+    if (is_uint(mp::header_type(_in.peek())))
+      version = mp::read_uint(_in);
+    if (version != WIRE_VERSION) {
+      std::stringstream msg;
+      msg << "Invalid wire format version. Stream has version " << version << " but I can read " << WIRE_VERSION;
+      throw ReaderException(msg.str());
+    }
   }
 
   // construct the lazy runtime manager for the document
@@ -67,7 +87,7 @@ Reader::read(Doc &doc) {
     for (uint32_t f = 0; f != nfields; ++f) {
       std::string field_name;
       size_t store_id = 0;
-      bool is_pointer = false, is_slice = false;
+      bool is_pointer = false, is_self_pointer = false, is_slice = false;
 
       // <field> ::= { <field_type> : <field_val> }
       const uint32_t nitems = mp::read_map_size(_in);
@@ -76,7 +96,8 @@ Reader::read(Doc &doc) {
         switch (key) {
         case 0: field_name = mp::read_raw(_in); break;
         case 1: store_id = mp::read_uint(_in); is_pointer = true; break;
-        case 2: is_slice = mp::read_bool(_in); break;
+        case 2: mp::read_nil(_in); is_slice = true; break;
+        case 3: mp::read_nil(_in); is_self_pointer = true; break;
         default:
           std::stringstream msg;
           msg << "Unknown value " << static_cast<unsigned int>(key) << " as key in <field> map";
@@ -92,7 +113,7 @@ Reader::read(Doc &doc) {
       // see if the read in field exists on the registered class's schema
       RTFieldDef *rtfield;
       if (rtschema->is_lazy()) {
-        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice);
+        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer);
         assert(rtfield != nullptr);
       }
       else {
@@ -104,7 +125,7 @@ Reader::read(Doc &doc) {
             break;
           }
         }
-        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, def);
+        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, def);
         assert(rtfield != nullptr);
 
         // perform some sanity checks that the type of data on the stream is what we're expecting
@@ -117,6 +138,11 @@ Reader::read(Doc &doc) {
           if (is_slice != def->is_slice) {
             std::stringstream msg;
             msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_SLICE as " << is_slice << " on the stream, but " << def->is_slice << " on the class's field";
+            throw ReaderException(msg.str());
+          }
+          if (is_self_pointer != def->is_self_pointer) {
+            std::stringstream msg;
+            msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_SELF_POINTER as " << is_self_pointer << " on the stream, but " << def->is_self_pointer << " on the class's field";
             throw ReaderException(msg.str());
           }
         }
@@ -172,7 +198,15 @@ Reader::read(Doc &doc) {
     // ensure that the stream store and the static store agree on the klass they're storing
     if (!rtstore->is_lazy()) {
       const TypeInfo &store_ptr_type = def->pointer_type();
+
+      if (rt.klasses[klass_id]->def == nullptr) {
+        std::stringstream msg;
+        msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the store on the stream points to a lazy type.";
+        throw ReaderException(msg.str());
+      }
+
       const TypeInfo &klass_ptr_type = rt.klasses[klass_id]->def->type;
+
       if (store_ptr_type != klass_ptr_type) {
         std::stringstream msg;
         msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the stream says it points to " << klass_ptr_type;
@@ -188,9 +222,9 @@ Reader::read(Doc &doc) {
   // back-fill each of the pointer fields to point to the actual RTStoreDef instance
   for (auto &klass : rt.klasses) {
     for (auto &field : klass->fields) {
-      if (field->pointer != nullptr) {
+      if (field->points_into != nullptr) {
         // sanity check on the value of store_id
-        const size_t store_id = reinterpret_cast<size_t>(field->pointer);
+        const size_t store_id = reinterpret_cast<size_t>(field->points_into);
         if (store_id >= rt.doc->stores.size()) {
           std::stringstream msg;
           msg << "store_id value " << store_id << " >= number of stores (" << rt.doc->stores.size() << ")";
@@ -212,7 +246,7 @@ Reader::read(Doc &doc) {
         }
 
         // update the field pointer value
-        field->pointer = store;
+        field->points_into = store;
       }
     }
   }
@@ -267,7 +301,7 @@ Reader::read(Doc &doc) {
       }
       else {
         const char *const before = reader.upto();
-        field.def->reader(reader, static_cast<void *>(&doc), static_cast<void *>(&doc));
+        field.def->read_field(reader, &doc, nullptr, &doc);
         const char *const after = reader.upto();
 
         // keep a lazy serialized copy of the field if required
@@ -340,8 +374,9 @@ Reader::read(Doc &doc) {
     io::UnsafeArrayWriter lazy_writer(lazy_bytes);
 
     // get pointers to the vector of Ann instances
-    char *objects = store->def->read_begin(doc);
-    const size_t objects_delta = store->def->read_size();
+    char *objects = store->def->store_begin(doc);
+    char *const objects_begin = objects;
+    const size_t objects_delta = store->def->store_object_size();
 
     // <instances> ::= [ <instance> ]
     const uint32_t ninstances = mp::read_array_size(reader);
@@ -364,7 +399,7 @@ Reader::read(Doc &doc) {
         }
         else {
           const char *const before = reader.upto();
-          field.def->reader(reader, objects, static_cast<void *>(&doc));
+          field.def->read_field(reader, objects, objects_begin, static_cast<void *>(&doc));
           const char *const after = reader.upto();
 
           // keep a lazy serialized copy of the field if required

@@ -176,6 +176,7 @@ BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
   DocWithField d;
   writer << d;
 
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: 8-bytes of utf-8 encoded "__meta__"
@@ -200,6 +201,7 @@ BOOST_AUTO_TEST_CASE(DocWithField__name) {
   d.name = "/etc/passwd";
   writer << d;
 
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -225,6 +227,7 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name_is_null) {
   DocWithFieldWithSerial d;
   writer << d;
 
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: 8-bytes of utf-8 encoded "__meta__"
@@ -249,6 +252,7 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name) {
   d.name = "/etc/passwd";
   writer << d;
 
+  correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -276,6 +280,7 @@ BOOST_AUTO_TEST_CASE(DocWithA__empty) {
   DocWithA d;
   writer << d;
 
+  correct << '\x02';  // <wire_version>
   correct << '\x92';  // <klasses>: 2-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -320,6 +325,7 @@ BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
   d.as[3].v_bool = true;
   writer << d;
 
+  correct << '\x02';  // <wire_version>
   correct << '\x92';  // <klasses>: 2-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: utf-8 encoded "__meta__"
@@ -367,6 +373,7 @@ BOOST_AUTO_TEST_CASE(DocWithAYZ__empty) {
   DocWithAYZ d;
   writer << d;
 
+  correct << '\x02';  // <wire_version>
   correct << '\x94';  // <klasses>: 4-element array
   correct << '\x92';  // <klass>: 2-element array
 

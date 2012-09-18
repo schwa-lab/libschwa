@@ -10,12 +10,13 @@ namespace schwa {
     class RTFieldDef {
     public:
       const BaseFieldDef *def;
-      const RTStoreDef *pointer;
-      std::string serial;
-      uint32_t field_id;
-      bool is_slice;
+      const RTStoreDef *points_into;
+      const std::string serial;
+      const uint32_t field_id;
+      const bool is_slice;
+      const bool is_self_pointer;
 
-      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *pointer, bool is_slice, const BaseFieldDef *def=nullptr);
+      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, const BaseFieldDef *def=nullptr);
       RTFieldDef(const RTFieldDef &&o);
       ~RTFieldDef(void) { }
 
@@ -25,6 +26,12 @@ namespace schwa {
     };
 
 
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTFieldDef &field) {
+      return field.dump(out);
+    }
+
+
     class RTStoreDef {
     public:
       const BaseStoreDef *def;
@@ -32,8 +39,8 @@ namespace schwa {
       const char *lazy_data;
       uint32_t lazy_nbytes;
       uint32_t lazy_nelem;
-      uint32_t store_id;
-      std::string serial;
+      const uint32_t store_id;
+      const std::string serial;
 
       RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const BaseStoreDef *def);
       RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const char *lazy_data, uint32_t lazy_nbytes, uint32_t lazy_nelem);
@@ -51,8 +58,8 @@ namespace schwa {
       const BaseSchema *def;
       std::vector<RTFieldDef *> fields;
       std::vector<RTStoreDef *> stores;
-      uint32_t klass_id;
-      std::string serial;
+      const uint32_t klass_id;
+      const std::string serial;
 
       explicit RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
       RTSchema(const RTSchema &&o);

@@ -6,15 +6,18 @@ namespace mp = schwa::msgpack;
 
 namespace schwa { namespace dr {
 
+Writer::Writer(std::ostream &out, BaseDocSchema &dschema) : _out(out), _dschema(dschema) { }
+
+
 static void
-write_instance(io::WriteBuffer &out, const Doc &doc, const RTSchema &schema, const void *const obj) {
+write_instance(io::WriteBuffer &out, const void *const obj, const void *const store, const Doc &doc, const RTSchema &schema) {
   io::WriteBuffer buf;
   const Lazy *const lazy_obj = reinterpret_cast<const Lazy *>(obj);
 
   uint32_t nfields_new = 0;
   for (auto &field : schema.fields) {
     if (!field->is_lazy() && field->def->mode == FieldMode::READ_WRITE) {
-      const bool wrote = field->def->writer(buf, field->field_id, obj, static_cast<const void *>(&doc));
+      const bool wrote = field->def->write_field(buf, field->field_id, obj, store, &doc);
       if (wrote)
         ++nfields_new;
     }
@@ -40,6 +43,9 @@ Writer::write(const Doc &doc) {
     rt = merge_rt(doc._rt, _dschema);
   const RTSchema *const rtdschema = rt->doc;
 
+  // <wire_version>
+  mp::write_uint(_out, WIRE_VERSION);
+
   // <klasses> ::= [ <klass> ]
   mp::write_array_size(_out, rt->klasses.size());
   for (auto &schema : rt->klasses) {
@@ -58,7 +64,7 @@ Writer::write(const Doc &doc) {
     mp::write_array_size(_out, schema->fields.size());
     for (auto &field : schema->fields) {
       // <field> ::= { <field_type> : <field_val> }
-      const uint32_t nelem = 1 + (field->pointer != nullptr) + field->is_slice;
+      const uint32_t nelem = 1 + (field->points_into != nullptr) + field->is_slice + field->is_self_pointer;
       mp::write_map_size(_out, nelem);
 
       // <field_type> ::= 0 # NAME => the name of the field
@@ -66,15 +72,21 @@ Writer::write(const Doc &doc) {
       mp::write_raw(_out, field->is_lazy() ? field->serial : field->def->serial);
 
       // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
-      if (field->pointer != nullptr) {
+      if (field->points_into != nullptr) {
         mp::write_uint_fixed(_out, 1);
-        mp::write_uint(_out, field->pointer->store_id);
+        mp::write_uint(_out, field->points_into->store_id);
       }
 
       // <field_type> ::= 2 # IS_SLICE => whether or not this field is a "Slice" field
       if (field->is_slice) {
         mp::write_uint_fixed(_out, 2);
-        mp::write_bool(_out, true);
+        mp::write_nil(_out);
+      }
+
+      // <field_type>  ::= 3 # IS_SELF_POINTER => whether or not this field is a self-pointer. POINTER_TO and IS_SELF_POINTER are mutually exclusive.
+      if (field->is_self_pointer) {
+        mp::write_uint_fixed(_out, 3);
+        mp::write_nil(_out);
       }
     } // for each field
   } // for each klass
@@ -93,7 +105,7 @@ Writer::write(const Doc &doc) {
   // <doc_instance> ::= <instances_nbytes> <instance>
   {
     io::WriteBuffer buf;
-    write_instance(buf, doc, *rtdschema, &doc);
+    write_instance(buf, &doc, nullptr, doc, *rtdschema);
     mp::write_uint(_out, buf.size());
     buf.copy_to(_out);
   }
@@ -107,7 +119,19 @@ Writer::write(const Doc &doc) {
     }
     else {
       io::WriteBuffer buf;
-      store->def->write(buf, doc, *store->klass, &write_instance);
+
+      char *objects = store->def->store_begin(doc);
+      char *const objects_begin = objects;
+      const size_t objects_delta = store->def->store_object_size();
+      const size_t nitems = store->def->size(doc);
+
+      // <instances> ::= [ <instance> ]
+      msgpack::write_array_size(buf, nitems);
+      for (size_t i = 0; i != nitems; ++i) {
+        write_instance(buf, objects, objects_begin, doc, *store->klass);
+        objects += objects_delta;
+      }
+
       mp::write_uint(_out, buf.size());
       buf.copy_to(_out);
     }

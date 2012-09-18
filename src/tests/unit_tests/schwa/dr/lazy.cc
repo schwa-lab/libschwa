@@ -131,6 +131,7 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
   static const char *WORDS[] = {"The", "quick", "brown", "fox", "jumped"};
   static constexpr size_t NWORDS = sizeof(WORDS)/sizeof(char *);
   static constexpr uint8_t stream0_expected[] = {
+    0x02,
     0x92,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'A', 0x93, 0x81, 0x00, 0xA5, 'v', '_', 's', 't', 'r', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA6, 'v', '_', 'b', 'o', 'o', 'l',
@@ -146,6 +147,7 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
       0x83, 0x00, 0xA6, 'j', 'u', 'm', 'p', 'e', 'd', 0x01, 0x04, 0x02, 0xC2,
   };
   static constexpr uint8_t stream1_expected[] = {
+    0x02,
     0x92,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'B', 0x94, 0x81, 0x00, 0xA4, 'w', 'o', 'r', 'd', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA8, 'i', 's', '_', 'f', 'i', 'r', 's', 't', 0x81, 0x00, 0xA5, 'u', 'p', 'p', 'e', 'r',
@@ -390,6 +392,7 @@ BOOST_AUTO_TEST_CASE(lazy_test1) {
   static const char *WORDS[] = {"How", "now", "brown", "cow"};
   static constexpr size_t NWORDS = sizeof(WORDS)/sizeof(char *);
   static constexpr uint8_t stream0_expected[] = {
+    0x02,
     0x92,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'A', 0x93, 0x81, 0x00, 0xA5, 'v', '_', 's', 't', 'r', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA6, 'v', '_', 'b', 'o', 'o', 'l',
@@ -404,6 +407,7 @@ BOOST_AUTO_TEST_CASE(lazy_test1) {
       0x83, 0x00, 0xA3, 'c', 'o', 'w', 0x01, 0x03, 0x02, 0xC2,
   };
   static constexpr uint8_t stream1_expected[] = {
+    0x02,
     0x93,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'A', 0x93, 0x81, 0x00, 0xA5, 'v', '_', 's', 't', 'r', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA6, 'v', '_', 'b', 'o', 'o', 'l',

@@ -83,7 +83,10 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits<Pointer<T>> {
-        static inline bool should_write(const Pointer<T> &val) { return val.ptr != nullptr; }
+        static inline bool
+        should_write(const Pointer<T> &val) {
+          return val.ptr != nullptr;
+        }
 
         template <typename OUT>
         static inline void
@@ -102,7 +105,10 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits<Pointers<T>> {
-        static inline bool should_write(const Pointers<T> &val) { return val.items.size() != 0; }
+        static inline bool
+        should_write(const Pointers<T> &val) {
+          return val.items.size() != 0;
+        }
 
         template <typename OUT>
         static inline void
@@ -118,7 +124,7 @@ namespace schwa {
           const size_t nitems = mp::read_uint(in);
           for (size_t i = 0; i != nitems; ++i) {
             const size_t offset = mp::read_uint(in);
-            val.items.push_back(&front + reinterpret_cast<T *>(offset));
+            val.items.push_back(&front + offset);
           }
         }
       };
@@ -126,7 +132,10 @@ namespace schwa {
 
       template <typename T, bool IS_POINTER>
       struct WireTraitsSliceTraits {
-        static inline bool should_write(const Slice<T> &val) { return !(val.start == T() && val.stop == T()); }
+        static inline bool
+        should_write(const Slice<T> &val) {
+          return !(val.start == T() && val.stop == T());
+        }
 
         template <typename OUT>
         static inline void
@@ -150,7 +159,10 @@ namespace schwa {
 
       template <typename T>
       struct WireTraitsSliceTraits<T, true> {
-        static inline bool should_write(const Slice<T> &val) { return !(val.start == nullptr && val.stop == nullptr); }
+        static inline bool
+        should_write(const Slice<T> &val) {
+          return !(val.start == nullptr && val.stop == nullptr);
+        }
 
         template <typename OUT>
         static inline void
@@ -177,57 +189,6 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits<Slice<T>> : public WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
-
-
-      template <typename IN, typename R, typename T, R T::*field_ptr>
-      inline void
-      read_field(IN &in, void *const _ann, void *const _doc) {
-        static_cast<void>(_doc);
-        T &ann = *static_cast<T *>(_ann);
-        R &val = ann.*field_ptr;
-        WireTraits<R>::read(in, val);
-      }
-
-
-      template <typename OUT, typename R, typename T, R T::*field_ptr>
-      inline bool
-      write_field(OUT &out, const uint32_t key, const void *const _ann, const void *const _doc) {
-        static_cast<void>(_doc);
-        const T &ann = *static_cast<const T *>(_ann);
-        const R &val = ann.*field_ptr;
-        if (WireTraits<R>::should_write(val)) {
-          mp::write_uint(out, key);
-          WireTraits<R>::write(out, val);
-          return true;
-        }
-        return false;
-      }
-
-
-      template <typename IN, typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
-      inline void
-      read_field(IN &in, void *const _ann, void *const _doc) {
-        D &doc = *static_cast<D *>(_doc);
-        T &ann = *static_cast<T *>(_ann);
-        R &val = ann.*field_ptr;
-        WireTraits<R>::read(in, val, (doc.*store_ptr).front());
-      }
-
-
-      template <typename OUT, typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
-      inline bool
-      write_field(OUT &out, const uint32_t key, const void *const _ann, const void *const _doc) {
-        const D &doc = *static_cast<const D *>(_doc);
-        const T &ann = *static_cast<const T *>(_ann);
-        const R &val = ann.*field_ptr;
-        if (WireTraits<R>::should_write(val)) {
-          mp::write_uint(out, key);
-          WireTraits<R>::write(out, val, (doc.*store_ptr).front());
-          return true;
-        }
-        return false;
-      }
-
     }
   }
 }

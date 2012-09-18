@@ -15,13 +15,16 @@ namespace schwa {
 
 
     class Reader {
+    public:
+      static constexpr uint64_t WIRE_VERSION = 2;
+
     protected:
       std::istream &_in;
       BaseDocSchema &_dschema;
       bool _has_more;
 
     public:
-      Reader(std::istream &in, BaseDocSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
+      Reader(std::istream &in, BaseDocSchema &dschema);
       ~Reader(void) { }
 
       Reader &read(Doc &doc);
