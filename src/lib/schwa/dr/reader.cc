@@ -199,7 +199,7 @@ Reader::read(Doc &doc) {
     if (!rtstore->is_lazy()) {
       const TypeInfo &store_ptr_type = def->pointer_type();
 
-      if (rt.klasses[klass_id]->def == nullptr) {
+      if (rt.klasses[klass_id]->is_lazy()) {
         std::stringstream msg;
         msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the store on the stream points to a lazy type.";
         throw ReaderException(msg.str());

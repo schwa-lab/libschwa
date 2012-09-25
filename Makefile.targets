@@ -57,6 +57,8 @@ sharedlibs: $(SHARED_LIBS)
 
 wc:
 	find src/{include,lib,main} -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l
+	find src/api/python/ -name "*.py" | grep -v /ve/ | grep -v /tests/ | xargs wc -l
+	find src/api/java/ -name "*.java" | xargs wc -l
 
 
 # -------------------------------------------------------------------------------
