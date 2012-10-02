@@ -18,16 +18,16 @@ namespace schwa {
     namespace wire {
       namespace mp = schwa::msgpack;
 
-      template <typename T>
-      struct WireTraits {
-        //static bool should_write(const T &val);
-        //template <typename OUT> static void write(OUT &out, const T &val);
-        //template <typename IN> static void read(IN &in, T &val);
+      template <typename T, bool>
+      struct _WireTraits {
+        static bool should_write(const T &val);
+        template <typename OUT> static void write(OUT &out, const T &val);
+        template <typename IN> static void read(IN &in, T &val);
       };
 
 
       template <typename T>
-      struct WireTraitsPrimative {
+      struct _WireTraits<T, true> {
         static constexpr inline bool
         should_write(const T &) {
           return true;
@@ -47,17 +47,8 @@ namespace schwa {
       };
 
 
-      template <> struct WireTraits<int8_t> : public WireTraitsPrimative<int8_t> { };
-      template <> struct WireTraits<int16_t> : public WireTraitsPrimative<int16_t> { };
-      template <> struct WireTraits<int32_t> : public WireTraitsPrimative<int32_t> { };
-      template <> struct WireTraits<int64_t> : public WireTraitsPrimative<int64_t> { };
-      template <> struct WireTraits<uint8_t> : public WireTraitsPrimative<uint8_t> { };
-      template <> struct WireTraits<uint16_t> : public WireTraitsPrimative<uint16_t> { };
-      template <> struct WireTraits<uint32_t> : public WireTraitsPrimative<uint32_t> { };
-      template <> struct WireTraits<uint64_t> : public WireTraitsPrimative<uint64_t> { };
-      template <> struct WireTraits<float> : public WireTraitsPrimative<float> { };
-      template <> struct WireTraits<double> : public WireTraitsPrimative<double> { };
-      template <> struct WireTraits<bool> : public WireTraitsPrimative<bool> { };
+      template <typename T>
+      struct WireTraits : _WireTraits<T, std::is_arithmetic<T>::value> { };
 
 
       template <>
@@ -188,7 +179,7 @@ namespace schwa {
 
 
       template <typename T>
-      struct WireTraits<Slice<T>> : public WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
+      struct WireTraits<Slice<T>> : WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
     }
   }
 }
