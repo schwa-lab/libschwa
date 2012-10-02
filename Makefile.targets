@@ -12,14 +12,14 @@ TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/
 
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
-UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/lazy.o src/tests/unit_tests/schwa/dr/reader.o src/tests/unit_tests/schwa/dr/self_pointer.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/containers/block_vector.o src/tests/unit_tests/schwa/dr/lazy.o src/tests/unit_tests/schwa/dr/reader.o src/tests/unit_tests/schwa/dr/self_pointer.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
 GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends install release sharedlibs test wc src/lib/schwa/version.cc
+.PHONY: all clean depends install lint release sharedlibs test wc src/lib/schwa/version.cc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
@@ -49,6 +49,10 @@ install:
 	for f in $(BINARIES); do \
 		install -p -v $${f} $(DESTDIR)$(prefix)/bin; \
 	done
+
+lint:
+	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/include -name '*.h'`
+	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/lib -name '*.cc'`
 
 release:
 	src/scripts/make-release $(RELEASE_VERSION)
