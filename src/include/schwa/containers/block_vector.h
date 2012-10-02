@@ -50,6 +50,43 @@ namespace schwa {
         inline void set_next(Block *const next) { _next = next; }
       };
 
+
+    class Iterator : public std::iterator<std::forward_iterator_tag, T> {
+    public:
+      typedef typename std::iterator<std::forward_iterator_tag, T>::difference_type difference_type;
+      typedef typename std::iterator<std::forward_iterator_tag, T>::iterator_category iterator_category;
+      typedef typename std::iterator<std::forward_iterator_tag, T>::pointer pointer;
+      typedef typename std::iterator<std::forward_iterator_tag, T>::reference reference;
+      typedef typename std::iterator<std::forward_iterator_tag, T>::value_type value_type;
+
+    private:
+      Block *_block;
+      typename Block::iterator _it;
+      typename Block::iterator _end;
+
+    public:
+      explicit Iterator(Block *block=nullptr);
+      Iterator(const Iterator &o);
+      ~Iterator(void) { }
+
+      Iterator &operator =(const Iterator &o);
+
+      inline bool operator ==(const Iterator &o) const { return _block == o._block && _it == o._it; }
+      inline bool operator !=(const Iterator &o) const { return _block != o._block || _it != o._it; }
+
+      inline reference operator *(void) { return *_it; }
+      inline pointer operator ->(void) { return _it; }
+
+      Iterator &operator ++(void);
+      Iterator operator ++(int);
+
+      inline std::ostream &dump(std::ostream &out) const;
+
+      friend inline std::ostream &operator <<(std::ostream &out, const Iterator &it) { return it.dump(out); }
+    };
+
+    typedef Iterator iterator;
+
     private:
       Block *_first;
       Block *_last;
@@ -64,10 +101,16 @@ namespace schwa {
       inline T &get(size_t i);
       const T &get(size_t i) const;
 
+      size_t nblocks(void) const;
       size_t size(void) const;
+
+      inline iterator begin(void) { return iterator(_first); }
+      inline iterator end(void) { return iterator(); }
 
       Block &reserve(const size_t nelem);
     };
+
+
 
   }
 }

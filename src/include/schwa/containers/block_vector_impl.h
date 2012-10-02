@@ -68,6 +68,60 @@ namespace schwa {
 
 
     // ========================================================================
+    // BlockVector<T>::Iterator
+    // ========================================================================
+    template <typename T>
+    BlockVector<T>::Iterator::Iterator(typename BlockVector<T>::Block *block) : _block(block), _it(_block ? _block->begin() : typename Block::iterator()), _end(_block ? _block->end() : typename Block::iterator()) { }
+
+
+    template <typename T>
+    BlockVector<T>::Iterator::Iterator(const Iterator &o) : _block(o._block), _it(o._it), _end(o._end) { }
+
+
+    template <typename T>
+    typename BlockVector<T>::Iterator &
+    BlockVector<T>::Iterator::operator =(const Iterator &o) {
+      _block = o._block;
+      _it = o._it;
+      _end = o._end;
+      return *this;
+    }
+
+
+    template <typename T>
+    typename BlockVector<T>::Iterator &
+    BlockVector<T>::Iterator::operator ++(void) {
+      ++_it;
+      if (_it == _end) {
+        _block = _block->next();
+        if (_block == nullptr)
+          _it = _end = typename Block::iterator();
+        else {
+          _it = _block->begin();
+          _end = _block->end();
+        }
+      }
+      return *this;
+    }
+
+
+    template <typename T>
+    typename BlockVector<T>::Iterator
+    BlockVector<T>::Iterator::operator ++(int) {
+      Iterator tmp(*this);
+      operator++();
+      return tmp;
+    }
+
+
+    template <typename T>
+    inline std::ostream &
+    BlockVector<T>::Iterator::dump(std::ostream &out) const {
+      return out << "[block=" << _block << " it=" << _it << " end=" << _end << "]";
+    }
+
+
+    // ========================================================================
     // BlockVector<T>
     // ========================================================================
     template <typename T>
@@ -102,6 +156,16 @@ namespace schwa {
       }
       assert(!"offset too large");
       return *static_cast<T *>(nullptr);
+    }
+
+
+    template <typename T>
+    size_t
+    BlockVector<T>::nblocks(void) const {
+      size_t n = 0;
+      for (const Block *b = _first; b; b = b->next())
+        ++n;
+      return n;
     }
 
 
