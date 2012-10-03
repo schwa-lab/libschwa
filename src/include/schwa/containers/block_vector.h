@@ -31,10 +31,10 @@ namespace schwa {
         inline iterator begin(void);
         inline iterator end(void);
 
-        inline const T &first(void) const { return *begin(); }
-        inline const T &last(void) const { return *(end() - 1); }
-        inline T &first(void) { return *begin(); }
-        inline T &last(void) { return *(end() - 1); }
+        inline const T &front(void) const { return *begin(); }
+        inline const T &back(void) const { return *(end() - 1); }
+        inline T &front(void) { return *begin(); }
+        inline T &back(void) { return *(end() - 1); }
 
         inline size_t capacity(void) const { return _capacity; }
         inline size_t size(void) const { return _size; }
@@ -112,6 +112,18 @@ namespace schwa {
 
       inline iterator begin(void) { return iterator(_first); }
       inline iterator end(void) { return iterator(); }
+
+      inline const T &front(void) const { return _first->front(); }
+      inline const T &back(void) const { return _last->back(); }
+      inline T &front(void) { return _first->front(); }
+      inline T &back(void) { return _last->back(); }
+
+      inline const Block &first_block(void) const { return *_first; }
+      inline const Block &last_block(void) const { return *_last; }
+      inline Block &first_block(void) { return *_first; }
+      inline Block &last_block(void) { return *_last; }
+
+      void push_back(const T &obj);
 
       Block &reserve(const size_type nelem);
     };

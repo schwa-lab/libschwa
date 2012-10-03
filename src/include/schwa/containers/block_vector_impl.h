@@ -195,6 +195,15 @@ namespace schwa {
 
 
     template <typename T>
+    void
+    BlockVector<T>::push_back(const T &obj) {
+      assert(_last != nullptr);
+      assert(!_last->full());
+      _last->create(obj);
+    }
+
+
+    template <typename T>
     typename BlockVector<T>::Block &
     BlockVector<T>::reserve(const size_type nelem) {
       void *const data = ::malloc(sizeof(Block) + nelem*sizeof(T));

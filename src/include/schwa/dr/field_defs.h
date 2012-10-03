@@ -128,12 +128,12 @@ namespace schwa {
       bool write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const _doc) const override;
     };
 
-    template <typename R, typename T, typename S, typename D, R T::*field_ptr, GrowableStore<S> D::*store_ptr>
-    class FieldDefWithStore<R T::*, field_ptr, GrowableStore<S> D::*, store_ptr> : public BaseFieldDef {
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
+    class FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
-      static_assert(boost::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (GrowableStore<T>) must have the same type (T)");
-      static_assert(boost::is_base_of<Ann, S>::value, "GrowableStore<T> type T must be a subclass of Ann");
+      static_assert(boost::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (BlockStore<T>) must have the same type (T)");
+      static_assert(boost::is_base_of<Ann, S>::value, "BlockStore<T> type T must be a subclass of Ann");
       typedef R value_type;
       typedef T annotation_type;
       typedef S store_type;
@@ -214,8 +214,8 @@ namespace schwa {
       size_t size(const Doc &doc) const override;
     };
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
-    class StoreDef<GrowableStore<S> T::*, store_ptr> : public BaseStoreDef {
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
+    class StoreDef<BlockStore<S> T::*, store_ptr> : public BaseStoreDef {
     public:
       static_assert(boost::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
       typedef S store_type;

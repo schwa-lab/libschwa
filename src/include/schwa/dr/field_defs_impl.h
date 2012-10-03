@@ -84,8 +84,8 @@ namespace schwa {
     }
 
 
-    template <typename R, typename T, typename S, typename D, R T::*field_ptr, GrowableStore<S> D::*store_ptr>
-    FieldDefWithStore<R T::*, field_ptr, GrowableStore<S> D::*, store_ptr>::FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
+    FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
       BaseFieldDef(name, help, mode, serial, true, false, FieldTraits<R>::is_slice),
       _pointer_type(TypeInfo::create<S>())
       {
@@ -93,23 +93,23 @@ namespace schwa {
     }
 
 
-    template <typename R, typename T, typename S, typename D, R T::*field_ptr, GrowableStore<S> D::*store_ptr>
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     const TypeInfo &
-    FieldDefWithStore<R T::*, field_ptr, GrowableStore<S> D::*, store_ptr>::pointer_type(void) const {
+    FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::pointer_type(void) const {
       return _pointer_type;
     }
 
 
-    template <typename R, typename T, typename S, typename D, R T::*field_ptr, GrowableStore<S> D::*store_ptr>
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     ptrdiff_t
-    FieldDefWithStore<R T::*, field_ptr, GrowableStore<S> D::*, store_ptr>::store_offset(const Doc *doc) const {
+    FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::store_offset(const Doc *doc) const {
       return reinterpret_cast<const char *>(&(static_cast<const D *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc);
     }
 
 
-    template <typename R, typename T, typename S, typename D, R T::*field_ptr, GrowableStore<S> D::*store_ptr>
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     void
-    FieldDefWithStore<R T::*, field_ptr, GrowableStore<S> D::*, store_ptr>::read_field(io::ArrayReader &in, void *const _ann, void *const, void *const _doc) const {
+    FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::read_field(io::ArrayReader &in, void *const _ann, void *const, void *const _doc) const {
       D &doc = *static_cast<D *>(_doc);
       T &ann = *static_cast<T *>(_ann);
       R &val = ann.*field_ptr;
@@ -117,9 +117,9 @@ namespace schwa {
     }
 
 
-    template <typename R, typename T, typename S, typename D, R T::*field_ptr, GrowableStore<S> D::*store_ptr>
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     bool
-    FieldDefWithStore<R T::*, field_ptr, GrowableStore<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const _doc) const {
+    FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const _doc) const {
       const D &doc = *static_cast<const D *>(_doc);
       const T &ann = *static_cast<const T *>(_ann);
       const R &val = ann.*field_ptr;
@@ -229,8 +229,8 @@ namespace schwa {
     }
 
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
-    StoreDef<GrowableStore<S> T::*, store_ptr>::StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
+    StoreDef<BlockStore<S> T::*, store_ptr>::StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
       BaseStoreDef(name, help, mode, serial),
       _pointer_type(TypeInfo::create<S>())
       {
@@ -238,44 +238,48 @@ namespace schwa {
     }
 
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
     const TypeInfo &
-    StoreDef<GrowableStore<S> T::*, store_ptr>::pointer_type(void) const {
+    StoreDef<BlockStore<S> T::*, store_ptr>::pointer_type(void) const {
       return _pointer_type;
     }
 
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
     ptrdiff_t
-    StoreDef<GrowableStore<S> T::*, store_ptr>::store_offset(const Doc *doc) const {
+    StoreDef<BlockStore<S> T::*, store_ptr>::store_offset(const Doc *doc) const {
       return reinterpret_cast<const char *>(&(static_cast<const T *>(doc)->*store_ptr)) - reinterpret_cast<const char *>(doc);
     }
 
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
     char *
-    StoreDef<GrowableStore<S> T::*, store_ptr>::store_begin(const Doc &_doc) const {
-      return nullptr;  // TODO
+    StoreDef<BlockStore<S> T::*, store_ptr>::store_begin(const Doc &_doc) const {
+      const BlockStore<S> &store = static_cast<const T &>(_doc).*store_ptr;
+      assert(store.nblocks() == 1);
+      return const_cast<char *>(reinterpret_cast<const char *>(&store.front()));
     }
 
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
     inline size_t
-    StoreDef<GrowableStore<S> T::*, store_ptr>::store_object_size(void) const {
+    StoreDef<BlockStore<S> T::*, store_ptr>::store_object_size(void) const {
       return sizeof(S);
     }
 
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
     inline void
-    StoreDef<GrowableStore<S> T::*, store_ptr>::resize(Doc &doc, const size_t size) const {
-      (static_cast<T &>(doc).*store_ptr).resize(size);
+    StoreDef<BlockStore<S> T::*, store_ptr>::resize(Doc &doc, const size_t size) const {
+      BlockStore<S> &store = static_cast<T &>(doc).*store_ptr;
+      assert(store.size() == 0);
+      store.reserve(size);
     }
 
 
-    template <typename S, typename T, GrowableStore<S> T::*store_ptr>
+    template <typename S, typename T, BlockStore<S> T::*store_ptr>
     size_t
-    StoreDef<GrowableStore<S> T::*, store_ptr>::size(const Doc &doc) const {
+    StoreDef<BlockStore<S> T::*, store_ptr>::size(const Doc &doc) const {
       return (static_cast<const T &>(doc).*store_ptr).size();
     }
   }

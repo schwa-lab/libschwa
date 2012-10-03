@@ -71,7 +71,6 @@ namespace schwa {
 
       // extra methods
       inline void create(const size_type n, const T x=T()) { _items.insert(_items.end(), n, x); }
-      inline container_type &raw(void) { return _items; }
 
       // iterators
       inline iterator begin(void) { return _items.begin(); }
@@ -116,7 +115,7 @@ namespace schwa {
 
 
     template <typename T>
-    class GrowableStore {
+    class BlockStore {
     public:
       static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       typedef containers::BlockVector<T> container_type;
@@ -133,8 +132,17 @@ namespace schwa {
       container_type _items;
 
     public:
-      GrowableStore(void) { }
-      ~GrowableStore(void) { }
+      BlockStore(void) { }
+      ~BlockStore(void) { }
+
+      // extra methods
+      inline void
+      create(const size_type n, const T x=T()) {
+        block &b = _items.last_block();
+        assert(b.capacity() - b.size() >= n);
+        for (size_type i = 0; i != n; ++i)
+          _items.push_back(x);
+      }
 
       // iterators
       inline iterator begin(void) { return _items.begin(); }
@@ -142,6 +150,7 @@ namespace schwa {
 
       // capacity
       inline size_type capacity(void) const { return _items.capacity(); }
+      inline size_type nblocks(void) const { return _items.nblocks(); }
       inline size_type size(void) const { return _items.size(); }
       inline bool empty(void) const { return _items.empty(); }
       inline bool full(void) const { return _items.full(); }
@@ -156,7 +165,7 @@ namespace schwa {
       inline const_reference front(void) const { return _items.front(); }
 
       // modifiers
-      inline block reserve(const size_t nelem) { return _items.reserve(nelem); }
+      inline block &reserve(const size_t nelem) { return _items.reserve(nelem); }
     };
 
 

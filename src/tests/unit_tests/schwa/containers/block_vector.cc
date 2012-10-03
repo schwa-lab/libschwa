@@ -120,8 +120,8 @@ BOOST_AUTO_TEST_CASE(BlockVector_int__block_iterator) {
   BOOST_CHECK_EQUAL(*it, fn(12)); ++it;
   BOOST_CHECK_EQUAL(it, block1.end());
 
-  BOOST_CHECK_EQUAL(fn(0), block1.first());
-  BOOST_CHECK_EQUAL(fn(12), block1.last());
+  BOOST_CHECK_EQUAL(fn(0), block1.front());
+  BOOST_CHECK_EQUAL(fn(12), block1.back());
 }
 
 
