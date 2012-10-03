@@ -239,6 +239,10 @@ namespace schwa {
       case WireType::INT_16: return read_val_int16(in);
       case WireType::INT_32: return read_val_int32(in);
       case WireType::INT_64: return read_val_int64(in);
+      case WireType::UINT_8: return static_cast<int64_t>(read_val_uint8(in));
+      case WireType::UINT_16: return static_cast<int64_t>(read_val_uint16(in));
+      case WireType::UINT_32: return static_cast<int64_t>(read_val_uint32(in));
+      case WireType::UINT_64: return static_cast<int64_t>(read_val_uint64(in));
       default:
         throw ReadException("Did not find an integer to read", h);
       }
