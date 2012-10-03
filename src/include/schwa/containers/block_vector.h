@@ -85,7 +85,13 @@ namespace schwa {
       friend inline std::ostream &operator <<(std::ostream &out, const Iterator &it) { return it.dump(out); }
     };
 
+    typedef T &reference;
+    typedef const T *const_pointer;
+    typedef const T &const_reference;
     typedef Iterator iterator;
+    typedef T *pointer;
+    typedef size_t size_type;
+    typedef T value_type;
 
     private:
       Block *_first;
@@ -95,22 +101,20 @@ namespace schwa {
       BlockVector(void);
       ~BlockVector(void);
 
-      inline T &operator [](size_t i) { return get(i); }
-      inline const T &operator [](size_t i) const { return get(i); }
+      inline reference operator [](size_type i) { return get(i); }
+      inline const_reference operator [](size_type i) const { return get(i); }
 
-      inline T &get(size_t i);
-      const T &get(size_t i) const;
+      inline reference get(size_type i);
+      const_reference get(size_type i) const;
 
-      size_t nblocks(void) const;
-      size_t size(void) const;
+      size_type nblocks(void) const;
+      size_type size(void) const;
 
       inline iterator begin(void) { return iterator(_first); }
       inline iterator end(void) { return iterator(); }
 
-      Block &reserve(const size_t nelem);
+      Block &reserve(const size_type nelem);
     };
-
-
 
   }
 }

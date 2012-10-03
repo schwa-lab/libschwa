@@ -7,7 +7,11 @@ namespace schwa {
     // BlockVector<T>::Block
     // ========================================================================
     template <typename T>
-    BlockVector<T>::Block::Block(const size_t capacity) : _capacity(capacity), _size(0), _next(nullptr) { }
+    BlockVector<T>::Block::Block(const size_t capacity) :
+      _capacity(capacity),
+      _size(0),
+      _next(nullptr)
+      { }
 
 
     template <typename T>
@@ -71,11 +75,19 @@ namespace schwa {
     // BlockVector<T>::Iterator
     // ========================================================================
     template <typename T>
-    BlockVector<T>::Iterator::Iterator(typename BlockVector<T>::Block *block) : _block(block), _it(_block ? _block->begin() : typename Block::iterator()), _end(_block ? _block->end() : typename Block::iterator()) { }
+    BlockVector<T>::Iterator::Iterator(typename BlockVector<T>::Block *block) :
+      _block(block),
+      _it(_block ? _block->begin() : typename Block::iterator()),
+      _end(_block ? _block->end() : typename Block::iterator())
+      { }
 
 
     template <typename T>
-    BlockVector<T>::Iterator::Iterator(const Iterator &o) : _block(o._block), _it(o._it), _end(o._end) { }
+    BlockVector<T>::Iterator::Iterator(const Iterator &o) :
+        _block(o._block),
+        _it(o._it),
+        _end(o._end)
+      { }
 
 
     template <typename T>
@@ -125,7 +137,10 @@ namespace schwa {
     // BlockVector<T>
     // ========================================================================
     template <typename T>
-    BlockVector<T>::BlockVector(void) : _first(nullptr), _last(nullptr) { }
+    BlockVector<T>::BlockVector(void) :
+      _first(nullptr),
+      _last(nullptr)
+      { }
 
 
     template <typename T>
@@ -140,15 +155,15 @@ namespace schwa {
 
 
     template <typename T>
-    inline T &
-    BlockVector<T>::get(size_t i) {
+    inline typename BlockVector<T>::reference
+    BlockVector<T>::get(size_type i) {
       return const_cast<T &>(static_cast<const BlockVector<T> *>(this)->get(i));
     }
 
 
     template <typename T>
-    const T &
-    BlockVector<T>::get(size_t i) const {
+    typename BlockVector<T>::const_reference
+    BlockVector<T>::get(size_type i) const {
       for (const Block *b = _first; b; b = b->next()) {
         if (i < b->size())
           return b->get(i);
@@ -160,9 +175,9 @@ namespace schwa {
 
 
     template <typename T>
-    size_t
+    typename BlockVector<T>::size_type
     BlockVector<T>::nblocks(void) const {
-      size_t n = 0;
+      size_type n = 0;
       for (const Block *b = _first; b; b = b->next())
         ++n;
       return n;
@@ -170,9 +185,9 @@ namespace schwa {
 
 
     template <typename T>
-    size_t
+    typename BlockVector<T>::size_type
     BlockVector<T>::size(void) const {
-      size_t n = 0;
+      size_type n = 0;
       for (const Block *b = _first; b; b = b->next())
         n += b->size();
       return n;
@@ -181,7 +196,7 @@ namespace schwa {
 
     template <typename T>
     typename BlockVector<T>::Block &
-    BlockVector<T>::reserve(const size_t nelem) {
+    BlockVector<T>::reserve(const size_type nelem) {
       void *const data = ::malloc(sizeof(Block) + nelem*sizeof(T));
       assert(data != nullptr);
       Block *block = new (data) Block(nelem);
