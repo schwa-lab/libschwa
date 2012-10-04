@@ -3,6 +3,7 @@
 #define SCHWA_DR_H_
 
 #include <schwa/base.h>
+#include <schwa/containers.h>
 #include <schwa/config.h>
 #include <schwa/msgpack.h>
 
