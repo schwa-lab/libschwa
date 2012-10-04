@@ -176,6 +176,21 @@ namespace schwa {
 
     template <typename T>
     typename BlockVector<T>::size_type
+    BlockVector<T>::index_of(const_reference obj) const {
+      const_pointer const ptr = &obj;
+      size_type n = 0;
+      for (const Block *b = _first; b; b = b->next()) {
+        if (b->begin() <= ptr && ptr < b->end())
+          return n + (ptr - b->begin());
+        n += b->size();
+      }
+      assert(!"object not found");
+      return static_cast<size_type>(-1);
+    }
+
+
+    template <typename T>
+    typename BlockVector<T>::size_type
     BlockVector<T>::nblocks(void) const {
       size_type n = 0;
       for (const Block *b = _first; b; b = b->next())
@@ -196,7 +211,7 @@ namespace schwa {
 
     template <typename T>
     void
-    BlockVector<T>::push_back(const T &obj) {
+    BlockVector<T>::push_back(const_reference obj) {
       assert(_last != nullptr);
       assert(!_last->full());
       _last->create(obj);

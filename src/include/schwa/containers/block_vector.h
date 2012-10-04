@@ -107,6 +107,8 @@ namespace schwa {
       inline reference get(size_type i);
       const_reference get(size_type i) const;
 
+      size_type index_of(const_reference obj) const;
+
       size_type nblocks(void) const;
       size_type size(void) const;
 
@@ -123,9 +125,9 @@ namespace schwa {
       inline Block &first_block(void) { return *_first; }
       inline Block &last_block(void) { return *_last; }
 
-      void push_back(const T &obj);
+      void push_back(const_reference obj);
 
-      Block &reserve(const size_type nelem);
+      Block &reserve(size_type nelem);
     };
 
   }

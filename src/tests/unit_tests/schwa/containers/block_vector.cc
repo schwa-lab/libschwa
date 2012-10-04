@@ -160,4 +160,36 @@ BOOST_AUTO_TEST_CASE(BlockVector_int__vector_iterator) {
   BOOST_CHECK_EQUAL(std::distance(v.begin(), v.end()), 12);
 }
 
+
+BOOST_AUTO_TEST_CASE(BlockVector_int__index_of) {
+  ct::BlockVector<int> v;
+  auto fn = [](int i) -> int { return 2*i + 3; };
+
+  auto &block1 = v.reserve(3);
+  for (size_t i = 0; i != block1.capacity(); ++i)
+    block1.create(fn(i));
+  auto &block2 = v.reserve(5);
+  for (size_t i = 0; i != block2.capacity(); ++i)
+    block2.create(fn(i));
+  auto &block3 = v.reserve(4);
+  for (size_t i = 0; i != block3.capacity(); ++i)
+    block3.create(fn(i));
+
+  BOOST_REQUIRE_EQUAL(v.nblocks(), 3);
+  BOOST_REQUIRE_EQUAL(v.size(), 12);
+
+  BOOST_CHECK_EQUAL(v.index_of(block1[0]), 0);
+  BOOST_CHECK_EQUAL(v.index_of(block1[1]), 1);
+  BOOST_CHECK_EQUAL(v.index_of(block1[2]), 2);
+  BOOST_CHECK_EQUAL(v.index_of(block2[0]), 3);
+  BOOST_CHECK_EQUAL(v.index_of(block2[1]), 4);
+  BOOST_CHECK_EQUAL(v.index_of(block2[2]), 5);
+  BOOST_CHECK_EQUAL(v.index_of(block2[3]), 6);
+  BOOST_CHECK_EQUAL(v.index_of(block2[4]), 7);
+  BOOST_CHECK_EQUAL(v.index_of(block3[0]), 8);
+  BOOST_CHECK_EQUAL(v.index_of(block3[1]), 9);
+  BOOST_CHECK_EQUAL(v.index_of(block3[2]), 10);
+  BOOST_CHECK_EQUAL(v.index_of(block3[3]), 11);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
