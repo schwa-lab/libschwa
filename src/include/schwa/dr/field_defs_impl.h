@@ -222,8 +222,7 @@ namespace schwa {
     IStore &
     StoreDef<Store<S> T::*, store_ptr>::istore(const Doc &_doc) const {
       const T &doc = static_cast<const T &>(_doc);
-      const Store<S> &store = doc.*store_ptr;
-      return store;
+      return const_cast<Store<S> &>(doc.*store_ptr);
     }
 
 
@@ -270,7 +269,9 @@ namespace schwa {
     StoreDef<BlockStore<S> T::*, store_ptr>::resize(Doc &doc, const size_t size) const {
       BlockStore<S> &store = static_cast<T &>(doc).*store_ptr;
       assert(store.size() == 0);
-      store.reserve(size);
+      auto &block = store.reserve(size);
+      for (size_t i = 0; i != size; ++i)
+        block.create();
     }
   }
 }

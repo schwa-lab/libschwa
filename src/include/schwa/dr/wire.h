@@ -20,9 +20,9 @@ namespace schwa {
 
       template <typename T, bool>
       struct _WireTraits {
-        static bool should_write(const T &val);
-        template <typename OUT> static void write(OUT &out, const T &val);
-        template <typename IN> static void read(IN &in, T &val);
+        //static bool should_write(const T &val);
+        //template <typename OUT> static void write(OUT &out, const T &val);
+        //template <typename IN> static void read(IN &in, T &val);
       };
 
 
@@ -81,15 +81,15 @@ namespace schwa {
 
         template <typename OUT>
         static inline void
-        write(OUT &out, const Pointer<T> &val, const T &front) {
-          mp::write_uint(out, val.ptr - &front);
+        write(OUT &out, const Pointer<T> &val, const IStore &istore) {
+          mp::write_uint(out, istore.index_of(*val.ptr));
         }
 
         template <typename IN>
         static inline void
-        read(IN &in, Pointer<T> &val, T &front) {
+        read(IN &in, Pointer<T> &val, IStore &istore) {
           const size_t offset = mp::read_uint(in);
-          val.ptr = &front + offset;
+          val.ptr = &static_cast<T &>(istore.at_index(offset));
         }
       };
 
@@ -103,19 +103,19 @@ namespace schwa {
 
         template <typename OUT>
         static inline void
-        write(OUT &out, const Pointers<T> &val, const T &front) {
+        write(OUT &out, const Pointers<T> &val, const IStore &istore) {
           mp::write_array_size(out, val.items.size());
           for (auto &it : val.items)
-            mp::write_uint(out, it - &front);
+            mp::write_uint(out, istore.index_of(*it));
         }
 
         template <typename IN>
         static inline void
-        read(IN &in, Pointers<T> &val, T &front) {
+        read(IN &in, Pointers<T> &val, IStore &istore) {
           const size_t nitems = mp::read_uint(in);
           for (size_t i = 0; i != nitems; ++i) {
             const size_t offset = mp::read_uint(in);
-            val.items.push_back(&front + offset);
+            val.items.push_back(&static_cast<T &>(istore.at_index(offset)));
           }
         }
       };
@@ -157,9 +157,9 @@ namespace schwa {
 
         template <typename OUT>
         static inline void
-        write(OUT &out, const Slice<T> &val, const typename FieldTraits<Slice<T>>::value_type &front) {
-          const size_t a = val.start - &front;
-          const size_t b = val.stop - &front;
+        write(OUT &out, const Slice<T> &val, const IStore &istore) {
+          const size_t a = istore.index_of(*val.start);
+          const size_t b = istore.index_of(*val.stop);
           mp::write_array_size(out, 2);
           mp::write_uint(out, a);
           mp::write_uint(out, b - a);
@@ -167,13 +167,13 @@ namespace schwa {
 
         template <typename IN>
         static inline void
-        read(IN &in, Slice<T> &val, typename FieldTraits<Slice<T>>::value_type &front) {
+        read(IN &in, Slice<T> &val, IStore &istore) {
           const size_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
           const size_t offset = mp::read_uint(in);
           const size_t delta = mp::read_uint(in);
-          val.start = &front + offset;
-          val.stop = &front + (offset + delta);
+          val.start = &static_cast<typename FieldTraits<Slice<T>>::value_type &>(istore.at_index(offset));
+          val.stop = &static_cast<typename FieldTraits<Slice<T>>::value_type &>(istore.at_index(offset + delta));
         }
       };
 

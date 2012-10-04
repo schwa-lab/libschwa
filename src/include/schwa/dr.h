@@ -8,6 +8,7 @@
 #include <schwa/msgpack.h>
 
 #include <schwa/dr/typeinfo.h>
+#include <schwa/dr/istore.h>
 #include <schwa/dr/wire.h>
 #include <schwa/dr/schema.h>
 #include <schwa/dr/fields.h>
