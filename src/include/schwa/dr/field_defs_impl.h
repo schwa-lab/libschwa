@@ -10,35 +10,79 @@ namespace schwa {
         schema.add(this);
     }
 
+
+    template <typename R, typename T, R T::*field_ptr, bool HAS_DOC_BASE>
+    struct FieldDefDispatch {
+      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should never be called"); }
+      static inline bool write_field(io::WriteBuffer &, const uint32_t, const Doc &) { assert(!"should never be called"); return false; }
+
+      static inline void
+      read_field(io::ArrayReader &in, Ann &_ann) {
+        T &ann = static_cast<T &>(_ann);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val);
+      }
+
+      static inline bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann) {
+        const T &ann = static_cast<const T &>(_ann);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val);
+          return true;
+        }
+        return false;
+      }
+    };
+
+    template <typename R, typename T, R T::*field_ptr>
+    struct FieldDefDispatch<R, T, field_ptr, true> {
+      static inline void read_field(io::ArrayReader &, Ann &) { assert(!"should never be called"); }
+      static inline bool write_field(io::WriteBuffer &, const uint32_t, const Ann &) { assert(!"should never be called"); return false; }
+
+      static inline void
+      read_field(io::ArrayReader &in, Doc &_doc) {
+        T &doc = static_cast<T &>(_doc);
+        R &val = doc.*field_ptr;
+        wire::WireTraits<R>::read(in, val);
+      }
+
+      static inline bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) {
+        const T &ann = static_cast<const T &>(_doc);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val);
+          return true;
+        }
+        return false;
+      }
+    };
+
     template <typename R, typename T, R T::*field_ptr>
     void
     FieldDef<R T::*, field_ptr>::read_field(io::ArrayReader &in, Ann &_ann, IStore &, Doc &) const {
-      T &ann = static_cast<T &>(_ann);
-      R &val = ann.*field_ptr;
-      wire::WireTraits<R>::read(in, val);
+      FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _ann);
     }
-
-
-    template <typename R, typename T, R T::*field_ptr>
-    void
-    FieldDef<R T::*, field_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
-      T &doc = static_cast<T &>(_doc);
-      R &val = doc.*field_ptr;
-      wire::WireTraits<R>::read(in, val);
-    }
-
 
     template <typename R, typename T, R T::*field_ptr>
     bool
     FieldDef<R T::*, field_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &, const Doc &) const {
-      const T &ann = static_cast<const T &>(_ann);
-      const R &val = ann.*field_ptr;
-      if (wire::WireTraits<R>::should_write(val)) {
-        msgpack::write_uint(out, key);
-        wire::WireTraits<R>::write(out, val);
-        return true;
-      }
-      return false;
+      return FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _ann);
+    }
+
+    template <typename R, typename T, R T::*field_ptr>
+    void
+    FieldDef<R T::*, field_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
+      FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _doc);
+    }
+
+    template <typename R, typename T, R T::*field_ptr>
+    bool
+    FieldDef<R T::*, field_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const {
+      return FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
     }
 
 
@@ -68,38 +112,82 @@ namespace schwa {
     }
 
 
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr, bool HAS_DOC_BASE>
+    struct FieldDefWithStoreDispatch {
+      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should be impossible to invoke this"); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+
+      static inline void
+      read_field(io::ArrayReader &in, Ann &_ann, Doc &_doc) {
+        D &doc = static_cast<D &>(_doc);
+        T &ann = static_cast<T &>(_ann);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val, doc.*store_ptr);
+      }
+
+      static inline bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const Doc &_doc) {
+        const T &ann = static_cast<const T &>(_ann);
+        const D &doc = static_cast<const D &>(_doc);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val, doc.*store_ptr);
+          return true;
+        }
+        return false;
+      }
+    };
+
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+    struct FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, true> {
+      static inline void read_field(io::ArrayReader &, Ann &, Doc &) { assert(!"should be impossible to invoke this"); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Ann &, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+
+      static inline void
+      read_field(io::ArrayReader &in, Doc &_doc) {
+        D &doc = static_cast<D &>(_doc);
+        T &ann = static_cast<T &>(_doc);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val, doc.*store_ptr);
+      }
+
+      static inline bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) {
+        const T &ann = static_cast<const T &>(_doc);
+        const D &doc = static_cast<const D &>(_doc);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val, doc.*store_ptr);
+          return true;
+        }
+        return false;
+      }
+    };
+
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     void
     FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Ann &_ann, IStore &, Doc &_doc) const {
-      D &doc = static_cast<D &>(_doc);
-      T &ann = static_cast<T &>(_ann);
-      R &val = ann.*field_ptr;
-      wire::WireTraits<R>::read(in, val, doc.*store_ptr);
+      FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _ann, _doc);
     }
-
-
-    template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
-    void
-    FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
-      D &doc = static_cast<D &>(_doc);
-      T &ann = static_cast<T &>(_doc);
-      R &val = ann.*field_ptr;
-      wire::WireTraits<R>::read(in, val, doc.*store_ptr);
-    }
-
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     bool
     FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &, const Doc &_doc) const {
-      const T &ann = static_cast<const T &>(_ann);
-      const D &doc = static_cast<const D &>(_doc);
-      const R &val = ann.*field_ptr;
-      if (wire::WireTraits<R>::should_write(val)) {
-        msgpack::write_uint(out, key);
-        wire::WireTraits<R>::write(out, val, doc.*store_ptr);
-        return true;
-      }
-      return false;
+      return FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _ann, _doc);
+    }
+
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+    void
+    FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
+      FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _doc);
+    }
+
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
+    bool
+    FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const {
+      return FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
     }
 
 
@@ -126,29 +214,84 @@ namespace schwa {
     }
 
 
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr, bool HAS_DOC_BASE>
+    struct FieldDefWithBlockStoreDispatch {
+      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should be impossible to invoke this"); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+
+      static inline void
+      read_field(io::ArrayReader &in, Ann &_ann, Doc &_doc) {
+        D &doc = static_cast<D &>(_doc);
+        T &ann = static_cast<T &>(_ann);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val, doc.*store_ptr);
+      }
+
+      static inline bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const Doc &_doc) {
+        const T &ann = static_cast<const T &>(_ann);
+        const D &doc = static_cast<const D &>(_doc);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val, doc.*store_ptr);
+          return true;
+        }
+        return false;
+      }
+    };
+
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
+    struct FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, true> {
+      static inline void read_field(io::ArrayReader &, Ann &, Doc &) { assert(!"should be impossible to invoke this"); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Ann &, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+
+      static inline void
+      read_field(io::ArrayReader &in, Doc &_doc) {
+        D &doc = static_cast<D &>(_doc);
+        T &ann = static_cast<T &>(_doc);
+        R &val = ann.*field_ptr;
+        wire::WireTraits<R>::read(in, val, doc.*store_ptr);
+      }
+
+      static inline bool
+      write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) {
+        const T &ann = static_cast<const T &>(_doc);
+        const D &doc = static_cast<const D &>(_doc);
+        const R &val = ann.*field_ptr;
+        if (wire::WireTraits<R>::should_write(val)) {
+          msgpack::write_uint(out, key);
+          wire::WireTraits<R>::write(out, val, doc.*store_ptr);
+          return true;
+        }
+        return false;
+      }
+    };
+
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     void
     FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Ann &_ann, IStore &, Doc &_doc) const {
-      D &doc = static_cast<D &>(_doc);
-      T &ann = static_cast<T &>(_ann);
-      R &val = ann.*field_ptr;
-      wire::WireTraits<R>::read(in, val, doc.*store_ptr);
+      FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _ann, _doc);
     }
-
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     bool
     FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &, const Doc &_doc) const {
-      const T &ann = static_cast<const T &>(_ann);
-      const D &doc = static_cast<const D &>(_doc);
-      const R &val = ann.*field_ptr;
-      if (wire::WireTraits<R>::should_write(val)) {
-        msgpack::write_uint(out, key);
-        wire::WireTraits<R>::write(out, val, doc.*store_ptr);
-        return true;
-      }
-      return false;
+      return FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _ann, _doc);
     }
+
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
+    void
+    FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
+      FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _doc);
+    }
+
+    template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
+    bool
+    FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const {
+      return FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
+    }
+
 
     // ========================================================================
     // FieldDefWithSelfStore (DR_SELF)
@@ -188,6 +331,21 @@ namespace schwa {
         wire::WireTraits<R>::write(out, val, store);
         return true;
       }
+      return false;
+    }
+
+
+    template <typename R, typename T, R T::*field_ptr>
+    void
+    FieldDefWithSelfStore<R T::*, field_ptr>::read_field(io::ArrayReader &, Doc &) const {
+      assert(!"should be impossible to invoke this");
+    }
+
+
+    template <typename R, typename T, R T::*field_ptr>
+    bool
+    FieldDefWithSelfStore<R T::*, field_ptr>::write_field(io::WriteBuffer &, const uint32_t, const Doc &) const {
+      assert(!"should be impossible to invoke this");
       return false;
     }
 
@@ -260,7 +418,7 @@ namespace schwa {
     IStore &
     StoreDef<BlockStore<S> T::*, store_ptr>::istore(const Doc &_doc) const {
       const BlockStore<S> &store = static_cast<const T &>(_doc).*store_ptr;
-      return store;
+      return const_cast<BlockStore<S> &>(store);
     }
 
 
