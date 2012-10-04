@@ -199,7 +199,7 @@ Reader::read(Doc &doc) {
     if (!rtstore->is_lazy()) {
       const TypeInfo &store_ptr_type = def->pointer_type();
 
-      if (rt.klasses[klass_id]->def == nullptr) {
+      if (rt.klasses[klass_id]->is_lazy()) {
         std::stringstream msg;
         msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the store on the stream points to a lazy type.";
         throw ReaderException(msg.str());
@@ -301,7 +301,7 @@ Reader::read(Doc &doc) {
       }
       else {
         const char *const before = reader.upto();
-        field.def->read_field(reader, &doc, nullptr, &doc);
+        field.def->read_field(reader, doc);
         const char *const after = reader.upto();
 
         // keep a lazy serialized copy of the field if required
@@ -373,16 +373,16 @@ Reader::read(Doc &doc) {
     // wrap the lazy bytes in a writer
     io::UnsafeArrayWriter lazy_writer(lazy_bytes);
 
-    // get pointers to the vector of Ann instances
-    char *objects = store->def->store_begin(doc);
-    char *const objects_begin = objects;
-    const size_t objects_delta = store->def->store_object_size();
+    // iterator through the objects in the store
+    IStore &istore = store->def->istore(doc);
+    IStore::typeless_iterator istore_it = istore.typeless_begin();
 
     // <instances> ::= [ <instance> ]
     const uint32_t ninstances = mp::read_array_size(reader);
-    for (uint32_t i = 0; i != ninstances; ++i) {
+    for (uint32_t i = 0; i != ninstances; ++i, ++istore_it) {
       const char *const lazy_before = lazy_writer.upto();
       uint32_t lazy_nfields = 0;
+      Ann &ann = *istore_it;
 
       // <instance> ::= { <field_id> : <obj_val> }
       const uint32_t size = mp::read_map_size(reader);
@@ -399,7 +399,7 @@ Reader::read(Doc &doc) {
         }
         else {
           const char *const before = reader.upto();
-          field.def->read_field(reader, objects, objects_begin, static_cast<void *>(&doc));
+          field.def->read_field(reader, ann, istore, doc);
           const char *const after = reader.upto();
 
           // keep a lazy serialized copy of the field if required
@@ -414,14 +414,10 @@ Reader::read(Doc &doc) {
       // check whether or not the Ann instance used any of the lazy buffer
       const char *const lazy_after = lazy_writer.upto();
       if (lazy_after != lazy_before) {
-        Ann &ann = *reinterpret_cast<Ann *>(objects);
         ann._lazy = lazy_before;
         ann._lazy_nelem = lazy_nfields;
         ann._lazy_nbytes = lazy_after - lazy_before;
       }
-
-      // move on to the next annotation instance
-      objects += objects_delta;
     } // for each instance
 
     // check whether or not the lazy slab was used

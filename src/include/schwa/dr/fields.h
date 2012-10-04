@@ -26,8 +26,7 @@ namespace schwa {
 
       T *ptr;
 
-      Pointer(T *ptr=nullptr) : ptr(ptr) { }
-      ~Pointer(void) { }
+      explicit Pointer(T *ptr=nullptr) : ptr(ptr) { }
     };
 
 
@@ -45,7 +44,7 @@ namespace schwa {
     // Storage types
     // ========================================================================
     template <typename T>
-    class Store {
+    class Store : public IStore {
     public:
       static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       typedef std::vector<T> container_type;
@@ -61,18 +60,31 @@ namespace schwa {
       typedef typename container_type::size_type size_type;
       typedef typename container_type::value_type value_type;
 
-    protected:
+      class inner_typeless_iterator : public IStore::inner_typeless_iterator {
+      private:
+        typename Store<T>::iterator _it;
+
+      public:
+        inner_typeless_iterator(typename Store<T>::iterator it) : IStore::inner_typeless_iterator(), _it(it) { }
+        virtual ~inner_typeless_iterator(void) { }
+        virtual bool operator ==(const IStore::inner_typeless_iterator &o) const override { return _it == dynamic_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual bool operator !=(const IStore::inner_typeless_iterator &o) const override { return _it != dynamic_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual reference operator *(void) override { return _it.operator*(); }
+        virtual pointer operator ->(void) override { return _it.operator->(); }
+        virtual IStore::inner_typeless_iterator &operator ++(void) { ++_it; return *this; }
+      };
+
+    private:
       container_type _items;
 
     public:
       Store(void) { }
       Store(const size_type size) : _items(size) { }
       Store(const Store &&o) : _items(o._items) { }
-      ~Store(void) { }
+      virtual ~Store(void) { }
 
       // extra methods
       inline void create(const size_type n, const T x=T()) { _items.insert(_items.end(), n, x); }
-      inline container_type &raw(void) { return _items; }
 
       // iterators
       inline iterator begin(void) { return _items.begin(); }
@@ -113,6 +125,91 @@ namespace schwa {
       inline void clear(void) { _items.clear(); }
       template <typename InputIterator> inline void assign(InputIterator first, InputIterator last) { _items.assign(first, last); }
       template <typename InputIterator> inline void insert(iterator position, InputIterator first, InputIterator last) { _items.insert(position, first, last); }
+
+      // IStore
+      typeless_iterator typeless_begin(void) override { return typeless_iterator(new inner_typeless_iterator(begin())); }
+      typeless_iterator typeless_end(void) override { return typeless_iterator(new inner_typeless_iterator(end())); }
+      const Ann &at_index(size_t index) const override { return _items[index]; }
+      Ann &at_index(size_t index) override { return _items[index]; }
+      size_t index_of(const Ann &obj) const override { return &static_cast<const T &>(obj) - &front(); }
+      size_t nelem(void) const override { return _items.size(); }
+    };
+
+
+    template <typename T>
+    class BlockStore : public IStore {
+    public:
+      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
+      typedef containers::BlockVector<T> container_type;
+      typedef typename container_type::Block block;
+      typedef typename container_type::const_pointer const_pointer;
+      typedef typename container_type::const_reference const_reference;
+      typedef typename container_type::iterator iterator;
+      typedef typename container_type::pointer pointer;
+      typedef typename container_type::reference reference;
+      typedef typename container_type::size_type size_type;
+      typedef typename container_type::value_type value_type;
+
+      class inner_typeless_iterator : public IStore::inner_typeless_iterator {
+      private:
+        typename BlockStore<T>::iterator _it;
+
+      public:
+        inner_typeless_iterator(typename BlockStore<T>::iterator it) : IStore::inner_typeless_iterator(), _it(it) { }
+        virtual ~inner_typeless_iterator(void) { }
+        virtual bool operator ==(const IStore::inner_typeless_iterator &o) const override { return _it == dynamic_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual bool operator !=(const IStore::inner_typeless_iterator &o) const override { return _it != dynamic_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual reference operator *(void) override { return _it.operator*(); }
+        virtual pointer operator ->(void) override { return _it.operator->(); }
+        virtual IStore::inner_typeless_iterator &operator ++(void) { ++_it; return *this; }
+      };
+
+    private:
+      container_type _items;
+
+    public:
+      BlockStore(void) { }
+      virtual ~BlockStore(void) { }
+
+      // extra methods
+      inline void
+      create(const size_type n, const T x=T()) {
+        block &b = _items.last_block();
+        assert(b.capacity() - b.size() >= n);
+        for (size_type i = 0; i != n; ++i)
+          _items.push_back(x);
+      }
+
+      // iterators
+      inline iterator begin(void) { return _items.begin(); }
+      inline iterator end(void) { return _items.end(); }
+
+      // capacity
+      inline size_type capacity(void) const { return _items.capacity(); }
+      inline size_type nblocks(void) const { return _items.nblocks(); }
+      inline size_type size(void) const { return _items.size(); }
+      inline bool empty(void) const { return _items.empty(); }
+      inline bool full(void) const { return _items.full(); }
+
+      // element access
+      inline reference operator [](const size_type n) { return _items[n]; }
+      inline reference back(void) { return _items.back(); }
+      inline reference front(void) { return _items.front(); }
+      inline const_reference operator [](const size_type n) const { return _items[n]; }
+      inline const_reference at(const size_type n) const { return _items.at(n); }
+      inline const_reference back(void) const { return _items.back(); }
+      inline const_reference front(void) const { return _items.front(); }
+
+      // modifiers
+      inline block &reserve(const size_t nelem) { return _items.reserve(nelem); }
+
+      // IStore
+      typeless_iterator typeless_begin(void) override { return typeless_iterator(new inner_typeless_iterator(begin())); }
+      typeless_iterator typeless_end(void) override { return typeless_iterator(new inner_typeless_iterator(end())); }
+      const Ann &at_index(size_t index) const override { return _items[index]; }
+      Ann &at_index(size_t index) override { return _items[index]; }
+      size_t index_of(const Ann &obj) const override { return _items.index_of(static_cast<const T &>(obj)); }
+      size_t nelem(void) const override { return _items.size(); }
     };
 
 

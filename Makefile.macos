@@ -5,7 +5,7 @@ prefix=/usr
 #RELEASE_VERSION=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)
 
 INCLUDE = -Isrc/include -isystem ext/include
-LIBS = -Llib -Lext/lib -lboost_iostreams-mt
+LIBS = -Llib -Lext/lib -lboost_iostreams
 DEFINES =
 
 ifdef RELEASE_VERSION
@@ -15,7 +15,7 @@ OPTIMIZE_CXXFLAGS = -g -O0
 endif
 BASE_CXXFLAGS = -std=c++11 $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -pedantic $(INCLUDE) $(DEFINES)
 
-CXX = g++-4.7
+CXX = g++
 CXXFLAGS = $(BASE_CXXFLAGS)
 LDFLAGS = $(LIBS)
 SHARED_LIB_SUFFIX = dylib

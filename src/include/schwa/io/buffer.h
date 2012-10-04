@@ -78,6 +78,7 @@ namespace schwa {
 
       inline const char *data(void) const { return _data; }
       inline const char *upto(void) const { return _upto; }
+      inline size_t nbytes(void) const { return _nbytes; }
 
       inline int
       get(void) {

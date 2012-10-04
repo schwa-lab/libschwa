@@ -21,10 +21,19 @@ namespace schwa {
     };
 
 
+    class Paragraph : public dr::Ann {
+    public:
+      dr::Slice<Sent *> span;
+
+      class Schema;
+    };
+
+
     class Doc : public dr::Doc {
     public:
       dr::Store<Token> tokens;
       dr::Store<Sent> sents;
+      dr::Store<Paragraph> pars;
 
       class Schema;
     };
@@ -50,10 +59,20 @@ namespace schwa {
     };
 
 
+    class Paragraph::Schema : public dr::Ann::Schema<Paragraph> {
+    public:
+      DR_POINTER(&Paragraph::span, &Doc::sents) span;
+
+      Schema(void);
+      virtual ~Schema(void);
+    };
+
+
     class Doc::Schema : public dr::Doc::Schema<Doc> {
     public:
       DR_STORE(&Doc::tokens) tokens;
       DR_STORE(&Doc::sents) sents;
+      DR_STORE(&Doc::pars) pars;
 
       Schema(void);
       virtual ~Schema(void);
@@ -62,13 +81,32 @@ namespace schwa {
 
     class DocrepStream : public Stream {
     protected:
+      struct TmpToken {
+        uint64_t start;
+        uint64_t stop;
+        std::string raw;
+        std::string norm;
+      };
+
+      struct TmpSent {
+        uint64_t start;
+        uint64_t stop;
+      };
+
+      struct TmpPar {
+        uint64_t start;
+        uint64_t stop;
+      };
+
       std::ostream &_out;
       dr::Writer _writer;
       Doc *_doc;
       const bool _normalise;
-      bool _new_document;
-      size_t _ntokens;
-      size_t _begin_sent;
+      std::vector<TmpToken> _tokens;
+      std::vector<TmpSent> _sents;
+      std::vector<TmpPar> _pars;
+      uint64_t _begin_sent;
+      uint64_t _begin_par;
 
       void ensure_doc(void);
 
@@ -76,27 +114,26 @@ namespace schwa {
       DocrepStream(std::ostream &out, Doc::Schema &dschema, bool normalise=true);
       virtual ~DocrepStream(void);
 
-      virtual void add(Type, const char *raw, offset_type, offset_type len, const char *norm=0);
-      virtual void error(const char *, offset_type, offset_type);
+      void add(Type, const char *raw, offset_type, offset_type len, const char *norm=0) override;
+      void error(const char *, offset_type, offset_type) { }
 
-      virtual void begin_sentence(void);
-      virtual void end_sentence(void);
+      void begin_sentence(void) override;
+      void end_sentence(void) override;
 
-      virtual void begin_paragraph(void);
+      void begin_paragraph(void) override;
+      void end_paragraph(void) override;
 
-      virtual void end_paragraph(void);
+      void begin_heading(int) override { }
+      void end_heading(int) override { }
 
-      virtual void begin_heading(int);
-      virtual void end_heading(int);
+      void begin_list(void) override { }
+      void end_list(void) override { }
 
-      virtual void begin_list(void);
-      virtual void end_list(void);
+      void begin_item(void) override { }
+      void end_item(void) override { }
 
-      virtual void begin_item(void);
-      virtual void end_item(void);
-
-      virtual void begin_document(void);
-      virtual void end_document(void);
+      void begin_document(void) override;
+      void end_document(void) override;
     };
 
   }
