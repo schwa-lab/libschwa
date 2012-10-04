@@ -52,8 +52,10 @@ namespace schwa {
       const TypeInfo &pointer_type(void) const override;
       ptrdiff_t store_offset(const Doc *) const override;
 
-      virtual void read_field(io::ArrayReader &in, void *const _ann, void *const _store, void *const _doc) const = 0;
-      virtual bool write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const _store, const void *const _doc) const = 0;
+      virtual void read_field(io::ArrayReader &in, Ann &_ann, IStore &_store, Doc &_doc) const = 0;
+      virtual void read_field(io::ArrayReader &in, Doc &_doc) const = 0;
+      virtual bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const = 0;
+      virtual bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const = 0;
     };
 
 
@@ -64,12 +66,8 @@ namespace schwa {
     public:
       virtual ~BaseStoreDef(void) { }
 
+      virtual IStore &istore(const Doc &_doc) const = 0;
       virtual void resize(Doc &doc, const size_t size) const = 0;
-
-      virtual size_t size(const Doc &doc) const = 0;
-
-      virtual char *store_begin(const Doc &_doc) const = 0;
-      virtual size_t store_object_size(void) const = 0;
     };
 
 
@@ -91,8 +89,10 @@ namespace schwa {
       FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial);
       virtual ~FieldDef(void) { }
 
-      void read_field(io::ArrayReader &in, void *const _ann, void *const, void *const) const override;
-      bool write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const) const override;
+      void read_field(io::ArrayReader &in, Ann &_ann, IStore &_store, Doc &_doc) const override;
+      void read_field(io::ArrayReader &in, Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
     };
 
 
@@ -124,8 +124,10 @@ namespace schwa {
       const TypeInfo &pointer_type(void) const override;
       ptrdiff_t store_offset(const Doc *doc) const override;
 
-      void read_field(io::ArrayReader &in, void *const _ann, void *const, void *const _doc) const override;
-      bool write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const _doc) const override;
+      void read_field(io::ArrayReader &in, Ann &_ann, IStore &_store, Doc &_doc) const override;
+      void read_field(io::ArrayReader &in, Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
     };
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
@@ -150,8 +152,10 @@ namespace schwa {
       const TypeInfo &pointer_type(void) const override;
       ptrdiff_t store_offset(const Doc *doc) const override;
 
-      void read_field(io::ArrayReader &in, void *const _ann, void *const, void *const _doc) const override;
-      bool write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const, const void *const _doc) const override;
+      void read_field(io::ArrayReader &in, Ann &_ann, IStore &_store, Doc &_doc) const override;
+      void read_field(io::ArrayReader &in, Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
     };
 
 
@@ -179,8 +183,10 @@ namespace schwa {
 
       const TypeInfo &pointer_type(void) const override;
 
-      void read_field(io::ArrayReader &in, void *const _ann, void *const _store, void *const) const override;
-      bool write_field(io::WriteBuffer &out, const uint32_t key, const void *const _ann, const void *const _store, const void *const) const override;
+      void read_field(io::ArrayReader &in, Ann &_ann, IStore &_store, Doc &_doc) const override;
+      void read_field(io::ArrayReader &in, Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
+      bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
     };
 
 
@@ -205,13 +211,10 @@ namespace schwa {
       virtual ~StoreDef(void) { }
 
       const TypeInfo &pointer_type(void) const override;
-
-      char *store_begin(const Doc &_doc) const override;
-      size_t store_object_size(void) const override;
       ptrdiff_t store_offset(const Doc *doc) const override;
 
+      IStore &istore(const Doc &_doc) const override;
       void resize(Doc &doc, const size_t size) const override;
-      size_t size(const Doc &doc) const override;
     };
 
     template <typename S, typename T, BlockStore<S> T::*store_ptr>
@@ -229,13 +232,10 @@ namespace schwa {
       virtual ~StoreDef(void) { }
 
       const TypeInfo &pointer_type(void) const override;
-
-      char *store_begin(const Doc &_doc) const override;
-      size_t store_object_size(void) const override;
       ptrdiff_t store_offset(const Doc *doc) const override;
 
+      IStore &istore(const Doc &_doc) const override;
       void resize(Doc &doc, const size_t size) const override;
-      size_t size(const Doc &doc) const override;
     };
 
 

@@ -8,28 +8,45 @@ namespace schwa { namespace dr {
 
 Writer::Writer(std::ostream &out, BaseDocSchema &dschema) : _out(out), _dschema(dschema) { }
 
+static void
+write_lazy(io::WriteBuffer &out, const Lazy &lazy_obj, const uint32_t nfields_new, io::WriteBuffer &buf) {
+  const uint32_t nfields = nfields_new + lazy_obj.lazy_nelem();
+  mp::write_map_size(out, nfields);
+  if (nfields != 0) {
+    if (lazy_obj.lazy_nbytes() != 0)
+      out.write(lazy_obj.lazy_data(), lazy_obj.lazy_nbytes());
+    out.copy_from(buf);
+  }
+}
+
 
 static void
-write_instance(io::WriteBuffer &out, const void *const obj, const void *const store, const Doc &doc, const RTSchema &schema) {
+write_instance(io::WriteBuffer &out, const Doc &doc, const RTSchema &schema) {
   io::WriteBuffer buf;
-  const Lazy *const lazy_obj = reinterpret_cast<const Lazy *>(obj);
-
   uint32_t nfields_new = 0;
   for (auto &field : schema.fields) {
     if (!field->is_lazy() && field->def->mode == FieldMode::READ_WRITE) {
-      const bool wrote = field->def->write_field(buf, field->field_id, obj, store, &doc);
+      const bool wrote = field->def->write_field(buf, field->field_id, doc);
       if (wrote)
         ++nfields_new;
     }
   }
+  write_lazy(out, doc, nfields_new, buf);
+}
 
-  const uint32_t nfields = nfields_new + lazy_obj->lazy_nelem();
-  mp::write_map_size(out, nfields);
-  if (nfields != 0) {
-    if (lazy_obj->lazy_nbytes() != 0)
-      out.write(lazy_obj->lazy_data(), lazy_obj->lazy_nbytes());
-    out.copy_from(buf);
+
+static void
+write_instance(io::WriteBuffer &out, const Ann &obj, const IStore &current_store, const Doc &doc, const RTSchema &schema) {
+  io::WriteBuffer buf;
+  uint32_t nfields_new = 0;
+  for (auto &field : schema.fields) {
+    if (!field->is_lazy() && field->def->mode == FieldMode::READ_WRITE) {
+      const bool wrote = field->def->write_field(buf, field->field_id, obj, current_store, doc);
+      if (wrote)
+        ++nfields_new;
+    }
   }
+  write_lazy(out, obj, nfields_new, buf);
 }
 
 
@@ -97,15 +114,23 @@ Writer::write(const Doc &doc) {
   for (auto &store : rtdschema->stores) {
     // <store> ::= ( <store_name>, <type_id>, <store_nelem> )
     mp::write_array_size(_out, 3);
-    mp::write_raw(_out, store->is_lazy() ? store->serial : store->def->serial);
-    mp::write_uint(_out, store->klass->klass_id);
-    mp::write_uint(_out, store->is_lazy() ? store->lazy_nelem : store->def->size(doc));
+    if (store->is_lazy()) {
+      mp::write_raw(_out, store->serial);
+      mp::write_uint(_out, store->klass->klass_id);
+      mp::write_uint(_out, store->lazy_nelem);
+    }
+    else {
+      IStore &istore = store->def->istore(doc);
+      mp::write_raw(_out, store->def->serial);
+      mp::write_uint(_out, store->klass->klass_id);
+      mp::write_uint(_out, istore.nelem());
+    }
   }
 
   // <doc_instance> ::= <instances_nbytes> <instance>
   {
     io::WriteBuffer buf;
-    write_instance(buf, &doc, nullptr, doc, *rtdschema);
+    write_instance(buf, doc, *rtdschema);
     mp::write_uint(_out, buf.size());
     buf.copy_to(_out);
   }
@@ -120,16 +145,15 @@ Writer::write(const Doc &doc) {
     else {
       io::WriteBuffer buf;
 
-      char *objects = store->def->store_begin(doc);
-      char *const objects_begin = objects;
-      const size_t objects_delta = store->def->store_object_size();
-      const size_t nitems = store->def->size(doc);
+      IStore &istore = store->def->istore(doc);
+      IStore::typeless_iterator istore_it = istore.typeless_begin();
+      const size_t nelem = istore.nelem();
 
       // <instances> ::= [ <instance> ]
-      msgpack::write_array_size(buf, nitems);
-      for (size_t i = 0; i != nitems; ++i) {
-        write_instance(buf, objects, objects_begin, doc, *store->klass);
-        objects += objects_delta;
+      msgpack::write_array_size(buf, nelem);
+      for (size_t i = 0; i != nelem; ++i, ++istore_it) {
+        Ann &ann = *istore_it;
+        write_instance(buf, ann, istore, doc, *store->klass);
       }
 
       mp::write_uint(_out, buf.size());
