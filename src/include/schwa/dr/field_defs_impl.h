@@ -13,8 +13,8 @@ namespace schwa {
 
     template <typename R, typename T, R T::*field_ptr, bool HAS_DOC_BASE>
     struct FieldDefDispatch {
-      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should never be called"); }
-      static inline bool write_field(io::WriteBuffer &, const uint32_t, const Doc &) { assert(!"should never be called"); return false; }
+      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should never be called"); std::abort(); }
+      static inline bool write_field(io::WriteBuffer &, const uint32_t, const Doc &) { assert(!"should never be called"); std::abort(); return false; }
 
       static inline void
       read_field(io::ArrayReader &in, Ann &_ann) {
@@ -38,8 +38,8 @@ namespace schwa {
 
     template <typename R, typename T, R T::*field_ptr>
     struct FieldDefDispatch<R, T, field_ptr, true> {
-      static inline void read_field(io::ArrayReader &, Ann &) { assert(!"should never be called"); }
-      static inline bool write_field(io::WriteBuffer &, const uint32_t, const Ann &) { assert(!"should never be called"); return false; }
+      static inline void read_field(io::ArrayReader &, Ann &) { assert(!"should never be called"); std::abort(); }
+      static inline bool write_field(io::WriteBuffer &, const uint32_t, const Ann &) { assert(!"should never be called"); std::abort(); return false; }
 
       static inline void
       read_field(io::ArrayReader &in, Doc &_doc) {
@@ -114,8 +114,8 @@ namespace schwa {
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr, bool HAS_DOC_BASE>
     struct FieldDefWithStoreDispatch {
-      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should be impossible to invoke this"); }
-      static inline bool write_field(io::WriteBuffer &, uint32_t, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should be impossible to invoke this"); std::abort(); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Doc &) { assert(!"should be impossible to invoke this"); std::abort(); return false; }
 
       static inline void
       read_field(io::ArrayReader &in, Ann &_ann, Doc &_doc) {
@@ -141,8 +141,8 @@ namespace schwa {
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     struct FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, true> {
-      static inline void read_field(io::ArrayReader &, Ann &, Doc &) { assert(!"should be impossible to invoke this"); }
-      static inline bool write_field(io::WriteBuffer &, uint32_t, const Ann &, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+      static inline void read_field(io::ArrayReader &, Ann &, Doc &) { assert(!"should be impossible to invoke this"); std::abort(); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Ann &, const Doc &) { assert(!"should be impossible to invoke this"); std::abort(); return false; }
 
       static inline void
       read_field(io::ArrayReader &in, Doc &_doc) {
@@ -216,8 +216,8 @@ namespace schwa {
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr, bool HAS_DOC_BASE>
     struct FieldDefWithBlockStoreDispatch {
-      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should be impossible to invoke this"); }
-      static inline bool write_field(io::WriteBuffer &, uint32_t, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+      static inline void read_field(io::ArrayReader &, Doc &) { assert(!"should be impossible to invoke this"); std::abort(); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Doc &) { assert(!"should be impossible to invoke this"); std::abort(); return false; }
 
       static inline void
       read_field(io::ArrayReader &in, Ann &_ann, Doc &_doc) {
@@ -243,8 +243,8 @@ namespace schwa {
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     struct FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, true> {
-      static inline void read_field(io::ArrayReader &, Ann &, Doc &) { assert(!"should be impossible to invoke this"); }
-      static inline bool write_field(io::WriteBuffer &, uint32_t, const Ann &, const Doc &) { assert(!"should be impossible to invoke this"); return false; }
+      static inline void read_field(io::ArrayReader &, Ann &, Doc &) { assert(!"should be impossible to invoke this"); std::abort(); }
+      static inline bool write_field(io::WriteBuffer &, uint32_t, const Ann &, const Doc &) { assert(!"should be impossible to invoke this"); std::abort(); return false; }
 
       static inline void
       read_field(io::ArrayReader &in, Doc &_doc) {
@@ -339,6 +339,7 @@ namespace schwa {
     void
     FieldDefWithSelfStore<R T::*, field_ptr>::read_field(io::ArrayReader &, Doc &) const {
       assert(!"should be impossible to invoke this");
+      std::abort();
     }
 
 
@@ -346,6 +347,7 @@ namespace schwa {
     bool
     FieldDefWithSelfStore<R T::*, field_ptr>::write_field(io::WriteBuffer &, const uint32_t, const Doc &) const {
       assert(!"should be impossible to invoke this");
+      std::abort();
       return false;
     }
 
