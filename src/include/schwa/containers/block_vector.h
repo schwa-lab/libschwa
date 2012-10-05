@@ -8,43 +8,49 @@ namespace schwa {
     public:
       class Block {
       public:
-        typedef T *iterator;
         typedef const T *const_iterator;
+        typedef const T *const_pointer;
+        typedef const T &const_reference;
+        typedef T *iterator;
+        typedef T *pointer;
+        typedef T &reference;
+        typedef size_t size_type;
+        typedef T value_type;
 
       private:
-        const size_t _capacity;
-        size_t _size;
+        const size_type _capacity;
+        size_type _size;
         Block *_next;
 
       public:
-        explicit Block(const size_t capacity);
+        explicit Block(const size_type capacity);
         ~Block(void) { }
 
-        inline T &operator [](const size_t i) { return get(i); }
-        inline const T &operator [](const size_t i) const { return get(i); }
+        inline reference operator [](const size_type i) { return get(i); }
+        inline const_reference operator [](const size_type i) const { return get(i); }
 
-        inline T &get(const size_t i);
-        inline const T &get(const size_t i) const;
+        inline reference get(const size_type i);
+        inline const_reference get(const size_type i) const;
 
         inline const_iterator begin(void) const;
         inline const_iterator end(void) const;
         inline iterator begin(void);
         inline iterator end(void);
 
-        inline const T &front(void) const { return *begin(); }
-        inline const T &back(void) const { return *(end() - 1); }
-        inline T &front(void) { return *begin(); }
-        inline T &back(void) { return *(end() - 1); }
+        inline const_reference front(void) const { return *begin(); }
+        inline const_reference back(void) const { return *(end() - 1); }
+        inline reference front(void) { return *begin(); }
+        inline reference back(void) { return *(end() - 1); }
 
-        inline size_t capacity(void) const { return _capacity; }
-        inline size_t size(void) const { return _size; }
+        inline size_type capacity(void) const { return _capacity; }
+        inline size_type size(void) const { return _size; }
 
-        inline bool contains(const T &obj) const { return begin() <= &obj && &obj < end(); }
+        inline bool contains(const_reference obj) const { return begin() <= &obj && &obj < end(); }
         inline bool empty(void) const { return _size == 0; }
         inline bool full(void) const { return _size == _capacity; }
 
-        T &create(void);
-        T &create(const T &other);
+        reference create(void);
+        reference create(const_reference other);
 
         inline Block *next(void) const { return _next; }
         inline void set_next(Block *const next) { _next = next; }
@@ -63,6 +69,8 @@ namespace schwa {
       Block *_block;
       typename Block::iterator _it;
       typename Block::iterator _end;
+
+      void increment_it(void);
 
     public:
       explicit Iterator(Block *block=nullptr);
@@ -85,11 +93,11 @@ namespace schwa {
       friend inline std::ostream &operator <<(std::ostream &out, const Iterator &it) { return it.dump(out); }
     };
 
-    typedef T &reference;
     typedef const T *const_pointer;
     typedef const T &const_reference;
     typedef Iterator iterator;
     typedef T *pointer;
+    typedef T &reference;
     typedef size_t size_type;
     typedef T value_type;
 
