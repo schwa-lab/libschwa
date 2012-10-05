@@ -105,7 +105,7 @@ namespace schwa {
       inline const_reference operator [](size_type i) const { return get(i); }
 
       inline reference get(size_type i);
-      const_reference get(size_type i) const;
+      inline const_reference get(size_type i) const;
 
       size_type index_of(const_reference obj) const;
 
@@ -115,17 +115,17 @@ namespace schwa {
       inline iterator begin(void) { return iterator(_first); }
       inline iterator end(void) { return iterator(); }
 
-      inline const T &front(void) const { return _first->front(); }
-      inline const T &back(void) const { return _last->back(); }
-      inline T &front(void) { return _first->front(); }
-      inline T &back(void) { return _last->back(); }
+      inline const_reference front(void) const { return _first->front(); }
+      inline const_reference back(void) const { return _last->back(); }
+      inline reference front(void) { return _first->front(); }
+      inline reference back(void) { return _last->back(); }
 
       inline const Block &first_block(void) const { return *_first; }
       inline const Block &last_block(void) const { return *_last; }
       inline Block &first_block(void) { return *_first; }
       inline Block &last_block(void) { return *_last; }
 
-      void push_back(const_reference obj);
+      inline void push_back(const_reference obj);
 
       Block &reserve(size_type nelem);
     };
