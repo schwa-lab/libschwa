@@ -104,10 +104,12 @@ namespace schwa {
     typename BlockVector<T>::Iterator &
     BlockVector<T>::Iterator::operator ++(void) {
       ++_it;
-      if (_it == _end) {
+      while (_it == _end) {
         _block = _block->next();
-        if (_block == nullptr)
+        if (_block == nullptr) {
           _it = _end = typename Block::iterator();
+          break;
+        }
         else {
           _it = _block->begin();
           _end = _block->end();
