@@ -79,14 +79,16 @@ namespace schwa {
       _block(block),
       _it(_block ? _block->begin() : typename Block::iterator()),
       _end(_block ? _block->end() : typename Block::iterator())
-      { }
+      {
+        increment_it();
+    }
 
 
     template <typename T>
     BlockVector<T>::Iterator::Iterator(const Iterator &o) :
-        _block(o._block),
-        _it(o._it),
-        _end(o._end)
+      _block(o._block),
+      _it(o._it),
+      _end(o._end)
       { }
 
 
@@ -101,10 +103,9 @@ namespace schwa {
 
 
     template <typename T>
-    typename BlockVector<T>::Iterator &
-    BlockVector<T>::Iterator::operator ++(void) {
-      ++_it;
-      while (_it == _end) {
+    void
+    BlockVector<T>::Iterator::increment_it(void) {
+      while (_block && _it == _end) {
         _block = _block->next();
         if (_block == nullptr) {
           _it = _end = typename Block::iterator();
@@ -115,6 +116,14 @@ namespace schwa {
           _end = _block->end();
         }
       }
+    }
+
+
+    template <typename T>
+    typename BlockVector<T>::Iterator &
+    BlockVector<T>::Iterator::operator ++(void) {
+      ++_it;
+      increment_it();
       return *this;
     }
 
