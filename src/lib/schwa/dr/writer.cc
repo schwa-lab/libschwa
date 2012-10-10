@@ -85,24 +85,24 @@ Writer::write(const Doc &doc) {
       mp::write_map_size(_out, nelem);
 
       // <field_type> ::= 0 # NAME => the name of the field
-      mp::write_uint_fixed(_out, 0);
+      mp::write_uint_fixed(_out, to_underlying(wire::NAME));
       mp::write_raw(_out, field->is_lazy() ? field->serial : field->def->serial);
 
       // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
       if (field->points_into != nullptr) {
-        mp::write_uint_fixed(_out, 1);
+        mp::write_uint_fixed(_out, to_underlying(wire::POINTER_TO));
         mp::write_uint(_out, field->points_into->store_id);
       }
 
       // <field_type> ::= 2 # IS_SLICE => whether or not this field is a "Slice" field
       if (field->is_slice) {
-        mp::write_uint_fixed(_out, 2);
+        mp::write_uint_fixed(_out, to_underlying(wire::IS_SLICE));
         mp::write_nil(_out);
       }
 
       // <field_type>  ::= 3 # IS_SELF_POINTER => whether or not this field is a self-pointer. POINTER_TO and IS_SELF_POINTER are mutually exclusive.
       if (field->is_self_pointer) {
-        mp::write_uint_fixed(_out, 3);
+        mp::write_uint_fixed(_out, to_underlying(wire::IS_SELF_POINTER));
         mp::write_nil(_out);
       }
     } // for each field

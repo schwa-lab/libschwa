@@ -94,10 +94,21 @@ Reader::read(Doc &doc) {
       for (uint32_t i = 0; i != nitems; ++i) {
         const uint8_t key = mp::read_uint_fixed(_in);
         switch (key) {
-        case 0: field_name = mp::read_raw(_in); break;
-        case 1: store_id = mp::read_uint(_in); is_pointer = true; break;
-        case 2: mp::read_nil(_in); is_slice = true; break;
-        case 3: mp::read_nil(_in); is_self_pointer = true; break;
+        case to_underlying(wire::NAME):
+          field_name = mp::read_raw(_in);
+          break;
+        case to_underlying(wire::POINTER_TO):
+          store_id = mp::read_uint(_in);
+          is_pointer = true;
+          break;
+        case to_underlying(wire::IS_SLICE):
+          mp::read_nil(_in);
+          is_slice = true;
+          break;
+        case to_underlying(wire::IS_SELF_POINTER):
+          mp::read_nil(_in);
+          is_self_pointer = true;
+          break;
         default:
           std::stringstream msg;
           msg << "Unknown value " << static_cast<unsigned int>(key) << " as key in <field> map";

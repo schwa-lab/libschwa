@@ -14,9 +14,17 @@ namespace schwa {
     template <typename T>
     struct FieldTraits;
 
-
     namespace wire {
       namespace mp = schwa::msgpack;
+
+      enum FieldType : uint8_t {
+        NAME = 0,
+        POINTER_TO = 1,
+        IS_SLICE = 2,
+        IS_SELF_POINTER = 3,
+        IS_COLLECTION = 4
+      };
+
 
       template <typename T, bool>
       struct _WireTraits {
