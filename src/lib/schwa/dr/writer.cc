@@ -105,6 +105,12 @@ Writer::write(const Doc &doc) {
         mp::write_uint_fixed(_out, to_underlying(wire::IS_SELF_POINTER));
         mp::write_nil(_out);
       }
+
+      // <field_type>  ::= 4 # IS_COLLECTION => whether or not this field is a collection. IS_COLLECTION and IS_SLICE are mutually exclusive.
+      if (field->is_collection) {
+        mp::write_uint_fixed(_out, to_underlying(wire::IS_COLLECTION));
+        mp::write_nil(_out);
+      }
     } // for each field
   } // for each klass
 

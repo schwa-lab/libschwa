@@ -22,7 +22,7 @@ namespace schwa {
         POINTER_TO = 1,
         IS_SLICE = 2,
         IS_SELF_POINTER = 3,
-        IS_COLLECTION = 4
+        IS_COLLECTION = 4,
       };
 
 

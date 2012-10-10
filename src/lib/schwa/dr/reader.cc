@@ -87,7 +87,7 @@ Reader::read(Doc &doc) {
     for (uint32_t f = 0; f != nfields; ++f) {
       std::string field_name;
       size_t store_id = 0;
-      bool is_pointer = false, is_self_pointer = false, is_slice = false;
+      bool is_pointer = false, is_self_pointer = false, is_slice = false, is_collection = false;
 
       // <field> ::= { <field_type> : <field_val> }
       const uint32_t nitems = mp::read_map_size(_in);
@@ -109,6 +109,10 @@ Reader::read(Doc &doc) {
           mp::read_nil(_in);
           is_self_pointer = true;
           break;
+        case to_underlying(wire::IS_COLLECTION):
+          mp::read_nil(_in);
+          is_collection = true;
+          break;
         default:
           std::stringstream msg;
           msg << "Unknown value " << static_cast<unsigned int>(key) << " as key in <field> map";
@@ -124,7 +128,7 @@ Reader::read(Doc &doc) {
       // see if the read in field exists on the registered class's schema
       RTFieldDef *rtfield;
       if (rtschema->is_lazy()) {
-        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer);
+        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, is_collection);
         assert(rtfield != nullptr);
       }
       else {
@@ -136,7 +140,7 @@ Reader::read(Doc &doc) {
             break;
           }
         }
-        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, def);
+        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, is_collection, def);
         assert(rtfield != nullptr);
 
         // perform some sanity checks that the type of data on the stream is what we're expecting
@@ -154,6 +158,11 @@ Reader::read(Doc &doc) {
           if (is_self_pointer != def->is_self_pointer) {
             std::stringstream msg;
             msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_SELF_POINTER as " << is_self_pointer << " on the stream, but " << def->is_self_pointer << " on the class's field";
+            throw ReaderException(msg.str());
+          }
+          if (is_collection != def->is_collection) {
+            std::stringstream msg;
+            msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_COLLECTION as " << is_collection << " on the stream, but " << def->is_collection << " on the class's field";
             throw ReaderException(msg.str());
           }
         }

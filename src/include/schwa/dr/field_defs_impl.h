@@ -5,7 +5,7 @@ namespace schwa {
 
     template <typename R, typename T, R T::*field_ptr>
     FieldDef<R T::*, field_ptr>::FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseFieldDef(name, help, mode, serial, false, false, FieldTraits<R>::is_slice)
+      BaseFieldDef(name, help, mode, serial, false, false, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection)
       {
         schema.add(this);
     }
@@ -91,7 +91,7 @@ namespace schwa {
     // ========================================================================
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseFieldDef(name, help, mode, serial, true, false, FieldTraits<R>::is_slice),
+      BaseFieldDef(name, help, mode, serial, true, false, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection),
       _pointer_type(TypeInfo::create<S>())
       {
       schema.add(this);
@@ -193,7 +193,7 @@ namespace schwa {
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::FieldDefWithStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseFieldDef(name, help, mode, serial, true, false, FieldTraits<R>::is_slice),
+      BaseFieldDef(name, help, mode, serial, true, false, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection),
       _pointer_type(TypeInfo::create<S>())
       {
       schema.add(this);
@@ -298,7 +298,7 @@ namespace schwa {
     // ========================================================================
     template <typename R, typename T, R T::*field_ptr>
     FieldDefWithSelfStore<R T::*, field_ptr>::FieldDefWithSelfStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseFieldDef(name, help, mode, serial, false, true, FieldTraits<R>::is_slice),
+      BaseFieldDef(name, help, mode, serial, false, true, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection),
       _pointer_type(TypeInfo::create<R>())
       {
       schema.add(this);

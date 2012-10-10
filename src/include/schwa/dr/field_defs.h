@@ -11,8 +11,7 @@ namespace schwa {
     enum class FieldMode : uint8_t {
       READ_WRITE = 1,
       READ_ONLY = 2,
-      DELETE = 3,
-      STREAM_ONLY = 4
+      DELETE = 3
     };
 
 
@@ -39,12 +38,13 @@ namespace schwa {
 
     class BaseFieldDef : public BaseDef {
     public:
-      const bool is_pointer;
-      const bool is_self_pointer;
-      const bool is_slice;
+      const bool is_pointer : 1;
+      const bool is_self_pointer : 1;
+      const bool is_slice : 1;
+      const bool is_collection : 1;
 
     protected:
-      BaseFieldDef(const std::string &name, const std::string &help, FieldMode mode, const std::string &serial, bool is_pointer, bool is_self_pointer, bool is_slice);
+      BaseFieldDef(const std::string &name, const std::string &help, FieldMode mode, const std::string &serial, bool is_pointer, bool is_self_pointer, bool is_slice, bool is_collection);
 
     public:
       virtual ~BaseFieldDef(void) { }
