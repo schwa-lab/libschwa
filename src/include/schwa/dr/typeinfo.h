@@ -11,7 +11,11 @@ namespace schwa {
       const std::string name;
 
     protected:
+#ifdef USE_DEMANGLE_TYPEID
       TypeInfo(const std::string &typeid_name) : name(port::demangle_typeid(typeid_name.c_str())) { }
+#else
+      TypeInfo(const std::string &typeid_name) : name(typeid_name.c_str()) { }
+#endif
 
     public:
       ~TypeInfo(void) { }

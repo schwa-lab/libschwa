@@ -236,4 +236,39 @@ BOOST_AUTO_TEST_CASE(BlockVector_int__index_of) {
   BOOST_CHECK_EQUAL(v.index_of(block3[3]), 11);
 }
 
+
+BOOST_AUTO_TEST_CASE(BlockVector_int__get) {
+  ct::BlockVector<int> v;
+  auto fn = [](int i) -> int { return 2*i + 3; };
+
+  auto &block0 = v.reserve(0);
+  for (size_t i = 0; i != block0.capacity(); ++i)
+    block0.create(fn(i));
+  auto &block1 = v.reserve(3);
+  for (size_t i = 0; i != block1.capacity(); ++i)
+    block1.create(fn(i));
+  auto &block2 = v.reserve(0);
+  for (size_t i = 0; i != block2.capacity(); ++i)
+    block2.create(fn(i));
+  auto &block3 = v.reserve(0);
+  for (size_t i = 0; i != block3.capacity(); ++i)
+    block3.create(fn(i));
+  auto &block4 = v.reserve(4);
+  for (size_t i = 0; i != block4.capacity(); ++i)
+    block4.create(fn(i));
+  auto &block5 = v.reserve(0);
+  for (size_t i = 0; i != block5.capacity(); ++i)
+    block5.create(fn(i));
+
+  BOOST_REQUIRE_EQUAL(v.size(), 7);
+  BOOST_CHECK_EQUAL(v.get(0), fn(0));
+  BOOST_CHECK_EQUAL(v.get(1), fn(1));
+  BOOST_CHECK_EQUAL(v.get(2), fn(2));
+  BOOST_CHECK_EQUAL(v.get(3), fn(0));
+  BOOST_CHECK_EQUAL(v.get(4), fn(1));
+  BOOST_CHECK_EQUAL(v.get(5), fn(2));
+  BOOST_CHECK_EQUAL(v.get(6), fn(3));
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

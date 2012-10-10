@@ -67,8 +67,8 @@ namespace schwa {
       public:
         inner_typeless_iterator(typename Store<T>::iterator it) : IStore::inner_typeless_iterator(), _it(it) { }
         virtual ~inner_typeless_iterator(void) { }
-        virtual bool operator ==(const IStore::inner_typeless_iterator &o) const override { return _it == dynamic_cast<const inner_typeless_iterator &>(o)._it; }
-        virtual bool operator !=(const IStore::inner_typeless_iterator &o) const override { return _it != dynamic_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual bool operator ==(const IStore::inner_typeless_iterator &o) const override { return _it == static_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual bool operator !=(const IStore::inner_typeless_iterator &o) const override { return _it != static_cast<const inner_typeless_iterator &>(o)._it; }
         virtual reference operator *(void) override { return _it.operator*(); }
         virtual pointer operator ->(void) override { return _it.operator->(); }
         virtual IStore::inner_typeless_iterator &operator ++(void) { ++_it; return *this; }
@@ -157,8 +157,8 @@ namespace schwa {
       public:
         inner_typeless_iterator(typename BlockStore<T>::iterator it) : IStore::inner_typeless_iterator(), _it(it) { }
         virtual ~inner_typeless_iterator(void) { }
-        virtual bool operator ==(const IStore::inner_typeless_iterator &o) const override { return _it == dynamic_cast<const inner_typeless_iterator &>(o)._it; }
-        virtual bool operator !=(const IStore::inner_typeless_iterator &o) const override { return _it != dynamic_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual bool operator ==(const IStore::inner_typeless_iterator &o) const override { return _it == static_cast<const inner_typeless_iterator &>(o)._it; }
+        virtual bool operator !=(const IStore::inner_typeless_iterator &o) const override { return _it != static_cast<const inner_typeless_iterator &>(o)._it; }
         virtual reference operator *(void) override { return _it.operator*(); }
         virtual pointer operator ->(void) override { return _it.operator->(); }
         virtual IStore::inner_typeless_iterator &operator ++(void) { ++_it; return *this; }

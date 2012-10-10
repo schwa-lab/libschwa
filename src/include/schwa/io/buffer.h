@@ -73,7 +73,7 @@ namespace schwa {
       size_t _left;
 
     public:
-      explicit ArrayReader(const char *data, size_t nbytes) : _data(data), _nbytes(nbytes), _upto(_data), _left(nbytes) { }
+      ArrayReader(const char *data, size_t nbytes) : _data(data), _nbytes(nbytes), _upto(_data), _left(nbytes) { }
       ~ArrayReader(void) { }
 
       inline const char *data(void) const { return _data; }

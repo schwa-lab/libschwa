@@ -159,7 +159,7 @@ namespace schwa {
       Block *next = nullptr;
       for (Block *b = _first; b; ) {
         next = b->next();
-        ::free(b);
+        std::free(b);
         b = next;
       }
     }
@@ -232,7 +232,7 @@ namespace schwa {
     template <typename T>
     typename BlockVector<T>::Block &
     BlockVector<T>::reserve(const size_type nelem) {
-      void *const data = ::malloc(sizeof(Block) + nelem*sizeof(T));
+      void *const data = std::malloc(sizeof(Block) + nelem*sizeof(T));
       assert(data != nullptr);
       Block *block = new (data) Block(nelem);
       if (_last)
