@@ -81,7 +81,7 @@ Writer::write(const Doc &doc) {
     mp::write_array_size(_out, schema->fields.size());
     for (auto &field : schema->fields) {
       // <field> ::= { <field_type> : <field_val> }
-      const uint32_t nelem = 1 + (field->points_into != nullptr) + field->is_slice + field->is_self_pointer;
+      const uint32_t nelem = 1 + (field->points_into != nullptr) + field->is_slice + field->is_self_pointer + field->is_collection;
       mp::write_map_size(_out, nelem);
 
       // <field_type> ::= 0 # NAME => the name of the field

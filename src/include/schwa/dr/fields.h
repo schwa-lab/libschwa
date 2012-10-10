@@ -15,6 +15,9 @@ namespace schwa {
 
       Slice(void) : start(T()), stop(T()) { }
       Slice(const T &start, const T &stop) : start(start), stop(stop) { }
+
+      inline bool operator ==(const Slice<T> &o) const { return start == o.start && stop == o.stop; }
+      inline bool operator !=(const Slice<T> &o) const { return start != o.start || stop != o.stop; }
     };
 
 
