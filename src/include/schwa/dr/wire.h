@@ -120,8 +120,8 @@ namespace schwa {
         template <typename IN>
         static inline void
         read(IN &in, Pointers<T> &val, IStore &istore) {
-          const size_t nitems = mp::read_uint(in);
-          for (size_t i = 0; i != nitems; ++i) {
+          const uint32_t nitems = mp::read_array_size(in);
+          for (uint32_t i = 0; i != nitems; ++i) {
             const size_t offset = mp::read_uint(in);
             val.items.push_back(&static_cast<T &>(istore.at_index(offset)));
           }
@@ -147,7 +147,7 @@ namespace schwa {
         template <typename IN>
         static inline void
         read(IN &in, Slice<T> &val) {
-          const size_t nitems = mp::read_array_size(in);
+          const uint32_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
           mp::read<IN>(in, val.start);
           mp::read<IN>(in, val.stop);
@@ -176,7 +176,7 @@ namespace schwa {
         template <typename IN>
         static inline void
         read(IN &in, Slice<T> &val, IStore &istore) {
-          const size_t nitems = mp::read_array_size(in);
+          const uint32_t nitems = mp::read_array_size(in);
           assert(nitems == 2);
           const size_t offset = mp::read_uint(in);
           const size_t delta = mp::read_uint(in);
