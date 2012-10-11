@@ -26,7 +26,6 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
     };
 
-
     inline std::ostream &
     operator <<(std::ostream &out, const RTFieldDef &field) {
       return field.dump(out);
@@ -53,6 +52,11 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
     };
 
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTStoreDef &store) {
+      return store.dump(out);
+    }
+
 
     class RTSchema {
     public:
@@ -71,6 +75,11 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
     };
 
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTSchema &schema) {
+      return schema.dump(out);
+    }
+
 
     class RTManager {
     public:
@@ -83,6 +92,11 @@ namespace schwa {
 
       std::ostream &dump(std::ostream &out) const;
     };
+
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTManager &rt) {
+      return rt.dump(out);
+    }
 
 
     RTManager *build_rt(const BaseDocSchema &dschema);
