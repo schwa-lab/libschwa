@@ -98,7 +98,7 @@ Reader::read(Doc &doc) {
           field_name = mp::read_raw(_in);
           break;
         case to_underlying(wire::POINTER_TO):
-          store_id = mp::read_uint(_in);
+          store_id = mp::read_uint(_in) + 1;
           is_pointer = true;
           break;
         case to_underlying(wire::IS_SLICE):
@@ -240,11 +240,11 @@ Reader::read(Doc &doc) {
 
 
   // back-fill each of the pointer fields to point to the actual RTStoreDef instance
-  for (auto &klass : rt.klasses) {
-    for (auto &field : klass->fields) {
+  for (RTSchema *klass : rt.klasses) {
+    for (RTFieldDef *field : klass->fields) {
       if (field->points_into != nullptr) {
         // sanity check on the value of store_id
-        const size_t store_id = reinterpret_cast<size_t>(field->points_into);
+        const size_t store_id = reinterpret_cast<size_t>(field->points_into) - 1;
         if (store_id >= rt.doc->stores.size()) {
           std::stringstream msg;
           msg << "store_id value " << store_id << " >= number of stores (" << rt.doc->stores.size() << ")";
