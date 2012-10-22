@@ -6,13 +6,6 @@ namespace schwa {
     class BaseDocSchema;
     class Doc;
 
-    class ReaderException : public Exception {
-    public:
-      ReaderException(const std::string &msg) : Exception(msg) { }
-      ReaderException(const Exception &e) : Exception(e) { }
-      virtual ~ReaderException(void) throw() { }
-    };
-
 
     class Reader {
     public:

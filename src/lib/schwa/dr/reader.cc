@@ -87,17 +87,32 @@ Reader::read(Doc &doc) {
     for (uint32_t f = 0; f != nfields; ++f) {
       std::string field_name;
       size_t store_id = 0;
-      bool is_pointer = false, is_self_pointer = false, is_slice = false;
+      bool is_pointer = false, is_self_pointer = false, is_slice = false, is_collection = false;
 
       // <field> ::= { <field_type> : <field_val> }
       const uint32_t nitems = mp::read_map_size(_in);
       for (uint32_t i = 0; i != nitems; ++i) {
         const uint8_t key = mp::read_uint_fixed(_in);
         switch (key) {
-        case 0: field_name = mp::read_raw(_in); break;
-        case 1: store_id = mp::read_uint(_in); is_pointer = true; break;
-        case 2: mp::read_nil(_in); is_slice = true; break;
-        case 3: mp::read_nil(_in); is_self_pointer = true; break;
+        case to_underlying(wire::NAME):
+          field_name = mp::read_raw(_in);
+          break;
+        case to_underlying(wire::POINTER_TO):
+          store_id = mp::read_uint(_in) + 1;
+          is_pointer = true;
+          break;
+        case to_underlying(wire::IS_SLICE):
+          mp::read_nil(_in);
+          is_slice = true;
+          break;
+        case to_underlying(wire::IS_SELF_POINTER):
+          mp::read_nil(_in);
+          is_self_pointer = true;
+          break;
+        case to_underlying(wire::IS_COLLECTION):
+          mp::read_nil(_in);
+          is_collection = true;
+          break;
         default:
           std::stringstream msg;
           msg << "Unknown value " << static_cast<unsigned int>(key) << " as key in <field> map";
@@ -113,7 +128,7 @@ Reader::read(Doc &doc) {
       // see if the read in field exists on the registered class's schema
       RTFieldDef *rtfield;
       if (rtschema->is_lazy()) {
-        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer);
+        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, is_collection);
         assert(rtfield != nullptr);
       }
       else {
@@ -125,7 +140,7 @@ Reader::read(Doc &doc) {
             break;
           }
         }
-        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, def);
+        rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, is_collection, def);
         assert(rtfield != nullptr);
 
         // perform some sanity checks that the type of data on the stream is what we're expecting
@@ -143,6 +158,11 @@ Reader::read(Doc &doc) {
           if (is_self_pointer != def->is_self_pointer) {
             std::stringstream msg;
             msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_SELF_POINTER as " << is_self_pointer << " on the stream, but " << def->is_self_pointer << " on the class's field";
+            throw ReaderException(msg.str());
+          }
+          if (is_collection != def->is_collection) {
+            std::stringstream msg;
+            msg << "Field '" << field_name << "' of class '" << klass_name << "' has IS_COLLECTION as " << is_collection << " on the stream, but " << def->is_collection << " on the class's field";
             throw ReaderException(msg.str());
           }
         }
@@ -199,7 +219,7 @@ Reader::read(Doc &doc) {
     if (!rtstore->is_lazy()) {
       const TypeInfo &store_ptr_type = def->pointer_type();
 
-      if (rt.klasses[klass_id]->def == nullptr) {
+      if (rt.klasses[klass_id]->is_lazy()) {
         std::stringstream msg;
         msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the store on the stream points to a lazy type.";
         throw ReaderException(msg.str());
@@ -220,11 +240,11 @@ Reader::read(Doc &doc) {
 
 
   // back-fill each of the pointer fields to point to the actual RTStoreDef instance
-  for (auto &klass : rt.klasses) {
-    for (auto &field : klass->fields) {
+  for (RTSchema *klass : rt.klasses) {
+    for (RTFieldDef *field : klass->fields) {
       if (field->points_into != nullptr) {
         // sanity check on the value of store_id
-        const size_t store_id = reinterpret_cast<size_t>(field->points_into);
+        const size_t store_id = reinterpret_cast<size_t>(field->points_into) - 1;
         if (store_id >= rt.doc->stores.size()) {
           std::stringstream msg;
           msg << "store_id value " << store_id << " >= number of stores (" << rt.doc->stores.size() << ")";
@@ -301,7 +321,7 @@ Reader::read(Doc &doc) {
       }
       else {
         const char *const before = reader.upto();
-        field.def->read_field(reader, &doc, nullptr, &doc);
+        field.def->read_field(reader, doc);
         const char *const after = reader.upto();
 
         // keep a lazy serialized copy of the field if required
@@ -373,16 +393,16 @@ Reader::read(Doc &doc) {
     // wrap the lazy bytes in a writer
     io::UnsafeArrayWriter lazy_writer(lazy_bytes);
 
-    // get pointers to the vector of Ann instances
-    char *objects = store->def->store_begin(doc);
-    char *const objects_begin = objects;
-    const size_t objects_delta = store->def->store_object_size();
+    // iterator through the objects in the store
+    IStore &istore = store->def->istore(doc);
+    IStore::typeless_iterator istore_it = istore.typeless_begin();
 
     // <instances> ::= [ <instance> ]
     const uint32_t ninstances = mp::read_array_size(reader);
-    for (uint32_t i = 0; i != ninstances; ++i) {
+    for (uint32_t i = 0; i != ninstances; ++i, ++istore_it) {
       const char *const lazy_before = lazy_writer.upto();
       uint32_t lazy_nfields = 0;
+      Ann &ann = *istore_it;
 
       // <instance> ::= { <field_id> : <obj_val> }
       const uint32_t size = mp::read_map_size(reader);
@@ -399,7 +419,7 @@ Reader::read(Doc &doc) {
         }
         else {
           const char *const before = reader.upto();
-          field.def->read_field(reader, objects, objects_begin, static_cast<void *>(&doc));
+          field.def->read_field(reader, ann, istore, doc);
           const char *const after = reader.upto();
 
           // keep a lazy serialized copy of the field if required
@@ -414,14 +434,10 @@ Reader::read(Doc &doc) {
       // check whether or not the Ann instance used any of the lazy buffer
       const char *const lazy_after = lazy_writer.upto();
       if (lazy_after != lazy_before) {
-        Ann &ann = *reinterpret_cast<Ann *>(objects);
         ann._lazy = lazy_before;
         ann._lazy_nelem = lazy_nfields;
         ann._lazy_nbytes = lazy_after - lazy_before;
       }
-
-      // move on to the next annotation instance
-      objects += objects_delta;
     } // for each instance
 
     // check whether or not the lazy slab was used

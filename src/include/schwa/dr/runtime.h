@@ -13,10 +13,11 @@ namespace schwa {
       const RTStoreDef *points_into;
       const std::string serial;
       const uint32_t field_id;
-      const bool is_slice;
-      const bool is_self_pointer;
+      const bool is_slice : 1;
+      const bool is_self_pointer : 1;
+      const bool is_collection : 1;
 
-      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, const BaseFieldDef *def=nullptr);
+      RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, bool is_collection, const BaseFieldDef *def=nullptr);
       RTFieldDef(const RTFieldDef &&o);
       ~RTFieldDef(void) { }
 
@@ -24,7 +25,6 @@ namespace schwa {
 
       std::ostream &dump(std::ostream &out) const;
     };
-
 
     inline std::ostream &
     operator <<(std::ostream &out, const RTFieldDef &field) {
@@ -52,6 +52,11 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
     };
 
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTStoreDef &store) {
+      return store.dump(out);
+    }
+
 
     class RTSchema {
     public:
@@ -70,6 +75,11 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
     };
 
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTSchema &schema) {
+      return schema.dump(out);
+    }
+
 
     class RTManager {
     public:
@@ -82,6 +92,11 @@ namespace schwa {
 
       std::ostream &dump(std::ostream &out) const;
     };
+
+    inline std::ostream &
+    operator <<(std::ostream &out, const RTManager &rt) {
+      return rt.dump(out);
+    }
 
 
     RTManager *build_rt(const BaseDocSchema &dschema);

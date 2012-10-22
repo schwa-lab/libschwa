@@ -9,15 +9,32 @@ namespace schwa { namespace dr {
 // ============================================================================
 // RTFieldDef
 // ============================================================================
-RTFieldDef::RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, const BaseFieldDef *def) : def(def), points_into(points_into), serial(serial), field_id(field_id), is_slice(is_slice), is_self_pointer(is_self_pointer) { }
+RTFieldDef::RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, bool is_collection, const BaseFieldDef *def) :
+  def(def),
+  points_into(points_into),
+  serial(serial),
+  field_id(field_id),
+  is_slice(is_slice),
+  is_self_pointer(is_self_pointer),
+  is_collection(is_collection)
+  { }
 
-RTFieldDef::RTFieldDef(const RTFieldDef &&o) : def(o.def), points_into(o.points_into), serial(o.serial), field_id(o.field_id), is_slice(o.is_slice), is_self_pointer(o.is_self_pointer) { }
+RTFieldDef::RTFieldDef(const RTFieldDef &&o) :
+  def(o.def),
+  points_into(o.points_into),
+  serial(o.serial),
+  field_id(o.field_id),
+  is_slice(o.is_slice),
+  is_self_pointer(o.is_self_pointer),
+  is_collection(o.is_collection)
+  { }
+
 
 std::ostream &
 RTFieldDef::dump(std::ostream &out) const {
   out << "[RTFieldDef " << this << " id=" << field_id << " serial='" << serial << "'";
   out << " def=" << def << " points_into=" << points_into << " is_slice=" << is_slice;
-  out << " is_self_pointer=" << is_self_pointer << "]";
+  out << " is_self_pointer=" << is_self_pointer << " is_collection=" << is_collection << "]";
   return out;
 }
 
@@ -25,11 +42,35 @@ RTFieldDef::dump(std::ostream &out) const {
 // ============================================================================
 // RTStoreDef
 // ============================================================================
-RTStoreDef::RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const BaseStoreDef *def) : def(def), klass(klass), lazy_data(nullptr), lazy_nbytes(0), lazy_nelem(0), store_id(store_id), serial(serial) { }
+RTStoreDef::RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const BaseStoreDef *def) :
+  def(def),
+  klass(klass),
+  lazy_data(nullptr),
+  lazy_nbytes(0),
+  lazy_nelem(0),
+  store_id(store_id),
+  serial(serial)
+  { }
 
-RTStoreDef::RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const char *lazy_data, uint32_t lazy_nbytes, uint32_t lazy_nelem) : def(nullptr), klass(klass), lazy_data(lazy_data), lazy_nbytes(lazy_nbytes), lazy_nelem(lazy_nelem), store_id(store_id), serial(serial) { }
+RTStoreDef::RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const char *lazy_data, uint32_t lazy_nbytes, uint32_t lazy_nelem) :
+  def(nullptr),
+  klass(klass),
+  lazy_data(lazy_data),
+  lazy_nbytes(lazy_nbytes),
+  lazy_nelem(lazy_nelem),
+  store_id(store_id),
+  serial(serial)
+  { }
 
-RTStoreDef::RTStoreDef(const RTStoreDef &&o) : def(o.def), klass(o.klass), lazy_data(o.lazy_data), lazy_nbytes(o.lazy_nbytes), lazy_nelem(o.lazy_nelem), store_id(o.store_id), serial(o.serial) { }
+RTStoreDef::RTStoreDef(const RTStoreDef &&o) :
+  klass(o.klass),
+  lazy_data(o.lazy_data),
+  lazy_nbytes(o.lazy_nbytes),
+  lazy_nelem(o.lazy_nelem),
+  store_id(o.store_id),
+  serial(o.serial)
+  { }
+
 
 std::ostream &
 RTStoreDef::dump(std::ostream &out) const {
@@ -120,7 +161,7 @@ merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::m
       const RTStoreDef *points_into = nullptr;
       if (field->is_pointer)
         points_into = store_offsets.find(field->store_offset(nullptr))->second;
-      rtfield = new RTFieldDef(field_id, field->serial, points_into, field->is_slice, field->is_self_pointer, field);
+      rtfield = new RTFieldDef(field_id, field->serial, points_into, field->is_slice, field->is_self_pointer, field->is_collection, field);
       assert(rtfield != nullptr);
       rtschema.fields.push_back(rtfield);
       ++field_id;

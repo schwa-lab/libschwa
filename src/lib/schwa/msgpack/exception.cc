@@ -6,9 +6,9 @@ namespace schwa { namespace msgpack {
 
 ReadException::ReadException(const std::string &msg, const int read, const int expected) : IOException(msg), read(read), expected(expected) {
   std::stringstream ss;
-  ss << msg << ": got=" << read;
+  ss << msg << ": got=0x" << std::hex << read << std::dec;
   if (expected != -1)
-    ss << " expected=" << expected;
+    ss << " expected=0x" << std::hex << expected << std::dec;
   const_cast<std::string &>(local_msg) = ss.str();
 }
 

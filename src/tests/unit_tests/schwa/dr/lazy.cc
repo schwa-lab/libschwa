@@ -503,4 +503,54 @@ BOOST_AUTO_TEST_CASE(lazy_test1) {
   BOOST_CHECK_EQUAL(ndocs_read2, 1);
 }
 
+
+static void
+check_unchanged(std::stringstream &stream0) {
+  // Reads from stream0 into a document where all data is kept lazily
+  // then ensures that writing the document replicates stream0's content
+  class DocA : public dr::Doc {
+  public:
+    class Schema;
+  };
+
+  class DocA::Schema : public dr::Doc::Schema<DocA> {
+  public:
+    Schema(void) :
+      dr::Doc::Schema<DocA>("DocA", "Some text about DocA")
+      { }
+    virtual ~Schema(void) { }
+  };
+
+  std::stringstream stream1;
+
+  DocA doc;
+  DocA::Schema schema;
+  dr::Reader reader(stream0, schema);
+  reader >> doc;
+  dr::Writer writer(stream1, schema);
+  writer << doc;
+
+  BOOST_CHECK( compare_bytes(stream1.str(), stream0.str()) );
+}
+
+BOOST_AUTO_TEST_CASE(lazy_test_pointer_to_0) {
+  std::stringstream stream;
+  stream << '\x02'; // version
+  stream << '\x92'; // <klasses>: 2-element array
+    stream << '\x92'; // <klass>
+      stream << '\xA8' << "__meta__"; // <klass_name>
+      stream << '\x91'; // <fields>
+        stream << '\x82'; // 2 attributes
+        stream << '\x00' << '\xA6' << "as_ptr"; // name
+        stream << '\x01' << '\x00'; // ptr to store 0
+    stream << '\x92'; // <klass>
+      stream << '\xA1' << 'A'; // <klass_name>
+      stream << '\x90'; // <fields>
+  stream << '\x91'; // <stores>: 1-element array
+    stream << '\x93' << '\xA2' << "as" << '\x01' << '\x00'; // 0-element store
+  stream << "\x01\x80"; // Empty document
+  stream << "\x01\x90"; // Empty store
+  check_unchanged(stream);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

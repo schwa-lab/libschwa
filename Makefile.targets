@@ -12,14 +12,14 @@ TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/
 
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
-UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/dr/lazy.o src/tests/unit_tests/schwa/dr/reader.o src/tests/unit_tests/schwa/dr/self_pointer.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/containers/block_vector.o src/tests/unit_tests/schwa/dr/lazy.o src/tests/unit_tests/schwa/dr/pointers.o src/tests/unit_tests/schwa/dr/reader.o src/tests/unit_tests/schwa/dr/self_pointer.o src/tests/unit_tests/schwa/dr/slices.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
 GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends install release sharedlibs test wc src/lib/schwa/version.cc
+.PHONY: all clean depends doxygen install lint release sharedlibs test wc src/lib/schwa/version.cc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
@@ -31,6 +31,9 @@ clean:
 
 depends:
 	src/scripts/depends "$(CXX) -std=c++11 -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+
+doxygen:
+	doxygen docs/Doxyfile
 
 install:
 	install -d -v $(DESTDIR)$(prefix)/{bin,include,lib}
@@ -50,6 +53,10 @@ install:
 		install -p -v $${f} $(DESTDIR)$(prefix)/bin; \
 	done
 
+lint:
+	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/include -name '*.h'`
+	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/lib -name '*.cc'`
+
 release:
 	src/scripts/make-release $(RELEASE_VERSION)
 
@@ -57,6 +64,8 @@ sharedlibs: $(SHARED_LIBS)
 
 wc:
 	find src/{include,lib,main} -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l
+	find src/api/python/ -name "*.py" | grep -v /ve/ | grep -v /tests/ | xargs wc -l
+	find src/api/java/ -name "*.java" | xargs wc -l
 
 
 # -------------------------------------------------------------------------------
