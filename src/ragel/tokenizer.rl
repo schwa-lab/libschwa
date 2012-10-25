@@ -36,6 +36,8 @@ using namespace boost;
 namespace schwa { namespace tokenizer {
 
 %% write data nofinal;
+static const int max_sentence = 256;
+int sentence_length = 0; // Need to track word count so we can split on long sentences.
 
 void
 Tokenizer::_token(Type type, Stream &dest, State &state, const char *norm) const {
@@ -45,12 +47,20 @@ Tokenizer::_token(Type type, Stream &dest, State &state, const char *norm) const
 
 void
 Tokenizer::_word(Type type, Stream &dest, State &state, const char *norm) const {
-  if (state.seen_terminator) {
+  sentence_length++;
+  if (sentence_length >= max_sentence) {
+    // Split on long sentences
+    state.end_sentence(dest);
+    state.flush_sentence(dest);
+    sentence_length = 0;
+  } else if (state.seen_terminator) {
     // need to make this work better for UTF8
-    if (type == WORD && (isupper(*state.ts) || isdigit(*state.ts)))
+    if (type == WORD && (isupper(*state.ts) || isdigit(*state.ts))) {
       state.flush_sentence(dest);
-    else
+      sentence_length = 0;
+    } else {
       state.seen_terminator = false;
+    }
   }
   _token(type, dest, state, norm);
 }
@@ -58,6 +68,7 @@ Tokenizer::_word(Type type, Stream &dest, State &state, const char *norm) const 
 void
 Tokenizer::_punct(Type type, Stream &dest, State &state, const char *norm) const {
   state.flush_sentence(dest);
+  sentence_length = 0;
   _token(type, dest, state, norm);
 }
 
@@ -70,10 +81,12 @@ void
 Tokenizer::_split(Type type1, Type type2, Stream &dest, State &state, const char *norm1, const char *norm2) const {
   if (state.seen_terminator) {
     // need to make this work better for UTF8
-    if (type1 == WORD && (isupper(*state.ts) || isdigit(*state.ts)))
-      state.flush_sentence(dest);
-    else
+    if (type1 == WORD && (isupper(*state.ts) || isdigit(*state.ts))) {
+      state.flush_sentence(dest); 
+      sentence_length = 0;
+    } else {
       state.seen_terminator = false;
+    }
   }
   state.ensure_sentence(dest);
   state.split(type1, type2, dest, norm1, norm2);
