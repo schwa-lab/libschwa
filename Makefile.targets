@@ -25,8 +25,14 @@ IO_OBJECTS = \
 		src/lib/schwa/io/file_source.o \
 		src/lib/schwa/io/istream_source.o \
 		src/lib/schwa/io/write_buffer.o
-MSGPACK_OBJECTS = src/lib/schwa/msgpack/exception.o src/lib/schwa/msgpack/wire.o
-TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/docrep.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
+MSGPACK_OBJECTS = \
+		src/lib/schwa/msgpack/exception.o \
+		src/lib/schwa/msgpack/wire.o
+TOKENIZER_OBJECTS = \
+		src/lib/schwa/tokenizer/debug_text_stream.o \
+		src/lib/schwa/tokenizer/docrep_stream.o \
+		src/lib/schwa/tokenizer/text_stream.o \
+		src/lib/schwa/tokenizer/tokenizer.o
 
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 

@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/tokenizer/streams/docrep.h>
+#include <schwa/tokenizer/docrep_stream.h>
 
 #include <iostream>
 

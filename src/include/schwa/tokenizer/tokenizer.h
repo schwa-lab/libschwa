@@ -78,4 +78,6 @@ namespace schwa {
   }
 }
 
+#include <schwa/tokenizer/tokenizer_state.h>
+
 #endif  // SCHWA_TOKENIZER_TOKENIZER_H_

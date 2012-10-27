@@ -5,9 +5,9 @@
 #include <schwa/config.h>
 #include <schwa/dr/config.h>
 #include <schwa/tokenizer.h>
-#include <schwa/tokenizer/streams/debug_text.h>
-#include <schwa/tokenizer/streams/docrep.h>
-#include <schwa/tokenizer/streams/text.h>
+#include <schwa/tokenizer/debug_text_stream.h>
+#include <schwa/tokenizer/docrep_stream.h>
+#include <schwa/tokenizer/text_stream.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;

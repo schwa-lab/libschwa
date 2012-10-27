@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/tokenizer/streams/text.h>
+#include <schwa/tokenizer/text_stream.h>
 
 #include <iostream>
 
