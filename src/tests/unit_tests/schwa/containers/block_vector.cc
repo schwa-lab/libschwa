@@ -1,11 +1,14 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/containers.h>
 #include "test_utils.h"
+
+#include <schwa/containers.h>
 
 #include <boost/test/unit_test.hpp>
 
 namespace ct = schwa::containers;
 
+
+namespace schwatest {
 
 BOOST_AUTO_TEST_SUITE(schwa__containers__block_vector)
 
@@ -272,3 +275,5 @@ BOOST_AUTO_TEST_CASE(BlockVector_int__get) {
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace schwatest

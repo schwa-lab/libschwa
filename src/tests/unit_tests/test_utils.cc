@@ -1,7 +1,15 @@
-#include <schwa/base.h>
-
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include "test_utils.h"
 
+#include <iomanip>
+#include <iostream>
+
+#include <schwa/port.h>
+
+
+namespace schwatest {
+
+namespace {
 
 class print_bytes {
 private:
@@ -11,7 +19,12 @@ private:
   const size_t _actual_size;
 
 public:
-  print_bytes(const uint8_t *expected, size_t expected_size, const uint8_t *actual, size_t actual_size) : _expected(expected), _expected_size(expected_size), _actual(actual), _actual_size(actual_size) { }
+  print_bytes(const uint8_t *expected, size_t expected_size, const uint8_t *actual, size_t actual_size) :
+      _expected(expected),
+      _expected_size(expected_size),
+      _actual(actual),
+      _actual_size(actual_size)
+    { }
 
   std::ostream &
   operator ()(std::ostream &out) const {
@@ -101,6 +114,8 @@ operator <<(std::ostream &out, const print_bytes &obj) {
   return obj(out);
 }
 
+}  // namespace
+
 
 boost::test_tools::predicate_result
 compare_bytes(const std::string &actual, const uint8_t *expected, const size_t expected_size) {
@@ -121,3 +136,11 @@ compare_bytes(const std::string &actual, const uint8_t *expected, const size_t e
   return true;
 }
 
+
+boost::test_tools::predicate_result
+compare_bytes(const std::string &str, const std::string &expected) {
+  const uint8_t *const ptr = reinterpret_cast<const uint8_t *>(expected.c_str());
+  return compare_bytes(str, ptr, expected.size());
+}
+
+}  // namespace schwatest

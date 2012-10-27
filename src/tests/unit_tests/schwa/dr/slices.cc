@@ -1,13 +1,15 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
 #include "test_utils.h"
+
+#include <schwa/dr.h>
 
 #include <boost/test/unit_test.hpp>
 
 namespace dr = schwa::dr;
 
-// ============================================================================
-// ============================================================================
+
+namespace schwatest {
+
 BOOST_AUTO_TEST_SUITE(schwa__dr__slices)
 
 BOOST_AUTO_TEST_CASE(slices) {
@@ -191,3 +193,5 @@ BOOST_AUTO_TEST_CASE(slices) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace schwatest

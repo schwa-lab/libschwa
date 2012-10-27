@@ -36,11 +36,23 @@ TOKENIZER_OBJECTS = \
 
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
-UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/containers/block_vector.o src/tests/unit_tests/schwa/dr/lazy.o src/tests/unit_tests/schwa/dr/pointers.o src/tests/unit_tests/schwa/dr/reader.o src/tests/unit_tests/schwa/dr/self_pointer.o src/tests/unit_tests/schwa/dr/slices.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_OBJECTS = \
+		src/tests/unit_tests/main.o \
+		src/tests/unit_tests/test_utils.o \
+		src/tests/unit_tests/schwa/containers/block_vector.o \
+		src/tests/unit_tests/schwa/dr/lazy.o \
+		src/tests/unit_tests/schwa/dr/pointers.o \
+		src/tests/unit_tests/schwa/dr/reader.o \
+		src/tests/unit_tests/schwa/dr/self_pointer.o \
+		src/tests/unit_tests/schwa/dr/slices.o \
+		src/tests/unit_tests/schwa/dr/writer.o \
+		src/tests/unit_tests/schwa/io/buffer.o \
+		src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
-GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
+GENERATED_SOURCES = \
+		src/lib/schwa/tokenizer/tokenizer.cc
 
 
 .PHONY: all clean depends doxygen install lint release sharedlibs test wc src/lib/schwa/version.cc

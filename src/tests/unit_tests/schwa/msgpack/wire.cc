@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/base.h>
-#include <schwa/msgpack.h>
 #include "test_utils.h"
+
+#include <schwa/msgpack/wire.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -26,8 +26,9 @@
 namespace mp = schwa::msgpack;
 
 
+namespace schwatest {
 
-BOOST_AUTO_TEST_SUITE(schwa_msgpack_wire)
+BOOST_AUTO_TEST_SUITE(schwa__msgpack__wire)
 
 // ----------------------------------------------------------------------------
 // write_bytes_8
@@ -421,3 +422,5 @@ BOOST_AUTO_TEST_CASE(test_map_fixed_16) {
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace schwatest

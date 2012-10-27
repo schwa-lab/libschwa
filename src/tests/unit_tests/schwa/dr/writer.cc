@@ -1,6 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
 #include "test_utils.h"
+
+#include <schwa/dr.h>
 
 #include <boost/test/unit_test.hpp>
 
@@ -8,8 +9,10 @@ namespace dr = schwa::dr;
 namespace mp = schwa::msgpack;
 
 
-// ============================================================================
-// ============================================================================
+namespace schwatest {
+
+namespace {
+
 class DocWithField : public dr::Doc {
 public:
   std::string name;
@@ -161,12 +164,13 @@ public:
   virtual ~Schema(void) { }
 };
 
+}  // namespace
+
 
 // ============================================================================
 // ============================================================================
 
-
-BOOST_AUTO_TEST_SUITE(schwa_dr_writer)
+BOOST_AUTO_TEST_SUITE(schwa__dr__writer)
 
 BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
   std::stringstream out, correct;
@@ -447,3 +451,5 @@ BOOST_AUTO_TEST_CASE(DocWithAYZ__empty) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace schwatest

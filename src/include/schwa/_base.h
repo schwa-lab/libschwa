@@ -1,3 +1,4 @@
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #ifndef SCHWA__BASE_H_
 #define SCHWA__BASE_H_
 

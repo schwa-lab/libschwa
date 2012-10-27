@@ -1,13 +1,16 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/io.h>
 #include "test_utils.h"
+
+#include <schwa/io/write_buffer.h>
 
 #include <boost/test/unit_test.hpp>
 
 namespace io = schwa::io;
 
 
-BOOST_AUTO_TEST_SUITE(schwa_io_buffer)
+namespace schwatest {
+
+BOOST_AUTO_TEST_SUITE(schwa__io__write_buffer)
 
 BOOST_AUTO_TEST_CASE(test_construction_default) {
   io::WriteBuffer b;
@@ -133,3 +136,5 @@ BOOST_AUTO_TEST_CASE(test_copyfrom) {
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+}  // namespace schwatest
