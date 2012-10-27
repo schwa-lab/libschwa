@@ -1,24 +1,12 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/config.h>
+#include <schwa/config/base.h>
+
+#include <schwa/config/exception.h>
 
 
-namespace schwa { namespace config {
+namespace schwa {
+namespace config {
 
-const char *
-ConfigException::what(void) const throw() {
-  std::stringstream ss;
-  ss << msg;
-  if (!name.empty()) {
-    ss << " for option \"" << name << "\"";
-    if (!value.empty())
-      ss << " (value \"" << value << "\")";
-  }
-  return ss.str().c_str();
-}
-
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
 OptionBase::OptionBase(const std::string &name, const std::string &desc) : _name(name), _desc(desc) {
   if (name.empty())
     throw ConfigException("Option names cannot be empty", _name);
@@ -33,4 +21,5 @@ OptionBase::OptionBase(const std::string &name, const std::string &desc) : _name
   }
 }
 
-} }
+}  // namespace config
+}  // namespace schwa

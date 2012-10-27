@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/std.h>
 #include <schwa/port.h>
 
 #if defined(__GNUC__) \
@@ -10,7 +9,9 @@
   #include <cxxabi.h>
 #endif
 
-namespace schwa { namespace port {
+
+namespace schwa {
+namespace port {
 
 #ifdef SCHWA_PORT_HAS_CXXABI
 std::string
@@ -33,4 +34,5 @@ demangle_typeid(const char *const typeid_name) {
 }
 #endif
 
-} }
+}  // namespace port
+}  // namespace schwa

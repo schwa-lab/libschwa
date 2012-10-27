@@ -2,8 +2,6 @@
 #ifndef SCHWA_CONTAINERS_H_
 #define SCHWA_CONTAINERS_H_
 
-#include <schwa/base.h>
-
 #include <schwa/containers/block_vector.h>
 
-#endif
+#endif  // SCHWA_CONTAINERS_H_

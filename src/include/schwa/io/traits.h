@@ -1,4 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_IO_TRAITS_H_
+#define SCHWA_IO_TRAITS_H_
+
+#include <schwa/_base.h>
+#include <schwa/io/write_buffer.h>
 
 namespace schwa {
   namespace io {
@@ -21,3 +26,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_IO_TRAITS_H_

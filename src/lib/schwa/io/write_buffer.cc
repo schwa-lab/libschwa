@@ -1,8 +1,15 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/io.h>
+#include <schwa/io/write_buffer.h>
+
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
 
 
-namespace schwa { namespace io {
+namespace schwa {
+namespace io {
 
 const size_t WriteBuffer::DEFAULT_BLOCK_SIZE = 64;
 const size_t WriteBuffer::DEFAULT_POOL_SIZE = 4096;
@@ -190,4 +197,5 @@ WriteBuffer::dump(std::ostream &out) const {
   return out;
 }
 
-} }
+}  // namespace io
+}  // namesapce schwa

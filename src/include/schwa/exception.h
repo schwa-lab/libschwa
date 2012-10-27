@@ -1,4 +1,12 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_EXCEPTION_H_
+#define SCHWA_EXCEPTION_H_
+
+#include <exception>
+#include <iosfwd>
+#include <string>
+
+#include <schwa/_base.h>
 
 namespace schwa {
 
@@ -11,7 +19,7 @@ namespace schwa {
     Exception(const Exception &other) : std::exception(other), msg(other.msg) { }
     virtual ~Exception(void) throw() { }
 
-    virtual const char* what(void) const throw() { return msg.c_str(); }
+    virtual const char* what(void) const throw() override { return msg.c_str(); }
   };
 
 
@@ -23,9 +31,9 @@ namespace schwa {
     const std::string uri;
     const int line;
 
-    IOException(const std::string &msg) : Exception(msg), uri(), line(0) { }
-    IOException(const std::string &msg, const std::string &uri, int line=0) : Exception(msg), uri(uri), line(line) { }
-    IOException(const IOException &other) : Exception(other), uri(other.uri), line(other.line) { }
+    IOException(const std::string &msg, int line=0);
+    IOException(const std::string &msg, const std::string &uri, int line=0);
+    IOException(const IOException &other);
     virtual ~IOException(void) throw() { }
   };
 
@@ -49,8 +57,13 @@ namespace schwa {
     print_exception(const std::string &name, const Exception &e);
 
     std::ostream &dump(std::ostream &out) const;
+
+  private:
+    DISALLOW_COPY_AND_ASSIGN(print_exception);
   };
 
-  inline std::ostream &operator <<(std::ostream &out, const print_exception &obj) { return obj.dump(out); }
+  std::ostream &operator <<(std::ostream &out, const print_exception &obj);
 
 }
+
+#endif  // SCHWA_EXCEPTION_H_

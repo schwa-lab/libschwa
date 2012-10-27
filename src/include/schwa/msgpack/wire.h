@@ -1,4 +1,11 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_MSGPACK_WIRE_H_
+#define SCHWA_MSGPACK_WIRE_H_
+
+#include <iostream>
+#include <string>
+
+#include <schwa/_base.h>
 
 namespace schwa {
   namespace msgpack {
@@ -16,7 +23,10 @@ namespace schwa {
       RESERVED
     };
 
-    inline std::ostream &operator <<(std::ostream &out, const WireType &t) { return out << static_cast<uint8_t>(t); }
+    inline std::ostream &
+    operator <<(std::ostream &out, const WireType &t) {
+      return out << static_cast<uint8_t>(t);
+    }
 
     extern const WireType TABLE[256];
 
@@ -134,3 +144,5 @@ namespace schwa {
 }
 
 #include <schwa/msgpack/wire_impl.h>
+
+#endif  // SCHWA_MSGPACK_WIRE_H_

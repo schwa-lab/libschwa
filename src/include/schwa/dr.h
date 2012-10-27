@@ -2,11 +2,6 @@
 #ifndef SCHWA_DR_H_
 #define SCHWA_DR_H_
 
-#include <schwa/base.h>
-#include <schwa/containers.h>
-#include <schwa/config.h>
-#include <schwa/msgpack.h>
-
 #include <schwa/dr/typeinfo.h>
 #include <schwa/dr/exception.h>
 #include <schwa/dr/istore.h>
@@ -20,4 +15,4 @@
 
 #include <schwa/dr/config.h>
 
-#endif
+#endif  // SCHWA_DR_H_

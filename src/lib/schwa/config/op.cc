@@ -1,15 +1,26 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/config.h>
+#include <schwa/config/op.h>
+
+#include <fstream>
+#include <iostream>
+
+#include <schwa/config/exception.h>
+#include <schwa/config/group.h>
 
 
-namespace schwa { namespace config {
+namespace schwa {
+namespace config {
 
-OpBase::OpBase(OpGroup &group, const std::string &name, const std::string &desc, const bool has_default) : OptionBase(name, desc), _has_default(has_default), _is_set(false) {
+OpBase::OpBase(OpGroup &group, const std::string &name, const std::string &desc, const bool has_default) :
+    OptionBase(name, desc),
+    _has_default(has_default),
+    _is_set(false) {
   group.add(this);
 }
 
+
 OptionBase *
-OpBase::find(const std::string &, const std::string key) {
+OpBase::find(const std::string &, const std::string &key) {
   const size_t pos = key.find(_name);
   if (key.empty() || pos != 0 || key.size() != _name.size())
     return nullptr;
@@ -35,9 +46,9 @@ OpBase::validate(void) {
 }
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 // IStreamOp
-// ----------------------------------------------------------------------------
+// ============================================================================
 const char *const IStreamOp::STDIN_STRING = "<stdin>";
 
 IStreamOp::~IStreamOp(void) {
@@ -61,9 +72,9 @@ IStreamOp::_validate(void) {
 }
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 // OStreamOp
-// ----------------------------------------------------------------------------
+// ============================================================================
 const char *const OStreamOp::STDOUT_STRING = "<stdout>";
 
 OStreamOp::~OStreamOp(void) {
@@ -86,5 +97,5 @@ OStreamOp::_validate(void) {
   }
 }
 
-
-} }
+}  // namespace config
+}  // namespace schwa

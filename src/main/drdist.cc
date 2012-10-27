@@ -114,7 +114,7 @@ main(int argc, char *argv[]) {
   cf::Op<unsigned long> nthreads(cfg, "nthreads", "The number of threads to fire up", 8);
   cf::Op<bool> quiet(cfg, "quiet", "Quiet mode", false);
   try {
-    if (!cfg.process(argc - 1, argv + 1))
+    if (!cfg.process(argc - 1, argv + 1, std::cerr))
       return 1;
   }
   catch (cf::ConfigException &e) {

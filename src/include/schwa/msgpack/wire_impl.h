@@ -1,4 +1,15 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_MSGPACK_WIRE_IMPL_H_
+#define SCHWA_MSGPACK_WIRE_IMPL_H_
+
+#include <cassert>
+#include <limits>
+
+#include <schwa/io/traits.h>
+#include <schwa/msgpack/exception.h>
+#include <schwa/msgpack/wire.h>
+#include <schwa/port.h>
+
 #include <boost/mpl/if.hpp>
 
 namespace schwa {
@@ -760,3 +771,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_MSGPACK_WIRE_IMPL_H_
