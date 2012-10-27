@@ -1,17 +1,26 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/tokenizer.h>
 #include <schwa/tokenizer/streams/debug_text.h>
 
+#include <iostream>
 
-namespace schwa { namespace tokenizer {
+
+namespace schwa {
+namespace tokenizer {
 
 const int DebugTextStream::NCOLOURS = 7;
+
 const char *const DebugTextStream::COLOURS[] = {
   "\033[0;31m", "\033[0;32m", "\033[1;33m", "\033[1;34m",
   "\033[0;35m", "\033[0;36m", "\033[1;37m"
 };
+
 const char *const DebugTextStream::OFF = "\033[0m";
 
+DebugTextStream::DebugTextStream(std::ostream &out) :
+    _out(out),
+    _new_sentence(true),
+    _colour(0)
+  { }
 
 void
 DebugTextStream::add(Type, const char *raw, offset_type, offset_type len, const char *norm) {
@@ -92,4 +101,5 @@ DebugTextStream::end_document(void) {
   _out << "</doc>\n";
 }
 
-} }
+}  // namespace tokenizer
+}  // namespace schwa

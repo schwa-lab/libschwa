@@ -1,53 +1,57 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
-#include <schwa/tokenizer.h>
 #include <schwa/tokenizer/streams/docrep.h>
 
-namespace schwa { namespace tokenizer {
+#include <iostream>
 
+
+namespace schwa {
+namespace tokenizer {
 
 Token::Schema::Schema(void) :
-  dr::Ann::Schema<Token>("Token", "The token class"),
-  span(*this, "span", "the beginning and end byte offsets of the token", dr::FieldMode::READ_WRITE),
-  raw(*this, "raw", "the raw token", dr::FieldMode::READ_WRITE),
-  norm(*this, "norm", "the normalised token", dr::FieldMode::READ_WRITE)
+    dr::Ann::Schema<Token>("Token", "The token class"),
+    span(*this, "span", "the beginning and end byte offsets of the token", dr::FieldMode::READ_WRITE),
+    raw(*this, "raw", "the raw token", dr::FieldMode::READ_WRITE),
+    norm(*this, "norm", "the normalised token", dr::FieldMode::READ_WRITE)
   { }
+
 Token::Schema::~Schema(void) { }
 
 
 Sent::Schema::Schema(void) :
-  dr::Ann::Schema<Sent>("Sentence", "The sentence class"),
-  span(*this, "span", "the span of the sentence", dr::FieldMode::READ_WRITE)
+    dr::Ann::Schema<Sent>("Sentence", "The sentence class"),
+    span(*this, "span", "the span of the sentence", dr::FieldMode::READ_WRITE)
   { }
+
 Sent::Schema::~Schema(void) { }
 
 
 Paragraph::Schema::Schema(void) :
-  dr::Ann::Schema<Paragraph>("Paragraph", "The paragraph class"),
-  span(*this, "span", "the span of the paragraph", dr::FieldMode::READ_WRITE)
+    dr::Ann::Schema<Paragraph>("Paragraph", "The paragraph class"),
+    span(*this, "span", "the span of the paragraph", dr::FieldMode::READ_WRITE)
   { }
+
 Paragraph::Schema::~Schema(void) { }
 
 
 Doc::Schema::Schema(void) :
-  dr::Doc::Schema<Doc>("Doc", "The document class"),
-  tokens(*this, "tokens", "The store for the tokens", dr::FieldMode::READ_WRITE),
-  sents(*this, "sentences", "The store for the sentences", dr::FieldMode::READ_WRITE),
-  pars(*this, "paragraphs", "The store for the paragraphs", dr::FieldMode::READ_WRITE)
+    dr::Doc::Schema<Doc>("Doc", "The document class"),
+    tokens(*this, "tokens", "The store for the tokens", dr::FieldMode::READ_WRITE),
+    sents(*this, "sentences", "The store for the sentences", dr::FieldMode::READ_WRITE),
+    pars(*this, "paragraphs", "The store for the paragraphs", dr::FieldMode::READ_WRITE)
   { }
+
 Doc::Schema::~Schema(void) { }
 
 
 DocrepStream::DocrepStream(std::ostream &out, Doc::Schema &dschema, bool normalise) :
-  Stream(),
-  _out(out),
-  _writer(out, dschema),
-  _doc(nullptr),
-  _normalise(normalise),
-  _begin_sent(0),
-  _begin_par(0)
+    Stream(),
+    _out(out),
+    _writer(out, dschema),
+    _doc(nullptr),
+    _normalise(normalise),
+    _begin_sent(0),
+    _begin_par(0)
   { }
-
 
 DocrepStream::~DocrepStream(void) {
   delete _doc;
@@ -143,5 +147,5 @@ DocrepStream::end_document(void) {
   _doc = nullptr;
 }
 
-
-} }
+}  // namespace tokenizer
+}  // namespace schwa

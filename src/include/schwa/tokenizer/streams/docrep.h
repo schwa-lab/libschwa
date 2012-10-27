@@ -1,4 +1,14 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_TOKENIZER_STREAMS_DOCREP_H_
+#define SCHWA_TOKENIZER_STREAMS_DOCREP_H_
+
+#include <iosfwd>
+#include <string>
+#include <vector>
+
+#include <schwa/_base.h>
+#include <schwa/dr.h>
+#include <schwa/tokenizer/stream.h>
 
 namespace schwa {
   namespace tokenizer {
@@ -138,3 +148,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_TOKENIZER_STREAMS_DOCREP_H_

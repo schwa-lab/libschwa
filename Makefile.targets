@@ -20,7 +20,11 @@ DR_OBJECTS = \
 		src/lib/schwa/dr/schema.o \
 		src/lib/schwa/dr/type_info.o \
 		src/lib/schwa/dr/writer.o
-IO_OBJECTS = src/lib/schwa/io/array_reader.o src/lib/schwa/io/write_buffer.o
+IO_OBJECTS = \
+		src/lib/schwa/io/array_reader.o \
+		src/lib/schwa/io/file_source.o \
+		src/lib/schwa/io/istream_source.o \
+		src/lib/schwa/io/write_buffer.o
 MSGPACK_OBJECTS = src/lib/schwa/msgpack/exception.o src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/docrep.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
 

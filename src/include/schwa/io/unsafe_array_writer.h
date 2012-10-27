@@ -2,7 +2,7 @@
 #ifndef SCHWA_IO_UNSAFE_ARRAY_WRITER_H_
 #define SCHWA_IO_UNSAFE_ARRAY_WRITER_H_
 
-#include <cstdlib>
+#include <cstring>
 
 #include <schwa/_base.h>
 

@@ -1,4 +1,11 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_TOKENIZER_EXCEPTION_H_
+#define SCHWA_TOKENIZER_EXCEPTION_H_
+
+#include <string>
+
+#include <schwa/_base.h>
+#include <schwa/exception.h>
 
 namespace schwa {
   namespace tokenizer {
@@ -12,3 +19,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_TOKENIZER_EXCEPTION_H_

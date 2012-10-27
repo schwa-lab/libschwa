@@ -1,7 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <iostream>
 #include <memory>
-#include <utility>
 
 #include <schwa/config.h>
 #include <schwa/dr/config.h>
@@ -43,7 +42,7 @@ main(int argc, char *argv[]) {
   // parse the command line options
   Config c(schema);
   try {
-    if (!c.process(argc - 1, argv + 1))
+    if (!c.process(argc - 1, argv + 1, std::cerr))
       return 1;
   }
   catch (cf::ConfigException &e) {
@@ -59,11 +58,11 @@ main(int argc, char *argv[]) {
   // printer
   std::unique_ptr<tok::Stream> stream;
   if (c.printer() == "text")
-    stream = std::move(new tok::TextStream(out));
+    stream = std::unique_ptr<tok::Stream>(new tok::TextStream(out));
   else if (c.printer() == "debug")
-    stream = std::move(new tok::DebugTextStream(out));
+    stream = std::unique_ptr<tok::Stream>(new tok::DebugTextStream(out));
   else if (c.printer() == "docrep")
-    stream = std::move(new tok::DocrepStream(out, schema));
+    stream = std::unique_ptr<tok::Stream>(new tok::DocrepStream(out, schema));
   else
     throw cf::ConfigException("Unknown value", "printer", c.printer());
 

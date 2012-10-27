@@ -23,17 +23,23 @@
   include "rules/main.rl";
 }%%
 
-#include <schwa/base.h>
+#include <cctype>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+
+#include <schwa/_base.h>
+#include <schwa/io/istream_source.h>
 #include <schwa/io/source.h>
-#include <schwa/io/sources/istream.h>
 #include <schwa/tokenizer.h>
 
 #include <boost/iostreams/device/mapped_file.hpp>
-#include <boost/scoped_array.hpp>
 
 using namespace boost;
 
-namespace schwa { namespace tokenizer {
+namespace schwa {
+namespace tokenizer {
 
 %% write data nofinal;
 void
@@ -72,8 +78,8 @@ Tokenizer::_split(Type type1, Type type2, Stream &dest, State &state, const char
   if (state.seen_terminator) {
     // need to make this work better for UTF8
     if (type1 == WORD && (isupper(*state.ts) || isdigit(*state.ts))) {
-      state.flush_sentence(dest); 
-    } 
+      state.flush_sentence(dest);
+    }
     else {
       state.seen_terminator = false;
     }
@@ -256,7 +262,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
 
   %% write init;
 
-  scoped_array<char> scoped_buffer(new char[buffer_size]);
+  std::unique_ptr<char[]> scoped_buffer(new char[buffer_size]);
   char *buffer = scoped_buffer.get();
   if (!buffer)
     return _die(msg << "could not allocate a buffer of size " << buffer_size);
@@ -328,4 +334,5 @@ Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, int errors) 
   return tokenize(dest, file.data(), file.size(), errors);
 }
 
-} }
+}  // namespace tokenizer
+}  // namespace schwa

@@ -1,9 +1,18 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/tokenizer.h>
 #include <schwa/tokenizer/streams/text.h>
 
+#include <iostream>
 
-namespace schwa { namespace tokenizer {
+
+namespace schwa {
+namespace tokenizer {
+
+TextStream::TextStream(std::ostream &out, bool normalise) :
+    _out(out),
+    _normalise(normalise),
+    _new_document(true),
+    _new_sentence(true)
+  { }
 
 void
 TextStream::add(Type, const char *raw, offset_type, offset_type len, const char *norm) {
@@ -75,4 +84,5 @@ TextStream::begin_document(void) {
 void
 TextStream::end_document(void) { }
 
-} }
+}  // namespace tokenizer
+}  // namespace schwa

@@ -8,13 +8,16 @@
 #include <string>
 
 #include <schwa/dr/exception.h>
+#include <schwa/dr/field_defs.h>
 #include <schwa/dr/istore.h>
 #include <schwa/dr/runtime.h>
 #include <schwa/dr/schema.h>
 #include <schwa/dr/type_info.h>
+#include <schwa/dr/wire.h>
 #include <schwa/io/array_reader.h>
 #include <schwa/io/unsafe_array_writer.h>
 #include <schwa/msgpack.h>
+#include <schwa/utils/enums.h>
 
 namespace mp = schwa::msgpack;
 

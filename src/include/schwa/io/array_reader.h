@@ -22,8 +22,8 @@ namespace schwa {
       inline const char *upto(void) const { return _upto; }
       inline size_t nbytes(void) const { return _nbytes; }
 
-      inline int get(void);
-      inline void read(char *const buf, const size_t amount);
+      int get(void);
+      void read(char *const buf, const size_t amount);
 
     private:
       DISALLOW_COPY_AND_ASSIGN(ArrayReader);

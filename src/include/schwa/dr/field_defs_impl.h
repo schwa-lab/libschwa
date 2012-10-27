@@ -7,6 +7,8 @@
 
 #include <schwa/dr/field_defs.h>
 #include <schwa/dr/wire.h>
+#include <schwa/io/array_reader.h>
+#include <schwa/io/write_buffer.h>
 #include <schwa/msgpack/wire.h>
 
 namespace schwa {

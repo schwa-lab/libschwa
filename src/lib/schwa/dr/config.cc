@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include <schwa/config/exception.h>
 #include <schwa/dr/field_defs.h>
 #include <schwa/port.h>
 
