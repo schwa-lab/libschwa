@@ -1,17 +1,51 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
+#include <schwa/dr/reader.h>
+
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+
+#include <schwa/dr/exception.h>
+#include <schwa/dr/istore.h>
+#include <schwa/dr/runtime.h>
+#include <schwa/dr/schema.h>
+#include <schwa/dr/type_info.h>
+#include <schwa/io/array_reader.h>
+#include <schwa/io/unsafe_array_writer.h>
+#include <schwa/msgpack.h>
 
 namespace mp = schwa::msgpack;
 
 
-namespace schwa { namespace dr {
+namespace schwa {
+namespace dr {
 
-static inline bool is_uint(const mp::WireType t) {
-  return t == mp::WireType::FIXNUM_POSITIVE || t == mp::WireType::UINT_8 || t == mp::WireType::UINT_16 || t == mp::WireType::UINT_32 || t == mp::WireType::UINT_64;
+namespace {
+
+static inline bool
+is_uint(const mp::WireType t) {
+  switch (t) {
+  case mp::WireType::FIXNUM_POSITIVE:
+  case mp::WireType::UINT_8:
+  case mp::WireType::UINT_16:
+  case mp::WireType::UINT_32:
+  case mp::WireType::UINT_64:
+    return true;
+  default:
+    return false;
+  }
 }
 
+}  // namespace
 
-Reader::Reader(std::istream &in, BaseDocSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
+
+Reader::Reader(std::istream &in, BaseDocSchema &dschema) :
+    _in(in),
+    _dschema(dschema),
+    _has_more(false)
+  { }
 
 
 Reader &
@@ -453,4 +487,5 @@ Reader::read(Doc &doc) {
   return *this;
 }
 
-} }
+}  // namespace dr
+}  // namespace schwa

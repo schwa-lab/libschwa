@@ -1,8 +1,24 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_DR_FIELD_DEFS_H_
+#define SCHWA_DR_FIELD_DEFS_H_
+
+#include <string>
+#include <type_traits>
+
+#include <schwa/_base.h>
+#include <schwa/dr/fields.h>
+#include <schwa/dr/schema.h>
+#include <schwa/dr/type_info.h>
 
 namespace schwa {
+  namespace io {
+    class ArrayReader;
+    class WriteBuffer;
+  }
+
   namespace dr {
 
+    class IStore;
     class RTSchema;
 
     // ========================================================================
@@ -93,6 +109,9 @@ namespace schwa {
       void read_field(io::ArrayReader &in, Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(FieldDef);
     };
 
 
@@ -106,8 +125,8 @@ namespace schwa {
     class FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
-      static_assert(boost::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
-      static_assert(boost::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
+      static_assert(std::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
+      static_assert(std::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
       typedef R value_type;
       typedef T annotation_type;
       typedef S store_type;
@@ -128,14 +147,17 @@ namespace schwa {
       void read_field(io::ArrayReader &in, Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(FieldDefWithStore);
     };
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     class FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
-      static_assert(boost::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (BlockStore<T>) must have the same type (T)");
-      static_assert(boost::is_base_of<Ann, S>::value, "BlockStore<T> type T must be a subclass of Ann");
+      static_assert(std::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (BlockStore<T>) must have the same type (T)");
+      static_assert(std::is_base_of<Ann, S>::value, "BlockStore<T> type T must be a subclass of Ann");
       typedef R value_type;
       typedef T annotation_type;
       typedef S store_type;
@@ -156,6 +178,9 @@ namespace schwa {
       void read_field(io::ArrayReader &in, Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(FieldDefWithStore);
     };
 
 
@@ -169,7 +194,7 @@ namespace schwa {
     class FieldDefWithSelfStore<R T::*, field_ptr> : public BaseFieldDef {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_SELF must be used with schwa::dr field types only");
-      static_assert(boost::is_same<typename FieldTraits<R>::value_type, T>::value, "DR_SELF must be used on recursive pointers only");
+      static_assert(std::is_same<typename FieldTraits<R>::value_type, T>::value, "DR_SELF must be used on recursive pointers only");
       typedef R value_type;
       typedef T annotation_type;
 
@@ -187,6 +212,9 @@ namespace schwa {
       void read_field(io::ArrayReader &in, Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &_store, const Doc &_doc) const override;
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(FieldDefWithSelfStore);
     };
 
 
@@ -199,7 +227,7 @@ namespace schwa {
     template <typename S, typename T, Store<S> T::*store_ptr>
     class StoreDef<Store<S> T::*, store_ptr> : public BaseStoreDef {
     public:
-      static_assert(boost::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
       typedef S store_type;
 
     private:
@@ -215,12 +243,15 @@ namespace schwa {
 
       IStore &istore(const Doc &_doc) const override;
       void resize(Doc &doc, const size_t size) const override;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(StoreDef);
     };
 
     template <typename S, typename T, BlockStore<S> T::*store_ptr>
     class StoreDef<BlockStore<S> T::*, store_ptr> : public BaseStoreDef {
     public:
-      static_assert(boost::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
       typedef S store_type;
 
     private:
@@ -236,6 +267,9 @@ namespace schwa {
 
       IStore &istore(const Doc &_doc) const override;
       void resize(Doc &doc, const size_t size) const override;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(StoreDef);
     };
 
 
@@ -251,3 +285,5 @@ namespace schwa {
 }
 
 #include <schwa/dr/field_defs_impl.h>
+
+#endif

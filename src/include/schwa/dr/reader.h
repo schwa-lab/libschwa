@@ -1,4 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_DR_READER_H_
+#define SCHWA_DR_READER_H_
+
+#include <iosfwd>
+
+#include <schwa/_base.h>
 
 namespace schwa {
   namespace dr {
@@ -24,7 +30,12 @@ namespace schwa {
 
       inline operator bool(void) const { return _has_more; }
       inline Reader &operator >>(Doc &doc) { return read(doc); }
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(Reader);
     };
 
   }
 }
+
+#endif

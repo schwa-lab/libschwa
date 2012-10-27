@@ -1,12 +1,21 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
+#include <schwa/dr/writer.h>
+
+#include <schwa/dr/field_defs.h>
+#include <schwa/dr/istore.h>
+#include <schwa/dr/runtime.h>
+#include <schwa/dr/schema.h>
+#include <schwa/io/write_buffer.h>
+#include <schwa/msgpack/wire.h>
+#include <schwa/utils/enums.h>
 
 namespace mp = schwa::msgpack;
 
 
-namespace schwa { namespace dr {
+namespace schwa {
+namespace dr {
 
-Writer::Writer(std::ostream &out, BaseDocSchema &dschema) : _out(out), _dschema(dschema) { }
+namespace {
 
 static void
 write_lazy(io::WriteBuffer &out, const Lazy &lazy_obj, const uint32_t nfields_new, io::WriteBuffer &buf) {
@@ -48,6 +57,14 @@ write_instance(io::WriteBuffer &out, const Ann &obj, const IStore &current_store
   }
   write_lazy(out, obj, nfields_new, buf);
 }
+
+}  // namespace
+
+
+Writer::Writer(std::ostream &out, BaseDocSchema &dschema) :
+    _out(out),
+    _dschema(dschema)
+  { }
 
 
 void
@@ -175,4 +192,5 @@ Writer::write(const Doc &doc) {
   _out.flush();
 }
 
-} }
+}  // namespace dr
+}  // namespace schwa

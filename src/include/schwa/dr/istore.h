@@ -1,4 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_DR_ISTORE_H_
+#define SCHWA_DR_ISTORE_H_
+
+#include <iterator>
+
+#include <schwa/_base.h>
 
 namespace schwa {
   namespace dr {
@@ -41,6 +47,9 @@ namespace schwa {
         inline typeless_iterator &operator ++(void) { (*_it).operator++(); return *this; }
       };
 
+    protected:
+      IStore(void) { }
+
     public:
       virtual ~IStore(void) { }
 
@@ -55,3 +64,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_DR_ISTORE_H_

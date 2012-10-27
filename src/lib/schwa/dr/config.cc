@@ -1,22 +1,29 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
+#include <schwa/dr/config.h>
+
+#include <iostream>
+
+#include <schwa/dr/field_defs.h>
+#include <schwa/port.h>
 
 
-namespace schwa { namespace dr {
+namespace schwa {
+namespace dr {
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 // DocrepFieldOp
-// ----------------------------------------------------------------------------
-DocrepFieldOp::DocrepFieldOp(DocrepClassOp &group, BaseDef &field) : config::OptionBase(field.name, field.help), _field(field) {
+// ============================================================================
+DocrepFieldOp::DocrepFieldOp(DocrepClassOp &group, BaseDef &field) :
+    config::OptionBase(field.name, field.help),
+    _field(field) {
   group.add(this);
 }
-
 
 DocrepFieldOp::~DocrepFieldOp(void) { }
 
 
 config::OptionBase *
-DocrepFieldOp::find(const std::string &, const std::string key) {
+DocrepFieldOp::find(const std::string &, const std::string &key) {
   const size_t pos = key.find(_name);
   if (key.empty() || pos != 0 || key.size() != _name.size())
     return nullptr;
@@ -42,10 +49,12 @@ void
 DocrepFieldOp::validate(void) { }
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 // DocrepClassOp
-// ----------------------------------------------------------------------------
-DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseDocSchema &schema) : config::OptionBase(schema.name, schema.help), _schema(schema) {
+// ============================================================================
+DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseDocSchema &schema) :
+    config::OptionBase(schema.name, schema.help),
+    _schema(schema) {
   group.add(this);
   for (auto &f : schema.fields())
     new DocrepFieldOp(*this, *f);
@@ -53,13 +62,13 @@ DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseDocSchema &schema) : co
     new DocrepFieldOp(*this, *s);
 }
 
-
-DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseSchema &schema) : config::OptionBase(schema.name, schema.help), _schema(schema) {
+DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseSchema &schema) :
+    config::OptionBase(schema.name, schema.help),
+    _schema(schema) {
   group.add(this);
   for (auto &f : schema.fields())
     new DocrepFieldOp(*this, *f);
 }
-
 
 DocrepClassOp::~DocrepClassOp(void) {
   for (auto &c : _children)
@@ -67,8 +76,14 @@ DocrepClassOp::~DocrepClassOp(void) {
 }
 
 
+void
+DocrepClassOp::add(DocrepFieldOp *const child) {
+  _children.push_back(child);
+}
+
+
 config::OptionBase *
-DocrepClassOp::find(const std::string &orig_key, const std::string key) {
+DocrepClassOp::find(const std::string &orig_key, const std::string &key) {
   const size_t pos = key.find(_name);
   if (pos != 0)
     return nullptr;
@@ -82,7 +97,7 @@ DocrepClassOp::find(const std::string &orig_key, const std::string key) {
     throw config::ConfigException("Invalid option key", orig_key);
 
   for (auto &child : _children) {
-    config::OptionBase *const p = child->find(orig_key, new_key);
+    auto *p = child->find(orig_key, new_key);
     if (p != nullptr)
       return p;
   }
@@ -112,13 +127,14 @@ void
 DocrepClassOp::validate(void) { }
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 // DocrepOpGroup
-// ----------------------------------------------------------------------------
+// ============================================================================
 DocrepOpGroup::DocrepOpGroup(OpGroup &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) : config::OpGroup(group, name, desc), _dschema(dschema) {
   new DocrepClassOp(*this, dschema);
   for (auto &s : dschema.schemas())
     new DocrepClassOp(*this, *s);
 }
 
-} }
+}  // namespace dr
+}  // namespace schwa

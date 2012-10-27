@@ -1,5 +1,15 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <boost/type_traits.hpp>
+#ifndef SCHWA_DR_SCHEMA_H_
+#define SCHWA_DR_SCHEMA_H_
+
+#include <cassert>
+#include <iosfwd>
+#include <string>
+#include <type_traits>
+#include <vector>
+
+#include <schwa/_base.h>
+#include <schwa/dr/type_info.h>
 
 namespace schwa {
   namespace dr {
@@ -22,7 +32,7 @@ namespace schwa {
 
 
     // ========================================================================
-    // BaseSchema definitions
+    // BaseSchema
     // ========================================================================
     class BaseSchema {
     public:
@@ -36,23 +46,21 @@ namespace schwa {
     protected:
       field_container _fields;
 
-      BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : name(name), help(help), serial(serial), type(type) { }
+      BaseSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type);
 
     public:
       virtual ~BaseSchema(void) { }
 
       inline void add(BaseFieldDef *const field) { _fields.push_back(field); }
-
       inline const field_container &fields(void) const { return _fields; }
 
       virtual std::ostream &dump(std::ostream &out) const;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(BaseSchema);
     };
 
-
-    inline std::ostream &
-    operator <<(std::ostream &out, const BaseSchema &s) {
-      return s.dump(out);
-    }
+    std::ostream &operator <<(std::ostream &out, const BaseSchema &s);
 
 
     // ========================================================================
@@ -60,25 +68,19 @@ namespace schwa {
     // ========================================================================
     class Lazy {
     protected:
+      friend class Reader;
+      friend class Writer;
+
       const char *_lazy;
       uint32_t _lazy_nelem;
       uint32_t _lazy_nbytes;
 
-      friend class Reader;
-      friend class Writer;
+      Lazy(void);
+      Lazy(const char *lazy, uint32_t nelem, uint32_t nbytes);
+      Lazy(const Lazy &o);
+      Lazy(const Lazy &&o);
 
-      Lazy(void) : _lazy(nullptr), _lazy_nelem(0), _lazy_nbytes(0) { }
-      Lazy(const char *lazy, const uint32_t nelem, const uint32_t nbytes) : _lazy(lazy), _lazy_nelem(nelem), _lazy_nbytes(nbytes) { }
-      Lazy(const Lazy &o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
-      Lazy(const Lazy &&o) : _lazy(o._lazy), _lazy_nelem(o._lazy_nelem), _lazy_nbytes(o._lazy_nbytes) { }
-
-      Lazy &
-      operator =(const Lazy &o) {
-        _lazy = o._lazy;
-        _lazy_nelem = o._lazy_nelem;
-        _lazy_nbytes = o._lazy_nbytes;
-        return *this;
-      }
+      Lazy &operator =(const Lazy &o);
 
     public:
       ~Lazy(void) { }
@@ -105,31 +107,32 @@ namespace schwa {
 
     class Doc : public Lazy {
     private:
-      RTManager *_rt;
-
       friend class Reader;
       friend class Writer;
 
+      RTManager *_rt;
+
     protected:
-      Doc(void) : Lazy(), _rt(nullptr) { }
-      Doc(const Doc &) = delete;
-      Doc(const Doc &&) = delete;
+      Doc(void);
 
     public:
       ~Doc(void);
 
       template <typename T> class Schema;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(Doc);
     };
 
 
     class BaseAnnSchema : public BaseSchema {
     protected:
-      BaseAnnSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
+      BaseAnnSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type);
 
     public:
       virtual ~BaseAnnSchema(void) { }
 
-      virtual std::ostream &dump(std::ostream &out) const;
+      virtual std::ostream &dump(std::ostream &out) const override;
     };
 
 
@@ -142,18 +145,16 @@ namespace schwa {
       schema_container _schemas;
       store_container _stores;
 
-      BaseDocSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type) : BaseSchema(name, help, serial, type) { }
+      BaseDocSchema(const std::string &name, const std::string &help, const std::string &serial, const TypeInfo &type);
 
     public:
-      virtual ~BaseDocSchema(void) {
-        for (auto &s : _schemas)
-          delete s;
-      }
+      virtual ~BaseDocSchema(void);
 
       template <typename T, T fn>
-      inline void add(StoreDef<T, fn> *const store) {
+      inline void
+      add(StoreDef<T, fn> *const store) {
         typedef typename StoreDef<T, fn>::store_type::Schema S;
-        static_assert(boost::is_base_of<BaseAnnSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnSchema");
+        static_assert(std::is_base_of<BaseAnnSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnSchema");
 
         _stores.push_back(store);
 
@@ -170,7 +171,7 @@ namespace schwa {
       template <typename T>
       inline typename T::Schema &
       types(void) const {
-        static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
+        static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
         const TypeInfo type = TypeInfo::create<T>();
         for (auto &it : _schemas)
           if (it->type == type)
@@ -182,7 +183,7 @@ namespace schwa {
       inline const schema_container &schemas(void) const { return _schemas; }
       inline const store_container &stores(void) const { return _stores; }
 
-      virtual std::ostream &dump(std::ostream &out) const;
+      virtual std::ostream &dump(std::ostream &out) const override;
     };
 
 
@@ -192,7 +193,7 @@ namespace schwa {
     template <typename T>
     class Ann::Schema : public BaseAnnSchema {
     public:
-      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
 
       Schema(const std::string &name, const std::string &help) : Schema(name, help, name) { }
       Schema(const std::string &name, const std::string &help, const std::string &serial) : BaseAnnSchema(name, help, serial, TypeInfo::create<T>()) { }
@@ -203,7 +204,7 @@ namespace schwa {
     template <typename D>
     class Doc::Schema : public BaseDocSchema {
     public:
-      static_assert(boost::is_base_of<Doc, D>::value, "D must be a subclass of Doc");
+      static_assert(std::is_base_of<Doc, D>::value, "D must be a subclass of Doc");
 
       Schema(const std::string &name, const std::string &help) : BaseDocSchema(name, help, "", TypeInfo::create<D>()) { }
       virtual ~Schema(void) { }
@@ -211,3 +212,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_DR_SCHEMA_H_

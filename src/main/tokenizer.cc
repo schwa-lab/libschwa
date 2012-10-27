@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <iostream>
+#include <memory>
+#include <utility>
+
 #include <schwa/config.h>
-#include <schwa/dr.h>
+#include <schwa/dr/config.h>
 #include <schwa/tokenizer.h>
 #include <schwa/tokenizer/streams/debug_text.h>
 #include <schwa/tokenizer/streams/docrep.h>
@@ -53,21 +57,18 @@ main(int argc, char *argv[]) {
   std::ostream &out = c.output.file();
 
   // printer
-  tok::Stream *stream;
+  std::unique_ptr<tok::Stream> stream;
   if (c.printer() == "text")
-    stream = new tok::TextStream(out);
+    stream = std::move(new tok::TextStream(out));
   else if (c.printer() == "debug")
-    stream = new tok::DebugTextStream(out);
+    stream = std::move(new tok::DebugTextStream(out));
   else if (c.printer() == "docrep")
-    stream = new tok::DocrepStream(out, schema);
+    stream = std::move(new tok::DocrepStream(out, schema));
   else
     throw cf::ConfigException("Unknown value", "printer", c.printer());
 
   tok::Tokenizer t;
   t.tokenize_stream(*stream, in, c.input_buffer());
-
-  // cleanup
-  delete stream;
 
   return 0;
 }

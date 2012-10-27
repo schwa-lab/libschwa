@@ -1,13 +1,21 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_DR_FIELD_DEFS_IMPL_H_
+#define SCHWA_DR_FIELD_DEFS_IMPL_H_
+
+#include <cassert>
+#include <cstdlib>
+
+#include <schwa/dr/field_defs.h>
+#include <schwa/dr/wire.h>
+#include <schwa/msgpack/wire.h>
 
 namespace schwa {
   namespace dr {
 
     template <typename R, typename T, R T::*field_ptr>
     FieldDef<R T::*, field_ptr>::FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseFieldDef(name, help, mode, serial, false, false, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection)
-      {
-        schema.add(this);
+        BaseFieldDef(name, help, mode, serial, false, false, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection) {
+      schema.add(this);
     }
 
 
@@ -64,25 +72,25 @@ namespace schwa {
     template <typename R, typename T, R T::*field_ptr>
     void
     FieldDef<R T::*, field_ptr>::read_field(io::ArrayReader &in, Ann &_ann, IStore &, Doc &) const {
-      FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _ann);
+      FieldDefDispatch<R, T, field_ptr, std::is_base_of<Doc, T>::value>::read_field(in, _ann);
     }
 
     template <typename R, typename T, R T::*field_ptr>
     bool
     FieldDef<R T::*, field_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &, const Doc &) const {
-      return FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _ann);
+      return FieldDefDispatch<R, T, field_ptr, std::is_base_of<Doc, T>::value>::write_field(out, key, _ann);
     }
 
     template <typename R, typename T, R T::*field_ptr>
     void
     FieldDef<R T::*, field_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
-      FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _doc);
+      FieldDefDispatch<R, T, field_ptr, std::is_base_of<Doc, T>::value>::read_field(in, _doc);
     }
 
     template <typename R, typename T, R T::*field_ptr>
     bool
     FieldDef<R T::*, field_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const {
-      return FieldDefDispatch<R, T, field_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
+      return FieldDefDispatch<R, T, field_ptr, std::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
     }
 
 
@@ -169,25 +177,25 @@ namespace schwa {
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     void
     FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Ann &_ann, IStore &, Doc &_doc) const {
-      FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _ann, _doc);
+      FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::read_field(in, _ann, _doc);
     }
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     bool
     FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &, const Doc &_doc) const {
-      return FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _ann, _doc);
+      return FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::write_field(out, key, _ann, _doc);
     }
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     void
     FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
-      FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _doc);
+      FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::read_field(in, _doc);
     }
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, Store<S> D::*store_ptr>
     bool
     FieldDefWithStore<R T::*, field_ptr, Store<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const {
-      return FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
+      return FieldDefWithStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
     }
 
 
@@ -271,25 +279,25 @@ namespace schwa {
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     void
     FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Ann &_ann, IStore &, Doc &_doc) const {
-      FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _ann, _doc);
+      FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::read_field(in, _ann, _doc);
     }
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     bool
     FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Ann &_ann, const IStore &, const Doc &_doc) const {
-      return FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _ann, _doc);
+      return FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::write_field(out, key, _ann, _doc);
     }
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     void
     FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::read_field(io::ArrayReader &in, Doc &_doc) const {
-      FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::read_field(in, _doc);
+      FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::read_field(in, _doc);
     }
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
     bool
     FieldDefWithStore<R T::*, field_ptr, BlockStore<S> D::*, store_ptr>::write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const {
-      return FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, boost::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
+      return FieldDefWithBlockStoreDispatch<R, T, S, D, field_ptr, store_ptr, std::is_base_of<Doc, T>::value>::write_field(out, key, _doc);
     }
 
 
@@ -298,9 +306,8 @@ namespace schwa {
     // ========================================================================
     template <typename R, typename T, R T::*field_ptr>
     FieldDefWithSelfStore<R T::*, field_ptr>::FieldDefWithSelfStore(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseFieldDef(name, help, mode, serial, false, true, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection),
-      _pointer_type(TypeInfo::create<R>())
-      {
+        BaseFieldDef(name, help, mode, serial, false, true, FieldTraits<R>::is_slice, FieldTraits<R>::is_collection),
+        _pointer_type(TypeInfo::create<R>()) {
       schema.add(this);
     }
 
@@ -357,9 +364,8 @@ namespace schwa {
     // ========================================================================
     template <typename S, typename T, Store<S> T::*store_ptr>
     StoreDef<Store<S> T::*, store_ptr>::StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseStoreDef(name, help, mode, serial),
-      _pointer_type(TypeInfo::create<S>())
-      {
+        BaseStoreDef(name, help, mode, serial),
+        _pointer_type(TypeInfo::create<S>()) {
       schema.add(this);
     }
 
@@ -395,9 +401,8 @@ namespace schwa {
 
     template <typename S, typename T, BlockStore<S> T::*store_ptr>
     StoreDef<BlockStore<S> T::*, store_ptr>::StoreDef(BaseDocSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial) :
-      BaseStoreDef(name, help, mode, serial),
-      _pointer_type(TypeInfo::create<S>())
-      {
+        BaseStoreDef(name, help, mode, serial),
+        _pointer_type(TypeInfo::create<S>()) {
       schema.add(this);
     }
 
@@ -435,3 +440,5 @@ namespace schwa {
     }
   }
 }
+
+#endif  // SCHWA_DR_FIELD_DEFS_IMPL_H_
