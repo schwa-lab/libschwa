@@ -22,7 +22,11 @@ namespace schwa {
       virtual OptionBase *find(const std::string &orig_key, const std::string &key) override;
       using OpGroup::help;
 
-      bool process(const int argc, const char *const argv[], std::ostream &help_ostream);
+      // Used to parse and accept argv. Calls ::exit(1) upon error. Logs to std::cerr.
+      void main(int argc, char **argv);
+
+      // Used to parse and accept argv. Return success. Logs to help_ostream.
+      bool process(int argc, char **argv, std::ostream &help_ostream);
 
     private:
       DISALLOW_COPY_AND_ASSIGN(OpMain);

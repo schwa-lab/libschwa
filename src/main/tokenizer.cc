@@ -23,12 +23,12 @@ public:
   dr::DocrepOpGroup dr;
 
   Config(dr::BaseDocSchema &dschema) :
-    cf::OpMain("tok", "Schwa-Lab tokenizer"),
-    input(*this, "input", "input filename"),
-    output(*this, "output", "output filename"),
-    printer(*this, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text"),
-    input_buffer(*this, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE),
-    dr(*this, dschema)
+      cf::OpMain("tok", "Schwa-Lab tokenizer"),
+      input(*this, "input", "input filename"),
+      output(*this, "output", "output filename"),
+      printer(*this, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text"),
+      input_buffer(*this, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE),
+      dr(*this, dschema)
     { }
   virtual ~Config(void) { }
 };
@@ -41,15 +41,7 @@ main(int argc, char *argv[]) {
 
   // parse the command line options
   Config c(schema);
-  try {
-    if (!c.process(argc - 1, argv + 1, std::cerr))
-      return 1;
-  }
-  catch (cf::ConfigException &e) {
-    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
-    c.help(std::cerr);
-    return 1;
-  }
+  c.main(argc, argv);
 
   // input and file files
   std::istream &in = c.input.file();

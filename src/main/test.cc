@@ -118,15 +118,8 @@ main(int argc, char *argv[]) {
   cf::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
   cf::IStreamOp op_in(cfg, "input", "The input file");
   cf::OStreamOp op_out(cfg, "output", "The output file");
-  try {
-    if (!cfg.process(argc - 1, argv + 1))
-      return 1;
-  }
-  catch (cf::ConfigException &e) {
-    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
-    cfg.help(std::cerr);
-    return 1;
-  }
+
+  cfg.main(argc, argv);
 
   try {
     if (op_mode() == "write")

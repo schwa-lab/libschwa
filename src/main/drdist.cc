@@ -111,22 +111,17 @@ run_thread(zmq::context_t &context, const std::string &bind, std::istream &in, s
 
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char **argv) {
+  // construct an option parser
   cf::OpMain cfg("drdist", "A docrep parallelisation source and sink");
   cf::IStreamOp input(cfg, "input", "The input file");
   cf::OStreamOp output(cfg, "output", "The output file");
   cf::Op<std::string> server(cfg, "server", "The network address of the server", "tcp://localhost:7300");
   cf::Op<unsigned long> nthreads(cfg, "nthreads", "The number of threads to fire up", 8);
   cf::Op<bool> quiet(cfg, "quiet", "Quiet mode", false);
-  try {
-    if (!cfg.process(argc - 1, argv + 1, std::cerr))
-      return 1;
-  }
-  catch (cf::ConfigException &e) {
-    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
-    cfg.help(std::cerr);
-    return 1;
-  }
+
+  // parse argv
+  cfg.main(argc, argv);
 
   // extract values out of config options
   std::istream &in = input.file();

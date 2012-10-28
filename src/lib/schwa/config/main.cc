@@ -1,6 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config/main.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -33,7 +34,7 @@ OpMain::help(std::ostream &out, const std::string &prefix, unsigned int depth) c
 
 
 bool
-OpMain::process(const int argc, const char *const argv[], std::ostream &help_ostream) {
+OpMain::process(const int argc, char **const argv, std::ostream &help_ostream) {
   // do an initial pass for "--help" and "--version"
   for (int i = 0; i != argc; ++i) {
     if (std::strcmp(argv[i], "--help") == 0) {
@@ -69,6 +70,20 @@ OpMain::process(const int argc, const char *const argv[], std::ostream &help_ost
   // validate each of the nodes
   validate();
   return true;
+}
+
+
+void
+OpMain::main(int argc, char **argv) {
+  try {
+    if (!process(argc - 1, argv + 1, std::cerr))
+      std::exit(1);
+  }
+  catch (ConfigException &e) {
+    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
+    help(std::cerr);
+    std::exit(1);
+  }
 }
 
 }  // namespace config
