@@ -6,11 +6,10 @@
 #include <limits>
 
 #include <schwa/io/traits.h>
+#include <schwa/mpl/if.h>
 #include <schwa/msgpack/exception.h>
 #include <schwa/msgpack/wire.h>
 #include <schwa/port.h>
-
-#include <boost/mpl/if.hpp>
 
 namespace schwa {
   namespace msgpack {
@@ -66,7 +65,7 @@ namespace schwa {
       };
 
       template <typename T>
-      struct rw : boost::mpl::if_<std::is_integral<T>, rw_integral<T>, rw_other<T>>::type { };
+      struct rw : mpl::if_<std::is_integral<T>, rw_integral<T>, rw_other<T>>::type { };
     }
 
 

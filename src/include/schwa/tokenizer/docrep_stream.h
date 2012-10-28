@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_TOKENIZER_STREAMS_DOCREP_H_
-#define SCHWA_TOKENIZER_STREAMS_DOCREP_H_
+#ifndef SCHWA_TOKENIZER_DOCREP_STREAM_H_
+#define SCHWA_TOKENIZER_DOCREP_STREAM_H_
 
 #include <iosfwd>
 #include <string>
@@ -149,4 +149,4 @@ namespace schwa {
   }
 }
 
-#endif  // SCHWA_TOKENIZER_STREAMS_DOCREP_H_
+#endif  // SCHWA_TOKENIZER_DOCREP_STREAM_H_

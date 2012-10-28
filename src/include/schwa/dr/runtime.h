@@ -120,4 +120,4 @@ namespace schwa {
   }
 }
 
-#endif
+#endif  // SCHWA_DR_RUNTIME_H_

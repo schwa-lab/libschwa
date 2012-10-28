@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_TOKENIZER_STREAMS_TEXT_H_
-#define SCHWA_TOKENIZER_STREAMS_TEXT_H_
+#ifndef SCHWA_TOKENIZER_TEXT_STREAM_H_
+#define SCHWA_TOKENIZER_TEXT_STREAM_H_
 
 #include <iosfwd>
 
@@ -42,9 +42,12 @@ namespace schwa {
 
       virtual void begin_document(void) override;
       virtual void end_document(void) override;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(TextStream);
     };
 
   }
 }
 
-#endif  // SCHWA_TOKENIZER_STREAMS_TEXT_H_
+#endif  // SCHWA_TOKENIZER_TEXT_STREAM_H_

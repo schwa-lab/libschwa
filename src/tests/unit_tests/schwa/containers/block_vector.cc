@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include "test_utils.h"
 
-#include <schwa/containers.h>
+#include <schwa/containers/block_vector.h>
 
 #include <boost/test/unit_test.hpp>
 

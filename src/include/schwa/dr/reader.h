@@ -38,4 +38,4 @@ namespace schwa {
   }
 }
 
-#endif
+#endif  // SCHWA_DR_READER_H_

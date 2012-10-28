@@ -43,4 +43,4 @@ namespace schwa {
   }
 }
 
-#endif
+#endif  // SCHWA_TOKENIZER_STREAM_H_

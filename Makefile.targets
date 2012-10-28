@@ -47,6 +47,7 @@ UNIT_TEST_OBJECTS = \
 		src/tests/unit_tests/schwa/dr/slices.o \
 		src/tests/unit_tests/schwa/dr/writer.o \
 		src/tests/unit_tests/schwa/io/buffer.o \
+		src/tests/unit_tests/schwa/mpl/if.o \
 		src/tests/unit_tests/schwa/msgpack/wire.o
 UNIT_TEST_BINARY = bin/_unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)

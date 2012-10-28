@@ -16,12 +16,16 @@ namespace schwa {
       static const size_t DEFAULT_NBLOCKS;
       static const size_t DEFAULT_NPOOLS;
 
-      struct Block {
+      class Block {
+      public:
         const size_t capacity;
         char *const data;
         size_t size;
 
         Block(size_t capacity, char *data, size_t size=0) : capacity(capacity), data(data), size(size) { }
+
+      private:
+        DISALLOW_COPY_AND_ASSIGN(Block);
       };
 
     private:

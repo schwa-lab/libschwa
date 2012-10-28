@@ -11,6 +11,7 @@ namespace schwa {
 
     class Ann;
 
+
     class IStore {
     public:
       class inner_typeless_iterator : public std::iterator<std::forward_iterator_tag, Ann> {

@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_TOKENIZER_STREAMS_DEBUG_TEXT_H_
-#define SCHWA_TOKENIZER_STREAMS_DEBUG_TEXT_H_
+#ifndef SCHWA_TOKENIZER_DEBUG_TEXT_STREAM_H_
+#define SCHWA_TOKENIZER_DEBUG_TEXT_STREAM_H_
 
 #include <iosfwd>
 
@@ -53,4 +53,4 @@ namespace schwa {
   }
 }
 
-#endif  // SCHWA_TOKENIZER_STREAMS_DEBUG_TEXT_H_
+#endif  // SCHWA_TOKENIZER_DEBUG_TEXT_STREAM_H_

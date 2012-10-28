@@ -73,4 +73,4 @@ namespace schwa {
   }
 }
 
-#endif
+#endif  // SCHWA_DR_CONFIG_H_

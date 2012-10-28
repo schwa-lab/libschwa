@@ -21,6 +21,7 @@ namespace schwa {
     class IStore;
     class RTSchema;
 
+
     // ========================================================================
     // Constants
     // ========================================================================
@@ -286,4 +287,4 @@ namespace schwa {
 
 #include <schwa/dr/field_defs_impl.h>
 
-#endif
+#endif  // SCHWA_DR_FIELD_DEFS_H_
