@@ -36,8 +36,6 @@
 
 #include <boost/iostreams/device/mapped_file.hpp>
 
-using namespace boost;
-
 namespace schwa {
 namespace tokenizer {
 
@@ -327,7 +325,7 @@ bool
 Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, int errors) const {
   std::ostringstream msg;
 
-  iostreams::mapped_file file(filename);
+  boost::iostreams::mapped_file file(filename);
   if (!file)
     return _die(msg << "could not open file " << filename << " for reading with mmap");
 
