@@ -55,7 +55,7 @@ GENERATED_SOURCES = \
 		src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends doxygen install lint release sharedlibs test wc src/lib/schwa/version.cc
+.PHONY: all clean depends doxygen install release sharedlibs test wc src/lib/schwa/version.cc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
@@ -66,7 +66,7 @@ clean:
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	src/scripts/depends "$(CXX) -std=c++11 -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	$(CXX) -std=c++11 -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE) `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 doxygen:
 	doxygen docs/Doxyfile
@@ -88,10 +88,6 @@ install:
 	for f in $(BINARIES); do \
 		install -p -v $${f} $(DESTDIR)$(prefix)/bin; \
 	done
-
-lint:
-	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/include -name '*.h'`
-	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/lib -name '*.cc'`
 
 release:
 	src/scripts/make-release $(RELEASE_VERSION)
