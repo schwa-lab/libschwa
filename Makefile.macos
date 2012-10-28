@@ -5,7 +5,7 @@ prefix=/usr
 #RELEASE_VERSION=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)
 
 INCLUDE = -Isrc/include -isystem ext/include
-LIBS = -Llib -Lext/lib -lboost_iostreams
+LIBS = -Llib -Lext/lib
 DEFINES =
 
 ifdef RELEASE_VERSION

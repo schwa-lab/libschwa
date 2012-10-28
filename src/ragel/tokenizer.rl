@@ -24,6 +24,7 @@
 }%%
 
 #include <cctype>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -31,10 +32,9 @@
 
 #include <schwa/_base.h>
 #include <schwa/io/istream_source.h>
+#include <schwa/io/mmaped_source.h>
 #include <schwa/io/source.h>
 #include <schwa/tokenizer.h>
-
-#include <boost/iostreams/device/mapped_file.hpp>
 
 namespace schwa {
 namespace tokenizer {
@@ -208,10 +208,11 @@ Tokenizer::_dash_or_item(Stream &dest, State &state) const {
 
 void
 Tokenizer::_number_or_item(Stream &dest, State &state) const {
-  if (state.in_sentence){
+  if (state.in_sentence) {
     _split(NUMBER, PUNCTUATION, dest, state);
     state.seen_terminator = true;
-  }else
+  }
+  else
     state.begin_item(dest);
 }
 
@@ -292,7 +293,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
       have = 0;
     else {
       have = pe - s.ts;
-      memmove(buffer, s.ts, have);
+      std::memcpy(buffer, s.ts, have);
       s.te = buffer + (s.te - s.ts);
       s.ts = buffer;
     }
@@ -307,7 +308,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
 
 bool
 Tokenizer::tokenize(Stream &dest, const char *data, int errors) const {
-  return tokenize(dest, data, strlen(data), errors);
+  return tokenize(dest, data, std::strlen(data), errors);
 }
 
 bool
@@ -323,13 +324,8 @@ Tokenizer::tokenize_stream(Stream &dest, std::istream &in, size_t buffer_size, i
 
 bool
 Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, int errors) const {
-  std::ostringstream msg;
-
-  boost::iostreams::mapped_file file(filename);
-  if (!file)
-    return _die(msg << "could not open file " << filename << " for reading with mmap");
-
-  return tokenize(dest, file.data(), file.size(), errors);
+  io::MMappedSource src(filename.c_str());
+  return tokenize(dest, src.data(), src.size(), errors);
 }
 
 }  // namespace tokenizer
