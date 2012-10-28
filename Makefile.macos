@@ -13,11 +13,11 @@ OPTIMIZE_CXXFLAGS = -O4
 else
 OPTIMIZE_CXXFLAGS = -g -O0
 endif
-BASE_CXXFLAGS = -std=c++11 $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -pedantic $(INCLUDE) $(DEFINES)
+BASE_CXXFLAGS = -std=c++11 -stdlib=libc++ $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -pedantic $(INCLUDE) $(DEFINES)
 
-CXX = g++
+CXX = clang++
 CXXFLAGS = $(BASE_CXXFLAGS)
-LDFLAGS = $(LIBS)
+LDFLAGS = -stdlib=libc++ $(LIBS)
 SHARED_LIB_SUFFIX = dylib
 SHARED_LIB_LDFLAGS = -dynamiclib
 

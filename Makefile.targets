@@ -118,7 +118,7 @@ bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJEC
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
-	$(CXX) $(SHARED_LIB_LDFLAGS) -o $@ $^ $(LIBS)
+	$(CXX) $(SHARED_LIB_LDFLAGS) -o $@ $^ $(LDFLAGS)
 
 # -------------------------------------------------------------------------------
 # generated sources
