@@ -16,7 +16,7 @@
 
 #include <schwa/_base.h>
 #include <schwa/io/istream_source.h>
-#include <schwa/io/mmaped_source.h>
+#include <schwa/io/mmapped_source.h>
 #include <schwa/io/source.h>
 #include <schwa/tokenizer.h>
 

@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/io/mmaped_source.h>
+#include <schwa/io/mmapped_source.h>
 
 #include <assert.h>    // assert
 #include <errno.h>     // errno
@@ -83,7 +83,7 @@ MMappedSource::Impl::open_file(void) {
   const_cast<size_t &>(_size) = stat.st_size;
 
   // mmap the whole contents of the file
-  void *const ptr = ::mmap(nullptr, _size, PROT_READ, MAP_FILE, _fd, 0);
+  void *const ptr = ::mmap(nullptr, _size, PROT_READ, MAP_FILE | MAP_SHARED, _fd, 0);
   if (ptr == MAP_FAILED)
     throw IOException(::strerror(errno), _filename);
 
