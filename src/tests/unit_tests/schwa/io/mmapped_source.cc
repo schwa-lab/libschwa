@@ -4,7 +4,6 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <string>
 
 #include <schwa/io/mmapped_source.h>
 
@@ -33,8 +32,7 @@ BOOST_AUTO_TEST_CASE(test_etc_passwd) {
   BOOST_CHECK_EQUAL(src.size(), size);
   BOOST_CHECK_NE(src.data(), static_cast<void *>(nullptr));
 
-  std::string data(src.data(), src.size());
-  BOOST_CHECK( compare_bytes(data, reinterpret_cast<uint8_t *>(buffer.get()), size) );
+  BOOST_CHECK( compare_bytes(reinterpret_cast<const uint8_t *>(src.data()), src.size(), reinterpret_cast<uint8_t *>(buffer.get()), size) );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

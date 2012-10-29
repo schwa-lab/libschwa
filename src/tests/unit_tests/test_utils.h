@@ -11,6 +11,9 @@
 namespace schwatest {
 
 boost::test_tools::predicate_result
+compare_bytes(const uint8_t *actual, const size_t actual_size, const uint8_t *expected, const size_t size);
+
+boost::test_tools::predicate_result
 compare_bytes(const std::string &str, const uint8_t *expected, const size_t size);
 
 boost::test_tools::predicate_result

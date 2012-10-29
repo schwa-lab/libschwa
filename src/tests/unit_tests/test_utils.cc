@@ -118,18 +118,18 @@ operator <<(std::ostream &out, const print_bytes &obj) {
 
 
 boost::test_tools::predicate_result
-compare_bytes(const std::string &actual, const uint8_t *expected, const size_t expected_size) {
-  if (actual.size() != expected_size) {
+compare_bytes(const uint8_t *actual, const size_t actual_size, const uint8_t *expected, const size_t expected_size) {
+  if (actual_size != expected_size) {
     boost::test_tools::predicate_result res(false);
-    res.message() << "Different sizes [" << expected_size << " != " << actual.size() << "]\n";
-    res.message() << print_bytes(expected, expected_size, reinterpret_cast<const uint8_t *>(actual.c_str()), actual.size());
+    res.message() << "Different sizes [" << expected_size << " != " << actual_size << "]\n";
+    res.message() << print_bytes(expected, expected_size, actual, actual_size);
     return res;
   }
   for (size_t i = 0; i != expected_size; ++i) {
-    if (static_cast<uint8_t>(actual[i]) != expected[i]) {
+    if (actual[i] != expected[i]) {
       boost::test_tools::predicate_result res(false);
-      res.message() << "Byte " << (i + 1) << " differs [" << static_cast<unsigned int>(expected[i]) << " != " << static_cast<unsigned int>(static_cast<uint8_t>(actual[i])) << "]\n";
-      res.message() << print_bytes(expected, expected_size, reinterpret_cast<const uint8_t *>(actual.c_str()), actual.size());
+      res.message() << "Byte " << (i + 1) << " differs [" << static_cast<unsigned int>(expected[i]) << " != " << static_cast<unsigned int>(actual[i]) << "]\n";
+      res.message() << print_bytes(expected, expected_size, actual, actual_size);
       return res;
     }
   }
@@ -138,8 +138,15 @@ compare_bytes(const std::string &actual, const uint8_t *expected, const size_t e
 
 
 boost::test_tools::predicate_result
+compare_bytes(const std::string &actual, const uint8_t *expected, const size_t expected_size) {
+  const uint8_t *ptr = reinterpret_cast<const uint8_t *>(actual.c_str());
+  return compare_bytes(ptr, actual.size(), expected, expected_size);
+}
+
+
+boost::test_tools::predicate_result
 compare_bytes(const std::string &str, const std::string &expected) {
-  const uint8_t *const ptr = reinterpret_cast<const uint8_t *>(expected.c_str());
+  const uint8_t *ptr = reinterpret_cast<const uint8_t *>(expected.c_str());
   return compare_bytes(str, ptr, expected.size());
 }
 
