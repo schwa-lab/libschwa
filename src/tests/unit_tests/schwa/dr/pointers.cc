@@ -3,16 +3,14 @@
 
 #include <schwa/dr.h>
 
-#include <boost/test/unit_test.hpp>
-
 namespace dr = schwa::dr;
 
 
 namespace schwatest {
 
-BOOST_AUTO_TEST_SUITE(schwa__dr__pointers)
+SUITE(schwa__dr__pointers) {
 
-BOOST_AUTO_TEST_CASE(self_pointer0) {
+TEST(self_pointer0) {
   class Token : public dr::Ann {
   public:
     dr::Slice<uint64_t> span;
@@ -175,76 +173,76 @@ BOOST_AUTO_TEST_CASE(self_pointer0) {
     << '\x00' << '\x91' << '\x09'
     << '\x01' << '\x95' << '\x00' << '\x01' << '\x02' << '\x03' << '\x04';
 
-  BOOST_CHECK( compare_bytes(stream.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), stream.str());
 
   Doc doc1;
   dr::Reader reader(stream, schema);
   reader >> doc1;
 
-  BOOST_CHECK_EQUAL(doc1.tokens.size(), 10);
-  BOOST_CHECK_EQUAL(doc1.xs.size(), 5);
+  CHECK_EQUAL(10, doc1.tokens.size());
+  CHECK_EQUAL(5, doc1.xs.size());
 
-  BOOST_CHECK_EQUAL(doc1.tokens[0].raw, "a");
-  BOOST_CHECK(doc1.tokens[0].span == dr::Slice<uint64_t>(0, 1));
-  BOOST_CHECK_EQUAL(doc1.tokens[1].raw, "b");
-  BOOST_CHECK(doc1.tokens[1].span == dr::Slice<uint64_t>(1, 2));
-  BOOST_CHECK_EQUAL(doc1.tokens[2].raw, "c");
-  BOOST_CHECK(doc1.tokens[2].span == dr::Slice<uint64_t>(2, 3));
-  BOOST_CHECK_EQUAL(doc1.tokens[3].raw, "d");
-  BOOST_CHECK(doc1.tokens[3].span == dr::Slice<uint64_t>(3, 4));
-  BOOST_CHECK_EQUAL(doc1.tokens[4].raw, "e");
-  BOOST_CHECK(doc1.tokens[4].span == dr::Slice<uint64_t>(4, 5));
-  BOOST_CHECK_EQUAL(doc1.tokens[5].raw, "f");
-  BOOST_CHECK(doc1.tokens[5].span == dr::Slice<uint64_t>(5, 6));
-  BOOST_CHECK_EQUAL(doc1.tokens[6].raw, "g");
-  BOOST_CHECK(doc1.tokens[6].span == dr::Slice<uint64_t>(6, 7));
-  BOOST_CHECK_EQUAL(doc1.tokens[7].raw, "h");
-  BOOST_CHECK(doc1.tokens[7].span == dr::Slice<uint64_t>(7, 8));
-  BOOST_CHECK_EQUAL(doc1.tokens[8].raw, "i");
-  BOOST_CHECK(doc1.tokens[8].span == dr::Slice<uint64_t>(8, 9));
-  BOOST_CHECK_EQUAL(doc1.tokens[9].raw, "j");
-  BOOST_CHECK(doc1.tokens[9].span == dr::Slice<uint64_t>(9, 10));
+  CHECK_EQUAL("a", doc1.tokens[0].raw);
+  CHECK(dr::Slice<uint64_t>(0, 1) == doc1.tokens[0].span);
+  CHECK_EQUAL("b", doc1.tokens[1].raw);
+  CHECK(dr::Slice<uint64_t>(1, 2) == doc1.tokens[1].span);
+  CHECK_EQUAL("c", doc1.tokens[2].raw);
+  CHECK(dr::Slice<uint64_t>(2, 3) == doc1.tokens[2].span);
+  CHECK_EQUAL("d", doc1.tokens[3].raw);
+  CHECK(dr::Slice<uint64_t>(3, 4) == doc1.tokens[3].span);
+  CHECK_EQUAL("e", doc1.tokens[4].raw);
+  CHECK(dr::Slice<uint64_t>(4, 5) == doc1.tokens[4].span);
+  CHECK_EQUAL("f", doc1.tokens[5].raw);
+  CHECK(dr::Slice<uint64_t>(5, 6) == doc1.tokens[5].span);
+  CHECK_EQUAL("g", doc1.tokens[6].raw);
+  CHECK(dr::Slice<uint64_t>(6, 7) == doc1.tokens[6].span);
+  CHECK_EQUAL("h", doc1.tokens[7].raw);
+  CHECK(dr::Slice<uint64_t>(7, 8) == doc1.tokens[7].span);
+  CHECK_EQUAL("i", doc1.tokens[8].raw);
+  CHECK(dr::Slice<uint64_t>(8, 9) == doc1.tokens[8].span);
+  CHECK_EQUAL("j", doc1.tokens[9].raw);
+  CHECK(dr::Slice<uint64_t>(9, 10) == doc1.tokens[9].span);
 
-  BOOST_CHECK_EQUAL(doc1.xs[0].tokens.items.size(), 1);
-  BOOST_CHECK_EQUAL(doc1.xs[1].tokens.items.size(), 3);
-  BOOST_CHECK_EQUAL(doc1.xs[2].tokens.items.size(), 5);
-  BOOST_CHECK_EQUAL(doc1.xs[3].tokens.items.size(), 0);
-  BOOST_CHECK_EQUAL(doc1.xs[4].tokens.items.size(), 1);
+  CHECK_EQUAL(1, doc1.xs[0].tokens.items.size());
+  CHECK_EQUAL(3, doc1.xs[1].tokens.items.size());
+  CHECK_EQUAL(5, doc1.xs[2].tokens.items.size());
+  CHECK_EQUAL(0, doc1.xs[3].tokens.items.size());
+  CHECK_EQUAL(1, doc1.xs[4].tokens.items.size());
 
-  BOOST_CHECK_EQUAL(doc1.xs[0].tokens.items[0], &doc1.tokens[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[1].tokens.items[0], &doc1.tokens[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[1].tokens.items[1], &doc1.tokens[1]);
-  BOOST_CHECK_EQUAL(doc1.xs[1].tokens.items[2], &doc1.tokens[2]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].tokens.items[0], &doc1.tokens[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].tokens.items[1], &doc1.tokens[1]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].tokens.items[2], &doc1.tokens[2]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].tokens.items[3], &doc1.tokens[3]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].tokens.items[4], &doc1.tokens[4]);
-  BOOST_CHECK_EQUAL(doc1.xs[4].tokens.items[0], &doc1.tokens[9]);
+  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[0].tokens.items[0]);
+  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[1].tokens.items[0]);
+  CHECK_EQUAL(&doc1.tokens[1], doc1.xs[1].tokens.items[1]);
+  CHECK_EQUAL(&doc1.tokens[2], doc1.xs[1].tokens.items[2]);
+  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[2].tokens.items[0]);
+  CHECK_EQUAL(&doc1.tokens[1], doc1.xs[2].tokens.items[1]);
+  CHECK_EQUAL(&doc1.tokens[2], doc1.xs[2].tokens.items[2]);
+  CHECK_EQUAL(&doc1.tokens[3], doc1.xs[2].tokens.items[3]);
+  CHECK_EQUAL(&doc1.tokens[4], doc1.xs[2].tokens.items[4]);
+  CHECK_EQUAL(&doc1.tokens[9], doc1.xs[4].tokens.items[0]);
 
-  BOOST_CHECK_EQUAL(doc1.xs[0].prior.items.size(), 1);
-  BOOST_CHECK_EQUAL(doc1.xs[1].prior.items.size(), 2);
-  BOOST_CHECK_EQUAL(doc1.xs[2].prior.items.size(), 3);
-  BOOST_CHECK_EQUAL(doc1.xs[3].prior.items.size(), 4);
-  BOOST_CHECK_EQUAL(doc1.xs[4].prior.items.size(), 5);
+  CHECK_EQUAL(1, doc1.xs[0].prior.items.size());
+  CHECK_EQUAL(2, doc1.xs[1].prior.items.size());
+  CHECK_EQUAL(3, doc1.xs[2].prior.items.size());
+  CHECK_EQUAL(4, doc1.xs[3].prior.items.size());
+  CHECK_EQUAL(5, doc1.xs[4].prior.items.size());
 
-  BOOST_CHECK_EQUAL(doc1.xs[0].prior.items[0], &doc1.xs[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[1].prior.items[0], &doc1.xs[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[1].prior.items[1], &doc1.xs[1]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].prior.items[0], &doc1.xs[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].prior.items[1], &doc1.xs[1]);
-  BOOST_CHECK_EQUAL(doc1.xs[2].prior.items[2], &doc1.xs[2]);
-  BOOST_CHECK_EQUAL(doc1.xs[3].prior.items[0], &doc1.xs[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[3].prior.items[1], &doc1.xs[1]);
-  BOOST_CHECK_EQUAL(doc1.xs[3].prior.items[2], &doc1.xs[2]);
-  BOOST_CHECK_EQUAL(doc1.xs[3].prior.items[3], &doc1.xs[3]);
-  BOOST_CHECK_EQUAL(doc1.xs[4].prior.items[0], &doc1.xs[0]);
-  BOOST_CHECK_EQUAL(doc1.xs[4].prior.items[1], &doc1.xs[1]);
-  BOOST_CHECK_EQUAL(doc1.xs[4].prior.items[2], &doc1.xs[2]);
-  BOOST_CHECK_EQUAL(doc1.xs[4].prior.items[3], &doc1.xs[3]);
-  BOOST_CHECK_EQUAL(doc1.xs[4].prior.items[4], &doc1.xs[4]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[0].prior.items[0]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[1].prior.items[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[1].prior.items[1]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[2].prior.items[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[2].prior.items[1]);
+  CHECK_EQUAL(&doc1.xs[2], doc1.xs[2].prior.items[2]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[3].prior.items[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[3].prior.items[1]);
+  CHECK_EQUAL(&doc1.xs[2], doc1.xs[3].prior.items[2]);
+  CHECK_EQUAL(&doc1.xs[3], doc1.xs[3].prior.items[3]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[4].prior.items[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[4].prior.items[1]);
+  CHECK_EQUAL(&doc1.xs[2], doc1.xs[4].prior.items[2]);
+  CHECK_EQUAL(&doc1.xs[3], doc1.xs[4].prior.items[3]);
+  CHECK_EQUAL(&doc1.xs[4], doc1.xs[4].prior.items[4]);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
 
 }  // namespace schwatest

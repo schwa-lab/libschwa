@@ -1,14 +1,14 @@
+# vim swap files
 .*.sw[opq]
-*.h.gch
+# compiled files
 *.o
 *.pyc
-Makefile
+# generated files
 Makefile.depends
-build
-ext
-./lib
-tags
 src/lib/schwa/version.cc
+# build locations
+build
+tags
 ve
 dist
 schwa.egg-info

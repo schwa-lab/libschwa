@@ -3,8 +3,6 @@
 
 #include <schwa/dr.h>
 
-#include <boost/test/unit_test.hpp>
-
 namespace dr = schwa::dr;
 namespace mp = schwa::msgpack;
 
@@ -170,9 +168,9 @@ public:
 // ============================================================================
 // ============================================================================
 
-BOOST_AUTO_TEST_SUITE(schwa__dr__reader)
+SUITE(schwa__dr__reader) {
 
-BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
+TEST(DocWithField__name_is_null) {
   std::stringstream correct;
   correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
@@ -192,17 +190,17 @@ BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
 
   doc = new DocWithField();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), true);
+  CHECK_EQUAL(true, static_cast<bool>(reader));
   delete doc;
 
   doc = new DocWithField();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), false);
+  CHECK_EQUAL(false, static_cast<bool>(reader));
   delete doc;
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithField__name) {
+TEST(DocWithField__name) {
   std::stringstream correct;
   correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
@@ -224,18 +222,18 @@ BOOST_AUTO_TEST_CASE(DocWithField__name) {
 
   doc = new DocWithField();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), true);
-  BOOST_CHECK_EQUAL(doc->name, "/etc/passwd");
+  CHECK_EQUAL(true, static_cast<bool>(reader));
+  CHECK_EQUAL("/etc/passwd", doc->name);
   delete doc;
 
   doc = new DocWithField();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), false);
+  CHECK_EQUAL(false, static_cast<bool>(reader));
   delete doc;
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name_is_null) {
+TEST(DocWithFieldWithSerial__name_is_null) {
   std::stringstream correct;
   correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
@@ -255,17 +253,17 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name_is_null) {
 
   doc = new DocWithFieldWithSerial();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), true);
+  CHECK_EQUAL(true, static_cast<bool>(reader));
   delete doc;
 
   doc = new DocWithFieldWithSerial();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), false);
+  CHECK_EQUAL(false, static_cast<bool>(reader));
   delete doc;
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name) {
+TEST(DocWithFieldWithSerial__name) {
   std::stringstream correct;
   correct << '\x02';  // <wire_version>
   correct << '\x91';  // <klasses>: 1-element array
@@ -287,18 +285,18 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name) {
 
   doc = new DocWithFieldWithSerial();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), true);
-  BOOST_CHECK_EQUAL(doc->name, "/etc/passwd");
+  CHECK_EQUAL(true, static_cast<bool>(reader));
+  CHECK_EQUAL("/etc/passwd", doc->name);
   delete doc;
 
   doc = new DocWithFieldWithSerial();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), false);
+  CHECK_EQUAL(false, static_cast<bool>(reader));
   delete doc;
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithA__empty) {
+TEST(DocWithA__empty) {
   std::stringstream correct;
   correct << '\x02';  // <wire_version>
   correct << '\x92';  // <klasses>: 2-element array
@@ -335,17 +333,17 @@ BOOST_AUTO_TEST_CASE(DocWithA__empty) {
 
   doc = new DocWithA();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), true);
+  CHECK_EQUAL(true, static_cast<bool>(reader));
   delete doc;
 
   doc = new DocWithA();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), false);
+  CHECK_EQUAL(false, static_cast<bool>(reader));
   delete doc;
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
+TEST(DocWithA__four_elements) {
   std::stringstream correct;
   correct << '\x02';  // <wire_version>
   correct << '\x92';  // <klasses>: 2-element array
@@ -386,28 +384,28 @@ BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
 
   doc = new DocWithA();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), true);
-  BOOST_CHECK_EQUAL(doc->as.size(), 4);
-  BOOST_CHECK_EQUAL(doc->as[0].v_str, "first");
-  BOOST_CHECK_EQUAL(doc->as[0].v_uint8, 0);
-  BOOST_CHECK_EQUAL(doc->as[0].v_bool, false);
-  BOOST_CHECK_EQUAL(doc->as[1].v_str, "");
-  BOOST_CHECK_EQUAL(doc->as[1].v_uint8, 2);
-  BOOST_CHECK_EQUAL(doc->as[1].v_bool, false);
-  BOOST_CHECK_EQUAL(doc->as[2].v_str, "");
-  BOOST_CHECK_EQUAL(doc->as[2].v_uint8, 0);
-  BOOST_CHECK_EQUAL(doc->as[2].v_bool, false);
-  BOOST_CHECK_EQUAL(doc->as[3].v_str, "");
-  BOOST_CHECK_EQUAL(doc->as[3].v_uint8, 0);
-  BOOST_CHECK_EQUAL(doc->as[3].v_bool, true);
+  CHECK_EQUAL(true, static_cast<bool>(reader));
+  CHECK_EQUAL(4, doc->as.size());
+  CHECK_EQUAL("first", doc->as[0].v_str);
+  CHECK_EQUAL(0, doc->as[0].v_uint8);
+  CHECK_EQUAL(false, doc->as[0].v_bool);
+  CHECK_EQUAL("", doc->as[1].v_str);
+  CHECK_EQUAL(2, doc->as[1].v_uint8);
+  CHECK_EQUAL(false, doc->as[1].v_bool);
+  CHECK_EQUAL("", doc->as[2].v_str);
+  CHECK_EQUAL(0, doc->as[2].v_uint8);
+  CHECK_EQUAL(false, doc->as[2].v_bool);
+  CHECK_EQUAL("", doc->as[3].v_str);
+  CHECK_EQUAL(0, doc->as[3].v_uint8);
+  CHECK_EQUAL(true, doc->as[3].v_bool);
   delete doc;
 
   doc = new DocWithA();
   reader >> *doc;
-  BOOST_CHECK_EQUAL(static_cast<bool>(reader), false);
+  CHECK_EQUAL(false, static_cast<bool>(reader));
   delete doc;
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
 
 }  // namespace schwatest

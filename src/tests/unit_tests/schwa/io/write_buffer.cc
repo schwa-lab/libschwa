@@ -3,85 +3,83 @@
 
 #include <schwa/io/write_buffer.h>
 
-#include <boost/test/unit_test.hpp>
-
 namespace io = schwa::io;
 
 
 namespace schwatest {
 
-BOOST_AUTO_TEST_SUITE(schwa__io__write_buffer)
+SUITE(schwa__io__write_buffer) {
 
-BOOST_AUTO_TEST_CASE(test_construction_default) {
+TEST(test_construction_default) {
   io::WriteBuffer b;
-  BOOST_CHECK_EQUAL(b.size(), 0);
-  BOOST_CHECK_EQUAL(b.nblocks(), io::WriteBuffer::DEFAULT_NBLOCKS);
-  BOOST_CHECK_EQUAL(b.block_size(), io::WriteBuffer::DEFAULT_BLOCK_SIZE);
-  BOOST_CHECK_EQUAL(b.block_upto(), 0);
-  BOOST_CHECK_EQUAL(b.npools(), io::WriteBuffer::DEFAULT_NPOOLS);
-  BOOST_CHECK_EQUAL(b.pool_size(), io::WriteBuffer::DEFAULT_POOL_SIZE);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 0);
+  CHECK_EQUAL(0, b.size());
+  CHECK_EQUAL(io::WriteBuffer::DEFAULT_NBLOCKS, b.nblocks());
+  CHECK_EQUAL(io::WriteBuffer::DEFAULT_BLOCK_SIZE, b.block_size());
+  CHECK_EQUAL(0, b.block_upto());
+  CHECK_EQUAL(io::WriteBuffer::DEFAULT_NPOOLS, b.npools());
+  CHECK_EQUAL(io::WriteBuffer::DEFAULT_POOL_SIZE, b.pool_size());
+  CHECK_EQUAL(0, b.pool_upto());
 }
 
 
-BOOST_AUTO_TEST_CASE(test_construction_custom) {
+TEST(test_construction_custom) {
   io::WriteBuffer b(4, 1, 8, 2);
-  BOOST_CHECK_EQUAL(b.size(), 0);
-  BOOST_CHECK_EQUAL(b.nblocks(), 1);
-  BOOST_CHECK_EQUAL(b.block_size(), 4);
-  BOOST_CHECK_EQUAL(b.block_upto(), 0);
-  BOOST_CHECK_EQUAL(b.npools(), 2);
-  BOOST_CHECK_EQUAL(b.pool_size(), 8);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 0);
+  CHECK_EQUAL(0, b.size());
+  CHECK_EQUAL(1, b.nblocks());
+  CHECK_EQUAL(4, b.block_size());
+  CHECK_EQUAL(0, b.block_upto());
+  CHECK_EQUAL(2, b.npools());
+  CHECK_EQUAL(8, b.pool_size());
+  CHECK_EQUAL(0, b.pool_upto());
 }
 
 
-BOOST_AUTO_TEST_CASE(test_put) {
+TEST(test_put) {
   io::WriteBuffer b(4, 1, 8, 2);
 
   b.put('0');
   b.put('1');
 
-  BOOST_CHECK_EQUAL(b.size(), 2);
-  BOOST_CHECK_EQUAL(b.nblocks(), 1);
-  BOOST_CHECK_EQUAL(b.block_upto(), 0);
-  BOOST_CHECK_EQUAL(b.npools(), 2);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 0);
+  CHECK_EQUAL(2, b.size());
+  CHECK_EQUAL(1, b.nblocks());
+  CHECK_EQUAL(0, b.block_upto());
+  CHECK_EQUAL(2, b.npools());
+  CHECK_EQUAL(0, b.pool_upto());
 
   b.put('2');
   b.put('3');
 
-  BOOST_CHECK_EQUAL(b.size(), 4);
-  BOOST_CHECK_EQUAL(b.nblocks(), 1);
-  BOOST_CHECK_EQUAL(b.block_upto(), 0);
-  BOOST_CHECK_EQUAL(b.npools(), 2);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 0);
+  CHECK_EQUAL(4, b.size());
+  CHECK_EQUAL(1, b.nblocks());
+  CHECK_EQUAL(0, b.block_upto());
+  CHECK_EQUAL(2, b.npools());
+  CHECK_EQUAL(0, b.pool_upto());
 
   b.put('4');
 
-  BOOST_CHECK_EQUAL(b.size(), 5);
-  BOOST_CHECK_EQUAL(b.nblocks(), 2);
-  BOOST_CHECK_EQUAL(b.block_upto(), 1);
-  BOOST_CHECK_EQUAL(b.npools(), 2);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 0);
+  CHECK_EQUAL(5, b.size());
+  CHECK_EQUAL(2, b.nblocks());
+  CHECK_EQUAL(1, b.block_upto());
+  CHECK_EQUAL(2, b.npools());
+  CHECK_EQUAL(0, b.pool_upto());
 
   b.put('5');
   b.put('6');
   b.put('7');
 
-  BOOST_CHECK_EQUAL(b.size(), 8);
-  BOOST_CHECK_EQUAL(b.nblocks(), 2);
-  BOOST_CHECK_EQUAL(b.block_upto(), 1);
-  BOOST_CHECK_EQUAL(b.npools(), 2);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 0);
+  CHECK_EQUAL(8, b.size());
+  CHECK_EQUAL(2, b.nblocks());
+  CHECK_EQUAL(1, b.block_upto());
+  CHECK_EQUAL(2, b.npools());
+  CHECK_EQUAL(0, b.pool_upto());
 
   b.put('8');
 
-  BOOST_CHECK_EQUAL(b.size(), 9);
-  BOOST_CHECK_EQUAL(b.nblocks(), 4);
-  BOOST_CHECK_EQUAL(b.block_upto(), 2);
-  BOOST_CHECK_EQUAL(b.npools(), 2);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 1);
+  CHECK_EQUAL(9, b.size());
+  CHECK_EQUAL(4, b.nblocks());
+  CHECK_EQUAL(2, b.block_upto());
+  CHECK_EQUAL(2, b.npools());
+  CHECK_EQUAL(1, b.pool_upto());
 
   b.put('9');
   b.put('A');
@@ -91,34 +89,34 @@ BOOST_AUTO_TEST_CASE(test_put) {
   b.put('E');
   b.put('F');
 
-  BOOST_CHECK_EQUAL(b.size(), 16);
-  BOOST_CHECK_EQUAL(b.nblocks(), 4);
-  BOOST_CHECK_EQUAL(b.block_upto(), 3);
-  BOOST_CHECK_EQUAL(b.npools(), 2);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 1);
+  CHECK_EQUAL(16, b.size());
+  CHECK_EQUAL(4, b.nblocks());
+  CHECK_EQUAL(3, b.block_upto());
+  CHECK_EQUAL(2, b.npools());
+  CHECK_EQUAL(1, b.pool_upto());
 
   b.put('x');
 
-  BOOST_CHECK_EQUAL(b.size(), 17);
-  BOOST_CHECK_EQUAL(b.nblocks(), 8);
-  BOOST_CHECK_EQUAL(b.block_upto(), 4);
-  BOOST_CHECK_EQUAL(b.npools(), 4);
-  BOOST_CHECK_EQUAL(b.pool_upto(), 2);
+  CHECK_EQUAL(17, b.size());
+  CHECK_EQUAL(8, b.nblocks());
+  CHECK_EQUAL(4, b.block_upto());
+  CHECK_EQUAL(4, b.npools());
+  CHECK_EQUAL(2, b.pool_upto());
 }
 
 
-BOOST_AUTO_TEST_CASE(test_copyto) {
+TEST(test_copyto) {
   io::WriteBuffer b(4, 1, 8, 2);
   for (char c = 'a'; c <= 'z'; ++c)
     b.put(c);
 
   std::stringstream ss;
   b.copy_to(ss);
-  BOOST_CHECK_EQUAL(ss.str(), "abcdefghijklmnopqrstuvwxyz");
+  CHECK_EQUAL("abcdefghijklmnopqrstuvwxyz", ss.str());
 }
 
 
-BOOST_AUTO_TEST_CASE(test_copyfrom) {
+TEST(test_copyfrom) {
   io::WriteBuffer b1(4, 1, 8, 2);
   for (char c = 'a'; c <= 'z'; ++c)
     b1.put(c);
@@ -131,10 +129,9 @@ BOOST_AUTO_TEST_CASE(test_copyfrom) {
   std::stringstream ss;
   b2.copy_to(ss);
 
-  BOOST_CHECK_EQUAL(ss.str(), "XXXXXabcdefghijklmnopqrstuvwxyzYYYY");
+  CHECK_EQUAL("XXXXXabcdefghijklmnopqrstuvwxyzYYYY", ss.str());
 }
 
-
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
 
 }  // namespace schwatest

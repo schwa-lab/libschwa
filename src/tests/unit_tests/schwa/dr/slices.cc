@@ -3,16 +3,14 @@
 
 #include <schwa/dr.h>
 
-#include <boost/test/unit_test.hpp>
-
 namespace dr = schwa::dr;
 
 
 namespace schwatest {
 
-BOOST_AUTO_TEST_SUITE(schwa__dr__slices)
+SUITE(schwa__dr__slices) {
 
-BOOST_AUTO_TEST_CASE(slices) {
+TEST(slices) {
   class Token : public dr::Ann {
   public:
     dr::Slice<uint64_t> span;
@@ -154,44 +152,44 @@ BOOST_AUTO_TEST_CASE(slices) {
       "\x82\x00\x92\x00\x05\x01\x00"
       "\x82\x00\x92\x05\x05\x01\x00";
 
-  BOOST_CHECK( compare_bytes(stream.str(), correct, sizeof(correct)/sizeof(unsigned char) - 1) );
+  CHECK_COMPARE_BYTES3(correct, sizeof(correct)/sizeof(unsigned char) - 1, stream.str());
 
   Doc doc1;
   dr::Reader reader(stream, schema);
   reader >> doc1;
 
-  BOOST_CHECK_EQUAL(doc1.tokens.size(), 10);
-  BOOST_CHECK_EQUAL(doc1.sents.size(), 2);
+  CHECK_EQUAL(10, doc1.tokens.size());
+  CHECK_EQUAL(2, doc1.sents.size());
 
-  BOOST_CHECK_EQUAL(doc1.tokens[0].raw, "The");
-  BOOST_CHECK(doc1.tokens[0].span == dr::Slice<uint64_t>(0, 3));
-  BOOST_CHECK_EQUAL(doc1.tokens[1].raw, "quick");
-  BOOST_CHECK(doc1.tokens[1].span == dr::Slice<uint64_t>(4, 9));
-  BOOST_CHECK_EQUAL(doc1.tokens[2].raw, "brown");
-  BOOST_CHECK(doc1.tokens[2].span == dr::Slice<uint64_t>(11, 16));
-  BOOST_CHECK_EQUAL(doc1.tokens[3].raw, "fox");
-  BOOST_CHECK(doc1.tokens[3].span == dr::Slice<uint64_t>(17, 20));
-  BOOST_CHECK_EQUAL(doc1.tokens[4].raw, ".");
-  BOOST_CHECK(doc1.tokens[4].span == dr::Slice<uint64_t>(20, 21));
-  BOOST_CHECK_EQUAL(doc1.tokens[5].raw, "The");
-  BOOST_CHECK(doc1.tokens[5].span == dr::Slice<uint64_t>(22, 25));
-  BOOST_CHECK_EQUAL(doc1.tokens[6].raw, "lazy");
-  BOOST_CHECK(doc1.tokens[6].span == dr::Slice<uint64_t>(26, 30));
-  BOOST_CHECK_EQUAL(doc1.tokens[7].raw, "cat");
-  BOOST_CHECK(doc1.tokens[7].span == dr::Slice<uint64_t>(31, 34));
-  BOOST_CHECK_EQUAL(doc1.tokens[8].raw, "too");
-  BOOST_CHECK(doc1.tokens[8].span == dr::Slice<uint64_t>(35, 38));
-  BOOST_CHECK_EQUAL(doc1.tokens[9].raw, ".");
-  BOOST_CHECK(doc1.tokens[9].span == dr::Slice<uint64_t>(38, 39));
+  CHECK_EQUAL("The", doc1.tokens[0].raw);
+  CHECK(doc1.tokens[0].span == dr::Slice<uint64_t>(0, 3));
+  CHECK_EQUAL("quick", doc1.tokens[1].raw);
+  CHECK(doc1.tokens[1].span == dr::Slice<uint64_t>(4, 9));
+  CHECK_EQUAL("brown", doc1.tokens[2].raw);
+  CHECK(doc1.tokens[2].span == dr::Slice<uint64_t>(11, 16));
+  CHECK_EQUAL("fox", doc1.tokens[3].raw);
+  CHECK(doc1.tokens[3].span == dr::Slice<uint64_t>(17, 20));
+  CHECK_EQUAL(".", doc1.tokens[4].raw);
+  CHECK(doc1.tokens[4].span == dr::Slice<uint64_t>(20, 21));
+  CHECK_EQUAL("The", doc1.tokens[5].raw);
+  CHECK(doc1.tokens[5].span == dr::Slice<uint64_t>(22, 25));
+  CHECK_EQUAL("lazy", doc1.tokens[6].raw);
+  CHECK(doc1.tokens[6].span == dr::Slice<uint64_t>(26, 30));
+  CHECK_EQUAL("cat", doc1.tokens[7].raw);
+  CHECK(doc1.tokens[7].span == dr::Slice<uint64_t>(31, 34));
+  CHECK_EQUAL("too", doc1.tokens[8].raw);
+  CHECK(doc1.tokens[8].span == dr::Slice<uint64_t>(35, 38));
+  CHECK_EQUAL(".", doc1.tokens[9].raw);
+  CHECK(doc1.tokens[9].span == dr::Slice<uint64_t>(38, 39));
 
-  BOOST_CHECK_EQUAL(doc1.sents[0].span.start, &doc1.tokens[0]);
-  BOOST_CHECK_EQUAL(doc1.sents[0].span.stop, &doc1.tokens[5]);
-  BOOST_CHECK_EQUAL(doc1.sents[0].number, 0);
-  BOOST_CHECK_EQUAL(doc1.sents[1].span.start, &doc1.tokens[5]);
-  BOOST_CHECK_EQUAL(doc1.sents[1].span.stop, &doc1.tokens[10]);
-  BOOST_CHECK_EQUAL(doc1.sents[1].number, 0);
+  CHECK_EQUAL(&doc1.tokens[0], doc1.sents[0].span.start);
+  CHECK_EQUAL(&doc1.tokens[5], doc1.sents[0].span.stop);
+  CHECK_EQUAL(0, doc1.sents[0].number);
+  CHECK_EQUAL(&doc1.tokens[5], doc1.sents[1].span.start);
+  CHECK_EQUAL(&doc1.tokens[10], doc1.sents[1].span.stop);
+  CHECK_EQUAL(0, doc1.sents[1].number);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
 
 }  // namespace schwatest

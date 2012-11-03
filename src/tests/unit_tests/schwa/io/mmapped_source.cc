@@ -7,16 +7,14 @@
 
 #include <schwa/io/mmapped_source.h>
 
-#include <boost/test/unit_test.hpp>
-
 namespace io = schwa::io;
 
 
 namespace schwatest {
 
-BOOST_AUTO_TEST_SUITE(schwa__io__mmapped_source)
+SUITE(schwa__io__mmapped_source) {
 
-BOOST_AUTO_TEST_CASE(test_etc_passwd) {
+TEST(test_etc_passwd) {
   static const char *filename = "/etc/passwd";
 
   std::ifstream fin(filename);
@@ -29,12 +27,12 @@ BOOST_AUTO_TEST_CASE(test_etc_passwd) {
   fin.close();
 
   io::MMappedSource src(filename);
-  BOOST_CHECK_EQUAL(src.size(), size);
-  BOOST_CHECK_NE(src.data(), static_cast<void *>(nullptr));
+  CHECK_EQUAL(src.size(), size);
+  CHECK(src.data() != static_cast<void *>(nullptr));
 
-  BOOST_CHECK( compare_bytes(reinterpret_cast<const uint8_t *>(src.data()), src.size(), reinterpret_cast<uint8_t *>(buffer.get()), size) );
+  CHECK_COMPARE_BYTES4(reinterpret_cast<uint8_t *>(buffer.get()), size, reinterpret_cast<const uint8_t *>(src.data()), src.size());
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
 
 }  // namespace schwatest
