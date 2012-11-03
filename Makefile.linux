@@ -4,8 +4,8 @@ prefix=/usr
 #RELEASE_VERSION_MINOR=0
 #RELEASE_VERSION=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)
 
-INCLUDE = -Isrc/include
-LIBS = -Llibs
+INCLUDE = -Isrc/include -I/n/schwafs/home/schwa/include
+LIBS_LDFLAGS = -Llibs -L/n/schwafs/home/schwa/lib
 DEFINES =
 
 ifdef RELEASE_VERSION
@@ -17,7 +17,7 @@ BASE_CXXFLAGS = -std=c++11 $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -
 
 CXX = g++
 CXXFLAGS = $(BASE_CXXFLAGS) $(INCLUDE) $(DEFINES)
-LDFLAGS = $(LIBS)
+LDFLAGS =
 SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
 
