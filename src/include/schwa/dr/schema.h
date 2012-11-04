@@ -107,9 +107,6 @@ namespace schwa {
 
     class Doc : public Lazy {
     private:
-      friend class Reader;
-      friend class Writer;
-
       RTManager *_rt;
 
     protected:
@@ -120,6 +117,7 @@ namespace schwa {
 
       RTManager *rt(void) { return _rt; }
       const RTManager *rt(void) const { return _rt; }
+      void set_rt(RTManager *rt) { _rt = rt; }
 
       template <typename T> class Schema;
 

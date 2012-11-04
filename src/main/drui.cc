@@ -7,9 +7,13 @@
 #include <schwa/macros.h>
 #include <schwa/config.h>
 #include <schwa/dr.h>
+#include <schwa/io/array_reader.h>
+#include <schwa/msgpack.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
+namespace io = schwa::io;
+namespace mp = schwa::msgpack;
 
 
 namespace {
@@ -87,6 +91,7 @@ private:
   void process_doc(void);
   void process_fields(const std::vector<dr::RTFieldDef *> &fields);
   void process_stores(const std::vector<dr::RTStoreDef *> &stores);
+  void process_store(const dr::RTStoreDef &store);
 
 public:
   DocProcessor(const FauxDoc &doc, std::ostream &out, unsigned int doc_num) :
@@ -135,10 +140,29 @@ DocProcessor::process_stores(const std::vector<dr::RTStoreDef *> &stores) {
   _out << sp(_indent) << "stores: {\n";
   ++_indent;
   for (const dr::RTStoreDef *store : stores) {
-    _out << sp(_indent) << store->serial << ": " << wv(store->is_lazy()) << "\n";
+    _out << sp(_indent) << store->serial << ": {\n";
+    ++_indent;
+    process_store(*store);
+    --_indent;
+    _out << sp(_indent) << "},\n";
   }
   --_indent;
   _out << sp(_indent) << "},\n";
+}
+
+void
+DocProcessor::process_store(const dr::RTStoreDef &store) {
+  assert(store.is_lazy());
+  _out << sp(_indent) << "is_lazy: " << wv(store.is_lazy()) << "\n";
+
+  io::ArrayReader reader(store.lazy_data, store.lazy_nbytes);
+
+  // <instance> ::= { <field_id> : <obj_val> }
+  const uint32_t size = mp::read_map_size(reader);
+  for (uint32_t i = 0; i != size; ++i) {
+    const uint32_t key = static_cast<uint32_t>(mp::read_uint(reader));
+    (void)key;
+  }
 }
 
 }  // namespace

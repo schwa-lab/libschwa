@@ -71,10 +71,10 @@ void
 Writer::write(const Doc &doc) {
   // get or construct the RTManager for the document
   RTManager *rt;
-  if (doc._rt == nullptr)
+  if (doc.rt() == nullptr)
     rt = build_rt(_dschema);
   else
-    rt = merge_rt(doc._rt, _dschema);
+    rt = merge_rt(const_cast<RTManager *>(doc.rt()), _dschema);
   const RTSchema *const rtdschema = rt->doc;
 
   // <wire_version>
@@ -185,7 +185,7 @@ Writer::write(const Doc &doc) {
   }
 
   // delete the temp RTManager
-  if (doc._rt == nullptr)
+  if (doc.rt() == nullptr)
     delete rt;
 
   // flush since we've finished writing a whole document

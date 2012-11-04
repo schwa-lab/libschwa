@@ -71,10 +71,10 @@ Reader::read(Doc &doc) {
   }
 
   // construct the lazy runtime manager for the document
-  assert(doc._rt == nullptr);
-  doc._rt = new RTManager();
-  assert(doc._rt != nullptr);
-  RTManager &rt = *doc._rt;
+  assert(doc.rt() == nullptr);
+  doc.set_rt(new RTManager());
+  assert(doc.rt() != nullptr);
+  RTManager &rt = *doc.rt();
 
   // map of each of the registered types
   std::map<std::string, const BaseSchema *> klass_name_map;

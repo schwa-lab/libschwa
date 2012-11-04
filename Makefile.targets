@@ -32,6 +32,7 @@ IO_OBJECTS = \
 		src/lib/schwa/io/mmapped_source.o \
 		src/lib/schwa/io/write_buffer.o
 MSGPACK_OBJECTS = \
+		src/lib/schwa/msgpack/dynamic.o \
 		src/lib/schwa/msgpack/exception.o \
 		src/lib/schwa/msgpack/wire.o
 TOKENIZER_OBJECTS = \
