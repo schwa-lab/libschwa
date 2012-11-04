@@ -22,6 +22,12 @@ is_array(const mp::WireType &t) {
 }
 
 
+static inline bool
+is_small_int(const mp::WireType &t) {
+  return t == mp::WireType::FIXNUM_POSITIVE;
+}
+
+
 static bool
 read_doc(std::istream &in, std::ostream &out) {
   static char *buf = nullptr;
@@ -31,24 +37,29 @@ read_doc(std::istream &in, std::ostream &out) {
   if (in.peek() == EOF)
     return false;
 
-  // <klasses> header
+  // <version> (omitted in version 1)
   if (!mp::read_lazy(in, out, type))
     return false;
+
+  if (is_small_int(type)) {
+    // <klasses> header
+    if (!mp::read_lazy(in, out, type))
+      return false;
+  }
   if (!is_array(type))
     return false;
 
   // <stores> header
-  if (!mp::read_lazy(in, out, type))
+  if (!is_array(mp::header_type(in.peek())))
     return false;
-  if (!is_array(type))
-    return false;
+  int nstores = mp::read_array_size(in);
+  mp::write_array_size(out, nstores);
+  for (int i = 0; i < nstores; ++i)
+    if (!mp::read_lazy(in, out, type))
+      return false;
 
-  // instances
-  while (true) {
-    const int h = in.peek();
-    if (h == EOF || is_array(mp::header_type(h)))
-      break;
-
+  // instances (nstores + 1 size-data pairs)
+  for (; nstores >= 0; --nstores) {
     const uint64_t nbytes = mp::read_uint(in);
     mp::write_uint(out, nbytes);
 
@@ -61,6 +72,9 @@ read_doc(std::istream &in, std::ostream &out) {
     out.write(buf, nbytes);
   }
 
+  if (buf != nullptr)
+    delete [] buf;
+
   return true;
 }
 
@@ -69,7 +83,7 @@ static void
 run_thread(zmq::context_t &context, const std::string &bind, std::istream &in, std::ostream &out) {
   // prepare the ØMQ source socket
   zmq::socket_t socket(context, ZMQ_REQ);
-  if (NOISY) std::cerr << "[source] binding to " << bind << std::endl;
+  if (NOISY) std::cerr << "[drdist] connecting to " << bind << std::endl;
   socket.connect(bind.c_str());
 
   zmq::message_t msg;
@@ -79,7 +93,7 @@ run_thread(zmq::context_t &context, const std::string &bind, std::istream &in, s
     input_lock.lock();
     const bool doc_found = read_doc(in, ss);
     input_lock.unlock();
-    if (NOISY) std::cerr << "[source] doc_found=" << doc_found << std::endl;
+    if (NOISY) std::cerr << "[drdist] doc_found=" << doc_found << std::endl;
     if (!doc_found)
       break;
 
@@ -92,7 +106,7 @@ run_thread(zmq::context_t &context, const std::string &bind, std::istream &in, s
 
     // wait for the reply back
     socket.recv(&msg);
-    if (NOISY) std::cerr << "[source] recv size=" << msg.size() << std::endl;
+    if (NOISY) std::cerr << "[drdist] recv size=" << msg.size() << std::endl;
 
     // write the contents out to the ostream
     output_lock.lock();
@@ -101,7 +115,7 @@ run_thread(zmq::context_t &context, const std::string &bind, std::istream &in, s
     output_lock.unlock();
   }
 
-  if (NOISY) std::cerr << "[source] shutting down" << std::endl;
+  if (NOISY) std::cerr << "[drdist] shutting down" << std::endl;
 }
 
 
