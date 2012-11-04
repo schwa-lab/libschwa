@@ -78,7 +78,7 @@ namespace schwa {
       const uint32_t klass_id;
       const std::string serial;
 
-      explicit RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
+      RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
       RTSchema(const RTSchema &&o);
       ~RTSchema(void);
 

@@ -118,6 +118,9 @@ namespace schwa {
     public:
       ~Doc(void);
 
+      RTManager *rt(void) { return _rt; }
+      const RTManager *rt(void) const { return _rt; }
+
       template <typename T> class Schema;
 
     private:

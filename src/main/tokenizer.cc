@@ -14,6 +14,8 @@ namespace dr = schwa::dr;
 namespace tok = schwa::tokenizer;
 
 
+namespace {
+
 class Config : public cf::OpMain {
 public:
   cf::IStreamOp input;
@@ -32,6 +34,8 @@ public:
     { }
   virtual ~Config(void) { }
 };
+
+}  // namespace
 
 
 int

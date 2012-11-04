@@ -1,7 +1,12 @@
 SHELL = /bin/bash
 
-BINARIES = bin/drdist bin/tokenizer
-SHARED_LIBS =  libs/libschwa.a libs/libschwa.$(SHARED_LIB_SUFFIX)
+BINARIES = \
+		bin/drdist \
+		bin/drui \
+		bin/tokenizer
+SHARED_LIBS = \
+		libs/libschwa.a \
+		libs/libschwa.$(SHARED_LIB_SUFFIX)
 
 BASE_OBJECTS = \
 		src/lib/schwa/exception.o \
@@ -117,6 +122,9 @@ bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_O
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -lzmq -o $@
+
+bin/drui: src/main/drui.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -lzmq -o $@
 
 bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
