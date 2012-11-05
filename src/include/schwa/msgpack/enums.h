@@ -2,6 +2,8 @@
 #ifndef SCHWA_MSGPACK_ENUMS_H_
 #define SCHWA_MSGPACK_ENUMS_H_
 
+#include <iosfwd>
+
 #include <schwa/_base.h>
 
 namespace schwa {
@@ -19,6 +21,8 @@ namespace schwa {
       INT_8, INT_16, INT_32, INT_64,
       RESERVED
     };
+
+    std::ostream &operator <<(std::ostream &out, const WireType type);
 
   }
 }
