@@ -13,6 +13,31 @@ namespace msgpack {
 // ============================================================================
 // Array
 // ============================================================================
+Array::Array(uint32_t size) : _size(size) {
+  for (uint32_t i = 0; i != _size; ++i)
+    new (&get(i)) Value();
+}
+
+Array::~Array(void) {
+  for (uint32_t i = 0; i != _size; ++i)
+    get(i).~Value();
+}
+
+Value &
+Array::get(size_t index) {
+  return reinterpret_cast<Value *>(this + 1)[index];
+}
+
+const Value &
+Array::get(size_t index) const {
+  return reinterpret_cast<const Value *>(this + 1)[index];
+}
+
+void
+Array::operator delete(void *ptr) {
+  std::free(ptr);
+}
+
 Array *
 Array::create(const uint32_t size) {
   Array *ptr = static_cast<Array *>(std::malloc(sizeof(Array) + size*sizeof(Value)));
@@ -21,38 +46,18 @@ Array::create(const uint32_t size) {
   return new (ptr) Array(size);
 }
 
-Array::Array(uint32_t size) : _size(size) { }
-
-Array::~Array(void) {
-  std::free(this);
-}
-
-Value *
-Array::get(size_t index) {
-  return reinterpret_cast<Value *>(this + 1) + index;
-}
-
-const Value *
-Array::get(size_t index) const {
-  return reinterpret_cast<const Value *>(this + 1) + index;
-}
-
 
 // ============================================================================
 // Map
 // ============================================================================
-Map *
-Map::create(const uint32_t size) {
-  Map *ptr = static_cast<Map *>(std::malloc(sizeof(Map) + size*sizeof(Pair)));
-  if (ptr == nullptr)
-    throw std::bad_alloc();
-  return new (ptr) Map(size);
+Map::Map(uint32_t size) : _size(size) {
+  for (uint32_t i = 0; i != _size; ++i)
+    new (&get(i)) Pair();
 }
 
-Map::Map(uint32_t size) : _size(size) { }
-
 Map::~Map(void) {
-  std::free(this);
+  for (uint32_t i = 0; i != _size; ++i)
+    get(i).~Pair();
 }
 
 Map::Pair &
@@ -63,6 +68,19 @@ Map::get(size_t index) {
 const Map::Pair &
 Map::get(size_t index) const {
   return reinterpret_cast<const Pair *>(this + 1)[index];
+}
+
+void
+Map::operator delete(void *ptr) {
+  std::free(ptr);
+}
+
+Map *
+Map::create(const uint32_t size) {
+  Map *ptr = static_cast<Map *>(std::malloc(sizeof(Map) + size*sizeof(Pair)));
+  if (ptr == nullptr)
+    throw std::bad_alloc();
+  return new (ptr) Map(size);
 }
 
 
@@ -90,6 +108,28 @@ Value &
 Value::operator =(const Value& o) {
   memcpy(this, &o, sizeof(Value));
   return *this;
+}
+
+Value::~Value(void) {
+  switch (type) {
+  case WireType::ARRAY_FIXED:
+  case WireType::ARRAY_16:
+  case WireType::ARRAY_32:
+    delete via._array;
+    break;
+  case WireType::MAP_FIXED:
+  case WireType::MAP_16:
+  case WireType::MAP_32:
+    delete via._map;
+    break;
+  case WireType::RAW_FIXED:
+  case WireType::RAW_16:
+  case WireType::RAW_32:
+    delete via._raw;
+    break;
+  default:
+    break;
+  }
 }
 
 }  // namespace msgpack

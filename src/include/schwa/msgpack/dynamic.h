@@ -52,6 +52,8 @@ namespace schwa {
 
       Value(const Value& o);
       Value &operator =(const Value &o);
+
+      ~Value(void);
     };
 
 
@@ -65,14 +67,15 @@ namespace schwa {
     public:
       ~Array(void);
 
-      Value *get(size_t index);
-      const Value *get(size_t index) const;
+      Value &get(size_t index);
+      const Value &get(size_t index) const;
 
       inline uint32_t size(void) const { return _size; }
 
-      Value *operator [](size_t index) { return get(index); }
-      const Value *operator [](size_t index) const { return get(index); }
+      Value &operator [](size_t index) { return get(index); }
+      const Value &operator [](size_t index) const { return get(index); }
 
+      void operator delete(void *ptr);
       static Array *create(uint32_t size);
     };
 
@@ -84,6 +87,7 @@ namespace schwa {
         Value key;
         Value value;
 
+        Pair(void) { }
         Pair(const Value &key, const Value& value) : key(key), value(value) { }
       };
 
@@ -104,6 +108,7 @@ namespace schwa {
       Pair &operator [](size_t index) { return get(index); }
       const Pair &operator [](size_t index) const { return get(index); }
 
+      void operator delete(void *ptr);
       static Map *create(uint32_t size);
     };
 
