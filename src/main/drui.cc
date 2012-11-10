@@ -6,6 +6,7 @@
 
 #include <schwa/macros.h>
 #include <schwa/config.h>
+#include <schwa/pool.h>
 #include <schwa/dr.h>
 #include <schwa/io/array_reader.h>
 #include <schwa/msgpack.h>
@@ -80,6 +81,37 @@ operator <<(std::ostream &out, const write_value<bool> &wv) {
 template <typename T>
 inline write_value<T> wv(const T &val) { return write_value<T>(val); }
 
+template <>
+inline std::ostream &
+operator <<(std::ostream &out, const write_value<mp::Value> &v) {
+  if (is_bool(v.value.type))
+    return out << wv(v.value.via._bool);
+  else if (is_double(v.value.type))
+    return out << wv(v.value.via._double);
+  else if (is_float(v.value.type))
+    return out << wv(v.value.via._float);
+  else if (is_int(v.value.type))
+    out << v.value.via._int64;
+  else if (is_nil(v.value.type))
+    out << "<nil>";
+  else if (is_uint(v.value.type))
+    out << v.value.via._uint64;
+  else if (is_array(v.value.type)) {
+
+  }
+  else if (is_map(v.value.type)) {
+
+  }
+  else if (is_raw(v.value.type)) {
+
+  }
+  else {
+    out << "<UNKNOWN TYPE>";
+  }
+  return out << ",";
+}
+
+
 
 class DocProcessor {
 private:
@@ -88,7 +120,6 @@ private:
   const unsigned int _doc_num;
   unsigned int _indent;
 
-  void process_doc(void);
   void process_fields(const std::vector<dr::RTFieldDef *> &fields);
   void process_stores(const std::vector<dr::RTStoreDef *> &stores);
   void process_store(const dr::RTStoreDef &store);
@@ -101,6 +132,7 @@ public:
       _indent(0)
     { }
 
+  void process_doc(void);
   inline void operator ()(void) { process_doc(); }
 
 private:
@@ -140,7 +172,7 @@ DocProcessor::process_stores(const std::vector<dr::RTStoreDef *> &stores) {
   _out << sp(_indent) << "stores: {\n";
   ++_indent;
   for (const dr::RTStoreDef *store : stores) {
-    _out << sp(_indent) << store->serial << ": {\n";
+    _out << sp(_indent) << store->serial << ": {    " << store->klass->serial << "\n";
     ++_indent;
     process_store(*store);
     --_indent;
@@ -153,15 +185,37 @@ DocProcessor::process_stores(const std::vector<dr::RTStoreDef *> &stores) {
 void
 DocProcessor::process_store(const dr::RTStoreDef &store) {
   assert(store.is_lazy());
-  _out << sp(_indent) << "is_lazy: " << wv(store.is_lazy()) << "\n";
+  const dr::RTSchema &klass = *store.klass;
+  _out << sp(_indent) << "klass.serial: " << wv(klass.serial) << "\n";
+  _out << sp(_indent) << "klass.fields.size(): " << wv(klass.fields.size()) << "\n";
 
+  schwa::Pool pool(4096);
   io::ArrayReader reader(store.lazy_data, store.lazy_nbytes);
+  mp::Value *value = mp::read_dynamic(reader, pool);
 
-  // <instance> ::= { <field_id> : <obj_val> }
-  const uint32_t size = mp::read_map_size(reader);
-  for (uint32_t i = 0; i != size; ++i) {
-    const uint32_t key = static_cast<uint32_t>(mp::read_uint(reader));
-    (void)key;
+  // <instances> ::= [ <instance> ]
+  assert(is_array(value->type));
+  const mp::Array &array = *value->via._array;
+  for (uint32_t i = 0; i != array.size(); ++i) {
+    assert(is_map(array[i].type));
+    const mp::Map &map = *array[i].via._map;
+
+    _out << sp(_indent) << i << ": {    " << map.size() << "\n";
+    ++_indent;
+
+    // <instance> ::= { <field_id> : <obj_val> }
+    for (uint32_t j = 0; j != map.size(); ++j) {
+      assert(is_uint(map.get(j).key.type));
+      const mp::Map::Pair &pair = map.get(j);
+      const uint64_t key = pair.key.via._uint64;
+
+      _out << sp(_indent) << klass.fields[key]->serial << ": " << wv(pair.value);
+      _out << "    (todo)";
+      _out << "\n";
+    }
+
+    --_indent;
+    _out << sp(_indent) << "},\n";
   }
 }
 
