@@ -9,7 +9,7 @@ namespace msgpack {
 
 std::ostream &
 operator <<(std::ostream &out, const WireType type) {
-  return out << static_cast<uint8_t>(type);
+  return out << static_cast<int>(type);
 }
 
 }  // namespace msgpack
