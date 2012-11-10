@@ -52,7 +52,7 @@ operator <<(std::ostream &out, const sp &sp) {
   for (unsigned int i = 0; i != sp.count; ++i)
     out << sp.value;
   return out;
-};
+}
 
 
 template <typename T>
