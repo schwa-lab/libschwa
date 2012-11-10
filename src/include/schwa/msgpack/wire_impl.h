@@ -558,6 +558,7 @@ namespace schwa {
       const WireType type = header_type(h);
       if (value == nullptr)
         value = Value::create(pool, type);
+      value->type = type;
 
       switch (type) {
       case WireType::NIL:
@@ -588,19 +589,23 @@ namespace schwa {
         value->via._double = read_double(in);
         break;
       case WireType::ARRAY_FIXED:
+        in.get();
         s32 = h & 0x0F;
         is_array = true;
         break;
       case WireType::ARRAY_16:
+        in.get();
         read_bytes16(in, s16);
         s32 = s16;
         is_array = true;
         break;
       case WireType::ARRAY_32:
+        in.get();
         read_bytes32(in, s32);
         is_array = true;
         break;
       case WireType::MAP_FIXED:
+        in.get();
         s32 = h & 0x0F;
         is_map = true;
         break;
@@ -610,23 +615,28 @@ namespace schwa {
         is_map = true;
         break;
       case WireType::MAP_32:
+        in.get();
         read_bytes32(in, s32);
         is_map = true;
         break;
       case WireType::RAW_FIXED:
+        in.get();
         s32 = h & 0x1F;
         is_raw = true;
         break;
       case WireType::RAW_16:
+        in.get();
         read_bytes16(in, s16);
         s32 = s16;
         is_raw = true;
         break;
       case WireType::RAW_32:
+        in.get();
         read_bytes32(in, s32);
         is_raw = true;
         break;
       case WireType::RESERVED:
+        in.get();
         break;
       }
 
