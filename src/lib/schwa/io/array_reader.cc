@@ -18,6 +18,14 @@ ArrayReader::get(void) {
 }
 
 
+int
+ArrayReader::peek(void) {
+  if (_left == 0)
+    return EOF;
+  return *reinterpret_cast<const unsigned char *>(_upto);
+}
+
+
 void
 ArrayReader::read(char *const buf, const size_t amount) {
   const size_t n = std::min(_left, amount);

@@ -23,8 +23,10 @@ namespace schwa {
       inline size_t nbytes(void) const { return _nbytes; }
 
       int get(void);
-      void read(char *const buf, const size_t amount);
+      int peek(void);
+
       size_t ignore(const size_t amount);
+      void read(char *const buf, const size_t amount);
 
     private:
       DISALLOW_COPY_AND_ASSIGN(ArrayReader);
