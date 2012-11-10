@@ -108,8 +108,6 @@ DocrepStream::begin_document(void) {
 
 void
 DocrepStream::end_document(void) {
-  std::cerr << "DocrepStream::end_document" << std::endl;
-
   // instantiate tokens
   const size_t ntokens = _tokens.size();
   _doc->tokens.create(ntokens);
