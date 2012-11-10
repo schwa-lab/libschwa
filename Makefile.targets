@@ -64,14 +64,14 @@ TEST_BINARIES = $(UNIT_TEST_BINARY)
 
 TEST_INCLUDE = -Isrc/tests/unit_tests -isystem third_party/UnitTest++
 TEST_CXXFLAGS = $(CXXFLAGS) $(TEST_INCLUDE)
-TEST_LDFLAGS = -lschwa
+TEST_LDFLAGS =
 
 
 GENERATED_SOURCES = \
 		src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends doxygen install release sharedlibs test wc src/lib/schwa/version.cc
+.PHONY: all clean depends doxygen install release sharedlibs test wc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
