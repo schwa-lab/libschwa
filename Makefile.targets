@@ -80,7 +80,7 @@ clean:
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	$(CXX) -MM $(CXXFLAGS) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(PYAPI_INCLUDE) `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/make-depends "$(CXX) -MM $(CXXFLAGS) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 doxygen:
 	doxygen docs/Doxyfile
