@@ -18,16 +18,16 @@ namespace schwa {
       template <typename T, bool>
       struct rw_integral_signed {
         template <typename IN>
-        static inline void read(IN &in, T &val) { val = read_int(in); }
+        static inline void read(IN &in, T &val) { val = read_uint(in); }
         template <typename OUT>
-        static inline void write(OUT &out, const T &val) { write_int(out, val); }
+        static inline void write(OUT &out, const T &val) { write_uint(out, val); }
       };
       template <typename T>
       struct rw_integral_signed<T, true> {
         template <typename IN>
-        static inline void read(IN &in, T &val) { val = read_uint(in); }
+        static inline void read(IN &in, T &val) { val = read_int(in); }
         template <typename OUT>
-        static inline void write(OUT &out, const T &val) { write_uint(out, val); }
+        static inline void write(OUT &out, const T &val) { write_int(out, val); }
       };
 
       template <typename T>
