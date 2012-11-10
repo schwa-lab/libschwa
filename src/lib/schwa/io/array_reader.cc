@@ -26,5 +26,14 @@ ArrayReader::read(char *const buf, const size_t amount) {
   _left -= n;
 }
 
+
+size_t
+ArrayReader::ignore(const size_t amount) {
+  const size_t n = std::min(_left, amount);
+  _upto += n;
+  _left -= n;
+  return n;
+}
+
 }  // namespace io
 }  // namespace schwa

@@ -24,6 +24,7 @@ namespace schwa {
 
       int get(void);
       void read(char *const buf, const size_t amount);
+      size_t ignore(const size_t amount);
 
     private:
       DISALLOW_COPY_AND_ASSIGN(ArrayReader);
