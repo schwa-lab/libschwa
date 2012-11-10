@@ -47,6 +47,7 @@ OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPAC
 UNIT_TEST_OBJECTS = \
 		src/tests/unit_tests/main.o \
 		src/tests/unit_tests/test_utils.o \
+		src/tests/unit_tests/schwa/pool.o \
 		src/tests/unit_tests/schwa/containers/block_vector.o \
 		src/tests/unit_tests/schwa/dr/lazy.o \
 		src/tests/unit_tests/schwa/dr/pointers.o \

@@ -5,6 +5,8 @@
 #include <string>
 
 #include <schwa/_base.h>
+#include <schwa/pool.h>
+#include <schwa/msgpack/dynamic.h>
 #include <schwa/msgpack/enums.h>
 
 namespace schwa {
@@ -80,10 +82,16 @@ namespace schwa {
     template <typename IN> inline uint64_t read_uint64(IN &in);
 
     template <typename IN, typename T>
-    inline void read(IN &in, T &val);
+    inline void
+    read(IN &in, T &val);
 
     template <typename IN, typename OUT>
-    bool read_lazy(IN &in, OUT &out, WireType &type);
+    bool
+    read_lazy(IN &in, OUT &out, WireType &type);
+
+    template <typename IN>
+    Value *
+    read_dynamic(IN &in, Pool &pool);
 
 
     // ========================================================================
