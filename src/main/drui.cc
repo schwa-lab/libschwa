@@ -41,80 +41,11 @@ public:
 };
 
 
-struct sp {
-  const unsigned int count;
-  const std::string value;
-
-  explicit sp(unsigned int count, const char *value="  ") : count(count), value(value) { }
-};
-
-inline std::ostream &
-operator <<(std::ostream &out, const sp &sp) {
-  for (unsigned int i = 0; i != sp.count; ++i)
-    out << sp.value;
-  return out;
-}
-
-
-template <typename T>
-struct write_value {
-  const T &value;
-
-  explicit write_value(const T &value) : value(value) { }
-};
-
-template <typename T>
-inline std::ostream &
-operator <<(std::ostream &out, const write_value<T> &wv) {
-  return out << wv.value << ",";
-}
-
-template <>
-inline std::ostream &
-operator <<(std::ostream &out, const write_value<bool> &wv) {
-  const auto flags = out.flags();
-  out << std::boolalpha << wv.value;
-  out.flags(flags);
-  return out << ",";
-}
-
-template <typename T>
-inline write_value<T> wv(const T &val) { return write_value<T>(val); }
-
-template <>
-inline std::ostream &
-operator <<(std::ostream &out, const write_value<mp::Value> &v) {
-  if (is_bool(v.value.type))
-    return out << wv(v.value.via._bool);
-  else if (is_double(v.value.type))
-    return out << wv(v.value.via._double);
-  else if (is_float(v.value.type))
-    return out << wv(v.value.via._float);
-  else if (is_int(v.value.type))
-    out << v.value.via._int64;
-  else if (is_nil(v.value.type))
-    out << "<nil>";
-  else if (is_uint(v.value.type))
-    out << v.value.via._uint64;
-  else if (is_array(v.value.type)) {
-
-  }
-  else if (is_map(v.value.type)) {
-
-  }
-  else if (is_raw(v.value.type)) {
-
-  }
-  else {
-    out << "<UNKNOWN TYPE>";
-  }
-  return out << ",";
-}
-
-
-
 class DocProcessor {
 private:
+  static const char *NORM;
+  static const char *SEP;
+
   const FauxDoc &_doc;
   std::ostream &_out;
   const unsigned int _doc_num;
@@ -123,6 +54,9 @@ private:
   void process_fields(const std::vector<dr::RTFieldDef *> &fields);
   void process_stores(const std::vector<dr::RTStoreDef *> &stores);
   void process_store(const dr::RTStoreDef &store);
+
+  std::ostream &write_indent(void);
+  std::ostream &write_field(const dr::RTFieldDef &field, const mp::Value &value);
 
 public:
   DocProcessor(const FauxDoc &doc, std::ostream &out, unsigned int doc_num) :
@@ -139,55 +73,50 @@ private:
   DISALLOW_COPY_AND_ASSIGN(DocProcessor);
 };
 
+const char *DocProcessor::NORM = "\033[0m";
+const char *DocProcessor::SEP = "\t\033[1;30m # ";
 
 void
 DocProcessor::process_doc(void) {
   const dr::RTManager &rt = *_doc.rt();
 
-  _out << sp(_indent) << _doc_num << ": {\n";
+  write_indent() << _doc_num << ": {" << SEP << "Document" << NORM << "\n";
   ++_indent;
 
   const dr::RTSchema *schema = rt.doc;
   assert(schema != nullptr);
-  _out << sp(_indent) << "is_lazy: " << wv(schema->is_lazy()) << "\n";
-  process_fields(schema->fields);
+  write_indent() << "is_lazy: " << schema->is_lazy() << "\n";
+  // TODO document fields? where are they?
+  //process_fields(schema->fields);
   process_stores(schema->stores);
   --_indent;
-  _out << sp(_indent) << "}\n";
+  write_indent() << "}\n";
 }
 
 void
 DocProcessor::process_fields(const std::vector<dr::RTFieldDef *> &fields) {
-  _out << sp(_indent) << "fields: {\n";
-  ++_indent;
   for (const dr::RTFieldDef *field : fields) {
-    _out << sp(_indent) << field->serial << ": " << wv(field->is_lazy()) << "\n";
+    (void)field;
   }
-  --_indent;
-  _out << sp(_indent) << "},\n";
 }
 
 void
 DocProcessor::process_stores(const std::vector<dr::RTStoreDef *> &stores) {
-  _out << sp(_indent) << "stores: {\n";
-  ++_indent;
   for (const dr::RTStoreDef *store : stores) {
-    _out << sp(_indent) << store->serial << ": {    " << store->klass->serial << "\n";
+    write_indent() << store->serial << ": {";
+    _out << SEP << store->klass->serial;
+    _out << " (" << store->lazy_nbytes << "B)"<< NORM << "\n";
     ++_indent;
     process_store(*store);
     --_indent;
-    _out << sp(_indent) << "},\n";
+    write_indent() << "},\n";
   }
-  --_indent;
-  _out << sp(_indent) << "},\n";
 }
 
 void
 DocProcessor::process_store(const dr::RTStoreDef &store) {
   assert(store.is_lazy());
   const dr::RTSchema &klass = *store.klass;
-  _out << sp(_indent) << "klass.serial: " << wv(klass.serial) << "\n";
-  _out << sp(_indent) << "klass.fields.size(): " << wv(klass.fields.size()) << "\n";
 
   schwa::Pool pool(4096);
   io::ArrayReader reader(store.lazy_data, store.lazy_nbytes);
@@ -200,23 +129,92 @@ DocProcessor::process_store(const dr::RTStoreDef &store) {
     assert(is_map(array[i].type));
     const mp::Map &map = *array[i].via._map;
 
-    _out << sp(_indent) << i << ": {    " << map.size() << "\n";
+    write_indent() << i << ": {\n";
     ++_indent;
 
     // <instance> ::= { <field_id> : <obj_val> }
     for (uint32_t j = 0; j != map.size(); ++j) {
       assert(is_uint(map.get(j).key.type));
       const mp::Map::Pair &pair = map.get(j);
-      const uint64_t key = pair.key.via._uint64;
+      const dr::RTFieldDef &field = *klass.fields[pair.key.via._uint64];
 
-      _out << sp(_indent) << klass.fields[key]->serial << ": " << wv(pair.value);
-      _out << "    (todo)";
-      _out << "\n";
+      write_indent() << field.serial << ": ";
+      write_field(field, pair.value) << "\n";
     }
 
     --_indent;
-    _out << sp(_indent) << "},\n";
+    write_indent() << "},\n";
   }
+}
+
+std::ostream &
+DocProcessor::write_indent(void) {
+  for (unsigned int i = 0; i != _indent; ++i)
+    _out << "  ";
+  return _out;
+}
+
+std::ostream &
+DocProcessor::write_field(const dr::RTFieldDef &field, const mp::Value &value) {
+  // keep track of the current flags so we can reset them at the end
+  const auto flags = _out.flags();
+
+  if (field.is_slice) {
+    assert(is_array(value.type));
+    const auto &array = *value.via._array;
+    assert(array.size() == 2);
+    assert(is_uint(array[0].type));
+    assert(is_uint(array[1].type));
+    const uint64_t a = array[0].via._uint64;
+    const uint64_t b = array[1].via._uint64;
+    _out << "[0x" << std::hex << a << ", 0x" << std::hex << (a + b) << "],";
+    _out << SEP;
+    if (field.points_into == nullptr)
+      _out << "byte slice";
+    else
+      _out << "slice into " << field.points_into->serial;
+    _out << " (" << std::dec << a << ", " << std::dec << (a + b) << ")" << NORM;
+  }
+  else {
+    if (is_bool(value.type)) {
+      _out << std::boolalpha << value.via._bool << ",";
+    }
+    else if (is_double(value.type)) {
+      _out << value.via._double << ",";
+      _out << SEP << "double" << NORM;
+    }
+    else if (is_float(value.type)) {
+      _out << value.via._float << ",";
+      _out << SEP << "float" << NORM;
+    }
+    else if (is_int(value.type)) {
+      _out << "0x" << std::hex << value.via._int64 << std::dec << ",";
+      _out << SEP << "int (" << value.via._int64 << ")" << NORM;
+    }
+    else if (is_nil(value.type)) {
+      _out << "<nil>";
+    }
+    else if (is_uint(value.type)) {
+      _out << "0x" << std::hex << value.via._uint64 << std::dec << ",";
+      _out << SEP << "uint (" << value.via._uint64 << ")" << NORM;
+    }
+    else if (is_array(value.type)) {
+    }
+    else if (is_map(value.type)) {
+
+    }
+    else if (is_raw(value.type)) {
+      const mp::Raw &raw = *value.via._raw;
+      (_out << "'").write(raw.value(), raw.size()) << "',";
+      _out << SEP << "raw (" << std::dec << raw.size() << "B)" << NORM;
+    }
+    else {
+      _out << "<UNKNOWN TYPE>";
+    }
+  }
+
+  _out.flags(flags);
+  return _out;
 }
 
 }  // namespace
