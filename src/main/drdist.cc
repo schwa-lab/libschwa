@@ -21,12 +21,6 @@ static std::mutex input_lock;
 static std::mutex output_lock;
 
 
-static inline bool
-is_array(const mp::WireType &t) {
-  return t == mp::WireType::ARRAY_FIXED || t == mp::WireType::ARRAY_16 || t == mp::WireType::ARRAY_32;
-}
-
-
 static bool
 read_doc(std::istream &in, std::ostream &out) {
   static char *buf = nullptr;

@@ -25,25 +25,6 @@ namespace mp = schwa::msgpack;
 namespace schwa {
 namespace dr {
 
-namespace {
-
-static inline bool
-is_uint(const mp::WireType t) {
-  switch (t) {
-  case mp::WireType::FIXNUM_POSITIVE:
-  case mp::WireType::UINT_8:
-  case mp::WireType::UINT_16:
-  case mp::WireType::UINT_32:
-  case mp::WireType::UINT_64:
-    return true;
-  default:
-    return false;
-  }
-}
-
-}  // namespace
-
-
 Reader::Reader(std::istream &in, BaseDocSchema &dschema) :
     _in(in),
     _dschema(dschema),
