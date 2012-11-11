@@ -120,5 +120,14 @@ Doc::~Doc(void) {
   delete _rt;
 }
 
+
+void
+Doc::set_rt(RTManager *rt) {
+  if (_rt != nullptr)
+    delete _rt;
+  _rt = rt;
+}
+
+
 }  // namespace dr
 }  // namespace schwa

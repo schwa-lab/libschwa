@@ -117,7 +117,7 @@ namespace schwa {
 
       RTManager *rt(void) { return _rt; }
       const RTManager *rt(void) const { return _rt; }
-      void set_rt(RTManager *rt) { _rt = rt; }
+      void set_rt(RTManager *rt);
 
       template <typename T> class Schema;
 

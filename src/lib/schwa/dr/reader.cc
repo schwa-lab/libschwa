@@ -52,7 +52,6 @@ Reader::read(Doc &doc) {
   }
 
   // construct the lazy runtime manager for the document
-  assert(doc.rt() == nullptr);
   doc.set_rt(new RTManager());
   assert(doc.rt() != nullptr);
   RTManager &rt = *doc.rt();
