@@ -88,7 +88,6 @@ const char *DocProcessor::REPR_UNKNOWN = "<UNKNOWN VALUE>";
 void
 DocProcessor::process_doc(void) {
   const dr::RTManager &rt = *_doc.rt();
-  _out << rt << std::endl;
 
   write_indent() << _doc_num << ": {" << SEP << "Document" << port::OFF << "\n";
   ++_indent;
