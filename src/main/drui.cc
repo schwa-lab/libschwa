@@ -98,8 +98,9 @@ DocProcessor::process_doc(void) {
   //process_fields(schema->fields);
   for (const auto *store : schema->stores)
     process_store(*store);
+
   --_indent;
-  write_indent() << "}\n";
+  write_indent() << "},\n";
 }
 
 void
@@ -133,7 +134,7 @@ DocProcessor::process_store(const dr::RTStoreDef &store) {
     assert(is_map(array[i].type));
     const mp::Map &map = *array[i].via._map;
 
-    write_indent() << i << ": {\n";
+    write_indent() << "0x" << std::hex << i << std::dec << ": {\n";
     ++_indent;
 
     // <instance> ::= { <field_id> : <obj_val> }
