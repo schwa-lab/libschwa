@@ -44,6 +44,7 @@ namespace schwa {
         if (sentence_length >= MAX_SENTENCE) {
           // Split on long sentences
           end_sentence(dest);
+	  ensure_sentence(dest);
         }
       }
 
