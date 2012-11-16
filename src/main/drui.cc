@@ -24,10 +24,12 @@ namespace {
 class Config : public cf::OpMain {
 public:
   cf::IStreamOp input;
+  cf::Op<int> limit;
 
   Config(void) :
       cf::OpMain("drui", "Schwa-Lab Docrep UI"),
-      input(*this, "input", "input filename")
+      input(*this, "input", "input filename"),
+      limit(*this, "limit", "upper bound on the number of documents to process from the input stream", -1)
     { }
   virtual ~Config(void) { }
 };
@@ -89,7 +91,7 @@ void
 DocProcessor::process_doc(void) {
   const dr::RTManager &rt = *_doc.rt();
 
-  write_indent() << _doc_num << ": {" << SEP << "Document" << port::OFF << "\n";
+  write_indent() << port::BOLD << _doc_num << ":" << port::OFF << " {" << SEP << "Document" << port::OFF << "\n";
   ++_indent;
 
   const dr::RTSchema *schema = rt.doc;
@@ -115,6 +117,13 @@ DocProcessor::process_store(const dr::RTStoreDef &store) {
   assert(store.is_lazy());
   const dr::RTSchema &klass = *store.klass;
 
+  // iterate through each field name to find the largest name so we can align
+  // all of the values when printing out.
+  unsigned int max_length = 0;
+  for (const auto& field : klass.fields)
+    if (field->serial.size() > max_length)
+      max_length = field->serial.size();
+
   // decode the lazy store values into dynamic msgpack objects
   schwa::Pool pool(4096);
   io::ArrayReader reader(store.lazy_data, store.lazy_nbytes);
@@ -125,7 +134,7 @@ DocProcessor::process_store(const dr::RTStoreDef &store) {
   const mp::Array &array = *value->via._array;
 
   // write header
-  write_indent() << store.serial << ": {";
+  write_indent() << port::BOLD << store.serial << ":" << port::OFF << " {";
   _out << SEP << klass.serial;
   _out << " (" << array.size() << ")"<< port::OFF << "\n";
   ++_indent;
@@ -134,8 +143,9 @@ DocProcessor::process_store(const dr::RTStoreDef &store) {
     assert(is_map(array[i].type));
     const mp::Map &map = *array[i].via._map;
 
-    write_indent() << "0x" << std::hex << i << std::dec << ": {\n";
+    write_indent() << port::BOLD << "0x" << std::hex << i << std::dec << ":" << port::OFF << " {\n";
     ++_indent;
+
 
     // <instance> ::= { <field_id> : <obj_val> }
     for (uint32_t j = 0; j != map.size(); ++j) {
@@ -143,7 +153,7 @@ DocProcessor::process_store(const dr::RTStoreDef &store) {
       const mp::Map::Pair &pair = map.get(j);
       const dr::RTFieldDef &field = *klass.fields[pair.key.via._uint64];
 
-      write_indent() << field.serial << ": ";
+      write_indent() << port::BOLD << std::setw(max_length) << std::left << field.serial << ": " << port::OFF;
       write_field(store, field, pair.value) << "\n";
     }
 
