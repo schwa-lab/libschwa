@@ -1,69 +1,24 @@
-1: Symbolically link a Makefile
+1: Compile
 
-	ln -s Makefile.linux Makefile
-
-2: Include the schwa home directory as external
-
-	ln -s /n/schwafs/home/schwa/64 ext
-
-3: Compile
-
-	make
-
-4: Build the python APIs
-
-	python2.6 setup.py build
-
-5: Add the python APIs to the PYTHONPATH and LD_LIBRARY_PATH. The following example
-	is from schwapy:env.sh and assumes that there is a bash function called pathprepend.
-
-	# Add the schwa repo.
-	SCHWA_BUILD=$SCHWA_WORKSPACE/schwa/build/lib.linux-x86_64-2.6
-	SCHWA_LIB=$SCHWA_WORKSPACE/schwa/lib
-	if [ -d "$SCHWA_BUILD" ]; then
-			echo "Adding $SCHWA_BUILD to PYTHONPATH" >&2
-			pathprepend $SCHWA_BUILD PYTHONPATH
-	else
-			echo "Not adding $SCHWA_BUILD to PYTHONPATH (missing directory)" >&2
-	fi
-	if [ -d "$SCHWA_LIB" ]; then
-			echo "Adding $SCHWA_LIB to LD_LIBRARY_PATH" >&2
-			pathprepend $SCHWA_LIB LD_LIBRARY_PATH
-	else
-			echo "Not adding $SCHWA_LIB to LD_LIBRARY_PATH (missing directory)" >&2
-	fi
-
-6: Test in interpreter
-
-	wradford@ch6:~$ python
-	Python 2.6.5 (r265:79063, Apr 16 2010, 13:57:41)
-	[GCC 4.4.3] on linux2
-	Type "help", "copyright", "credits" or "license" for more information.
-	>>> from schwa import dr
-	>>> from schwa import tokenizer
+  $ make depends
+  $ make
 
 = Gotchas =
 
 * Running on versions of Mac OS X may mean you don't have clang available in xcode.
-	* Download binary (tested with LLVM 3.1) from http://llvm.org/releases/download.html#3.1
-	* Unpack and add the bin directory to $PATH
-
-* Boost libraries released under homebrew can be built for multithreaded operation.
-	* Symlink /usr/local to ext/
-	* Append "-mt" to library names in Makefile.macos and setup.py
-		boost_iostreams -> boost_iostreams-mt
-		boost_unit_test_framework -> boost_unit_test_framework-mt
+  * Download binary (tested with LLVM 3.1) from http://llvm.org/releases/download.html#3.1
+  * Unpack and add the bin directory to $PATH
 
 = Building, deploying and installing source distributions =
 
 1: Build a virtualenv
-	virtualenv --distribute ve
-	source ve/bin/activate
+  virtualenv --distribute ve
+  source ve/bin/activate
 
 2: Build the source distribution (or just run publish.sh)
-	./ve/bin/python setup.py clean sdist
-	cp dist/*gz /n/ch2/var/www/sites/downloads/packages/pypi/schwa
-	./ve/bin/python setup.py clean --all
+  ./ve/bin/python setup.py clean sdist
+  cp dist/*gz /n/ch2/var/www/sites/downloads/packages/pypi/schwa
+  ./ve/bin/python setup.py clean --all
 
 3: This can be installed in another virtualenv directly or as a "requires" item by pip from the schwa index.
-	./ve/bin/pip install schwa --extra-index-url http://downloads.schwa.org/packages/pypi --upgrade
+  ./ve/bin/pip install schwa --extra-index-url http://downloads.schwa.org/packages/pypi --upgrade
