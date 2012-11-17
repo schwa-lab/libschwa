@@ -1,18 +1,23 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_DR_WIRE_H_
+#define SCHWA_DR_WIRE_H_
+
+#include <string>
+#include <type_traits>
+
+#include <schwa/_base.h>
+#include <schwa/msgpack.h>
 
 namespace schwa {
   namespace dr {
 
-    template <typename T>
-    class Pointer;
-    template <typename T>
-    class Pointers;
-    template <typename T>
-    class Slice;
-    template <typename T>
-    class Store;
-    template <typename T>
-    struct FieldTraits;
+    template <typename T> struct FieldTraits;
+    class IStore;
+    template <typename T> class Pointer;
+    template <typename T> class Pointers;
+    template <typename T> class Slice;
+    template <typename T> class Store;
+
 
     namespace wire {
       namespace mp = schwa::msgpack;
@@ -188,6 +193,9 @@ namespace schwa {
 
       template <typename T>
       struct WireTraits<Slice<T>> : WireTraitsSliceTraits<T, FieldTraits<Slice<T>>::is_dr_ptr_type> { };
+
     }
   }
 }
+
+#endif  // SCHWA_DR_WIRE_H_

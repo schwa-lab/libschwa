@@ -1,5 +1,13 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <boost/type_traits.hpp>
+#ifndef SCHWA_DR_FIELDS_H_
+#define SCHWA_DR_FIELDS_H_
+
+#include <type_traits>
+#include <vector>
+
+#include <schwa/_base.h>
+#include <schwa/containers/block_vector.h>
+#include <schwa/dr/istore.h>
 
 namespace schwa {
   namespace dr {
@@ -49,7 +57,7 @@ namespace schwa {
     template <typename T>
     class Store : public IStore {
     public:
-      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       typedef std::vector<T> container_type;
       typedef typename container_type::const_reference const_reference;
       typedef typename container_type::const_iterator const_iterator;
@@ -142,7 +150,7 @@ namespace schwa {
     template <typename T>
     class BlockStore : public IStore {
     public:
-      static_assert(boost::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       typedef containers::BlockVector<T> container_type;
       typedef typename container_type::Block block;
       typedef typename container_type::const_pointer const_pointer;
@@ -222,7 +230,7 @@ namespace schwa {
     template <typename T>
     struct FieldTraits {
       static constexpr bool is_dr_ptr_type = false;
-      static constexpr bool is_pod_ptr = boost::is_pointer<T>::value;
+      static constexpr bool is_pod_ptr = std::is_pointer<T>::value;
       static constexpr bool is_slice = false;
       static constexpr bool is_collection = false;
     };
@@ -253,15 +261,17 @@ namespace schwa {
     template <typename T>
     struct SliceFieldTraits<T, true> {
       static constexpr bool is_dr_ptr_type = true;
-      typedef typename boost::remove_pointer<T>::type value_type;
+      typedef typename std::remove_pointer<T>::type value_type;
       static constexpr bool is_collection = false;
     };
 
     template <typename T>
-    struct FieldTraits<Slice<T>> : public SliceFieldTraits<T, boost::is_pointer<T>::value> {
+    struct FieldTraits<Slice<T>> : public SliceFieldTraits<T, std::is_pointer<T>::value> {
       static constexpr bool is_slice = true;
       static constexpr bool is_collection = false;
     };
 
   }
 }
+
+#endif  // SCHWA_DR_FIELDS_H_

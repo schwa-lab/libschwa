@@ -1,4 +1,11 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_TOKENIZER_TOKENIZER_H_
+#define SCHWA_TOKENIZER_TOKENIZER_H_
+
+#include <string>
+
+#include <schwa/_base.h>
+#include <schwa/tokenizer/common.h>
 
 namespace schwa {
   namespace io {
@@ -70,3 +77,7 @@ namespace schwa {
 
   }
 }
+
+#include <schwa/tokenizer/tokenizer_state.h>
+
+#endif  // SCHWA_TOKENIZER_TOKENIZER_H_

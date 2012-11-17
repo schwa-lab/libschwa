@@ -1,16 +1,16 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
 #include "test_utils.h"
 
-#include <boost/test/unit_test.hpp>
+#include <schwa/dr.h>
 
 namespace dr = schwa::dr;
 
-// ============================================================================
-// ============================================================================
-BOOST_AUTO_TEST_SUITE(schwa__dr__self_pointer)
 
-BOOST_AUTO_TEST_CASE(self_pointer0) {
+namespace schwatest {
+
+SUITE(schwa__dr__self_pointer) {
+
+TEST(self_pointer0) {
   class X : public dr::Ann {
   public:
     dr::Pointer<X> parent;
@@ -105,24 +105,26 @@ BOOST_AUTO_TEST_CASE(self_pointer0) {
   correct << '\x81' << '\x01' << '\x00';
   correct << '\x82' << '\x00' << '\x00' << '\x01' << '\x00';
 
-  BOOST_CHECK( compare_bytes(stream.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), stream.str());
 
   Doc doc1;
   dr::Reader reader(stream, schema);
   reader >> doc1;
 
-  BOOST_CHECK_EQUAL(doc1.xs1.size(), 3);
-  BOOST_CHECK_EQUAL(doc1.xs2.size(), 2);
-  BOOST_CHECK_EQUAL(doc1.xs1[0].parent.ptr, (void *)nullptr);
-  BOOST_CHECK_EQUAL(doc1.xs1[0].other.ptr,  &doc1.xs2[0]);
-  BOOST_CHECK_EQUAL(doc1.xs1[1].parent.ptr, &doc1.xs1[0]);
-  BOOST_CHECK_EQUAL(doc1.xs1[1].other.ptr,  &doc1.xs2[0]);
-  BOOST_CHECK_EQUAL(doc1.xs1[2].parent.ptr, &doc1.xs1[1]);
-  BOOST_CHECK_EQUAL(doc1.xs1[2].other.ptr,  &doc1.xs2[0]);
-  BOOST_CHECK_EQUAL(doc1.xs2[0].parent.ptr, (void *)nullptr);
-  BOOST_CHECK_EQUAL(doc1.xs2[0].other.ptr,  &doc1.xs2[0]);
-  BOOST_CHECK_EQUAL(doc1.xs2[1].parent.ptr, &doc1.xs2[0]);
-  BOOST_CHECK_EQUAL(doc1.xs2[1].other.ptr,  &doc1.xs2[0]);
+  CHECK_EQUAL(3, doc1.xs1.size());
+  CHECK_EQUAL(2, doc1.xs2.size());
+  CHECK_EQUAL((void *)nullptr, doc1.xs1[0].parent.ptr);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[0].other.ptr);
+  CHECK_EQUAL(&doc1.xs1[0], doc1.xs1[1].parent.ptr);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[1].other.ptr);
+  CHECK_EQUAL(&doc1.xs1[1], doc1.xs1[2].parent.ptr);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[2].other.ptr);
+  CHECK_EQUAL((void *)nullptr, doc1.xs2[0].parent.ptr);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs2[0].other.ptr);
+  CHECK_EQUAL(&doc1.xs2[0], doc1.xs2[1].parent.ptr);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs2[1].other.ptr);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
+
+}  // namespace schwatest

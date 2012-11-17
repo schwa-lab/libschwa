@@ -1,4 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_DR_WRITER_H_
+#define SCHWA_DR_WRITER_H_
+
+#include <iosfwd>
+
+#include <schwa/_base.h>
 
 namespace schwa {
   namespace dr {
@@ -26,7 +32,12 @@ namespace schwa {
         write(doc);
         return *this;
       }
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(Writer);
     };
 
   }
 }
+
+#endif  // SCHWA_DR_WRITER_H_

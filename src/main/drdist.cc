@@ -1,11 +1,16 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <cstring>
+#include <condition_variable>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <vector>
+
 #include <schwa/config.h>
 #include <schwa/msgpack.h>
 
 #include <zmq.hpp>
-
-#include <condition_variable>
-#include <thread>
 
 namespace cf = schwa::config;
 namespace mp = schwa::msgpack;
@@ -14,18 +19,6 @@ namespace mp = schwa::msgpack;
 static bool NOISY;
 static std::mutex input_lock;
 static std::mutex output_lock;
-
-
-static inline bool
-is_array(const mp::WireType &t) {
-  return t == mp::WireType::ARRAY_FIXED || t == mp::WireType::ARRAY_16 || t == mp::WireType::ARRAY_32;
-}
-
-
-static inline bool
-is_small_int(const mp::WireType &t) {
-  return t == mp::WireType::FIXNUM_POSITIVE;
-}
 
 
 static bool
@@ -41,16 +34,16 @@ read_doc(std::istream &in, std::ostream &out) {
   if (!mp::read_lazy(in, out, type))
     return false;
 
-  if (is_small_int(type)) {
+  if (mp::is_int(type)) {
     // <klasses> header
     if (!mp::read_lazy(in, out, type))
       return false;
   }
-  if (!is_array(type))
+  if (!mp::is_array(type))
     return false;
 
   // <stores> header
-  if (!is_array(mp::header_type(in.peek())))
+  if (!mp::is_array(mp::header_type(in.peek())))
     return false;
   int nstores = mp::read_array_size(in);
   mp::write_array_size(out, nstores);
@@ -120,22 +113,17 @@ run_thread(zmq::context_t &context, const std::string &bind, std::istream &in, s
 
 
 int
-main(int argc, char *argv[]) {
+main(int argc, char **argv) {
+  // construct an option parser
   cf::OpMain cfg("drdist", "A docrep parallelisation source and sink");
   cf::IStreamOp input(cfg, "input", "The input file");
   cf::OStreamOp output(cfg, "output", "The output file");
   cf::Op<std::string> server(cfg, "server", "The network address of the server", "tcp://localhost:7300");
   cf::Op<unsigned long> nthreads(cfg, "nthreads", "The number of threads to fire up", 8);
   cf::Op<bool> quiet(cfg, "quiet", "Quiet mode", false);
-  try {
-    if (!cfg.process(argc - 1, argv + 1))
-      return 1;
-  }
-  catch (cf::ConfigException &e) {
-    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
-    cfg.help(std::cerr);
-    return 1;
-  }
+
+  // parse argv
+  cfg.main(argc, argv);
 
   // extract values out of config options
   std::istream &in = input.file();

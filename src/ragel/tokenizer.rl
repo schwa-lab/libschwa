@@ -8,7 +8,6 @@
   action FAIRFAX { true }
 
   include "actions.rl";
-  include "rules/unicode.rl";
   include "rules/quotes.rl";
   include "rules/punctuation.rl";
   include "rules/contractions.rl";
@@ -19,21 +18,26 @@
   include "rules/web.rl";
   include "rules/html.rl";
   include "rules/emoticons.rl";
+  include "rules/unicode.rl";
   include "rules/default.rl";
   include "rules/main.rl";
 }%%
 
-#include <schwa/base.h>
+#include <cctype>
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+
+#include <schwa/_base.h>
+#include <schwa/io/istream_source.h>
+#include <schwa/io/mmapped_source.h>
 #include <schwa/io/source.h>
-#include <schwa/io/sources/istream.h>
 #include <schwa/tokenizer.h>
 
-#include <boost/iostreams/device/mapped_file.hpp>
-#include <boost/scoped_array.hpp>
-
-using namespace boost;
-
-namespace schwa { namespace tokenizer {
+namespace schwa {
+namespace tokenizer {
 
 %% write data nofinal;
 void
@@ -72,8 +76,8 @@ Tokenizer::_split(Type type1, Type type2, Stream &dest, State &state, const char
   if (state.seen_terminator) {
     // need to make this work better for UTF8
     if (type1 == WORD && (isupper(*state.ts) || isdigit(*state.ts))) {
-      state.flush_sentence(dest); 
-    } 
+      state.flush_sentence(dest);
+    }
     else {
       state.seen_terminator = false;
     }
@@ -204,10 +208,11 @@ Tokenizer::_dash_or_item(Stream &dest, State &state) const {
 
 void
 Tokenizer::_number_or_item(Stream &dest, State &state) const {
-  if (state.in_sentence){
+  if (state.in_sentence) {
     _split(NUMBER, PUNCTUATION, dest, state);
     state.seen_terminator = true;
-  }else
+  }
+  else
     state.begin_item(dest);
 }
 
@@ -256,7 +261,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
 
   %% write init;
 
-  scoped_array<char> scoped_buffer(new char[buffer_size]);
+  std::unique_ptr<char[]> scoped_buffer(new char[buffer_size]);
   char *buffer = scoped_buffer.get();
   if (!buffer)
     return _die(msg << "could not allocate a buffer of size " << buffer_size);
@@ -288,7 +293,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
       have = 0;
     else {
       have = pe - s.ts;
-      memmove(buffer, s.ts, have);
+      std::memcpy(buffer, s.ts, have);
       s.te = buffer + (s.te - s.ts);
       s.ts = buffer;
     }
@@ -303,7 +308,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, size_t buffer_size, int error
 
 bool
 Tokenizer::tokenize(Stream &dest, const char *data, int errors) const {
-  return tokenize(dest, data, strlen(data), errors);
+  return tokenize(dest, data, std::strlen(data), errors);
 }
 
 bool
@@ -319,13 +324,9 @@ Tokenizer::tokenize_stream(Stream &dest, std::istream &in, size_t buffer_size, i
 
 bool
 Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, int errors) const {
-  std::ostringstream msg;
-
-  iostreams::mapped_file file(filename);
-  if (!file)
-    return _die(msg << "could not open file " << filename << " for reading with mmap");
-
-  return tokenize(dest, file.data(), file.size(), errors);
+  io::MMappedSource src(filename.c_str());
+  return tokenize(dest, src.data(), src.size(), errors);
 }
 
-} }
+}  // namespace tokenizer
+}  // namespace schwa

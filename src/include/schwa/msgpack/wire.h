@@ -1,25 +1,18 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_MSGPACK_WIRE_H_
+#define SCHWA_MSGPACK_WIRE_H_
+
+#include <string>
+
+#include <schwa/_base.h>
+#include <schwa/pool.h>
+#include <schwa/msgpack/dynamic.h>
+#include <schwa/msgpack/enums.h>
 
 namespace schwa {
   namespace msgpack {
 
-    enum class WireType : uint8_t {
-      FIXNUM_POSITIVE, FIXNUM_NEGATIVE,
-      MAP_FIXED, MAP_16, MAP_32,
-      ARRAY_FIXED, ARRAY_16, ARRAY_32,
-      RAW_FIXED, RAW_16, RAW_32,
-      NIL,
-      TRUE, FALSE,
-      FLOAT, DOUBLE,
-      UINT_8, UINT_16, UINT_32, UINT_64,
-      INT_8, INT_16, INT_32, INT_64,
-      RESERVED
-    };
-
-    inline std::ostream &operator <<(std::ostream &out, const WireType &t) { return out << static_cast<uint8_t>(t); }
-
     extern const WireType TABLE[256];
-
 
     namespace header {
       static const unsigned char MAP_FIXED   = 0x80;
@@ -89,10 +82,16 @@ namespace schwa {
     template <typename IN> inline uint64_t read_uint64(IN &in);
 
     template <typename IN, typename T>
-    inline void read(IN &in, T &val);
+    inline void
+    read(IN &in, T &val);
 
     template <typename IN, typename OUT>
-    bool read_lazy(IN &in, OUT &out, WireType &type);
+    bool
+    read_lazy(IN &in, OUT &out, WireType &type);
+
+    template <typename IN>
+    Value *
+    read_dynamic(IN &in, Pool &pool);
 
 
     // ========================================================================
@@ -134,3 +133,5 @@ namespace schwa {
 }
 
 #include <schwa/msgpack/wire_impl.h>
+
+#endif  // SCHWA_MSGPACK_WIRE_H_

@@ -3,6 +3,6 @@
 %%{
   machine tokenizer;
 
-	"dont"
+  "dont"
 
 }%%

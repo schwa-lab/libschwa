@@ -1,8 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/msgpack.h>
+#include <schwa/msgpack/wire.h>
 
 
-namespace schwa { namespace msgpack {
+namespace schwa {
+namespace msgpack {
 
 static constexpr WireType FN = WireType::FIXNUM_NEGATIVE;
 static constexpr WireType FP = WireType::FIXNUM_POSITIVE;
@@ -29,4 +30,5 @@ const WireType TABLE[256] = {
 };
 
 
-} }
+}  // namespace msgpack
+}  // namespace schwa

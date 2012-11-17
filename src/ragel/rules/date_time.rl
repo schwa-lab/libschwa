@@ -11,10 +11,10 @@
 
   decade = digit "0";
 
-	century = [1-9] | "1" digit | "2" [01];
+  century = [1-9] | "1" digit | "2" [01];
   century_modern = "1" [7-9] | "2" [01];
 
-	year = century digit{2};
+  year = century digit{2};
   year_modern = century_modern digit{2};
 
   abbrev_year = single_quote digit{2};

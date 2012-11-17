@@ -1,11 +1,23 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_DR_RUNTIME_H_
+#define SCHWA_DR_RUNTIME_H_
+
+#include <string>
+#include <vector>
+
+#include <schwa/_base.h>
 
 namespace schwa {
   namespace dr {
 
+    class BaseDocSchema;
+    class BaseFieldDef;
+    class BaseSchema;
+    class BaseStoreDef;
     class RTSchema;
     class RTFieldDef;
     class RTStoreDef;
+
 
     class RTFieldDef {
     public:
@@ -24,12 +36,12 @@ namespace schwa {
       inline bool is_lazy(void) const { return def == nullptr; }
 
       std::ostream &dump(std::ostream &out) const;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(RTFieldDef);
     };
 
-    inline std::ostream &
-    operator <<(std::ostream &out, const RTFieldDef &field) {
-      return field.dump(out);
-    }
+    std::ostream &operator <<(std::ostream &out, const RTFieldDef &field);
 
 
     class RTStoreDef {
@@ -50,12 +62,12 @@ namespace schwa {
       inline bool is_lazy(void) const { return def == nullptr; }
 
       std::ostream &dump(std::ostream &out) const;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(RTStoreDef);
     };
 
-    inline std::ostream &
-    operator <<(std::ostream &out, const RTStoreDef &store) {
-      return store.dump(out);
-    }
+    std::ostream &operator <<(std::ostream &out, const RTStoreDef &store);
 
 
     class RTSchema {
@@ -66,19 +78,19 @@ namespace schwa {
       const uint32_t klass_id;
       const std::string serial;
 
-      explicit RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
+      RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
       RTSchema(const RTSchema &&o);
       ~RTSchema(void);
 
       inline bool is_lazy(void) const { return def == nullptr; }
 
       std::ostream &dump(std::ostream &out) const;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(RTSchema);
     };
 
-    inline std::ostream &
-    operator <<(std::ostream &out, const RTSchema &schema) {
-      return schema.dump(out);
-    }
+    std::ostream &operator <<(std::ostream &out, const RTSchema &schema);
 
 
     class RTManager {
@@ -91,16 +103,21 @@ namespace schwa {
       ~RTManager(void);
 
       std::ostream &dump(std::ostream &out) const;
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(RTManager);
     };
 
-    inline std::ostream &
-    operator <<(std::ostream &out, const RTManager &rt) {
-      return rt.dump(out);
-    }
+    std::ostream &operator <<(std::ostream &out, const RTManager &rt);
 
 
+    // ============================================================================
+    // Functions
+    // ============================================================================
     RTManager *build_rt(const BaseDocSchema &dschema);
     RTManager *merge_rt(RTManager *const rt, const BaseDocSchema &dschema);
 
   }
 }
+
+#endif  // SCHWA_DR_RUNTIME_H_

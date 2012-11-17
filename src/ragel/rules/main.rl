@@ -77,6 +77,7 @@
 
     cont_misc | acron | title => word;
     symbols => punct;
+    unicode_symbols => punct;
     end_punct => end;
 #    emoticon => punct;
     date_abbrev | state | addr => word;

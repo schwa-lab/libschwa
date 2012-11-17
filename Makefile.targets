@@ -1,36 +1,87 @@
 SHELL = /bin/bash
 
-BINARIES = bin/drdist bin/tokenizer
-SHARED_LIBS = lib/libschwa.$(SHARED_LIB_SUFFIX)
+BINARIES = \
+		bin/drdist \
+		bin/drui \
+		bin/tokenizer
+SHARED_LIBS = \
+		libs/libschwa.a \
+		libs/libschwa.$(SHARED_LIB_SUFFIX)
 
-BASE_OBJECTS = src/lib/schwa/exception.o src/lib/schwa/version.o
-CONFIG_OBJECTS = src/lib/schwa/config/base.o src/lib/schwa/config/group.o src/lib/schwa/config/op.o
-DR_OBJECTS = src/lib/schwa/dr/config.o src/lib/schwa/dr/field_defs.o src/lib/schwa/dr/reader.o src/lib/schwa/dr/runtime.o src/lib/schwa/dr/schema.o src/lib/schwa/dr/writer.o
-IO_OBJECTS = src/lib/schwa/io/buffer.o
-MSGPACK_OBJECTS = src/lib/schwa/msgpack/exception.o src/lib/schwa/msgpack/wire.o
-TOKENIZER_OBJECTS = src/lib/schwa/tokenizer/tokenizer.o src/lib/schwa/tokenizer/streams/docrep.o src/lib/schwa/tokenizer/streams/debug_text.o src/lib/schwa/tokenizer/streams/text.o
+BASE_OBJECTS = \
+		src/lib/schwa/exception.o \
+		src/lib/schwa/version.o
+CONFIG_OBJECTS = \
+		src/lib/schwa/config/base.o \
+		src/lib/schwa/config/exception.o \
+		src/lib/schwa/config/group.o \
+		src/lib/schwa/config/main.o \
+		src/lib/schwa/config/op.o
+DR_OBJECTS = \
+		src/lib/schwa/dr/config.o \
+		src/lib/schwa/dr/field_defs.o \
+		src/lib/schwa/dr/reader.o \
+		src/lib/schwa/dr/runtime.o \
+		src/lib/schwa/dr/schema.o \
+		src/lib/schwa/dr/type_info.o \
+		src/lib/schwa/dr/writer.o
+IO_OBJECTS = \
+		src/lib/schwa/io/array_reader.o \
+		src/lib/schwa/io/file_source.o \
+		src/lib/schwa/io/istream_source.o \
+		src/lib/schwa/io/mmapped_source.o \
+		src/lib/schwa/io/write_buffer.o
+MSGPACK_OBJECTS = \
+		src/lib/schwa/msgpack/dynamic.o \
+		src/lib/schwa/msgpack/enums.o \
+		src/lib/schwa/msgpack/exception.o \
+		src/lib/schwa/msgpack/wire.o
+TOKENIZER_OBJECTS = \
+		src/lib/schwa/tokenizer/debug_text_stream.o \
+		src/lib/schwa/tokenizer/docrep_stream.o \
+		src/lib/schwa/tokenizer/text_stream.o \
+		src/lib/schwa/tokenizer/tokenizer.o
 
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
-UNIT_TEST_OBJECTS = src/tests/unit_tests/main.o src/tests/unit_tests/test_utils.o src/tests/unit_tests/schwa/containers/block_vector.o src/tests/unit_tests/schwa/dr/lazy.o src/tests/unit_tests/schwa/dr/pointers.o src/tests/unit_tests/schwa/dr/reader.o src/tests/unit_tests/schwa/dr/self_pointer.o src/tests/unit_tests/schwa/dr/slices.o src/tests/unit_tests/schwa/dr/writer.o src/tests/unit_tests/schwa/io/buffer.o src/tests/unit_tests/schwa/msgpack/wire.o
-UNIT_TEST_BINARY = bin/_unit_tests
+UNIT_TEST_OBJECTS = \
+		src/tests/unit_tests/main.o \
+		src/tests/unit_tests/test_utils.o \
+		src/tests/unit_tests/schwa/pool.o \
+		src/tests/unit_tests/schwa/containers/block_vector.o \
+		src/tests/unit_tests/schwa/dr/lazy.o \
+		src/tests/unit_tests/schwa/dr/pointers.o \
+		src/tests/unit_tests/schwa/dr/reader.o \
+		src/tests/unit_tests/schwa/dr/self_pointer.o \
+		src/tests/unit_tests/schwa/dr/slices.o \
+		src/tests/unit_tests/schwa/dr/writer.o \
+		src/tests/unit_tests/schwa/io/mmapped_source.o \
+		src/tests/unit_tests/schwa/io/write_buffer.o \
+		src/tests/unit_tests/schwa/mpl/if.o \
+		src/tests/unit_tests/schwa/msgpack/wire.o
+UNIT_TEST_BINARY = bin/unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
-GENERATED_SOURCES = src/lib/schwa/tokenizer/tokenizer.cc
+TEST_INCLUDE = -Isrc/tests/unit_tests -isystem third_party/UnitTest++
+TEST_CXXFLAGS = $(CXXFLAGS) $(TEST_INCLUDE)
+TEST_LDFLAGS =
 
 
-.PHONY: all clean depends doxygen install lint release sharedlibs test wc src/lib/schwa/version.cc
+GENERATED_SOURCES = \
+		src/lib/schwa/tokenizer/tokenizer.cc
+
+
+.PHONY: all clean depends doxygen install release sharedlibs test wc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
 clean:
-	-find src -name "*.gch" -exec rm -f {} \;
 	-find src -name "*.o" -exec rm -f {} \;
-	-find lib \( -name "*.$(SHARED_LIB_SUFFIX)" -or -name "*.so" \) -exec rm -f {} \;
+	-rm -f libs/*.{a,dylib,so}
 	-rm -f $(BINARIES) $(TEST_BINARIES)
 
 depends:
-	src/scripts/depends "$(CXX) -std=c++11 -MM $(INCLUDE) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(DEFINES) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
+	src/scripts/make-depends "$(CXX) -MM $(CXXFLAGS) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
 
 doxygen:
 	doxygen docs/Doxyfile
@@ -53,10 +104,6 @@ install:
 		install -p -v $${f} $(DESTDIR)$(prefix)/bin; \
 	done
 
-lint:
-	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/include -name '*.h'`
-	cpplint.py --filter=-readability/streams,-legal/copyright,-whitespace/line_length `find src/lib -name '*.cc'`
-
 release:
 	src/scripts/make-release $(RELEASE_VERSION)
 
@@ -75,16 +122,22 @@ wc:
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
 bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) -lzmq -o $@
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -lzmq -o $@
+
+bin/drui: src/main/drui.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-lib/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
-	$(CXX) $(SHARED_LIB_LDFLAGS) -o $@ $^ $(LIBS)
+libs/libschwa.a: $(OBJECTS)
+	ar rcs $@ $^
+
+libs/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
+	$(CXX) $(SHARED_LIB_LDFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS_LDFLAGS)
 
 # -------------------------------------------------------------------------------
 # generated sources
@@ -104,19 +157,29 @@ src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.r
 	$(RAGEL) -G2 -o $@ $<
 
 
+# -----------------------------------------------------------------------------
+# third_party/UnitTest++_1.4
+# -----------------------------------------------------------------------------
+libs/libUnitTest++.a:
+	cd third_party/UnitTest++; $(MAKE) $(MFLAGS)
+
+libs/libUnitTest++.$(SHARED_LIB_SUFFIX):
+	cd third_party/UnitTest++; $(MAKE) $(MFLAGS)
+
+
 # -------------------------------------------------------------------------------
 # Testing
 # -------------------------------------------------------------------------------
 src/tests/unit_tests/%.o: src/tests/unit_tests/%.cc
 	$(CXX) $(TEST_CXXFLAGS) -c -o $@ $<
 
-$(UNIT_TEST_BINARY): $(UNIT_TEST_OBJECTS) lib/libschwa.$(SHARED_LIB_SUFFIX)
-	$(CXX) $(UNIT_TEST_OBJECTS) $(LDFLAGS) $(TEST_LDFLAGS) -o $@
+$(UNIT_TEST_BINARY): $(UNIT_TEST_OBJECTS) libs/libUnitTest++.a libs/libschwa.a
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(TEST_LDFLAGS) -o $@
 
 tests: $(UNIT_TEST_BINARY)
 
 test: tests
-	LD_LIBRARY_PATH=lib:ext/lib $(UNIT_TEST_BINARY)
+	$(UNIT_TEST_BINARY)
 
 
 .force:

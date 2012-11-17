@@ -1,12 +1,21 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
+#include <schwa/dr/writer.h>
+
+#include <schwa/dr/field_defs.h>
+#include <schwa/dr/istore.h>
+#include <schwa/dr/runtime.h>
+#include <schwa/dr/schema.h>
+#include <schwa/io/write_buffer.h>
+#include <schwa/msgpack/wire.h>
+#include <schwa/utils/enums.h>
 
 namespace mp = schwa::msgpack;
 
 
-namespace schwa { namespace dr {
+namespace schwa {
+namespace dr {
 
-Writer::Writer(std::ostream &out, BaseDocSchema &dschema) : _out(out), _dschema(dschema) { }
+namespace {
 
 static void
 write_lazy(io::WriteBuffer &out, const Lazy &lazy_obj, const uint32_t nfields_new, io::WriteBuffer &buf) {
@@ -49,15 +58,23 @@ write_instance(io::WriteBuffer &out, const Ann &obj, const IStore &current_store
   write_lazy(out, obj, nfields_new, buf);
 }
 
+}  // namespace
+
+
+Writer::Writer(std::ostream &out, BaseDocSchema &dschema) :
+    _out(out),
+    _dschema(dschema)
+  { }
+
 
 void
 Writer::write(const Doc &doc) {
   // get or construct the RTManager for the document
   RTManager *rt;
-  if (doc._rt == nullptr)
+  if (doc.rt() == nullptr)
     rt = build_rt(_dschema);
   else
-    rt = merge_rt(doc._rt, _dschema);
+    rt = merge_rt(const_cast<RTManager *>(doc.rt()), _dschema);
   const RTSchema *const rtdschema = rt->doc;
 
   // <wire_version>
@@ -168,11 +185,12 @@ Writer::write(const Doc &doc) {
   }
 
   // delete the temp RTManager
-  if (doc._rt == nullptr)
+  if (doc.rt() == nullptr)
     delete rt;
 
   // flush since we've finished writing a whole document
   _out.flush();
 }
 
-} }
+}  // namespace dr
+}  // namespace schwa

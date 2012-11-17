@@ -1,7 +1,18 @@
-#include <schwa/base.h>
-
+/* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include "test_utils.h"
 
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
+#include <schwa/port.h>
+
+namespace ut = UnitTest;
+
+
+namespace schwatest {
+
+namespace {
 
 class print_bytes {
 private:
@@ -11,7 +22,12 @@ private:
   const size_t _actual_size;
 
 public:
-  print_bytes(const uint8_t *expected, size_t expected_size, const uint8_t *actual, size_t actual_size) : _expected(expected), _expected_size(expected_size), _actual(actual), _actual_size(actual_size) { }
+  print_bytes(const uint8_t *expected, size_t expected_size, const uint8_t *actual, size_t actual_size) :
+      _expected(expected),
+      _expected_size(expected_size),
+      _actual(actual),
+      _actual_size(actual_size)
+    { }
 
   std::ostream &
   operator ()(std::ostream &out) const {
@@ -101,23 +117,44 @@ operator <<(std::ostream &out, const print_bytes &obj) {
   return obj(out);
 }
 
+}  // namespace
 
-boost::test_tools::predicate_result
-compare_bytes(const std::string &actual, const uint8_t *expected, const size_t expected_size) {
-  if (actual.size() != expected_size) {
-    boost::test_tools::predicate_result res(false);
-    res.message() << "Different sizes [" << expected_size << " != " << actual.size() << "]\n";
-    res.message() << print_bytes(expected, expected_size, reinterpret_cast<const uint8_t *>(actual.c_str()), actual.size());
-    return res;
+
+void
+compare_bytes(const uint8_t *actual, const size_t actual_size, const uint8_t *expected, const size_t expected_size, ut::TestResults &results, const ut::TestDetails &details) {
+  if (actual_size != expected_size) {
+    std::stringstream msg;
+    msg << "Different sizes [" << expected_size << " != " << actual_size << "]\n";
+    msg << print_bytes(expected, expected_size, actual, actual_size);
+    results.OnTestFailure(details, msg.str().c_str());
+    return;
   }
+
   for (size_t i = 0; i != expected_size; ++i) {
-    if (static_cast<uint8_t>(actual[i]) != expected[i]) {
-      boost::test_tools::predicate_result res(false);
-      res.message() << "Byte " << (i + 1) << " differs [" << static_cast<unsigned int>(expected[i]) << " != " << static_cast<unsigned int>(static_cast<uint8_t>(actual[i])) << "]\n";
-      res.message() << print_bytes(expected, expected_size, reinterpret_cast<const uint8_t *>(actual.c_str()), actual.size());
-      return res;
+    if (actual[i] != expected[i]) {
+      std::stringstream msg;
+      msg << "Byte " << (i + 1) << " differs [" << static_cast<unsigned int>(expected[i]) << " != " << static_cast<unsigned int>(actual[i]) << "]\n";
+      msg << print_bytes(expected, expected_size, actual, actual_size);
+      results.OnTestFailure(details, msg.str().c_str());
+      return;
     }
   }
-  return true;
 }
 
+
+void
+compare_bytes(const uint8_t *expected, const size_t expected_size, const std::string &_actual, ut::TestResults &results, const ut::TestDetails &details) {
+  const uint8_t *actual = reinterpret_cast<const uint8_t *>(_actual.c_str());
+  const size_t actual_size = _actual.size();
+  compare_bytes(actual, actual_size, expected, expected_size, results, details);
+}
+
+
+void
+compare_bytes(const std::string &_expected, const std::string &actual, ut::TestResults &results, const ut::TestDetails &details) {
+  const uint8_t *expected = reinterpret_cast<const uint8_t *>(_expected.c_str());
+  const size_t expected_size = _expected.size();
+  compare_bytes(expected, expected_size, actual, results, details);
+}
+
+}  // namespace schwatest

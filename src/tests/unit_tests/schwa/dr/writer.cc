@@ -1,15 +1,16 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
 #include "test_utils.h"
 
-#include <boost/test/unit_test.hpp>
+#include <schwa/dr.h>
 
 namespace dr = schwa::dr;
 namespace mp = schwa::msgpack;
 
 
-// ============================================================================
-// ============================================================================
+namespace schwatest {
+
+namespace {
+
 class DocWithField : public dr::Doc {
 public:
   std::string name;
@@ -161,14 +162,15 @@ public:
   virtual ~Schema(void) { }
 };
 
+}  // namespace
+
 
 // ============================================================================
 // ============================================================================
 
+SUITE(schwa__dr__writer) {
 
-BOOST_AUTO_TEST_SUITE(schwa_dr_writer)
-
-BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
+TEST(DocWithField__name_is_null) {
   std::stringstream out, correct;
   DocWithField::Schema schema;
   dr::Writer writer(out, schema);
@@ -188,11 +190,11 @@ BOOST_AUTO_TEST_CASE(DocWithField__name_is_null) {
   correct << '\x01';  // <instance_nbytes>: 1 byte after this
   correct << '\x80';  // <instance>: 0-element map
 
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), out.str());
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithField__name) {
+TEST(DocWithField__name) {
   std::stringstream out, correct;
   DocWithField::Schema schema;
   dr::Writer writer(out, schema);
@@ -215,11 +217,11 @@ BOOST_AUTO_TEST_CASE(DocWithField__name) {
   correct << '\x00';  // 0: field number 0 (=> name;
   correct << '\xab' << "/etc/passwd";  // utf-8 encoded "/etc/passwd"
 
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), out.str());
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name_is_null) {
+TEST(DocWithFieldWithSerial__name_is_null) {
   std::stringstream out, correct;
   DocWithFieldWithSerial::Schema schema;
   dr::Writer writer(out, schema);
@@ -239,11 +241,11 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name_is_null) {
   correct << '\x01';  // <instance_nbytes>: 1 byte after this
   correct << '\x80';  // <instance>: 0-element map
 
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), out.str());
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name) {
+TEST(DocWithFieldWithSerial__name) {
   std::stringstream out, correct;
   DocWithFieldWithSerial::Schema schema;
   dr::Writer writer(out, schema);
@@ -266,11 +268,11 @@ BOOST_AUTO_TEST_CASE(DocWithFieldWithSerial__name) {
   correct << '\x00';  // 0: field number 0 (=> name;
   correct << '\xab' << "/etc/passwd";  // utf-8 encoded "/etc/passwd"
 
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), out.str());
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithA__empty) {
+TEST(DocWithA__empty) {
   std::stringstream out, correct;
   DocWithA::Schema schema;
   dr::Writer writer(out, schema);
@@ -307,11 +309,11 @@ BOOST_AUTO_TEST_CASE(DocWithA__empty) {
   correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "as" store
   correct << '\x90';  // <instance>: 0-element array
 
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), out.str());
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
+TEST(DocWithA__four_elements) {
   std::stringstream out, correct;
   DocWithA::Schema schema;
   dr::Writer writer(out, schema);
@@ -356,11 +358,11 @@ BOOST_AUTO_TEST_CASE(DocWithA__four_elements) {
   correct << '\x82' << '\x01' << '\x00' << '\x02' << '\xc2'; // {1: 0, 2: false}
   correct << '\x82' << '\x01' << '\x00' << '\x02' << '\xc3'; // {1: 0, 2: true}
 
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), out.str());
 }
 
 
-BOOST_AUTO_TEST_CASE(DocWithAYZ__empty) {
+TEST(DocWithAYZ__empty) {
   std::stringstream out, correct;
   DocWithAYZ::Schema schema;
   dr::Writer writer(out, schema);
@@ -443,7 +445,9 @@ BOOST_AUTO_TEST_CASE(DocWithAYZ__empty) {
   correct << '\x01';  // <instance_nbytes>: 1 byte after this for the "zs" store
   correct << '\x90';  // <instance>: 0-element array
 
-  BOOST_CHECK( compare_bytes(out.str(), correct.str()) );
+  CHECK_COMPARE_BYTES2(correct.str(), out.str());
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
+
+}  // namespace schwatest

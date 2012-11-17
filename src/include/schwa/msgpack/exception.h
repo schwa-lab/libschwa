@@ -1,4 +1,11 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_MSGPACK_EXCEPTION_H_
+#define SCHWA_MSGPACK_EXCEPTION_H_
+
+#include <string>
+
+#include <schwa/_base.h>
+#include <schwa/exception.h>
 
 namespace schwa {
   namespace msgpack {
@@ -13,8 +20,10 @@ namespace schwa {
       ReadException(const ReadException &o);
       virtual ~ReadException(void) throw() { }
 
-      virtual const char* what(void) const throw() { return local_msg.c_str(); }
+      virtual const char* what(void) const throw() override;
     };
 
   }
 }
+
+#endif  // namespace SCHWA_MSGPACK_EXCEPTION_H_

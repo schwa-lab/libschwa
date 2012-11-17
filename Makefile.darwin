@@ -1,0 +1,30 @@
+DESTDIR=/
+prefix=/usr
+#RELEASE_VERSION_MAJOR=0
+#RELEASE_VERSION_MINOR=0
+#RELEASE_VERSION=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)
+
+INCLUDE = -Isrc/include
+LIBS_LDFLAGS = -Llibs
+DEFINES =
+
+ifdef RELEASE_VERSION
+OPTIMIZE_CXXFLAGS = -O4
+else
+OPTIMIZE_CXXFLAGS = -g -O0
+endif
+BASE_CXXFLAGS = -std=c++11 -stdlib=libc++ $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -pedantic
+
+CXX = clang++
+CXXFLAGS = $(BASE_CXXFLAGS) $(INCLUDE) $(DEFINES)
+LDFLAGS = -stdlib=libc++
+SHARED_LIB_SUFFIX = dylib
+SHARED_LIB_LDFLAGS = -dynamiclib
+
+PORT_OBJECTS = src/lib/schwa/port/bsd.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
+
+RAGEL = ragel
+RAGEL_CXXFLAGS = $(CXXFLAGS)
+
+PYTHON_VERSION=2.7
+PYTHON_INCLUDE=-isystem /System/Library/Frameworks/Python.framework/Versions/$(PYTHON_VERSION)/include/python$(PYTHON_VERSION)

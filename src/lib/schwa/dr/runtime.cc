@@ -1,32 +1,39 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
+#include <schwa/dr/runtime.h>
 
+#include <algorithm>
+#include <iostream>
+#include <map>
 #include <unordered_map>
 
+#include <schwa/dr/field_defs.h>
+#include <schwa/dr/schema.h>
 
-namespace schwa { namespace dr {
+
+namespace schwa {
+namespace dr {
 
 // ============================================================================
 // RTFieldDef
 // ============================================================================
 RTFieldDef::RTFieldDef(uint32_t field_id, const std::string &serial, const RTStoreDef *points_into, bool is_slice, bool is_self_pointer, bool is_collection, const BaseFieldDef *def) :
-  def(def),
-  points_into(points_into),
-  serial(serial),
-  field_id(field_id),
-  is_slice(is_slice),
-  is_self_pointer(is_self_pointer),
-  is_collection(is_collection)
+    def(def),
+    points_into(points_into),
+    serial(serial),
+    field_id(field_id),
+    is_slice(is_slice),
+    is_self_pointer(is_self_pointer),
+    is_collection(is_collection)
   { }
 
 RTFieldDef::RTFieldDef(const RTFieldDef &&o) :
-  def(o.def),
-  points_into(o.points_into),
-  serial(o.serial),
-  field_id(o.field_id),
-  is_slice(o.is_slice),
-  is_self_pointer(o.is_self_pointer),
-  is_collection(o.is_collection)
+    def(o.def),
+    points_into(o.points_into),
+    serial(o.serial),
+    field_id(o.field_id),
+    is_slice(o.is_slice),
+    is_self_pointer(o.is_self_pointer),
+    is_collection(o.is_collection)
   { }
 
 
@@ -39,36 +46,42 @@ RTFieldDef::dump(std::ostream &out) const {
 }
 
 
+std::ostream &
+operator <<(std::ostream &out, const RTFieldDef &field) {
+  return field.dump(out);
+}
+
+
 // ============================================================================
 // RTStoreDef
 // ============================================================================
 RTStoreDef::RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const BaseStoreDef *def) :
-  def(def),
-  klass(klass),
-  lazy_data(nullptr),
-  lazy_nbytes(0),
-  lazy_nelem(0),
-  store_id(store_id),
-  serial(serial)
+    def(def),
+    klass(klass),
+    lazy_data(nullptr),
+    lazy_nbytes(0),
+    lazy_nelem(0),
+    store_id(store_id),
+    serial(serial)
   { }
 
 RTStoreDef::RTStoreDef(uint32_t store_id, const std::string &serial, const RTSchema *klass, const char *lazy_data, uint32_t lazy_nbytes, uint32_t lazy_nelem) :
-  def(nullptr),
-  klass(klass),
-  lazy_data(lazy_data),
-  lazy_nbytes(lazy_nbytes),
-  lazy_nelem(lazy_nelem),
-  store_id(store_id),
-  serial(serial)
+    def(nullptr),
+    klass(klass),
+    lazy_data(lazy_data),
+    lazy_nbytes(lazy_nbytes),
+    lazy_nelem(lazy_nelem),
+    store_id(store_id),
+    serial(serial)
   { }
 
 RTStoreDef::RTStoreDef(const RTStoreDef &&o) :
-  klass(o.klass),
-  lazy_data(o.lazy_data),
-  lazy_nbytes(o.lazy_nbytes),
-  lazy_nelem(o.lazy_nelem),
-  store_id(o.store_id),
-  serial(o.serial)
+    klass(o.klass),
+    lazy_data(o.lazy_data),
+    lazy_nbytes(o.lazy_nbytes),
+    lazy_nelem(o.lazy_nelem),
+    store_id(o.store_id),
+    serial(o.serial)
   { }
 
 
@@ -81,12 +94,27 @@ RTStoreDef::dump(std::ostream &out) const {
 }
 
 
+std::ostream &
+operator <<(std::ostream &out, const RTStoreDef &store) {
+  return store.dump(out);
+}
+
 // ============================================================================
 // RTSchema
 // ============================================================================
-RTSchema::RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def) : def(def), klass_id(klass_id), serial(serial) { }
+RTSchema::RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def) :
+    def(def),
+    klass_id(klass_id),
+    serial(serial)
+  { }
 
-RTSchema::RTSchema(const RTSchema &&o) : def(o.def), fields(o.fields), stores(o.stores), klass_id(o.klass_id), serial(o.serial) { }
+RTSchema::RTSchema(const RTSchema &&o) :
+    def(o.def),
+    fields(o.fields),
+    stores(o.stores),
+    klass_id(o.klass_id),
+    serial(o.serial)
+  { }
 
 RTSchema::~RTSchema(void) {
   for (auto &f : fields)
@@ -116,6 +144,12 @@ RTSchema::dump(std::ostream &out) const {
 }
 
 
+std::ostream &
+operator <<(std::ostream &out, const RTSchema &schema) {
+  return schema.dump(out);
+}
+
+
 // ============================================================================
 // RTManager
 // ============================================================================
@@ -137,9 +171,17 @@ RTManager::dump(std::ostream &out) const {
 }
 
 
+std::ostream &
+operator <<(std::ostream &out, const RTManager &rt) {
+  return rt.dump(out);
+}
+
+
 // ============================================================================
 // Functions
 // ============================================================================
+namespace {
+
 static void
 merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::map<ptrdiff_t, const RTStoreDef *> &store_offsets) {
   uint32_t field_id = 0;
@@ -176,6 +218,8 @@ merge_rtschema_fields(RTSchema &rtschema, const BaseSchema &schema, const std::m
     assert(rtschema.fields.back()->field_id + 1 == rtschema.fields.size());
   }
 }
+
+}  // namespace
 
 
 RTManager *
@@ -278,4 +322,5 @@ build_rt(const BaseDocSchema &dschema) {
   return merge_rt(rt, dschema);
 }
 
-} }
+}  // namespace dr
+}  // namespace schwa

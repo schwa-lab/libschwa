@@ -1,4 +1,11 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_PORT_H_
+#define SCHWA_PORT_H_
+
+#include <string>
+
+#include <schwa/_base.h>
+
 #if defined(__APPLE__)
   #include <machine/byte_order.h>
 #elif defined(__linux)
@@ -6,7 +13,6 @@
 #else
   #error Do not know how to deal with endianness conversion on your platform
 #endif
-
 
 namespace schwa {
   namespace port {
@@ -34,6 +40,7 @@ namespace schwa {
 #else
   #error Do not know how to deal with endianness conversion on your platform
 #endif
-
   }
 }
+
+#endif  // SCHWA_PORT_H_

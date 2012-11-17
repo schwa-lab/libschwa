@@ -2,10 +2,9 @@
 #ifndef SCHWA_MSGPACK_H_
 #define SCHWA_MSGPACK_H_
 
-#include <schwa/base.h>
-#include <schwa/io.h>
-
+#include <schwa/msgpack/dynamic.h>
+#include <schwa/msgpack/enums.h>
 #include <schwa/msgpack/exception.h>
 #include <schwa/msgpack/wire.h>
 
-#endif
+#endif  // SCHWA_MSGPACK_H_

@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import os
+import subprocess
+import sys
+
+
+def main(compile_cmd, filenames):
+  for filename in filenames:
+    rules = subprocess.check_output(compile_cmd + ' ' + filename, shell=True)
+    path = os.path.dirname(filename) + os.path.sep
+    sys.stdout.write(path)
+    sys.stdout.write(rules)
+
+
+if __name__ == '__main__':
+  if len(sys.argv) < 3:
+    print('Usage: {0} compile_cmd file0.cc file1.cc ...'.format(sys.argv[0]), file=sys.stderr)
+    sys.exit(1)
+
+  main(sys.argv[1], sys.argv[2:])

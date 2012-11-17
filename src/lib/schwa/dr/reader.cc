@@ -1,17 +1,35 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
+#include <schwa/dr/reader.h>
+
+#include <cassert>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+
+#include <schwa/dr/exception.h>
+#include <schwa/dr/field_defs.h>
+#include <schwa/dr/istore.h>
+#include <schwa/dr/runtime.h>
+#include <schwa/dr/schema.h>
+#include <schwa/dr/type_info.h>
+#include <schwa/dr/wire.h>
+#include <schwa/io/array_reader.h>
+#include <schwa/io/unsafe_array_writer.h>
+#include <schwa/msgpack.h>
+#include <schwa/utils/enums.h>
 
 namespace mp = schwa::msgpack;
 
 
-namespace schwa { namespace dr {
+namespace schwa {
+namespace dr {
 
-static inline bool is_uint(const mp::WireType t) {
-  return t == mp::WireType::FIXNUM_POSITIVE || t == mp::WireType::UINT_8 || t == mp::WireType::UINT_16 || t == mp::WireType::UINT_32 || t == mp::WireType::UINT_64;
-}
-
-
-Reader::Reader(std::istream &in, BaseDocSchema &dschema) : _in(in), _dschema(dschema), _has_more(false) { }
+Reader::Reader(std::istream &in, BaseDocSchema &dschema) :
+    _in(in),
+    _dschema(dschema),
+    _has_more(false)
+  { }
 
 
 Reader &
@@ -34,10 +52,9 @@ Reader::read(Doc &doc) {
   }
 
   // construct the lazy runtime manager for the document
-  assert(doc._rt == nullptr);
-  doc._rt = new RTManager();
-  assert(doc._rt != nullptr);
-  RTManager &rt = *doc._rt;
+  doc.set_rt(new RTManager());
+  assert(doc.rt() != nullptr);
+  RTManager &rt = *doc.rt();
 
   // map of each of the registered types
   std::map<std::string, const BaseSchema *> klass_name_map;
@@ -453,4 +470,5 @@ Reader::read(Doc &doc) {
   return *this;
 }
 
-} }
+}  // namespace dr
+}  // namespace schwa

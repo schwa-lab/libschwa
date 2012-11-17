@@ -1,16 +1,16 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr.h>
 #include "test_utils.h"
 
-#include <boost/test/unit_test.hpp>
+#include <schwa/dr.h>
 
 namespace dr = schwa::dr;
 
-// ============================================================================
-// ============================================================================
-BOOST_AUTO_TEST_SUITE(schwa_dr_lazy)
 
-BOOST_AUTO_TEST_CASE(lazy_test0) {
+namespace schwatest {
+
+SUITE(schwa__dr__lazy) {
+
+TEST(lazy_test0) {
   class A : public dr::Ann {
   public:
     std::string v_str;
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
   }
   writer0 << doc0;
 
-  BOOST_CHECK( compare_bytes(stream0.str(), stream0_expected, sizeof(stream0_expected)/sizeof(uint8_t)) );
+  CHECK_COMPARE_BYTES3(stream0_expected, sizeof(stream0_expected)/sizeof(uint8_t), stream0.str());
 
   DocB::Schema schema1_in, schema1_out;
   schema1_in.bs.serial = "as";
@@ -195,25 +195,25 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
     ++ndocs_read1;
 
     // check annotation values
-    BOOST_REQUIRE_EQUAL(doc1.bs.size(), NWORDS);
+    CHECK_EQUAL(NWORDS, doc1.bs.size());
     for (uint8_t i = 0; i != NWORDS; ++i) {
       B &b = doc1.bs[i];
-      BOOST_CHECK_EQUAL(b.word, WORDS[i]);
-      BOOST_CHECK(b.upper.empty());
-      BOOST_CHECK_EQUAL(b.is_first, i == 0);
+      CHECK_EQUAL(WORDS[i], b.word);
+      CHECK(b.upper.empty());
+      CHECK_EQUAL(i == 0, b.is_first);
     }
 
     // check document lazy
-    BOOST_CHECK_EQUAL(static_cast<const void *>(doc1.lazy_data()), static_cast<const void *>(nullptr));
-    BOOST_CHECK_EQUAL(doc1.lazy_nbytes(), 0);
-    BOOST_CHECK_EQUAL(doc1.lazy_nelem(), 0);
+    CHECK_EQUAL(static_cast<const void *>(nullptr), static_cast<const void *>(doc1.lazy_data()));
+    CHECK_EQUAL(0, doc1.lazy_nbytes());
+    CHECK_EQUAL(0, doc1.lazy_nelem());
 
     // check annotation lazy
     for (uint8_t i = 0; i != NWORDS; ++i) {
       B &b = doc1.bs[i];
-      BOOST_CHECK_NE(static_cast<const void *>(b.lazy_data()), static_cast<const void *>(nullptr));
-      BOOST_CHECK_EQUAL(b.lazy_nelem(), 3);
-      BOOST_CHECK_EQUAL(b.lazy_nbytes(), 3 + (b.word.size() + 1) + 1 + 1);
+      CHECK(static_cast<const void *>(b.lazy_data()) != static_cast<const void *>(nullptr));
+      CHECK_EQUAL(3, b.lazy_nelem());
+      CHECK_EQUAL(3 + (b.word.size() + 1) + 1 + 1, b.lazy_nbytes());
     }
 
     // modify some attributes, including lazy ones
@@ -226,9 +226,9 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
 
     writer1 << doc1;
   }
-  BOOST_CHECK_EQUAL(ndocs_read1, 1);
+  CHECK_EQUAL(1, ndocs_read1);
 
-  BOOST_CHECK( compare_bytes(stream1.str(), stream1_expected, sizeof(stream1_expected)/sizeof(uint8_t)) );
+  CHECK_COMPARE_BYTES3(stream1_expected, sizeof(stream1_expected)/sizeof(uint8_t), stream1.str());
 
   DocA::Schema schema2;
   schema2.as.serial = "bs";
@@ -245,33 +245,33 @@ BOOST_AUTO_TEST_CASE(lazy_test0) {
     ++ndocs_read2;
 
     // check annotation values
-    BOOST_REQUIRE_EQUAL(doc2.as.size(), NWORDS);
+    CHECK_EQUAL(NWORDS, doc2.as.size());
     for (uint8_t i = 0; i != NWORDS; ++i) {
       A &a = doc2.as[i];
-      BOOST_CHECK_EQUAL(a.v_str, WORDS[i]);
-      BOOST_CHECK_EQUAL(a.v_uint8, i);
-      BOOST_CHECK_EQUAL(a.v_bool, i == 0);
+      CHECK_EQUAL(WORDS[i], a.v_str);
+      CHECK_EQUAL(i, a.v_uint8);
+      CHECK_EQUAL(i == 0, a.v_bool);
     }
 
     // check document lazy
-    BOOST_CHECK_EQUAL(static_cast<const void *>(doc2.lazy_data()), static_cast<const void *>(nullptr));
-    BOOST_CHECK_EQUAL(doc2.lazy_nbytes(), 0);
-    BOOST_CHECK_EQUAL(doc2.lazy_nelem(), 0);
+    CHECK_EQUAL(static_cast<const void *>(nullptr), static_cast<const void *>(doc2.lazy_data()));
+    CHECK_EQUAL(0, doc2.lazy_nbytes());
+    CHECK_EQUAL(0, doc2.lazy_nelem());
 
     // check annotation lazy
     for (uint8_t i = 0; i != NWORDS; ++i) {
       A &a = doc2.as[i];
-      BOOST_CHECK_NE(static_cast<const void *>(a.lazy_data()), static_cast<const void *>(nullptr));
-      BOOST_CHECK_EQUAL(a.lazy_nelem(), 1);
-      BOOST_CHECK_EQUAL(a.lazy_nbytes(), 1 + (a.v_str.size() + 1));
+      CHECK(static_cast<const void *>(a.lazy_data()) != static_cast<const void *>(nullptr));
+      CHECK_EQUAL(1, a.lazy_nelem());
+      CHECK_EQUAL(1 + (a.v_str.size() + 1), a.lazy_nbytes());
     }
 
   }
-  BOOST_CHECK_EQUAL(ndocs_read2, 1);
+  CHECK_EQUAL(1, ndocs_read2);
 }
 
 
-BOOST_AUTO_TEST_CASE(lazy_test1) {
+TEST(lazy_test1) {
   class A : public dr::Ann {
   public:
     std::string v_str;
@@ -443,7 +443,7 @@ BOOST_AUTO_TEST_CASE(lazy_test1) {
   }
   writer0 << doc0;
 
-  BOOST_CHECK( compare_bytes(stream0.str(), stream0_expected, sizeof(stream0_expected)/sizeof(uint8_t)) );
+  CHECK_COMPARE_BYTES3(stream0_expected, sizeof(stream0_expected)/sizeof(uint8_t), stream0.str());
 
   DocB::Schema schema1;
   dr::Reader reader1(stream0, schema1);
@@ -457,7 +457,7 @@ BOOST_AUTO_TEST_CASE(lazy_test1) {
     ++ndocs_read1;
 
     // check annotation values
-    BOOST_REQUIRE_EQUAL(doc1.bs.size(), 0);
+    CHECK_EQUAL(0, doc1.bs.size());
 
     // modify some attributes, including lazy ones
     doc1.bs.create(NWORDS);
@@ -471,9 +471,9 @@ BOOST_AUTO_TEST_CASE(lazy_test1) {
 
     writer1 << doc1;
   }
-  BOOST_CHECK_EQUAL(ndocs_read1, 1);
+  CHECK_EQUAL(1, ndocs_read1);
 
-  BOOST_CHECK( compare_bytes(stream1.str(), stream1_expected, sizeof(stream1_expected)/sizeof(uint8_t)) );
+  CHECK_COMPARE_BYTES3(stream1_expected, sizeof(stream1_expected)/sizeof(uint8_t), stream1.str());
 
   DocAB::Schema schema2;
   dr::Reader reader2(stream1, schema2);
@@ -486,21 +486,21 @@ BOOST_AUTO_TEST_CASE(lazy_test1) {
     ++ndocs_read2;
 
     // check annotation values
-    BOOST_REQUIRE_EQUAL(doc2.as.size(), NWORDS);
-    BOOST_REQUIRE_EQUAL(doc2.bs.size(), NWORDS);
+    CHECK_EQUAL(NWORDS, doc2.as.size());
+    CHECK_EQUAL(NWORDS, doc2.bs.size());
     for (uint8_t i = 0; i != NWORDS; ++i) {
       A &a = doc2.as[i];
-      BOOST_CHECK_EQUAL(a.v_str, WORDS[i]);
-      BOOST_CHECK_EQUAL(a.v_uint8, i);
-      BOOST_CHECK_EQUAL(a.v_bool, i % 2 == 0);
+      CHECK_EQUAL(WORDS[i], a.v_str);
+      CHECK_EQUAL(i, a.v_uint8);
+      CHECK_EQUAL(i % 2 == 0, a.v_bool);
 
       B &b = doc2.bs[i];
-      BOOST_CHECK_EQUAL(b.word, WORDS[i]);
-      BOOST_CHECK_EQUAL(b.upper.size(), b.word.size());
-      BOOST_CHECK_EQUAL(b.is_first, i == 0);
+      CHECK_EQUAL(WORDS[i], b.word);
+      CHECK_EQUAL(b.word.size(), b.upper.size());
+      CHECK_EQUAL(i == 0, b.is_first);
     }
   }
-  BOOST_CHECK_EQUAL(ndocs_read2, 1);
+  CHECK_EQUAL(1, ndocs_read2);
 }
 
 
@@ -530,10 +530,10 @@ check_unchanged(std::stringstream &stream0) {
   dr::Writer writer(stream1, schema);
   writer << doc;
 
-  BOOST_CHECK( compare_bytes(stream1.str(), stream0.str()) );
+  CHECK_COMPARE_BYTES2(stream0.str(), stream1.str());
 }
 
-BOOST_AUTO_TEST_CASE(lazy_test_pointer_to_0) {
+TEST(lazy_test_pointer_to_0) {
   std::stringstream stream;
   stream << '\x02'; // version
   stream << '\x92'; // <klasses>: 2-element array
@@ -553,4 +553,6 @@ BOOST_AUTO_TEST_CASE(lazy_test_pointer_to_0) {
   check_unchanged(stream);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+}  // SUITE
+
+}  // namespace schwatest

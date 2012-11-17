@@ -1,4 +1,12 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_CONTAINERS_BLOCK_VECTOR_IMPL_H_
+#define SCHWA_CONTAINERS_BLOCK_VECTOR_IMPL_H_
+
+#include <cassert>
+#include <cstdlib>
+#include <iostream>
+
+#include <schwa/containers/block_vector.h>
 
 namespace schwa {
   namespace containers {
@@ -8,9 +16,9 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     BlockVector<T>::Block::Block(const size_t capacity) :
-      _capacity(capacity),
-      _size(0),
-      _next(nullptr)
+        _capacity(capacity),
+        _size(0),
+        _next(nullptr)
       { }
 
 
@@ -76,9 +84,9 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     BlockVector<T>::Iterator::Iterator(typename BlockVector<T>::Block *block) :
-      _block(block),
-      _it(_block ? _block->begin() : typename Block::iterator()),
-      _end(_block ? _block->end() : typename Block::iterator())
+        _block(block),
+        _it(_block ? _block->begin() : typename Block::iterator()),
+        _end(_block ? _block->end() : typename Block::iterator())
       {
         increment_it();
     }
@@ -86,9 +94,9 @@ namespace schwa {
 
     template <typename T>
     BlockVector<T>::Iterator::Iterator(const Iterator &o) :
-      _block(o._block),
-      _it(o._it),
-      _end(o._end)
+        _block(o._block),
+        _it(o._it),
+        _end(o._end)
       { }
 
 
@@ -149,8 +157,8 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     BlockVector<T>::BlockVector(void) :
-      _first(nullptr),
-      _last(nullptr)
+        _first(nullptr),
+        _last(nullptr)
       { }
 
 
@@ -245,3 +253,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_CONTAINERS_BLOCK_VECTOR_IMPL_H_

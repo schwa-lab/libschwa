@@ -1,4 +1,8 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_TOKENIZER_TOKENIZER_STATE_H_
+#define SCHWA_TOKENIZER_TOKENIZER_STATE_H_
+
+#include <schwa/tokenizer/tokenizer.h>
 
 namespace schwa {
   namespace tokenizer {
@@ -244,3 +248,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_TOKENIZER_TOKENIZER_STATE_H_

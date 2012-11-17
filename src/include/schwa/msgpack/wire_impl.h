@@ -1,5 +1,15 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <boost/mpl/if.hpp>
+#ifndef SCHWA_MSGPACK_WIRE_IMPL_H_
+#define SCHWA_MSGPACK_WIRE_IMPL_H_
+
+#include <cassert>
+#include <limits>
+
+#include <schwa/io/traits.h>
+#include <schwa/mpl/if.h>
+#include <schwa/msgpack/exception.h>
+#include <schwa/msgpack/wire.h>
+#include <schwa/port.h>
 
 namespace schwa {
   namespace msgpack {
@@ -8,16 +18,16 @@ namespace schwa {
       template <typename T, bool>
       struct rw_integral_signed {
         template <typename IN>
-        static inline void read(IN &in, T &val) { val = read_int(in); }
+        static inline void read(IN &in, T &val) { val = read_uint(in); }
         template <typename OUT>
-        static inline void write(OUT &out, const T &val) { write_int(out, val); }
+        static inline void write(OUT &out, const T &val) { write_uint(out, val); }
       };
       template <typename T>
       struct rw_integral_signed<T, true> {
         template <typename IN>
-        static inline void read(IN &in, T &val) { val = read_uint(in); }
+        static inline void read(IN &in, T &val) { val = read_int(in); }
         template <typename OUT>
-        static inline void write(OUT &out, const T &val) { write_uint(out, val); }
+        static inline void write(OUT &out, const T &val) { write_int(out, val); }
       };
 
       template <typename T>
@@ -55,7 +65,7 @@ namespace schwa {
       };
 
       template <typename T>
-      struct rw : boost::mpl::if_<std::is_integral<T>, rw_integral<T>, rw_other<T>>::type { };
+      struct rw : mpl::if_<std::is_integral<T>, rw_integral<T>, rw_other<T>>::type { };
     }
 
 
@@ -534,6 +544,134 @@ namespace schwa {
     }
 
 
+    template <typename IN>
+    Value *
+    read_dynamic(IN &in, Pool &pool, Value *value) {
+      uint16_t s16;
+      uint32_t s32;
+      bool is_array = false, is_map = false, is_raw = false;
+
+      const int h = in.peek();
+      if (h == EOF)
+        return nullptr;
+
+      const WireType type = header_type(h);
+      if (value == nullptr)
+        value = Value::create(pool, type);
+      value->type = type;
+
+      switch (type) {
+      case WireType::NIL:
+        read_nil(in);
+        break;
+      case WireType::TRUE:
+      case WireType::FALSE:
+        value->via._bool = read_bool(in);
+        break;
+      case WireType::FIXNUM_POSITIVE:
+      case WireType::UINT_8:
+      case WireType::UINT_16:
+      case WireType::UINT_32:
+      case WireType::UINT_64:
+        value->via._uint64 = read_uint(in);
+        break;
+      case WireType::FIXNUM_NEGATIVE:
+      case WireType::INT_8:
+      case WireType::INT_16:
+      case WireType::INT_32:
+      case WireType::INT_64:
+        value->via._int64 = read_int(in);
+        break;
+      case WireType::FLOAT:
+        value->via._float = read_float(in);
+        break;
+      case WireType::DOUBLE:
+        value->via._double = read_double(in);
+        break;
+      case WireType::ARRAY_FIXED:
+        in.get();
+        s32 = h & 0x0F;
+        is_array = true;
+        break;
+      case WireType::ARRAY_16:
+        in.get();
+        read_bytes16(in, s16);
+        s32 = s16;
+        is_array = true;
+        break;
+      case WireType::ARRAY_32:
+        in.get();
+        read_bytes32(in, s32);
+        is_array = true;
+        break;
+      case WireType::MAP_FIXED:
+        in.get();
+        s32 = h & 0x0F;
+        is_map = true;
+        break;
+      case WireType::MAP_16:
+        read_bytes16(in, s16);
+        s32 = s16;
+        is_map = true;
+        break;
+      case WireType::MAP_32:
+        in.get();
+        read_bytes32(in, s32);
+        is_map = true;
+        break;
+      case WireType::RAW_FIXED:
+        in.get();
+        s32 = h & 0x1F;
+        is_raw = true;
+        break;
+      case WireType::RAW_16:
+        in.get();
+        read_bytes16(in, s16);
+        s32 = s16;
+        is_raw = true;
+        break;
+      case WireType::RAW_32:
+        in.get();
+        read_bytes32(in, s32);
+        is_raw = true;
+        break;
+      case WireType::RESERVED:
+        in.get();
+        break;
+      }
+
+      if (is_array) {
+        Array *array = Array::create(pool, s32);
+        value->via._array = array;
+        for (uint32_t i = 0; i != s32; ++i)
+          read_dynamic(in, pool, &array->get(i));
+      }
+      else if (is_map) {
+        Map *map = Map::create(pool, s32);
+        value->via._map = map;
+        for (uint32_t i = 0; i != s32; ++i) {
+          Map::Pair &pair = map->get(i);
+          read_dynamic(in, pool, &pair.key);
+          read_dynamic(in, pool, &pair.value);
+        }
+      }
+      else if (is_raw) {
+        Raw *raw = Raw::create(pool, s32, in.upto());
+        value->via._raw = raw;
+        in.ignore(s32);
+      }
+
+      return value;
+    }
+
+
+    template <typename IN>
+    Value *
+    read_dynamic(IN &in, Pool &pool) {
+      return read_dynamic(in, pool, nullptr);
+    }
+
+
     // ========================================================================
     // Writing API implementations
     // ========================================================================
@@ -760,3 +898,5 @@ namespace schwa {
 
   }
 }
+
+#endif  // SCHWA_MSGPACK_WIRE_IMPL_H_

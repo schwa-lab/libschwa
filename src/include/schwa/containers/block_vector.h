@@ -1,4 +1,11 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#ifndef SCHWA_CONTAINERS_BLOCK_VECTOR_H_
+#define SCHWA_CONTAINERS_BLOCK_VECTOR_H_
+
+#include <iosfwd>
+#include <iterator>
+
+#include <schwa/_base.h>
 
 namespace schwa {
   namespace containers {
@@ -54,52 +61,54 @@ namespace schwa {
 
         inline Block *next(void) const { return _next; }
         inline void set_next(Block *const next) { _next = next; }
+
+      private:
+        DISALLOW_COPY_AND_ASSIGN(Block);
       };
 
+      class Iterator : public std::iterator<std::forward_iterator_tag, T> {
+      public:
+        typedef typename std::iterator<std::forward_iterator_tag, T>::difference_type difference_type;
+        typedef typename std::iterator<std::forward_iterator_tag, T>::iterator_category iterator_category;
+        typedef typename std::iterator<std::forward_iterator_tag, T>::pointer pointer;
+        typedef typename std::iterator<std::forward_iterator_tag, T>::reference reference;
+        typedef typename std::iterator<std::forward_iterator_tag, T>::value_type value_type;
 
-    class Iterator : public std::iterator<std::forward_iterator_tag, T> {
-    public:
-      typedef typename std::iterator<std::forward_iterator_tag, T>::difference_type difference_type;
-      typedef typename std::iterator<std::forward_iterator_tag, T>::iterator_category iterator_category;
-      typedef typename std::iterator<std::forward_iterator_tag, T>::pointer pointer;
-      typedef typename std::iterator<std::forward_iterator_tag, T>::reference reference;
-      typedef typename std::iterator<std::forward_iterator_tag, T>::value_type value_type;
+      private:
+        Block *_block;
+        typename Block::iterator _it;
+        typename Block::iterator _end;
 
-    private:
-      Block *_block;
-      typename Block::iterator _it;
-      typename Block::iterator _end;
+        void increment_it(void);
 
-      void increment_it(void);
+      public:
+        explicit Iterator(Block *block=nullptr);
+        Iterator(const Iterator &o);
+        ~Iterator(void) { }
 
-    public:
-      explicit Iterator(Block *block=nullptr);
-      Iterator(const Iterator &o);
-      ~Iterator(void) { }
+        Iterator &operator =(const Iterator &o);
 
-      Iterator &operator =(const Iterator &o);
+        inline bool operator ==(const Iterator &o) const { return _block == o._block && _it == o._it; }
+        inline bool operator !=(const Iterator &o) const { return _block != o._block || _it != o._it; }
 
-      inline bool operator ==(const Iterator &o) const { return _block == o._block && _it == o._it; }
-      inline bool operator !=(const Iterator &o) const { return _block != o._block || _it != o._it; }
+        inline reference operator *(void) { return *_it; }
+        inline pointer operator ->(void) { return _it; }
 
-      inline reference operator *(void) { return *_it; }
-      inline pointer operator ->(void) { return _it; }
+        Iterator &operator ++(void);
+        Iterator operator ++(int);
 
-      Iterator &operator ++(void);
-      Iterator operator ++(int);
+        inline std::ostream &dump(std::ostream &out) const;
 
-      inline std::ostream &dump(std::ostream &out) const;
+        friend inline std::ostream &operator <<(std::ostream &out, const Iterator &it) { return it.dump(out); }
+      };
 
-      friend inline std::ostream &operator <<(std::ostream &out, const Iterator &it) { return it.dump(out); }
-    };
-
-    typedef const T *const_pointer;
-    typedef const T &const_reference;
-    typedef Iterator iterator;
-    typedef T *pointer;
-    typedef T &reference;
-    typedef size_t size_type;
-    typedef T value_type;
+      typedef const T *const_pointer;
+      typedef const T &const_reference;
+      typedef Iterator iterator;
+      typedef T *pointer;
+      typedef T &reference;
+      typedef size_t size_type;
+      typedef T value_type;
 
     private:
       Block *_first;
@@ -142,3 +151,5 @@ namespace schwa {
 }
 
 #include <schwa/containers/block_vector_impl.h>
+
+#endif  // SCHWA_CONTAINERS_BLOCK_VECTOR_H_
