@@ -11,6 +11,6 @@
 
   letter = alpha | digit | "&amp;" | (upper "&" upper) | "-" | (alpha (single_quote | close_single_quote) alpha) | (alpha "." alpha);
 
-  default = (letter | unicode)+ - (any* "--" | "--" any*);
+  default = (letter | (unicode - unicode_punct))+ - (any* "--" | "--" any*);
 
 }%%

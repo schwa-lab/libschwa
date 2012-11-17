@@ -3,6 +3,8 @@
 %%{
   machine tokenizer;
 
+  include "unicode_punctuation.rl";
+
   full_stop = ".";
   question_mark = "?";
   exclamation_mark = "!";
@@ -23,6 +25,7 @@
   dash = "-"{1,3} | 0xe2 0x80 (0x92..0x95) | fairfax_dash when FAIRFAX;
 
   symbols = (punct - end_punct) | hyphen | dash;
+  unicode_symbols = unicode_punct;
 
   lines = "-"{4,} | "="{3,} | "*"{2,} | "."{4,} | "- "{3,} "-";
 }%%
