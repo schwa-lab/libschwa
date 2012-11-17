@@ -4,7 +4,7 @@
   machine tokenizer;
 
   newline = "\r\n"|"\n";
-  
+
   # unicode U+00A0: no-break space
   unicode_00a0 = 0xc2 0xa0 | "&nbsp;";
   other_ws = unicode_00a0;

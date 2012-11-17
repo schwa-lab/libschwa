@@ -8,7 +8,6 @@
   action FAIRFAX { true }
 
   include "actions.rl";
-  include "rules/unicode.rl";
   include "rules/quotes.rl";
   include "rules/punctuation.rl";
   include "rules/contractions.rl";
@@ -19,6 +18,7 @@
   include "rules/web.rl";
   include "rules/html.rl";
   include "rules/emoticons.rl";
+  include "rules/unicode.rl";
   include "rules/default.rl";
   include "rules/main.rl";
 }%%

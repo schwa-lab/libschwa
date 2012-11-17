@@ -3,15 +3,15 @@
 %%{
   machine tokenizer;
 
-	full_stop = ".";
-	question_mark = "?";
-	exclamation_mark = "!";
+  full_stop = ".";
+  question_mark = "?";
+  exclamation_mark = "!";
 
   end_punct = ")" | "]" | "}" | "," | ";" | ":";
 
   # unicode U+2026 horizontal ellipsis
   # windows 1250-1258 code pages 0x85 -> unicode U+2026
-	unicode_2026 = 0xe2 0x80 0xa6 | "&#8230" | "&#x2026;" | "&hellip;" | 0x85;
+  unicode_2026 = 0xe2 0x80 0xa6 | "&#8230" | "&#x2026;" | "&hellip;" | 0x85;
   ellipsis = "..." | ". . ." | unicode_2026;
 
   hyphen = 0xe2 0x80 (0x90..0x91) | 0xe2 0x88 0x92;
@@ -24,5 +24,5 @@
 
   symbols = (punct - end_punct) | hyphen | dash;
 
-  lines =	"-"{4,} | "="{3,} | "*"{2,} | "."{4,} | "- "{3,} "-";
+  lines = "-"{4,} | "="{3,} | "*"{2,} | "."{4,} | "- "{3,} "-";
 }%%

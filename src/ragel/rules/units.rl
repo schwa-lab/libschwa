@@ -12,9 +12,9 @@
   # "T" (tonne)
   # "K", "k", "M" (kilo, mega, scalar multipliers)
 
-	length1 = "m" @s1;
+  length1 = "m" @s1;
   length2 = ("in"|"ft"|"yd") @s2 | ("mi"|"mm"|"cm"|"km") @s1;
-	length = length1 | length2;
+  length = length1 | length2;
 
   area_vol0 = length (("2"|"3") @s1 | ("^2"|"^3") @s2);
   area_vol1 = ("sq " @s2 |"cu " @s3) length;
@@ -51,9 +51,9 @@
 
   scalars = ("k"|"M") @s1;
 
-	# unicode U+00a2 cent sign
-	unicode_00a2 = 0xC2 0xA2 @s2 | "&#162;" @s6 | "&#xa2;"i @s6 | "&cent;" @s6;
-	cents = "c" @s1 | unicode_00a2;
+  # unicode U+00a2 cent sign
+  unicode_00a2 = 0xC2 0xA2 @s2 | "&#162;" @s6 | "&#xa2;"i @s6 | "&cent;" @s6;
+  cents = "c" @s1 | unicode_00a2;
 
   post_currency = cents;
 

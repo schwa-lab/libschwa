@@ -11,14 +11,14 @@
 
   acron = acron1 | acron2 | acron3 | initial;
 
-  month_abbrev	= ("Jan"|"Feb"|"Mar"|"Apr"|"Jun"|"Jul"|"Aug"|"Sep"|"Sept"|"Oct"|"Nov"|"Dec") ".";
+  month_abbrev = ("Jan"|"Feb"|"Mar"|"Apr"|"Jun"|"Jul"|"Aug"|"Sep"|"Sept"|"Oct"|"Nov"|"Dec") ".";
   day_abbrev = ("Mon"|"Tue"|"Wed"|"Thurs"|"Fri"|"Sat"|"Sun") ".";
 
   date_abbrev = month_abbrev | day_abbrev;
 
   title0 = ("Mr"|"Mrs"|"Ms"|"Dr"|"Drs"|"Fr"|"Sr"|"Br"|"Rev"|"Prof"|"Mssr"|"Mssrs") ".";
   title1 = ("Sr"|"Snr"|"Jr"|"Jnr"|"Hon"|"Bros"|"Esq") ".";
-  title2	= ("Rep"|"Sen"|"Gov"|"Pres"|"Adm"|"Capt"|"Crpl"|"Gen"|"Lt"|"Maj"|"Sgt") ".";
+  title2 = ("Rep"|"Sen"|"Gov"|"Pres"|"Adm"|"Capt"|"Crpl"|"Gen"|"Lt"|"Maj"|"Sgt") ".";
   title3 = ("Brig"|"Cmdr"|"Cdr"|"Sec"|"Rtd"|"Rt") ".";
   title4 = ("Ed"|"Md") ".";
 
@@ -30,8 +30,8 @@
   usstate3 = ("Vt"|"Wash"|"Wis"|"Wisc"|"Wyo") ".";
   usstate4 = (/[SN]\./ | /[SN]o\./) space+ ("Carol."|"Dak.") | "W." space+ "Va.";
 
-  canada1	= ("Manit"|"Ont"|"Que") ".";
-  places1	= ("Prov") ".";
+  canada1 = ("Manit"|"Ont"|"Que") ".";
+  places1 = ("Prov") ".";
 
   state = usstate0 | usstate1 | usstate2 | usstate3 | usstate4 | canada1 | places1;
 
@@ -57,9 +57,9 @@
   # problem cases: "cent" (per cent appears often at the end of a sentence)
 
   abbrev0 = ("ed"|"eg"|"e.g"|"etc"|"cf"|"i.e"|"ie"|"viz"|"vol") ".";
-  abbrev1	= ("eds"|"repr"|"trans"|"vols"|"rev"|"pell") ".";
-  abbrev2	= ("accd"|"amort"|"approx"|"avg"|"cert"|"cont"|"devel"|"disc"|"discont"|"equiv") ".";
-  abbrev3	= ("excl"|"expell"|"fin"|"imp"|"incl"|"ins"|"inv"|"invest"|"ord") ".";
+  abbrev1 = ("eds"|"repr"|"trans"|"vols"|"rev"|"pell") ".";
+  abbrev2 = ("accd"|"amort"|"approx"|"avg"|"cert"|"cont"|"devel"|"disc"|"discont"|"equiv") ".";
+  abbrev3 = ("excl"|"expell"|"fin"|"imp"|"incl"|"ins"|"inv"|"invest"|"ord") ".";
 
   abbrev = abbrev0 | abbrev1 | abbrev2 | abbrev3;
 

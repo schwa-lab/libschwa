@@ -25,7 +25,7 @@
   cont_suffix = cont_suffix_lc | cont_suffix_uc;
 
   cont_misc = cont_misc_lc | cont_misc_tc;
-  
+
   vb_aux_lc = "ai"|"are"|"ca"|"could"|"did"|"do"|"does"|"had"|"has"|"have"|"is"|"should"|"was"|"were"|"wo"|"would";
   vb_aux_tc = "Ai"|"Are"|"Ca"|"Could"|"Did"|"Do"|"Does"|"Had"|"Has"|"Have"|"Is"|"Should"|"Was"|"Were"|"Wo"|"Would";
   vb_aux_uc = "AI"|"ARE"|"CA"|"COULD"|"DID"|"DO"|"DOES"|"HAD"|"HAS"|"HAVE"|"IS"|"SHOULD"|"WAS"|"WERE"|"WO"|"WOULD";
