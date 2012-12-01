@@ -23,8 +23,8 @@ static std::mutex output_lock;
 
 static bool
 read_doc(std::istream &in, std::ostream &out) {
-  static char *buf = nullptr;
-  static size_t size = 0;
+  char *buf = nullptr;
+  size_t size = 0;
 
   mp::WireType type;
   if (in.peek() == EOF)

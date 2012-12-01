@@ -259,12 +259,12 @@ DocProcessor::write_primitive(const mp::Value &value) {
     _out << value.via._float << ",";
     _out << SEP << "float" << port::OFF;
   }
-  else if (is_int(value.type)) {
-    _out << "0x" << std::hex << value.via._int64 << std::dec << ",";
-    _out << SEP << "int (" << value.via._int64 << ")" << port::OFF;
-  }
   else if (is_nil(value.type)) {
     _out << REPR_NIL;
+  }
+  else if (is_sint(value.type)) {
+    _out << "0x" << std::hex << value.via._int64 << std::dec << ",";
+    _out << SEP << "int (" << value.via._int64 << ")" << port::OFF;
   }
   else if (is_uint(value.type)) {
     _out << "0x" << std::hex << value.via._uint64 << std::dec << ",";
