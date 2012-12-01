@@ -48,15 +48,6 @@ namespace schwa {
     }
 
     inline bool
-    is_int(const WireType type) {
-      return type == WireType::FIXNUM_NEGATIVE ||
-             type == WireType::INT_8 ||
-             type == WireType::INT_16 ||
-             type == WireType::INT_32 ||
-             type == WireType::INT_64;
-    }
-
-    inline bool
     is_map(const WireType type) {
       return type == WireType::MAP_FIXED ||
              type == WireType::MAP_16 ||
@@ -76,12 +67,26 @@ namespace schwa {
     }
 
     inline bool
+    is_sint(const WireType type) {
+      return type == WireType::FIXNUM_NEGATIVE ||
+             type == WireType::INT_8 ||
+             type == WireType::INT_16 ||
+             type == WireType::INT_32 ||
+             type == WireType::INT_64;
+    }
+
+    inline bool
     is_uint(const WireType type) {
       return type == WireType::FIXNUM_POSITIVE ||
              type == WireType::UINT_8 ||
              type == WireType::UINT_16 ||
              type == WireType::UINT_32 ||
              type == WireType::UINT_64;
+    }
+
+    inline bool
+    is_int(const WireType type) {
+      return is_uint(type) || is_int(type);
     }
 
   }
