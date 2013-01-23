@@ -46,7 +46,7 @@ Reader::read(Doc &doc) {
       version = mp::read_uint(_in);
     if (version != WIRE_VERSION) {
       std::stringstream msg;
-      msg << "Invalid wire format version. Stream has version " << version << " but I can read " << WIRE_VERSION;
+      msg << "Invalid wire format version. Stream has version " << version << " but I can read " << WIRE_VERSION << ". Ensure the input is not plain text.";
       throw ReaderException(msg.str());
     }
   }
