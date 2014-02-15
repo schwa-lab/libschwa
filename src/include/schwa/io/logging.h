@@ -30,7 +30,7 @@ namespace schwa {
       struct LogLevelTraits<::schwa::io::LogLevel::level> { \
         static constexpr const char *const name = #level; \
         static constexpr unsigned int value = static_cast<unsigned int>(::schwa::io::LogLevel::level); \
-      };
+      }
 
     LOGLEVELTRAITS(CRITICAL);
     LOGLEVELTRAITS(ERROR);

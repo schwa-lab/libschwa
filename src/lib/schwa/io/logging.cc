@@ -2,6 +2,8 @@
 #include <schwa/io/logging.h>
 
 #include <cassert>
+#include <cstring>
+#include <ctime>
 
 #include <sys/time.h>
 
@@ -17,6 +19,7 @@ loglevel_name(const LogLevel level) {
   case LogLevel::WARNING: return LogLevelTraits<LogLevel::WARNING>::name; break;
   case LogLevel::INFO: return LogLevelTraits<LogLevel::INFO>::name; break;
   case LogLevel::DEBUG: return LogLevelTraits<LogLevel::DEBUG>::name; break;
+  default: return nullptr; break;
   }
 }
 
@@ -29,6 +32,7 @@ loglevel_value(const LogLevel level) {
   case LogLevel::WARNING: return LogLevelTraits<LogLevel::WARNING>::value; break;
   case LogLevel::INFO: return LogLevelTraits<LogLevel::INFO>::value; break;
   case LogLevel::DEBUG: return LogLevelTraits<LogLevel::DEBUG>::value; break;
+  default: return 0; break;
   }
 }
 
@@ -46,7 +50,7 @@ pretty_log_header(const LogLevel level, const char *file, const unsigned int lin
   if (len > 34) {
     file += len - 34;
   }
-  return std::snprintf(buf, buf_len, "[%19s.%06d %-8s %34s:%-5u] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum);
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %34s:%-5u] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum);
 }
 
 
