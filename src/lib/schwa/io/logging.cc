@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstring>
 #include <ctime>
+#include <iostream>
 
 #include <sys/time.h>
 
@@ -34,6 +35,12 @@ loglevel_value(const LogLevel level) {
   case LogLevel::DEBUG: return LogLevelTraits<LogLevel::DEBUG>::value; break;
   default: return 0; break;
   }
+}
+
+
+std::ostream &
+operator <<(std::ostream &out, const LogLevel level) {
+  return out << loglevel_name(level);
 }
 
 
