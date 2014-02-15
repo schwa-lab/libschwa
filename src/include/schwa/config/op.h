@@ -9,6 +9,7 @@
 
 #include <schwa/_base.h>
 #include <schwa/config/base.h>
+#include <schwa/io/logging_enums.h>
 
 namespace schwa {
   namespace config {
@@ -29,7 +30,7 @@ namespace schwa {
     public:
       virtual ~OpBase(void) { }
 
-      virtual OptionBase *find(const std::string &, const std::string &key) override;
+      virtual OptionBase *find(const std::string &orig_key, const std::string &key) override;
       virtual void set(const std::string &value) override;
       virtual void set_default(void) = 0;
       virtual void validate(void) override;
@@ -93,7 +94,7 @@ namespace schwa {
 
     class IStreamOp : public Op<std::string> {
     public:
-      static const char *const STDIN_STRING;
+      static constexpr const char *const STDIN_STRING = "<stdin>";
 
     protected:
       std::istream *_in;
@@ -110,24 +111,53 @@ namespace schwa {
       virtual ~IStreamOp(void);
 
       inline std::istream &file(void) const { return *_in; }
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(IStreamOp);
     };
 
 
     class OStreamOp : public Op<std::string> {
     public:
-      static const char *const STDOUT_STRING;
+      static constexpr const char *const STDOUT_STRING = "<stdout>";
+      static constexpr const char *const STDERR_STRING = "<stderr>";
 
     protected:
       std::ostream *_out;
-      bool _is_stdout;
+      bool _is_std;
 
       virtual void _validate(void) override;
 
     public:
-      OStreamOp(OpGroup &group, const std::string &name, const std::string &desc) : Op<std::string>(group, name, desc, STDOUT_STRING), _out(nullptr), _is_stdout(false) { }
+      OStreamOp(OpGroup &group, const std::string &name, const std::string &desc) : OStreamOp(group, name, desc, STDOUT_STRING) { }
+      OStreamOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_) :
+          Op<std::string>(group, name, desc, default_),
+          _out(nullptr),
+          _is_std(false)
+        { }
       virtual ~OStreamOp(void);
 
       inline std::ostream &file(void) const { return *_out; }
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(OStreamOp);
+    };
+
+
+    class LogLevelOp : public EnumOp<std::string> {
+    protected:
+      schwa::io::LogLevel _level;
+
+      virtual void _validate(void);
+
+    public:
+      LogLevelOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_);
+      virtual ~LogLevelOp(void);
+
+      inline schwa::io::LogLevel operator ()(void) const { return _level; }
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(LogLevelOp);
     };
 
   }

@@ -7,6 +7,8 @@
 #include <schwa/config/exception.h>
 #include <schwa/config/group.h>
 
+namespace io = schwa::io;
+
 
 namespace schwa {
 namespace config {
@@ -49,8 +51,6 @@ OpBase::validate(void) {
 // ============================================================================
 // IStreamOp
 // ============================================================================
-const char *const IStreamOp::STDIN_STRING = "<stdin>";
-
 IStreamOp::~IStreamOp(void) {
   if (!_is_stdin)
     delete _in;
@@ -75,10 +75,8 @@ IStreamOp::_validate(void) {
 // ============================================================================
 // OStreamOp
 // ============================================================================
-const char *const OStreamOp::STDOUT_STRING = "<stdout>";
-
 OStreamOp::~OStreamOp(void) {
-  if (!_is_stdout)
+  if (!_is_std)
     delete _out;
 }
 
@@ -86,15 +84,45 @@ OStreamOp::~OStreamOp(void) {
 void
 OStreamOp::_validate(void) {
   if (_value == STDOUT_STRING) {
-    _is_stdout = true;
+    _is_std = true;
     _out = &std::cout;
   }
+  else if (_value == STDERR_STRING) {
+    _is_std = true;
+    _out = &std::cerr;
+  }
   else {
-    _is_stdout = false;
+    _is_std = false;
     _out = new std::ofstream(_value);
     if (!*_out)
       throw ConfigException("Could not open file for writing", _name, _value);
   }
+}
+
+
+// ============================================================================
+// LogLevelOp
+// ============================================================================
+LogLevelOp::LogLevelOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_) :
+    EnumOp<std::string>(group, name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
+    _level(io::LogLevel::INFO)
+  { }
+
+LogLevelOp::~LogLevelOp(void) { }
+
+void
+LogLevelOp::_validate(void) {
+  EnumOp<std::string>::_validate();
+  if (_value == "critical")
+    _level = io::LogLevel::CRITICAL;
+  else if (_value == "error")
+    _level = io::LogLevel::ERROR;
+  else if (_value == "warning")
+    _level = io::LogLevel::WARNING;
+  else if (_value == "info")
+    _level = io::LogLevel::INFO;
+  else if (_value == "debug")
+    _level = io::LogLevel::DEBUG;
 }
 
 }  // namespace config
