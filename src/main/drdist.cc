@@ -70,8 +70,8 @@ drdist_source(const std::string &source_addr, const std::string &sink_addr, std:
 
   // Tell the sink how many documents to expect.
   {
-    const std::string msg = build_message(MessageType::DOCUMENT, doc_num, nullptr, 0);
-    success &= safe_zmq_send(source, msg.c_str(), msg.size(), 0);
+    const std::string msg = build_message(MessageType::DOCUMENT_COUNT, doc_num, nullptr, 0);
+    success &= safe_zmq_send(sink, msg.c_str(), msg.size(), 0);
   }
 
   // Construct the terminate transport message.
@@ -143,12 +143,12 @@ drdist_sink(const std::string &sink_addr, std::ostream &output, const bool prese
     // Act upon the received message.
     switch (msg_type) {
     case MessageType::DOCUMENT:
-      std::clog << "received document " << doc_num << " of " << doc_bytes.size() << " bytes" << std::endl;
+      LOG(DEBUG) << "received document " << doc_num << " of " << doc_bytes.size() << " bytes" << std::endl;
       break;
     case MessageType::DOCUMENT_COUNT:
-      std::clog << "count " << ndocs << std::endl;
       ndocs = doc_num;
       ndocs_known = true;
+      LOG(DEBUG) << "count " << ndocs << std::endl;
       break;
     default:
       LOG(ERROR) << "Unknown message type received: " << static_cast<uint8_t>(msg_type) << std::endl;
