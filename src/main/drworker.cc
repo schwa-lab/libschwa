@@ -3,11 +3,11 @@
 #include <cerrno>
 #include <memory>
 #include <string>
+#include <sstream>
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
 #include <schwa/drdist.h>
-#include <schwa/io/array_reader.h>
 #include <schwa/io/logging.h>
 
 #include <zmq.h>
@@ -43,8 +43,7 @@ drworker_recv(void *const source, void *const sink, const size_t init_buffer_len
       return false;
 
     // Decode the received message.
-    io::ArrayReader reader(buffer.get(), buffer_written);
-    unpack_message(reader, msg_type, doc_num, doc_bytes);
+    unpack_message(buffer.get(), buffer_written, msg_type, doc_num, doc_bytes);
 
     // Act upon the received message.
     switch (msg_type) {

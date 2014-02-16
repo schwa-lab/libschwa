@@ -9,7 +9,6 @@
 
 #include <schwa/config.h>
 #include <schwa/drdist.h>
-#include <schwa/io/array_reader.h>
 #include <schwa/io/logging.h>
 
 #include <zmq.h>
@@ -139,8 +138,7 @@ drdist_sink(const std::string &sink_addr, std::ostream &output, const bool prese
       return false;
 
     // Decode the received message.
-    io::ArrayReader reader(buffer.get(), buffer_written);
-    unpack_message(reader, msg_type, doc_num, doc_bytes);
+    unpack_message(buffer.get(), buffer_written, msg_type, doc_num, doc_bytes);
 
     // Act upon the received message.
     switch (msg_type) {

@@ -6,11 +6,13 @@
 #include <iostream>
 #include <sstream>
 
+#include <schwa/io/array_reader.h>
 #include <schwa/io/logging.h>
 #include <schwa/msgpack.h>
 
 #include <zmq.h>
 
+namespace io = schwa::io;
 namespace mp = schwa::msgpack;
 
 
@@ -107,6 +109,15 @@ build_message(const MessageType type, const uint64_t doc_num, const char *const 
   mp::write_raw(msg, doc, doc_len);
   msg.seekg(0);
   return msg.str();
+}
+
+
+void
+unpack_message(const char *const buf, const size_t buf_len, MessageType &msg_type, uint64_t &doc_num, std::string &doc) {
+  io::ArrayReader reader(buf, buf_len);
+  msg_type = static_cast<MessageType>(mp::read_uint8(reader));
+  doc_num = mp::read_uint64(reader);
+  doc = mp::read_raw(reader);
 }
 
 

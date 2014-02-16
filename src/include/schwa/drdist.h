@@ -7,7 +7,6 @@
 #include <string>
 
 #include <schwa/_base.h>
-#include <schwa/msgpack.h>
 
 namespace schwa {
   namespace drdist {
@@ -29,15 +28,7 @@ namespace schwa {
 
     std::string build_message(MessageType type, uint64_t doc_num, const std::string &doc);
     std::string build_message(MessageType type, uint64_t doc_num, const char *doc, size_t doc_len);
-
-    template <typename IN>
-    void
-    unpack_message(IN &reader, MessageType &msg_type, uint64_t &doc_num, std::string &doc) {
-      namespace mp = schwa::msgpack;
-      msg_type = static_cast<MessageType>(mp::read_uint8(reader));
-      doc_num = mp::read_uint64(reader);
-      doc = mp::read_raw(reader);
-    }
+    void        unpack_message(const char *buf, size_t buf_len, MessageType &msg_type, uint64_t &doc_num, std::string &doc);
 
     bool read_doc(std::istream &in, std::ostream &out);
 
