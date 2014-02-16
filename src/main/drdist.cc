@@ -1,144 +1,198 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <cstring>
+#include <cerrno>
 #include <condition_variable>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <thread>
-#include <vector>
 
 #include <schwa/config.h>
-#include <schwa/msgpack.h>
+#include <schwa/drdist.h>
+#include <schwa/io/array_reader.h>
+#include <schwa/io/logging.h>
 
-#include <zmq.hpp>
+#include <zmq.h>
 
 namespace cf = schwa::config;
-namespace mp = schwa::msgpack;
+namespace io = schwa::io;
 
+static volatile bool sink_created = false;
+static std::condition_variable sink_created_cv;
+static std::mutex sink_created_lock;
 
-static bool NOISY;
-static std::mutex input_lock;
-static std::mutex output_lock;
-
+namespace schwa {
+namespace drdist {
 
 static bool
-read_doc(std::istream &in, std::ostream &out) {
-  char *buf = nullptr;
-  size_t size = 0;
-
-  mp::WireType type;
-  if (in.peek() == EOF)
+drdist_source(const std::string &source_addr, const std::string &sink_addr, std::istream &input) {
+  // Prepare the ØMQ context and construct the source socket.
+  void *context, *source, *sink;
+  if (!safe_zmq_ctx_new(context))
+    return false;
+  if (!safe_zmq_socket_bind(context, source, ZMQ_PUSH, source_addr))
     return false;
 
-  // <version> (omitted in version 1)
-  if (!mp::read_lazy(in, out, type))
-    return false;
+  // Construct and connect to the sink.
+  LOG(DEBUG) << "Waiting for sink to be created..." << std::endl;
+  {
+    std::unique_lock<std::mutex> lock(sink_created_lock);
+    while (!sink_created)
+      sink_created_cv.wait(lock);
+  }
+  {
+    // Work out how to connect to the sink.
+    std::string sink_connect_addr = sink_addr;
+    size_t pos = sink_connect_addr.find("//*:");
+    if (pos != std::string::npos)
+      sink_connect_addr.replace(pos + 2, 1, "127.0.0.1");
 
-  if (mp::is_int(type)) {
-    // <klasses> header
-    if (!mp::read_lazy(in, out, type))
+    if (!safe_zmq_socket_connect(context, sink, ZMQ_PUSH, sink_connect_addr))
       return false;
   }
-  if (!mp::is_array(type))
-    return false;
 
-  // <stores> header
-  if (!mp::is_array(mp::header_type(in.peek())))
-    return false;
-  int nstores = mp::read_array_size(in);
-  mp::write_array_size(out, nstores);
-  for (int i = 0; i < nstores; ++i)
-    if (!mp::read_lazy(in, out, type))
-      return false;
+  // Read documents from the input stream and broadcast them out.
+  bool success = true;
+  uint64_t doc_num;
+  for (doc_num = 0; ; ++doc_num) {
+    LOG(DEBUG) << "Attempting to read doc_num=" << doc_num << std::endl;
+    std::stringstream doc;
+    if (!read_doc(input, doc))
+      break;
+    doc.seekg(0);
 
-  // instances (nstores + 1 size-data pairs)
-  for (; nstores >= 0; --nstores) {
-    const uint64_t nbytes = mp::read_uint(in);
-    mp::write_uint(out, nbytes);
-
-    if (nbytes > size) {
-      delete [] buf;
-      buf = new char[nbytes];
-      size = nbytes;
+    // Construct and send the transport message.
+    const std::string msg = build_message(MessageType::DOCUMENT, doc_num, doc.str());
+    if (!safe_zmq_send(source, msg.c_str(), msg.size(), 0)) {
+      success = false;
+      break;
     }
-    in.read(buf, nbytes);
-    out.write(buf, nbytes);
   }
 
-  if (buf != nullptr)
-    delete [] buf;
+  // Tell the sink how many documents to expect.
+  {
+    const std::string msg = build_message(MessageType::DOCUMENT, doc_num, nullptr, 0);
+    success &= safe_zmq_send(source, msg.c_str(), msg.size(), 0);
+  }
 
-  return true;
+  // Construct the terminate transport message.
+  const std::string msg = build_message(MessageType::TERMINATE, 0, nullptr, 0);
+
+  // While the sink has not received all documents back, tell any connecting clients to terminate.
+  while (1) {
+    // Send the transport message.
+    const int nbytes = zmq_send(source, msg.c_str(), msg.size(), 0);
+    if (nbytes == -1) {
+      LOG(CRITICAL) << "Failed to send document via the source socket: " << zmq_strerror(errno) << std::endl;
+      success = false;
+      break;
+    }
+    else if (static_cast<size_t>(nbytes) != msg.size()) {
+      LOG(CRITICAL) << "Wrong number of bytes sent on source socket (" << nbytes << " instead of " << msg.size() << ")" << std::endl;
+      success = false;
+      break;
+    }
+  }
+
+  // Close the source and sink sockets and destroy the ØMQ context.
+  success &= safe_zmq_close(sink);
+  success &= safe_zmq_close(sink);
+  success &= safe_zmq_ctx_destroy(context);
+  return success;
 }
 
 
-static void
-run_thread(zmq::context_t &context, const std::string &bind, std::istream &in, std::ostream &out) {
-  // prepare the ØMQ source socket
-  zmq::socket_t socket(context, ZMQ_REQ);
-  if (NOISY) std::cerr << "[drdist] connecting to " << bind << std::endl;
-  socket.connect(bind.c_str());
+static bool
+drdist_sink(const std::string &sink_addr, std::ostream &output, const bool preserve_order) {
+  (void)output;
+  (void)preserve_order;
 
-  zmq::message_t msg;
-  while (true) {
-    // lazily read the next document off the input stream
-    std::stringstream ss;
-    input_lock.lock();
-    const bool doc_found = read_doc(in, ss);
-    input_lock.unlock();
-    if (NOISY) std::cerr << "[drdist] doc_found=" << doc_found << std::endl;
-    if (!doc_found)
-      break;
+  // Prepare the ØMQ context and connect to the sink socket.
+  void *context, *sink;
+  if (!safe_zmq_ctx_new(context))
+    return false;
+  if (!safe_zmq_socket_bind(context, sink, ZMQ_PULL, sink_addr))
+    return false;
 
-    // if we have a document to send, send it through
-    const size_t size = ss.tellp();
-    ss.seekg(0);
-    msg.rebuild(size);
-    std::memcpy(msg.data(), ss.str().c_str(), size);
-    socket.send(msg);
-
-    // wait for the reply back
-    socket.recv(&msg);
-    if (NOISY) std::cerr << "[drdist] recv size=" << msg.size() << std::endl;
-
-    // write the contents out to the ostream
-    output_lock.lock();
-    out.write(static_cast<const char *>(msg.data()), msg.size());
-    out.flush();
-    output_lock.unlock();
+  // Tell the source that the sink socket has been created.
+  {
+    std::unique_lock<std::mutex> lock(sink_created_lock);
+    sink_created = true;
+    sink_created_cv.notify_all();
   }
 
-  if (NOISY) std::cerr << "[drdist] shutting down" << std::endl;
+  uint64_t ndocs = 0, doc_written = 0, ndocs_received = 0;
+  (void)doc_written;
+  bool ndocs_known = false;
+
+  size_t buffer_written;
+  size_t buffer_len = 2*1024*1024;  // 2MB
+  std::unique_ptr<char[]> buffer(new char[buffer_len]);
+
+  MessageType msg_type;
+  uint64_t doc_num;
+  std::string doc_bytes;
+
+  // Listen for documents to come back in until we've received all of them.
+  while (!ndocs_known || ndocs_received != ndocs) {
+    if (!recv_multipart(sink, buffer, buffer_len, buffer_written))
+      return false;
+
+    // Decode the received message.
+    io::ArrayReader reader(buffer.get(), buffer_written);
+    unpack_message(reader, msg_type, doc_num, doc_bytes);
+
+    // Act upon the received message.
+    switch (msg_type) {
+    case MessageType::DOCUMENT:
+      std::clog << "received document " << doc_num << " of " << doc_bytes.size() << " bytes" << std::endl;
+      break;
+    case MessageType::DOCUMENT_COUNT:
+      std::clog << "count " << ndocs << std::endl;
+      ndocs = doc_num;
+      ndocs_known = true;
+      break;
+    default:
+      LOG(ERROR) << "Unknown message type received: " << static_cast<uint8_t>(msg_type) << std::endl;
+      break;
+    }
+  }
+
+  // Close the sink socket and destroy the ØMQ context.
+  bool success = true;
+  success &= safe_zmq_close(sink);
+  success &= safe_zmq_ctx_destroy(context);
+  return success;
+}
+
+}
 }
 
 
 int
 main(int argc, char **argv) {
-  // construct an option parser
+  // Construct an option parser.
   cf::OpMain cfg("drdist", "A docrep parallelisation source and sink");
   cf::IStreamOp input(cfg, "input", "The input file");
   cf::OStreamOp output(cfg, "output", "The output file");
-  cf::Op<std::string> server(cfg, "server", "The network address of the server", "tcp://localhost:7300");
-  cf::Op<unsigned long> nthreads(cfg, "nthreads", "The number of threads to fire up", 8);
-  cf::Op<bool> quiet(cfg, "quiet", "Quiet mode", false);
+  cf::Op<std::string> source(cfg, "source", "The network address to send docrep documents from", "tcp://*:7301");
+  cf::Op<std::string> sink(cfg, "sink", "The network address to receive docrep documents from", "tcp://*:7302");
+  cf::Op<bool> preserve_order(cfg, "preserve_order", "Whether or not the order of documents written out should be preserved", false);
+  cf::OStreamOp log(cfg, "log", "The file to log to", cf::OStreamOp::STDERR_STRING);
+  cf::LogLevelOp log_level(cfg, "loglevel", "The level to log at", "info");
 
-  // parse argv
+  // Parse argv.
   cfg.main(argc, argv);
 
-  // extract values out of config options
-  std::istream &in = input.file();
-  std::ostream &out = output.file();
-  NOISY = !quiet();
+  // Configure logging.
+  io::default_logger = new io::PrettyLogger(log.file());
+  io::default_logger->threshold(log_level());
 
-  // prepare the ØMQ context and sockets
-  zmq::context_t context(1);
-
-  // run the threads
-  std::vector<std::thread> threads;
-  for (unsigned long i = 0; i != nthreads(); ++i)
-    threads.push_back(std::thread(&run_thread, std::ref(context), server(), std::ref(in), std::ref(out)));
-  for (auto &t : threads)
-    t.join();
+  // Run the source and sink threads.
+  std::thread source_thread(&schwa::drdist::drdist_source, source(), sink(), std::ref(input.file()));
+  std::thread sink_thread(&schwa::drdist::drdist_sink, sink(), std::ref(output.file()), preserve_order());
+  source_thread.join();
+  sink_thread.join();
 
   return 0;
 }

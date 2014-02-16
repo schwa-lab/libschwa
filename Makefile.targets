@@ -3,6 +3,7 @@ SHELL = /bin/bash
 BINARIES = \
 		bin/drdist \
 		bin/drui \
+		bin/drworker \
 		bin/tokenizer
 SHARED_LIBS = \
 		libs/libschwa.a \
@@ -25,6 +26,8 @@ DR_OBJECTS = \
 		src/lib/schwa/dr/schema.o \
 		src/lib/schwa/dr/type_info.o \
 		src/lib/schwa/dr/writer.o
+DRDIST_OBJECTS = \
+		src/lib/schwa/drdist.o
 IO_OBJECTS = \
 		src/lib/schwa/io/array_reader.o \
 		src/lib/schwa/io/file_source.o \
@@ -43,7 +46,7 @@ TOKENIZER_OBJECTS = \
 		src/lib/schwa/tokenizer/text_stream.o \
 		src/lib/schwa/tokenizer/tokenizer.o
 
-OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
 UNIT_TEST_OBJECTS = \
 		src/tests/unit_tests/main.o \
@@ -125,10 +128,13 @@ wc:
 bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -lzmq -o $@
+bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/drui: src/main/drui.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
+
+bin/drworker: src/main/drworker.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
