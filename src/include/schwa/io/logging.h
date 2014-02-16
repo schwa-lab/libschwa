@@ -2,6 +2,7 @@
 #ifndef SCHWA_IO_LOGGING_H_
 #define SCHWA_IO_LOGGING_H_
 
+#include <mutex>
 #include <ostream>
 #include <sstream>
 
@@ -20,7 +21,7 @@ namespace schwa {
 
 
     /**
-     * Base logging class, defining the API used by the LOG and LOG2 macros. Logging should
+     * Base logging class, defining the API used by the \ref LOG(level) and \ref LOG2 macros. Logging should
      * normally be instantiated by those macros.
      **/
     class Logger : public std::ostream {
@@ -41,7 +42,7 @@ namespace schwa {
     class BasicLogger : public Logger {
     public:
       class Streambuf : public std::stringbuf {
-      private:
+      protected:
         std::ostream &_ostream;
         LogLevel _threshold;
         LogLevel _level;
@@ -90,13 +91,63 @@ namespace schwa {
     };
 
 
+    class ThreadsafeBasicLogger : public Logger {
+    public:
+      class Streambuf : public BasicLogger::Streambuf {
+      protected:
+        std::mutex _lock;
+
+      public:
+        Streambuf(std::ostream &ostream, LogLevel threshold);
+        virtual ~Streambuf(void);
+
+        inline void lock(void) { _lock.lock(); }
+
+      protected:
+        virtual int sync(void) override;
+      };
+
+    protected:
+      Streambuf _streambuf;
+
+    public:
+      explicit ThreadsafeBasicLogger(std::ostream &out, LogLevel threshold=LogLevel::INFO);
+      virtual ~ThreadsafeBasicLogger(void);
+
+      inline LogLevel threshold(void) const override { return _streambuf.threshold(); }
+      inline void threshold(const LogLevel threshold) override { _streambuf.threshold(threshold); }
+
+      virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;
+    };
+
+
+    class ThreadsafePrettyLogger : public ThreadsafeBasicLogger {
+    protected:
+      char _buf[80];
+
+    public:
+      explicit ThreadsafePrettyLogger(std::ostream &out, LogLevel threshold=LogLevel::INFO);
+      virtual ~ThreadsafePrettyLogger(void);
+
+      virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;
+    };
+
+
     /**
      * Pointer to the default logger instance.
      **/
     extern Logger *default_logger;
 
 
+    /**
+     * Main macro used for logging. The argument is one of the (unqualified) `LogLevel` enum values.
+     * This then returns the default logger instance configured to log at the appropriate level.
+     * E.g. LOG(INFO) << "hello, world!" << std::endl;
+     * @see LogLevel
+     * @see default_logger
+     */
     #define LOG(level) (*::schwa::io::default_logger)(::schwa::io::LogLevel::level, __FILE__, __LINE__)
+
     #define LOG2(level, log)                      log(::schwa::io::LogLevel::level, __FILE__, __LINE__)
 
   }
