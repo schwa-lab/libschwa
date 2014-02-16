@@ -185,7 +185,7 @@ main(int argc, char **argv) {
   cfg.main(argc, argv);
 
   // Configure logging.
-  io::default_logger = new io::PrettyLogger(log.file());
+  io::default_logger = new io::ThreadsafePrettyLogger(log.file());
   io::default_logger->threshold(log_level());
 
   // Run the source and sink threads.
