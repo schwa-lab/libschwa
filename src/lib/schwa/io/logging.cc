@@ -5,6 +5,8 @@
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <sstream>
+#include <thread>
 
 #include <sys/time.h>
 
@@ -58,6 +60,31 @@ pretty_log_header(const LogLevel level, const char *file, const unsigned int lin
     file += len - 34;
   }
   return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %34s:%-5u] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum);
+}
+
+
+size_t
+pretty_log_header_threaded(const LogLevel level, const char *file, const unsigned int linenum, char *const buf, const size_t buf_len) {
+  char now_buf[20];
+  time_t now;
+  timeval now_tv;
+  gettimeofday(&now_tv, nullptr);
+  now = now_tv.tv_sec;
+
+  std::strftime(now_buf, sizeof(now_buf), "%FT%T", std::localtime(&now));  // YYYY-MM-DDTHH:mm:ss (19)
+
+  std::ostringstream thread_id_ss;
+  thread_id_ss << std::this_thread::get_id();
+  std::string thread_id = thread_id_ss.str();
+  if (thread_id.size() > 9) {
+    thread_id.resize(9);
+  }
+
+  const size_t len = std::strlen(file);
+  if (len > 24) {
+    file += len - 24;
+  }
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %-9s %24s:%-5u] ", now_buf, now_tv.tv_usec, loglevel_name(level), thread_id.c_str(), file, linenum);
 }
 
 
@@ -138,7 +165,7 @@ Logger &
 ThreadsafePrettyLogger::operator ()(const LogLevel level, const char *const file, const unsigned int linenum) {
   _streambuf.lock();
   _streambuf.level(level);
-  const size_t used = pretty_log_header(level, file, linenum, _buf, sizeof(_buf));
+  const size_t used = pretty_log_header_threaded(level, file, linenum, _buf, sizeof(_buf));
   assert(used == sizeof(_buf) - 1);
   *this << _buf;
   return *this;
