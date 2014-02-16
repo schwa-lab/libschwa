@@ -17,14 +17,48 @@ namespace dr = schwa::dr;
 namespace io = schwa::io;
 
 
+namespace {
+
+class Doc : public dr::Doc {
+public:
+  class Schema;
+};
+
+
+class Doc::Schema : public dr::Doc::Schema<Doc> {
+public:
+  Schema(void) : dr::Doc::Schema<Doc>("Doc", "Some help text about this Doc class") { }
+  virtual ~Schema(void) { }
+};
+
+
+static std::string
+process_doc(const std::string &input_doc_bytes) {
+  std::istringstream in(input_doc_bytes);
+  std::ostringstream out;
+
+  Doc::Schema schema;
+  dr::Reader reader(in, schema);
+  dr::Writer writer(out, schema);
+
+  Doc doc;
+  if (!(reader >> doc)) {
+    LOG(ERROR) << "Failed to read received document" << std::endl;
+    return "";
+  }
+
+  LOG(INFO) << "processing document " << input_doc_bytes.size() << std::endl;
+  // TODO process document
+  writer << doc;
+
+  return out.str();
+}
+
+}
+
+
 namespace schwa {
 namespace drdist {
-
-//static void
-//process_doc(dr::Doc &doc) {
-  //LOG(INFO) << "processing document " << &doc << std::endl;
-//}
-
 
 static bool
 drworker_recv(void *const source, void *const sink, const size_t init_buffer_len=2*1024*1024) {
@@ -35,6 +69,8 @@ drworker_recv(void *const source, void *const sink, const size_t init_buffer_len
   MessageType msg_type;
   uint64_t doc_num;
   std::string doc_bytes;
+
+  std::string msg;
 
   // Infinite loop for reading messages.
   bool terminate = false;
@@ -48,9 +84,13 @@ drworker_recv(void *const source, void *const sink, const size_t init_buffer_len
     // Act upon the received message.
     switch (msg_type) {
     case MessageType::DOCUMENT:
-      LOG(INFO) << "sending document number " << doc_num << " of size " << doc_bytes.size() << " back to sink " << sink << std::endl;
+      doc_bytes = process_doc(doc_bytes);
+      msg = build_message(MessageType::DOCUMENT, doc_num, doc_bytes);
+      if (!safe_zmq_send(sink, msg.c_str(), msg.size(), 0))
+        return false;
       break;
     case MessageType::TERMINATE:
+      LOG(INFO) << "Received terminate command. Shutting down..." << std::endl;
       terminate = true;
       break;
     default:
