@@ -56,10 +56,10 @@ pretty_log_header(const LogLevel level, const char *file, const unsigned int lin
 
   std::strftime(now_buf, sizeof(now_buf), "%FT%T", std::localtime(&now));  // YYYY-MM-DDTHH:mm:ss (19)
   const size_t len = std::strlen(file);
-  if (len > 34) {
-    file += len - 34;
+  if (len > 35) {
+    file += len - 35;
   }
-  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %34s:%-5u] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum);
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %35s:%-4u] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum);
 }
 
 
@@ -76,15 +76,15 @@ pretty_log_header_threaded(const LogLevel level, const char *file, const unsigne
   std::ostringstream thread_id_ss;
   thread_id_ss << std::this_thread::get_id();
   std::string thread_id = thread_id_ss.str();
-  if (thread_id.size() > 9) {
-    thread_id.resize(9);
+  if (thread_id.size() > 8) {
+    thread_id.resize(8);
   }
 
   const size_t len = std::strlen(file);
-  if (len > 24) {
-    file += len - 24;
+  if (len > 25) {
+    file += len - 25;
   }
-  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %-9s %24s:%-5u] ", now_buf, now_tv.tv_usec, loglevel_name(level), thread_id.c_str(), file, linenum);
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %25s:%-4u][%-8s] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum, thread_id.c_str());
 }
 
 
