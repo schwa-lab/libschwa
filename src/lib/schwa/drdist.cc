@@ -180,6 +180,14 @@ recv_multipart(void *const socket, std::unique_ptr<char[]> &buffer, size_t &buff
 }
 
 
+std::string
+build_socket_addr(const std::string &host, const uint32_t port) {
+  std::ostringstream ss;
+  ss << "tcp://" << host << ":" << port;
+  return ss.str();
+}
+
+
 bool
 read_doc(std::istream &in, std::ostream &out) {
   char *buf = nullptr;

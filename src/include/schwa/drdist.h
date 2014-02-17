@@ -13,8 +13,8 @@ namespace schwa {
 
     enum class MessageType : uint8_t {
       DOCUMENT = 0,
-      TERMINATE = 1,
-      DOCUMENT_COUNT = 2,
+      DOCUMENT_COUNT = 1,
+      TERMINATE = 2,
     };
 
     bool safe_zmq_close(void *socket);
@@ -29,6 +29,8 @@ namespace schwa {
     std::string build_message(MessageType type, uint64_t doc_num, const std::string &doc);
     std::string build_message(MessageType type, uint64_t doc_num, const char *doc, size_t doc_len);
     void        unpack_message(const char *buf, size_t buf_len, MessageType &msg_type, uint64_t &doc_num, std::string &doc);
+
+    std::string build_socket_addr(const std::string &host, uint32_t port);
 
     bool read_doc(std::istream &in, std::ostream &out);
 
