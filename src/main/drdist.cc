@@ -2,6 +2,8 @@
 /**
  * The parallel processing topology used here is what is described in Figure 19 of
  * http://zguide.zeromq.org/page:all#Handling-Errors-and-ETERM.
+ *
+ * \image html fig19.png
  **/
 #include <cerrno>
 #include <chrono>
@@ -176,13 +178,13 @@ main(int argc, char **argv) {
   cf::IStreamOp input(cfg, "input", "The input file");
   cf::OStreamOp output(cfg, "output", "The output file");
   cf::Op<std::string> bind_host(cfg, "bind_host", "The network hostname to bind to", "*");
-  cf::Op<uint32_t> source_port(cfg, "source", "The network port to bind to on which to push docrep documents", 7301);
-  cf::Op<uint32_t> sink_port(cfg, "sink", "The network port to bind to on which to pull docrep documents", 7302);
-  cf::Op<uint32_t> control_port(cfg, "control", "The network port to bind to on which to publish control messages", 7303);
+  cf::Op<uint32_t> source_port(cfg, "source_port", "The network port to bind to on which to push docrep documents", 7301);
+  cf::Op<uint32_t> sink_port(cfg, "sink_port", "The network port to bind to on which to pull docrep documents", 7302);
+  cf::Op<uint32_t> control_port(cfg, "control_port", "The network port to bind to on which to publish control messages", 7303);
   cf::Op<bool> preserve_order(cfg, "preserve_order", "Whether or not the order of documents written out should be preserved", true);
   cf::Op<bool> kill_clients(cfg, "kill_clients", "Whether or not to instruct the clients to terminate once all of the documents have been processed", true);
   cf::OStreamOp log(cfg, "log", "The file to log to", cf::OStreamOp::STDERR_STRING);
-  cf::LogLevelOp log_level(cfg, "loglevel", "The level to log at", "info");
+  cf::LogLevelOp log_level(cfg, "log_level", "The level to log at", "info");
 
   // Parse argv.
   cfg.main(argc, argv);

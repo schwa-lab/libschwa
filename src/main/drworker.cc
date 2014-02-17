@@ -159,11 +159,11 @@ main(int argc, char **argv) {
   // Construct an option parser.
   cf::OpMain cfg("drworker", "A docrep parallelisation worker");
   cf::Op<std::string> host(cfg, "host", "The network host to connect to", "127.0.0.1");
-  cf::Op<uint32_t> source_port(cfg, "source", "The network port to bind to on which to pull docrep documents", 7301);
-  cf::Op<uint32_t> sink_port(cfg, "sink", "The network port to bind to on which to push docrep documents", 7302);
-  cf::Op<uint32_t> control_port(cfg, "control", "The network port to bind to on which to subscribe to control messages", 7303);
+  cf::Op<uint32_t> source_port(cfg, "source_port", "The network port to bind to on which to pull docrep documents", 7301);
+  cf::Op<uint32_t> sink_port(cfg, "sink_port", "The network port to bind to on which to push docrep documents", 7302);
+  cf::Op<uint32_t> control_port(cfg, "control_port", "The network port to bind to on which to subscribe to control messages", 7303);
   cf::OStreamOp log(cfg, "log", "The file to log to", cf::OStreamOp::STDERR_STRING);
-  cf::LogLevelOp log_level(cfg, "loglevel", "The level to log at", "info");
+  cf::LogLevelOp log_level(cfg, "log_level", "The level to log at", "info");
 
   // Parse argv.
   cfg.main(argc, argv);
