@@ -1,130 +1,129 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <schwa/dr.h>
 
-namespace dr = schwa::dr;
 
-
-namespace schwatest {
+namespace schwa {
+namespace dr {
 
 SUITE(schwa__dr__lazy) {
 
 TEST(lazy_test0) {
-  class A : public dr::Ann {
+  class A : public Ann {
   public:
     std::string v_str;
     uint8_t v_uint8;
     bool v_bool;
 
-    A(void) : dr::Ann(), v_uint8(0), v_bool(false) { }
+    A(void) : Ann(), v_uint8(0), v_bool(false) { }
 
     class Schema;
   };
 
 
-  class B : public dr::Ann {
+  class B : public Ann {
   public:
     std::string word;
     std::string upper;
     bool is_first;
 
-    B(void) : dr::Ann(), is_first(false) { }
+    B(void) : Ann(), is_first(false) { }
 
     class Schema;
   };
 
 
-  class DocA : public dr::Doc {
+  class DocA : public Doc {
   public:
-    dr::Store<A> as;
+    Store<A> as;
 
     class Schema;
   };
 
 
-  class DocB : public dr::Doc {
+  class DocB : public Doc {
   public:
-    dr::Store<B> bs;
+    Store<B> bs;
 
     class Schema;
   };
 
 
-  class DocAB : public dr::Doc {
+  class DocAB : public Doc {
   public:
-    dr::Store<A> as;
-    dr::Store<B> bs;
+    Store<A> as;
+    Store<B> bs;
 
     class Schema;
   };
 
 
-  class A::Schema : public dr::Ann::Schema<A> {
+  class A::Schema : public Ann::Schema<A> {
   public:
     DR_FIELD(&A::v_str) v_str;
     DR_FIELD(&A::v_uint8) v_uint8;
     DR_FIELD(&A::v_bool) v_bool;
 
     Schema(void) :
-      dr::Ann::Schema<A>("A", "Some text about A"),
-      v_str(*this, "v_str", "some text about v_str", dr::FieldMode::READ_WRITE),
-      v_uint8(*this, "v_uint8", "some text about v_uint8", dr::FieldMode::READ_WRITE),
-      v_bool(*this, "v_bool", "some text about v_bool", dr::FieldMode::READ_WRITE)
+      Ann::Schema<A>("A", "Some text about A"),
+      v_str(*this, "v_str", "some text about v_str", FieldMode::READ_WRITE),
+      v_uint8(*this, "v_uint8", "some text about v_uint8", FieldMode::READ_WRITE),
+      v_bool(*this, "v_bool", "some text about v_bool", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class B::Schema : public dr::Ann::Schema<B> {
+  class B::Schema : public Ann::Schema<B> {
   public:
     DR_FIELD(&B::word) word;
     DR_FIELD(&B::upper) upper;
     DR_FIELD(&B::is_first) is_first;
 
     Schema(void) :
-      dr::Ann::Schema<B>("B", "Some text about B"),
-      word(*this, "word", "some text about word", dr::FieldMode::READ_ONLY),
-      upper(*this, "upper", "some text about upper", dr::FieldMode::READ_WRITE),
-      is_first(*this, "is_first", "some text about is_first", dr::FieldMode::READ_ONLY)
+      Ann::Schema<B>("B", "Some text about B"),
+      word(*this, "word", "some text about word", FieldMode::READ_ONLY),
+      upper(*this, "upper", "some text about upper", FieldMode::READ_WRITE),
+      is_first(*this, "is_first", "some text about is_first", FieldMode::READ_ONLY)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class DocA::Schema : public dr::Doc::Schema<DocA> {
+  class DocA::Schema : public Doc::Schema<DocA> {
   public:
     DR_STORE(&DocA::as) as;
 
     Schema(void) :
-      dr::Doc::Schema<DocA>("DocA", "Some text about DocA"),
-      as(*this, "as", "some text about as", dr::FieldMode::READ_WRITE)
+      Doc::Schema<DocA>("DocA", "Some text about DocA"),
+      as(*this, "as", "some text about as", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class DocB::Schema : public dr::Doc::Schema<DocB> {
+  class DocB::Schema : public Doc::Schema<DocB> {
   public:
     DR_STORE(&DocB::bs) bs;
 
     Schema(void) :
-      dr::Doc::Schema<DocB>("DocB", "Some text about DocB"),
-      bs(*this, "bs", "some text about bs", dr::FieldMode::READ_WRITE)
+      Doc::Schema<DocB>("DocB", "Some text about DocB"),
+      bs(*this, "bs", "some text about bs", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class DocAB::Schema : public dr::Doc::Schema<DocAB> {
+  class DocAB::Schema : public Doc::Schema<DocAB> {
   public:
     DR_STORE(&DocAB::as) as;
     DR_STORE(&DocAB::bs) bs;
 
     Schema(void) :
-      dr::Doc::Schema<DocAB>("DocAB", "Some text about DocAB"),
-      as(*this, "as", "some text about as", dr::FieldMode::READ_ONLY),
-      bs(*this, "bs", "some text about bs", dr::FieldMode::READ_ONLY)
+      Doc::Schema<DocAB>("DocAB", "Some text about DocAB"),
+      as(*this, "as", "some text about as", FieldMode::READ_ONLY),
+      bs(*this, "bs", "some text about bs", FieldMode::READ_ONLY)
       { }
     virtual ~Schema(void) { }
   };
@@ -166,7 +165,7 @@ TEST(lazy_test0) {
 
   DocA doc0;
   DocA::Schema schema0;
-  dr::Writer writer0(stream0, schema0);
+  Writer writer0(stream0, schema0);
 
   doc0.as.create(NWORDS);
   for (uint8_t i = 0; i != NWORDS; ++i) {
@@ -184,8 +183,8 @@ TEST(lazy_test0) {
   schema1_in.types<B>().serial = "A";
   schema1_in.types<B>().word.serial = "v_str";
   schema1_in.types<B>().is_first.serial = "v_bool";
-  dr::Reader reader1(stream0, schema1_in);
-  dr::Writer writer1(stream1, schema1_out);
+  Reader reader1(stream0, schema1_in);
+  Writer writer1(stream1, schema1_out);
 
   unsigned int ndocs_read1 = 0;
   while (true) {
@@ -235,7 +234,7 @@ TEST(lazy_test0) {
   schema2.types<A>().serial = "B";
   schema2.types<A>().v_str.serial = "word";
   schema2.types<A>().v_bool.serial = "is_first";
-  dr::Reader reader2(stream1, schema2);
+  Reader reader2(stream1, schema2);
 
   unsigned int ndocs_read2 = 0;
   while (true) {
@@ -272,120 +271,120 @@ TEST(lazy_test0) {
 
 
 TEST(lazy_test1) {
-  class A : public dr::Ann {
+  class A : public Ann {
   public:
     std::string v_str;
     uint8_t v_uint8;
     bool v_bool;
 
-    A(void) : dr::Ann(), v_uint8(0), v_bool(false) { }
+    A(void) : Ann(), v_uint8(0), v_bool(false) { }
 
     class Schema;
   };
 
 
-  class B : public dr::Ann {
+  class B : public Ann {
   public:
     std::string word;
     std::string upper;
     bool is_first;
 
-    B(void) : dr::Ann(), is_first(false) { }
+    B(void) : Ann(), is_first(false) { }
 
     class Schema;
   };
 
 
-  class DocA : public dr::Doc {
+  class DocA : public Doc {
   public:
-    dr::Store<A> as;
+    Store<A> as;
 
     class Schema;
   };
 
 
-  class DocB : public dr::Doc {
+  class DocB : public Doc {
   public:
-    dr::Store<B> bs;
+    Store<B> bs;
 
     class Schema;
   };
 
 
-  class DocAB : public dr::Doc {
+  class DocAB : public Doc {
   public:
-    dr::Store<A> as;
-    dr::Store<B> bs;
+    Store<A> as;
+    Store<B> bs;
 
     class Schema;
   };
 
 
-  class A::Schema : public dr::Ann::Schema<A> {
+  class A::Schema : public Ann::Schema<A> {
   public:
     DR_FIELD(&A::v_str) v_str;
     DR_FIELD(&A::v_uint8) v_uint8;
     DR_FIELD(&A::v_bool) v_bool;
 
     Schema(void) :
-      dr::Ann::Schema<A>("A", "Some text about A"),
-      v_str(*this, "v_str", "some text about v_str", dr::FieldMode::READ_WRITE),
-      v_uint8(*this, "v_uint8", "some text about v_uint8", dr::FieldMode::READ_WRITE),
-      v_bool(*this, "v_bool", "some text about v_bool", dr::FieldMode::READ_WRITE)
+      Ann::Schema<A>("A", "Some text about A"),
+      v_str(*this, "v_str", "some text about v_str", FieldMode::READ_WRITE),
+      v_uint8(*this, "v_uint8", "some text about v_uint8", FieldMode::READ_WRITE),
+      v_bool(*this, "v_bool", "some text about v_bool", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class B::Schema : public dr::Ann::Schema<B> {
+  class B::Schema : public Ann::Schema<B> {
   public:
     DR_FIELD(&B::word) word;
     DR_FIELD(&B::upper) upper;
     DR_FIELD(&B::is_first) is_first;
 
     Schema(void) :
-      dr::Ann::Schema<B>("B", "Some text about B"),
-      word(*this, "word", "some text about word", dr::FieldMode::READ_WRITE),
-      upper(*this, "upper", "some text about upper", dr::FieldMode::READ_WRITE),
-      is_first(*this, "is_first", "some text about is_first", dr::FieldMode::READ_WRITE)
+      Ann::Schema<B>("B", "Some text about B"),
+      word(*this, "word", "some text about word", FieldMode::READ_WRITE),
+      upper(*this, "upper", "some text about upper", FieldMode::READ_WRITE),
+      is_first(*this, "is_first", "some text about is_first", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class DocA::Schema : public dr::Doc::Schema<DocA> {
+  class DocA::Schema : public Doc::Schema<DocA> {
   public:
     DR_STORE(&DocA::as) as;
 
     Schema(void) :
-      dr::Doc::Schema<DocA>("DocA", "Some text about DocA"),
-      as(*this, "as", "some text about as", dr::FieldMode::READ_WRITE)
+      Doc::Schema<DocA>("DocA", "Some text about DocA"),
+      as(*this, "as", "some text about as", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class DocB::Schema : public dr::Doc::Schema<DocB> {
+  class DocB::Schema : public Doc::Schema<DocB> {
   public:
     DR_STORE(&DocB::bs) bs;
 
     Schema(void) :
-      dr::Doc::Schema<DocB>("DocB", "Some text about DocB"),
-      bs(*this, "bs", "some text about bs", dr::FieldMode::READ_WRITE)
+      Doc::Schema<DocB>("DocB", "Some text about DocB"),
+      bs(*this, "bs", "some text about bs", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class DocAB::Schema : public dr::Doc::Schema<DocAB> {
+  class DocAB::Schema : public Doc::Schema<DocAB> {
   public:
     DR_STORE(&DocAB::as) as;
     DR_STORE(&DocAB::bs) bs;
 
     Schema(void) :
-      dr::Doc::Schema<DocAB>("DocAB", "Some text about DocAB"),
-      as(*this, "as", "some text about as", dr::FieldMode::READ_ONLY),
-      bs(*this, "bs", "some text about bs", dr::FieldMode::READ_ONLY)
+      Doc::Schema<DocAB>("DocAB", "Some text about DocAB"),
+      as(*this, "as", "some text about as", FieldMode::READ_ONLY),
+      bs(*this, "bs", "some text about bs", FieldMode::READ_ONLY)
       { }
     virtual ~Schema(void) { }
   };
@@ -432,7 +431,7 @@ TEST(lazy_test1) {
 
   DocA doc0;
   DocA::Schema schema0;
-  dr::Writer writer0(stream0, schema0);
+  Writer writer0(stream0, schema0);
 
   doc0.as.create(NWORDS);
   for (uint8_t i = 0; i != NWORDS; ++i) {
@@ -446,8 +445,8 @@ TEST(lazy_test1) {
   CHECK_COMPARE_BYTES3(stream0_expected, sizeof(stream0_expected)/sizeof(uint8_t), stream0.str());
 
   DocB::Schema schema1;
-  dr::Reader reader1(stream0, schema1);
-  dr::Writer writer1(stream1, schema1);
+  Reader reader1(stream0, schema1);
+  Writer writer1(stream1, schema1);
 
   unsigned int ndocs_read1 = 0;
   while (true) {
@@ -476,7 +475,7 @@ TEST(lazy_test1) {
   CHECK_COMPARE_BYTES3(stream1_expected, sizeof(stream1_expected)/sizeof(uint8_t), stream1.str());
 
   DocAB::Schema schema2;
-  dr::Reader reader2(stream1, schema2);
+  Reader reader2(stream1, schema2);
 
   unsigned int ndocs_read2 = 0;
   while (true) {
@@ -508,15 +507,15 @@ static void
 check_unchanged(std::stringstream &stream0) {
   // Reads from stream0 into a document where all data is kept lazily
   // then ensures that writing the document replicates stream0's content
-  class DocA : public dr::Doc {
+  class DocA : public Doc {
   public:
     class Schema;
   };
 
-  class DocA::Schema : public dr::Doc::Schema<DocA> {
+  class DocA::Schema : public Doc::Schema<DocA> {
   public:
     Schema(void) :
-      dr::Doc::Schema<DocA>("DocA", "Some text about DocA")
+      Doc::Schema<DocA>("DocA", "Some text about DocA")
       { }
     virtual ~Schema(void) { }
   };
@@ -525,9 +524,9 @@ check_unchanged(std::stringstream &stream0) {
 
   DocA doc;
   DocA::Schema schema;
-  dr::Reader reader(stream0, schema);
+  Reader reader(stream0, schema);
   reader >> doc;
-  dr::Writer writer(stream1, schema);
+  Writer writer(stream1, schema);
   writer << doc;
 
   CHECK_COMPARE_BYTES2(stream0.str(), stream1.str());
@@ -555,4 +554,5 @@ TEST(lazy_test_pointer_to_0) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace dr
+}  // namespace schwa

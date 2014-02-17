@@ -1,30 +1,30 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <schwa/dr.h>
 
-namespace dr = schwa::dr;
 namespace mp = schwa::msgpack;
 
 
-namespace schwatest {
+namespace schwa {
+namespace dr {
 
 namespace {
 
-class DocWithField : public dr::Doc {
+class DocWithField : public Doc {
 public:
   std::string name;
 
   class Schema;
 };
 
-class DocWithField::Schema : public dr::Doc::Schema<DocWithField> {
+class DocWithField::Schema : public Doc::Schema<DocWithField> {
 public:
   DR_FIELD(&DocWithField::name) name;
 
   Schema(void) :
-    dr::Doc::Schema<DocWithField>("Doc", "Some help text about this Doc class"),
-    name(*this, "name", "some help text about name", dr::FieldMode::READ_WRITE, "name")
+    Doc::Schema<DocWithField>("Doc", "Some help text about this Doc class"),
+    name(*this, "name", "some help text about name", FieldMode::READ_WRITE, "name")
     { }
   virtual ~Schema(void) { }
 };
@@ -32,20 +32,20 @@ public:
 
 // ============================================================================
 // ============================================================================
-class DocWithFieldWithSerial : public dr::Doc {
+class DocWithFieldWithSerial : public Doc {
 public:
   std::string name;
 
   class Schema;
 };
 
-class DocWithFieldWithSerial::Schema : public dr::Doc::Schema<DocWithFieldWithSerial> {
+class DocWithFieldWithSerial::Schema : public Doc::Schema<DocWithFieldWithSerial> {
 public:
   DR_FIELD(&DocWithFieldWithSerial::name) name;
 
   Schema(void) :
-    dr::Doc::Schema<DocWithFieldWithSerial>("Doc", "Some help text about this Doc class"),
-    name(*this, "name", "some help text about name", dr::FieldMode::READ_WRITE, "filename")
+    Doc::Schema<DocWithFieldWithSerial>("Doc", "Some help text about this Doc class"),
+    name(*this, "name", "some help text about name", FieldMode::READ_WRITE, "filename")
     { }
   virtual ~Schema(void) { }
 };
@@ -53,7 +53,7 @@ public:
 
 // ============================================================================
 // ============================================================================
-class A : public dr::Ann {
+class A : public Ann {
 public:
   std::string v_str;
   uint8_t v_uint8;
@@ -64,16 +64,16 @@ public:
   class Schema;
 };
 
-class Y : public dr::Ann {
+class Y : public Ann {
 public:
-  dr::Pointer<A> p;
+  Pointer<A> p;
 
   class Schema;
 };
 
-class Z : public dr::Ann {
+class Z : public Ann {
 public:
-  dr::Pointer<A> p;
+  Pointer<A> p;
   bool value;
 
   Z(void) : value(false) { }
@@ -81,83 +81,83 @@ public:
   class Schema;
 };
 
-class DocWithA : public dr::Doc {
+class DocWithA : public Doc {
 public:
-  dr::Store<A> as;
+  Store<A> as;
 
   class Schema;
 };
 
-class DocWithAYZ : public dr::Doc {
+class DocWithAYZ : public Doc {
 public:
-  dr::Store<A> as;
-  dr::Store<Y> ys;
-  dr::Store<Z> zs;
+  Store<A> as;
+  Store<Y> ys;
+  Store<Z> zs;
 
   class Schema;
 };
 
-class DocWithA::Schema : public dr::Doc::Schema<DocWithA> {
+class DocWithA::Schema : public Doc::Schema<DocWithA> {
 public:
   DR_STORE(&DocWithA::as) as;
 
   Schema(void) :
-    dr::Doc::Schema<DocWithA>("Doc", "Some help text about this Doc class"),
-    as(*this, "as", "some help text about as", dr::FieldMode::READ_WRITE, "as")
+    Doc::Schema<DocWithA>("Doc", "Some help text about this Doc class"),
+    as(*this, "as", "some help text about as", FieldMode::READ_WRITE, "as")
     { }
   virtual ~Schema(void) { }
 };
 
-class DocWithAYZ::Schema : public dr::Doc::Schema<DocWithAYZ> {
+class DocWithAYZ::Schema : public Doc::Schema<DocWithAYZ> {
 public:
   DR_STORE(&DocWithAYZ::as) as;
   DR_STORE(&DocWithAYZ::ys) ys;
   DR_STORE(&DocWithAYZ::zs) zs;
 
   Schema(void) :
-    dr::Doc::Schema<DocWithAYZ>("Doc", "Some help text about this Doc class"),
-    as(*this, "as", "some help text about as", dr::FieldMode::READ_WRITE, "as"),
-    ys(*this, "ys", "some help text about ys", dr::FieldMode::READ_WRITE, "ys"),
-    zs(*this, "zs", "some help text about zs", dr::FieldMode::READ_WRITE, "zs")
+    Doc::Schema<DocWithAYZ>("Doc", "Some help text about this Doc class"),
+    as(*this, "as", "some help text about as", FieldMode::READ_WRITE, "as"),
+    ys(*this, "ys", "some help text about ys", FieldMode::READ_WRITE, "ys"),
+    zs(*this, "zs", "some help text about zs", FieldMode::READ_WRITE, "zs")
     { }
   virtual ~Schema(void) { }
 };
 
-class A::Schema : public dr::Ann::Schema<A> {
+class A::Schema : public Ann::Schema<A> {
 public:
   DR_FIELD(&A::v_str) v_str;
   DR_FIELD(&A::v_uint8) v_uint8;
   DR_FIELD(&A::v_bool) v_bool;
 
   Schema(void) :
-    dr::Ann::Schema<A>("A", "Some help text about A", "A"),
-    v_str(*this, "v_str", "some help text about v_str", dr::FieldMode::READ_WRITE, "v_str"),
-    v_uint8(*this, "v_uint8", "some help text about v_uint8", dr::FieldMode::READ_WRITE, "v_uint8"),
-    v_bool(*this, "v_bool", "some help text about v_bool", dr::FieldMode::READ_WRITE, "v_bool")
+    Ann::Schema<A>("A", "Some help text about A", "A"),
+    v_str(*this, "v_str", "some help text about v_str", FieldMode::READ_WRITE, "v_str"),
+    v_uint8(*this, "v_uint8", "some help text about v_uint8", FieldMode::READ_WRITE, "v_uint8"),
+    v_bool(*this, "v_bool", "some help text about v_bool", FieldMode::READ_WRITE, "v_bool")
     { }
   virtual ~Schema(void) { }
 };
 
-class Y::Schema : public dr::Ann::Schema<Y> {
+class Y::Schema : public Ann::Schema<Y> {
 public:
   DR_POINTER(&Y::p, &DocWithAYZ::as) p;
 
   Schema(void) :
-    dr::Ann::Schema<Y>("Y", "Some help text about Y", "Y"),
-    p(*this, "p", "some help text about p", dr::FieldMode::READ_WRITE, "p")
+    Ann::Schema<Y>("Y", "Some help text about Y", "Y"),
+    p(*this, "p", "some help text about p", FieldMode::READ_WRITE, "p")
     { }
   virtual ~Schema(void) { }
 };
 
-class Z::Schema : public dr::Ann::Schema<Z> {
+class Z::Schema : public Ann::Schema<Z> {
 public:
   DR_POINTER(&Z::p, &DocWithAYZ::as) p;
   DR_FIELD(&Z::value) value;
 
   Schema(void) :
-    dr::Ann::Schema<Z>("Z", "Some help text about Z", "Z"),
-    p(*this, "p", "some help text about p", dr::FieldMode::READ_WRITE, "p"),
-    value(*this, "value", "some help text about value", dr::FieldMode::READ_WRITE, "value")
+    Ann::Schema<Z>("Z", "Some help text about Z", "Z"),
+    p(*this, "p", "some help text about p", FieldMode::READ_WRITE, "p"),
+    value(*this, "value", "some help text about value", FieldMode::READ_WRITE, "value")
     { }
   virtual ~Schema(void) { }
 };
@@ -186,7 +186,7 @@ TEST(DocWithField__name_is_null) {
 
   DocWithField *doc = nullptr;
   DocWithField::Schema schema;
-  dr::Reader reader(correct, schema);
+  Reader reader(correct, schema);
 
   doc = new DocWithField();
   reader >> *doc;
@@ -218,7 +218,7 @@ TEST(DocWithField__name) {
 
   DocWithField *doc = nullptr;
   DocWithField::Schema schema;
-  dr::Reader reader(correct, schema);
+  Reader reader(correct, schema);
 
   doc = new DocWithField();
   reader >> *doc;
@@ -249,7 +249,7 @@ TEST(DocWithFieldWithSerial__name_is_null) {
 
   DocWithFieldWithSerial *doc = nullptr;
   DocWithFieldWithSerial::Schema schema;
-  dr::Reader reader(correct, schema);
+  Reader reader(correct, schema);
 
   doc = new DocWithFieldWithSerial();
   reader >> *doc;
@@ -281,7 +281,7 @@ TEST(DocWithFieldWithSerial__name) {
 
   DocWithFieldWithSerial *doc = nullptr;
   DocWithFieldWithSerial::Schema schema;
-  dr::Reader reader(correct, schema);
+  Reader reader(correct, schema);
 
   doc = new DocWithFieldWithSerial();
   reader >> *doc;
@@ -329,7 +329,7 @@ TEST(DocWithA__empty) {
   schema.types<A>().serial = "writer.A";
 
   DocWithA *doc = nullptr;
-  dr::Reader reader(correct, schema);
+  Reader reader(correct, schema);
 
   doc = new DocWithA();
   reader >> *doc;
@@ -380,7 +380,7 @@ TEST(DocWithA__four_elements) {
   schema.types<A>().serial = "writer.A";
 
   DocWithA *doc = nullptr;
-  dr::Reader reader(correct, schema);
+  Reader reader(correct, schema);
 
   doc = new DocWithA();
   reader >> *doc;
@@ -408,4 +408,5 @@ TEST(DocWithA__four_elements) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace dr
+}  // namespace schwa

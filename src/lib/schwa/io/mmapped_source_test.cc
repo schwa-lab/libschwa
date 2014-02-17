@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <fstream>
 #include <iostream>
@@ -7,10 +7,9 @@
 
 #include <schwa/io/mmapped_source.h>
 
-namespace io = schwa::io;
 
-
-namespace schwatest {
+namespace schwa {
+namespace io {
 
 SUITE(schwa__io__mmapped_source) {
 
@@ -26,7 +25,7 @@ TEST(test_etc_passwd) {
   fin.read(buffer.get(), size);
   fin.close();
 
-  io::MMappedSource src(filename);
+  MMappedSource src(filename);
   CHECK_EQUAL(src.size(), size);
   CHECK(src.data() != static_cast<void *>(nullptr));
 
@@ -35,4 +34,5 @@ TEST(test_etc_passwd) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace io
+}  // namespace schwa

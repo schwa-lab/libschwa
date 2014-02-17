@@ -1,63 +1,62 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <schwa/dr.h>
 
-namespace dr = schwa::dr;
 
-
-namespace schwatest {
+namespace schwa {
+namespace dr {
 
 SUITE(schwa__dr__self_pointer) {
 
 TEST(self_pointer0) {
-  class X : public dr::Ann {
+  class X : public Ann {
   public:
-    dr::Pointer<X> parent;
-    dr::Pointer<X> other;
+    Pointer<X> parent;
+    Pointer<X> other;
 
     class Schema;
   };
 
 
-  class Doc : public dr::Doc {
+  class TestDoc : public Doc {
   public:
-    dr::Store<X> xs1;
-    dr::Store<X> xs2;
+    Store<X> xs1;
+    Store<X> xs2;
 
     class Schema;
   };
 
 
-  class X::Schema : public dr::Ann::Schema<X> {
+  class X::Schema : public Ann::Schema<X> {
   public:
     DR_SELF(&X::parent) parent;
-    DR_POINTER(&X::other, &Doc::xs2) other;
+    DR_POINTER(&X::other, &TestDoc::xs2) other;
 
     Schema(void) :
-      dr::Ann::Schema<X>("X", "Some text about X"),
-      parent(*this, "parent", "parent", dr::FieldMode::READ_WRITE),
-      other(*this, "other", "other", dr::FieldMode::READ_WRITE)
+      Ann::Schema<X>("X", "Some text about X"),
+      parent(*this, "parent", "parent", FieldMode::READ_WRITE),
+      other(*this, "other", "other", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class Doc::Schema : public dr::Doc::Schema<Doc> {
+  class TestDoc::Schema : public Doc::Schema<TestDoc> {
   public:
-    DR_STORE(&Doc::xs1) xs1;
-    DR_STORE(&Doc::xs2) xs2;
+    DR_STORE(&TestDoc::xs1) xs1;
+    DR_STORE(&TestDoc::xs2) xs2;
 
     Schema(void) :
-      dr::Doc::Schema<Doc>("Doc", "Some text about Doc"),
-      xs1(*this, "xs1", "some text about xs1", dr::FieldMode::READ_WRITE),
-      xs2(*this, "xs2", "some text about xs2", dr::FieldMode::READ_WRITE)
+      Doc::Schema<TestDoc>("TestDoc", "Some text about TestDoc"),
+      xs1(*this, "xs1", "some text about xs1", FieldMode::READ_WRITE),
+      xs2(*this, "xs2", "some text about xs2", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  Doc doc0;
+  TestDoc doc0;
   doc0.xs1.create(3);
   doc0.xs2.create(2);
 
@@ -72,8 +71,8 @@ TEST(self_pointer0) {
   doc0.xs2[1].other.ptr = &doc0.xs2[0];
 
   std::stringstream stream, correct;
-  Doc::Schema schema;
-  dr::Writer writer(stream, schema);
+  TestDoc::Schema schema;
+  Writer writer(stream, schema);
   writer << doc0;
 
   correct << '\x02';
@@ -107,8 +106,8 @@ TEST(self_pointer0) {
 
   CHECK_COMPARE_BYTES2(correct.str(), stream.str());
 
-  Doc doc1;
-  dr::Reader reader(stream, schema);
+  TestDoc doc1;
+  Reader reader(stream, schema);
   reader >> doc1;
 
   CHECK_EQUAL(3, doc1.xs1.size());
@@ -127,4 +126,5 @@ TEST(self_pointer0) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace dr
+}  // namespace schwa

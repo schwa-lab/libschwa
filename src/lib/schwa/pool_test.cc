@@ -1,17 +1,15 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <schwa/pool.h>
 
-namespace s = schwa;
 
-
-namespace schwatest {
+namespace schwa {
 
 SUITE(schwa__pool) {
 
 TEST(test) {
-  s::Pool p(64);
+  Pool p(64);
   CHECK_EQUAL(1, p.nblocks());
   CHECK_EQUAL(64, p.allocd());
   CHECK_EQUAL(0, p.used());
@@ -49,4 +47,4 @@ TEST(test) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace schwa

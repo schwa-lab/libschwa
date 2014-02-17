@@ -1,29 +1,28 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <schwa/io/write_buffer.h>
 
-namespace io = schwa::io;
 
-
-namespace schwatest {
+namespace schwa {
+namespace io {
 
 SUITE(schwa__io__write_buffer) {
 
 TEST(test_construction_default) {
-  io::WriteBuffer b;
+  WriteBuffer b;
   CHECK_EQUAL(0, b.size());
-  CHECK_EQUAL(io::WriteBuffer::DEFAULT_NBLOCKS, b.nblocks());
-  CHECK_EQUAL(io::WriteBuffer::DEFAULT_BLOCK_SIZE, b.block_size());
+  CHECK_EQUAL(WriteBuffer::DEFAULT_NBLOCKS, b.nblocks());
+  CHECK_EQUAL(WriteBuffer::DEFAULT_BLOCK_SIZE, b.block_size());
   CHECK_EQUAL(0, b.block_upto());
-  CHECK_EQUAL(io::WriteBuffer::DEFAULT_NPOOLS, b.npools());
-  CHECK_EQUAL(io::WriteBuffer::DEFAULT_POOL_SIZE, b.pool_size());
+  CHECK_EQUAL(WriteBuffer::DEFAULT_NPOOLS, b.npools());
+  CHECK_EQUAL(WriteBuffer::DEFAULT_POOL_SIZE, b.pool_size());
   CHECK_EQUAL(0, b.pool_upto());
 }
 
 
 TEST(test_construction_custom) {
-  io::WriteBuffer b(4, 1, 8, 2);
+  WriteBuffer b(4, 1, 8, 2);
   CHECK_EQUAL(0, b.size());
   CHECK_EQUAL(1, b.nblocks());
   CHECK_EQUAL(4, b.block_size());
@@ -35,7 +34,7 @@ TEST(test_construction_custom) {
 
 
 TEST(test_put) {
-  io::WriteBuffer b(4, 1, 8, 2);
+  WriteBuffer b(4, 1, 8, 2);
 
   b.put('0');
   b.put('1');
@@ -106,7 +105,7 @@ TEST(test_put) {
 
 
 TEST(test_copyto) {
-  io::WriteBuffer b(4, 1, 8, 2);
+  WriteBuffer b(4, 1, 8, 2);
   for (char c = 'a'; c <= 'z'; ++c)
     b.put(c);
 
@@ -117,11 +116,11 @@ TEST(test_copyto) {
 
 
 TEST(test_copyfrom) {
-  io::WriteBuffer b1(4, 1, 8, 2);
+  WriteBuffer b1(4, 1, 8, 2);
   for (char c = 'a'; c <= 'z'; ++c)
     b1.put(c);
 
-  io::WriteBuffer b2;
+  WriteBuffer b2;
   b2.write("XXXXX", 5);
   b2.copy_from(b1);
   b2.write("YYYY", 4);
@@ -134,4 +133,5 @@ TEST(test_copyfrom) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace io
+}  // namespace schwa

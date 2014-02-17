@@ -26,8 +26,6 @@ DR_OBJECTS = \
 		src/lib/schwa/dr/schema.o \
 		src/lib/schwa/dr/type_info.o \
 		src/lib/schwa/dr/writer.o
-DRDIST_OBJECTS = \
-		src/lib/schwa/drdist.o
 IO_OBJECTS = \
 		src/lib/schwa/io/array_reader.o \
 		src/lib/schwa/io/file_source.o \
@@ -46,28 +44,31 @@ TOKENIZER_OBJECTS = \
 		src/lib/schwa/tokenizer/text_stream.o \
 		src/lib/schwa/tokenizer/tokenizer.o
 
-OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+
+DRDIST_OBJECTS = \
+		src/lib/schwa/drdist.o
 
 UNIT_TEST_OBJECTS = \
-		src/tests/unit_tests/main.o \
-		src/tests/unit_tests/test_utils.o \
-		src/tests/unit_tests/schwa/pool.o \
-		src/tests/unit_tests/schwa/containers/block_vector.o \
-		src/tests/unit_tests/schwa/dr/lazy.o \
-		src/tests/unit_tests/schwa/dr/pointers.o \
-		src/tests/unit_tests/schwa/dr/reader.o \
-		src/tests/unit_tests/schwa/dr/self_pointer.o \
-		src/tests/unit_tests/schwa/dr/slices.o \
-		src/tests/unit_tests/schwa/dr/writer.o \
-		src/tests/unit_tests/schwa/io/mmapped_source.o \
-		src/tests/unit_tests/schwa/io/write_buffer.o \
-		src/tests/unit_tests/schwa/mpl/if.o \
-		src/tests/unit_tests/schwa/msgpack/wire.o
+		src/apps/schwa/unit_tests/main.o \
+		src/lib/schwa/unittest.o \
+		src/lib/schwa/pool_test.o \
+		src/lib/schwa/containers/block_vector_test.o \
+		src/lib/schwa/dr/lazy_test.o \
+		src/lib/schwa/dr/pointers_test.o \
+		src/lib/schwa/dr/reader_test.o \
+		src/lib/schwa/dr/self_pointer_test.o \
+		src/lib/schwa/dr/slices_test.o \
+		src/lib/schwa/dr/writer_test.o \
+		src/lib/schwa/io/mmapped_source_test.o \
+		src/lib/schwa/io/write_buffer_test.o \
+		src/lib/schwa/mpl/if_test.o \
+		src/lib/schwa/msgpack/wire_test.o
 UNIT_TEST_BINARY = bin/unit_tests
 TEST_BINARIES = $(UNIT_TEST_BINARY)
 
-TEST_INCLUDE = -Isrc/tests/unit_tests -isystem third_party/UnitTest++
-TEST_CXXFLAGS = $(CXXFLAGS) $(TEST_INCLUDE)
+TEST_INCLUDE = -isystem third_party/UnitTest++
+TEST_CXXFLAGS = $(TEST_INCLUDE)
 TEST_LDFLAGS =
 
 
@@ -91,19 +92,19 @@ doxygen:
 	doxygen docs/Doxyfile
 
 install:
-	install -d -v $(DESTDIR)$(prefix)/{bin,include,lib}
-	# install the header files
-	for d in `find src/include -type d`; do \
+	install -d -v $(DESTDIR)$(prefix)/{bin,lib}
+	# Install the header files.
+	for d in `find src/lib -type d`; do \
 		install -d -v $${d/src/$(DESTDIR)$(prefix)}; \
 	done
-	for f in `find src/include -type f -name '*.h'`; do \
+	for f in `find src/lib -type f -name '*.h'`; do \
 		install -p -v $${f} $${f/src/$(DESTDIR)$(prefix)}; \
 	done
-	# install the shared libraries
+	# Install the shared libraries.
 	for f in $(SHARED_LIBS); do \
 		install -p -v $${f} $(DESTDIR)$(prefix)/lib; \
 	done
-	# install the binaries
+	# Install the binaries.
 	for f in $(BINARIES); do \
 		install -p -v $${f} $(DESTDIR)$(prefix)/bin; \
 	done
@@ -114,30 +115,30 @@ release:
 sharedlibs: $(SHARED_LIBS)
 
 wc:
-	find src/{include,lib,main} -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l
+	find src/{apps,lib} -name "*.cc" -or -name "*.h" | grep -v ^src/tests/ | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l
 	find src/api/python/ -name "*.py" | grep -v /ve/ | grep -v /tests/ | xargs wc -l
 	find src/api/java/ -name "*.java" | xargs wc -l
 
 
 # -------------------------------------------------------------------------------
-# base targets
+# Base targets.
 # -------------------------------------------------------------------------------
 %.h.gch: %.h
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
-bin/test: src/main/test.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+bin/test: src/apps/schwa/test/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/drdist: src/main/drdist.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+bin/drdist: src/apps/schwa/drdist/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(LIBZMQ_LDFLAGS) -o $@
+
+bin/drui: src/apps/schwa/drui/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/drui: src/main/drui.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
+bin/drworker: src/apps/schwa/drworker/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(LIBZMQ_LDFLAGS) -o $@
 
-bin/drworker: src/main/drworker.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(DRDIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
-
-bin/tokenizer: src/main/tokenizer.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
+bin/tokenizer: src/apps/schwa/tokenizer/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 libs/libschwa.a: $(OBJECTS)
@@ -177,8 +178,8 @@ libs/libUnitTest++.$(SHARED_LIB_SUFFIX):
 # -------------------------------------------------------------------------------
 # Testing
 # -------------------------------------------------------------------------------
-src/tests/unit_tests/%.o: src/tests/unit_tests/%.cc
-	$(CXX) $(TEST_CXXFLAGS) -c -o $@ $<
+$(UNIT_TEST_OBJECTS): CXXFLAGS += $(TEST_CXXFLAGS)
+$(UNIT_TEST_OBJECTS): LDFLAGS += $(TEST_LDFLAGS)
 
 $(UNIT_TEST_BINARY): $(UNIT_TEST_OBJECTS) libs/libUnitTest++.a libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(TEST_LDFLAGS) -o $@

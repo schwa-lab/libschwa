@@ -1,118 +1,117 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <schwa/dr.h>
 
-namespace dr = schwa::dr;
 
-
-namespace schwatest {
+namespace schwa {
+namespace dr {
 
 SUITE(schwa__dr__slices) {
 
 TEST(slices) {
-  class Token : public dr::Ann {
+  class Token : public Ann {
   public:
-    dr::Slice<uint64_t> span;
+    Slice<uint64_t> span;
     std::string raw;
 
     class Schema;
   };
 
 
-  class Sent : public dr::Ann {
+  class Sent : public Ann {
   public:
-    dr::Slice<Token *> span;
+    Slice<Token *> span;
     uint32_t number;
 
     class Schema;
 
-    Sent(void) : dr::Ann(), number(0) { }
+    Sent(void) : Ann(), number(0) { }
   };
 
 
-  class Doc : public dr::Doc {
+  class TestDoc : public Doc {
   public:
-    dr::Store<Token> tokens;
-    dr::Store<Sent> sents;
+    Store<Token> tokens;
+    Store<Sent> sents;
 
     class Schema;
   };
 
 
-  class Token::Schema : public dr::Ann::Schema<Token> {
+  class Token::Schema : public Ann::Schema<Token> {
   public:
     DR_FIELD(&Token::span) span;
     DR_FIELD(&Token::raw) raw;
 
     Schema(void) :
-      dr::Ann::Schema<Token>("Token", "Some text about Token"),
-      span(*this, "span", "span", dr::FieldMode::READ_WRITE),
-      raw(*this, "raw", "raw", dr::FieldMode::READ_WRITE)
+      Ann::Schema<Token>("Token", "Some text about Token"),
+      span(*this, "span", "span", FieldMode::READ_WRITE),
+      raw(*this, "raw", "raw", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class Sent::Schema : public dr::Ann::Schema<Sent> {
+  class Sent::Schema : public Ann::Schema<Sent> {
   public:
-    DR_POINTER(&Sent::span, &Doc::tokens) span;
+    DR_POINTER(&Sent::span, &TestDoc::tokens) span;
     DR_FIELD(&Sent::number) number;
 
     Schema(void) :
-      dr::Ann::Schema<Sent>("Sent", "Some text about Sent"),
-      span(*this, "span", "span", dr::FieldMode::READ_WRITE),
-      number(*this, "number", "number", dr::FieldMode::READ_WRITE)
+      Ann::Schema<Sent>("Sent", "Some text about Sent"),
+      span(*this, "span", "span", FieldMode::READ_WRITE),
+      number(*this, "number", "number", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  class Doc::Schema : public dr::Doc::Schema<Doc> {
+  class TestDoc::Schema : public Doc::Schema<TestDoc> {
   public:
-    DR_STORE(&Doc::tokens) tokens;
-    DR_STORE(&Doc::sents) sents;
+    DR_STORE(&TestDoc::tokens) tokens;
+    DR_STORE(&TestDoc::sents) sents;
 
     Schema(void) :
-      dr::Doc::Schema<Doc>("Doc", "Some text about Doc"),
-      tokens(*this, "tokens", "some text about tokens", dr::FieldMode::READ_WRITE),
-      sents(*this, "sents", "some text about sents", dr::FieldMode::READ_WRITE)
+      Doc::Schema<TestDoc>("TestDoc", "Some text about TestDoc"),
+      tokens(*this, "tokens", "some text about tokens", FieldMode::READ_WRITE),
+      sents(*this, "sents", "some text about sents", FieldMode::READ_WRITE)
       { }
     virtual ~Schema(void) { }
   };
 
 
-  Doc doc0;
+  TestDoc doc0;
 
   doc0.tokens.create(10);
-  doc0.tokens[0].span = dr::Slice<uint64_t>(0, 3);
+  doc0.tokens[0].span = Slice<uint64_t>(0, 3);
   doc0.tokens[0].raw = "The";
-  doc0.tokens[1].span = dr::Slice<uint64_t>(4, 9);
+  doc0.tokens[1].span = Slice<uint64_t>(4, 9);
   doc0.tokens[1].raw = "quick";
-  doc0.tokens[2].span = dr::Slice<uint64_t>(11, 16);
+  doc0.tokens[2].span = Slice<uint64_t>(11, 16);
   doc0.tokens[2].raw = "brown";
-  doc0.tokens[3].span = dr::Slice<uint64_t>(17, 20);
+  doc0.tokens[3].span = Slice<uint64_t>(17, 20);
   doc0.tokens[3].raw = "fox";
-  doc0.tokens[4].span = dr::Slice<uint64_t>(20, 21);
+  doc0.tokens[4].span = Slice<uint64_t>(20, 21);
   doc0.tokens[4].raw = ".";
-  doc0.tokens[5].span = dr::Slice<uint64_t>(22, 25);
+  doc0.tokens[5].span = Slice<uint64_t>(22, 25);
   doc0.tokens[5].raw = "The";
-  doc0.tokens[6].span = dr::Slice<uint64_t>(26, 30);
+  doc0.tokens[6].span = Slice<uint64_t>(26, 30);
   doc0.tokens[6].raw = "lazy";
-  doc0.tokens[7].span = dr::Slice<uint64_t>(31, 34);
+  doc0.tokens[7].span = Slice<uint64_t>(31, 34);
   doc0.tokens[7].raw = "cat";
-  doc0.tokens[8].span = dr::Slice<uint64_t>(35, 38);
+  doc0.tokens[8].span = Slice<uint64_t>(35, 38);
   doc0.tokens[8].raw = "too";
-  doc0.tokens[9].span = dr::Slice<uint64_t>(38, 39);
+  doc0.tokens[9].span = Slice<uint64_t>(38, 39);
   doc0.tokens[9].raw = ".";
 
   doc0.sents.create(2);
-  doc0.sents[0].span = dr::Slice<Token *>(&doc0.tokens[0], &doc0.tokens[5]);
-  doc0.sents[1].span = dr::Slice<Token *>(&doc0.tokens[5], &doc0.tokens[10]);
+  doc0.sents[0].span = Slice<Token *>(&doc0.tokens[0], &doc0.tokens[5]);
+  doc0.sents[1].span = Slice<Token *>(&doc0.tokens[5], &doc0.tokens[10]);
 
   std::stringstream stream;
-  Doc::Schema schema;
-  dr::Writer writer(stream, schema);
+  TestDoc::Schema schema;
+  Writer writer(stream, schema);
   writer << doc0;
 
   static constexpr unsigned char correct[] = "\x02"
@@ -154,33 +153,33 @@ TEST(slices) {
 
   CHECK_COMPARE_BYTES3(correct, sizeof(correct)/sizeof(unsigned char) - 1, stream.str());
 
-  Doc doc1;
-  dr::Reader reader(stream, schema);
+  TestDoc doc1;
+  Reader reader(stream, schema);
   reader >> doc1;
 
   CHECK_EQUAL(10, doc1.tokens.size());
   CHECK_EQUAL(2, doc1.sents.size());
 
   CHECK_EQUAL("The", doc1.tokens[0].raw);
-  CHECK(doc1.tokens[0].span == dr::Slice<uint64_t>(0, 3));
+  CHECK(doc1.tokens[0].span == Slice<uint64_t>(0, 3));
   CHECK_EQUAL("quick", doc1.tokens[1].raw);
-  CHECK(doc1.tokens[1].span == dr::Slice<uint64_t>(4, 9));
+  CHECK(doc1.tokens[1].span == Slice<uint64_t>(4, 9));
   CHECK_EQUAL("brown", doc1.tokens[2].raw);
-  CHECK(doc1.tokens[2].span == dr::Slice<uint64_t>(11, 16));
+  CHECK(doc1.tokens[2].span == Slice<uint64_t>(11, 16));
   CHECK_EQUAL("fox", doc1.tokens[3].raw);
-  CHECK(doc1.tokens[3].span == dr::Slice<uint64_t>(17, 20));
+  CHECK(doc1.tokens[3].span == Slice<uint64_t>(17, 20));
   CHECK_EQUAL(".", doc1.tokens[4].raw);
-  CHECK(doc1.tokens[4].span == dr::Slice<uint64_t>(20, 21));
+  CHECK(doc1.tokens[4].span == Slice<uint64_t>(20, 21));
   CHECK_EQUAL("The", doc1.tokens[5].raw);
-  CHECK(doc1.tokens[5].span == dr::Slice<uint64_t>(22, 25));
+  CHECK(doc1.tokens[5].span == Slice<uint64_t>(22, 25));
   CHECK_EQUAL("lazy", doc1.tokens[6].raw);
-  CHECK(doc1.tokens[6].span == dr::Slice<uint64_t>(26, 30));
+  CHECK(doc1.tokens[6].span == Slice<uint64_t>(26, 30));
   CHECK_EQUAL("cat", doc1.tokens[7].raw);
-  CHECK(doc1.tokens[7].span == dr::Slice<uint64_t>(31, 34));
+  CHECK(doc1.tokens[7].span == Slice<uint64_t>(31, 34));
   CHECK_EQUAL("too", doc1.tokens[8].raw);
-  CHECK(doc1.tokens[8].span == dr::Slice<uint64_t>(35, 38));
+  CHECK(doc1.tokens[8].span == Slice<uint64_t>(35, 38));
   CHECK_EQUAL(".", doc1.tokens[9].raw);
-  CHECK(doc1.tokens[9].span == dr::Slice<uint64_t>(38, 39));
+  CHECK(doc1.tokens[9].span == Slice<uint64_t>(38, 39));
 
   CHECK_EQUAL(&doc1.tokens[0], doc1.sents[0].span.start);
   CHECK_EQUAL(&doc1.tokens[5], doc1.sents[0].span.stop);
@@ -192,4 +191,5 @@ TEST(slices) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace dr
+}  // namespace schwa

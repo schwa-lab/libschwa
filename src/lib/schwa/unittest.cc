@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <iomanip>
 #include <iostream>
@@ -10,7 +10,8 @@
 namespace ut = UnitTest;
 
 
-namespace schwatest {
+namespace schwa {
+namespace unittest {
 
 namespace {
 
@@ -157,4 +158,5 @@ compare_bytes(const std::string &_expected, const std::string &actual, ut::TestR
   compare_bytes(expected, expected_size, actual, results, details);
 }
 
-}  // namespace schwatest
+}  // namespace unittest
+}  // namespace schwa

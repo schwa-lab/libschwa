@@ -4,8 +4,8 @@ prefix=/usr
 #RELEASE_VERSION_MINOR=0
 #RELEASE_VERSION=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)
 
-INCLUDE = -Isrc/include $(shell pkg-config --cflags libzmq)
-LIBS_LDFLAGS = -Llibs $(shell pkg-config --libs libzmq)
+INCLUDE = -Isrc/lib -Isrc/apps $(shell pkg-config --cflags libzmq)
+LIBS_LDFLAGS = -Llibs
 DEFINES =
 
 ifdef RELEASE_VERSION
@@ -22,6 +22,8 @@ SHARED_LIB_SUFFIX = so
 SHARED_LIB_LDFLAGS = -shared
 
 PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
+
+LIBZMQ_LDFLAGS = $(shell pkg-config --libs libzmq)
 
 RAGEL = ragel
 RAGEL_CXXFLAGS = $(CXXFLAGS)

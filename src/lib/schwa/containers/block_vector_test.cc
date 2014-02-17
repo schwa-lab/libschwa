@@ -1,17 +1,16 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include "test_utils.h"
+#include <schwa/unittest.h>
 
 #include <schwa/containers/block_vector.h>
 
-namespace ct = schwa::containers;
 
-
-namespace schwatest {
+namespace schwa {
+namespace containers {
 
 SUITE(schwa__containers__block_vector) {
 
 TEST(BlockVector_int__create) {
-  ct::BlockVector<int> v;
+  BlockVector<int> v;
   CHECK_EQUAL(0, v.nblocks());
   CHECK_EQUAL(0, v.size());
 
@@ -94,7 +93,7 @@ TEST(BlockVector_int__create) {
 
 
 TEST(BlockVector_int__block_iterator) {
-  ct::BlockVector<int> v;
+  BlockVector<int> v;
   auto fn = [](int i) -> int { return 2*i + 3; };
 
   auto &block1 = v.reserve(20);
@@ -127,7 +126,7 @@ TEST(BlockVector_int__block_iterator) {
 
 
 TEST(BlockVector_int__vector_iterator) {
-  ct::BlockVector<int> v;
+  BlockVector<int> v;
   auto fn = [](int i) -> int { return 2*i + 3; };
 
   auto &block1 = v.reserve(3);
@@ -143,7 +142,7 @@ TEST(BlockVector_int__vector_iterator) {
   CHECK_EQUAL(3, v.nblocks());
   CHECK_EQUAL(12, v.size());
 
-  ct::BlockVector<int>::iterator it = v.begin();
+  BlockVector<int>::iterator it = v.begin();
   CHECK_EQUAL(block1[0], *it); ++it;
   CHECK_EQUAL(block1[1], *it); ++it;
   CHECK_EQUAL(block1[2], *it); ++it;
@@ -163,7 +162,7 @@ TEST(BlockVector_int__vector_iterator) {
 
 
 TEST(BlockVector_int__vector_iterator_empty_blocks) {
-  ct::BlockVector<int> v;
+  BlockVector<int> v;
   auto fn = [](int i) -> int { return 4*i*i - 3*i + 7; };
 
   auto &block0 = v.reserve(0);
@@ -190,7 +189,7 @@ TEST(BlockVector_int__vector_iterator_empty_blocks) {
 
   CHECK_EQUAL(7, std::distance(v.begin(), v.end()));
 
-  ct::BlockVector<int>::iterator it = v.begin();
+  BlockVector<int>::iterator it = v.begin();
   CHECK_EQUAL(block1[0], *it); ++it;
   CHECK_EQUAL(block1[1], *it); ++it;
   CHECK_EQUAL(block1[2], *it); ++it;
@@ -207,7 +206,7 @@ TEST(BlockVector_int__vector_iterator_empty_blocks) {
 
 
 TEST(BlockVector_int__index_of) {
-  ct::BlockVector<int> v;
+  BlockVector<int> v;
   auto fn = [](int i) -> int { return 2*i + 3; };
 
   auto &block1 = v.reserve(3);
@@ -239,7 +238,7 @@ TEST(BlockVector_int__index_of) {
 
 
 TEST(BlockVector_int__get) {
-  ct::BlockVector<int> v;
+  BlockVector<int> v;
   auto fn = [](int i) -> int { return 2*i + 3; };
 
   auto &block0 = v.reserve(0);
@@ -274,4 +273,5 @@ TEST(BlockVector_int__get) {
 
 }  // SUITE
 
-}  // namespace schwatest
+}  // namespace containers
+}  // namespace schwa
