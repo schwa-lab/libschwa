@@ -1,7 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/drdist.h>
 
-#include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -22,7 +21,7 @@ namespace drdist {
 bool
 safe_zmq_close(void *const socket) {
   if (zmq_close(socket) == -1) {
-    LOG(CRITICAL) << "Failed to close the ØMQ socket: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to close the ØMQ socket: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   return true;
@@ -32,7 +31,7 @@ safe_zmq_close(void *const socket) {
 bool
 safe_zmq_ctx_destroy(void *context) {
   if (zmq_ctx_destroy(context) == -1) {
-    LOG(CRITICAL) << "Failed to destroy ØMQ context: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to destroy ØMQ context: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   return true;
@@ -43,7 +42,7 @@ bool
 safe_zmq_ctx_new(void *&context) {
   context = zmq_ctx_new();
   if (context == nullptr) {
-    LOG(CRITICAL) << "Failed to create ØMQ context: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to create ØMQ context: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   return true;
@@ -54,7 +53,7 @@ bool
 safe_zmq_send(void *const socket, const void *const buf, const size_t len, const int flags) {
   const int nbytes = zmq_send(socket, buf, len, flags);
   if (nbytes == -1) {
-    LOG(CRITICAL) << "Failed to send: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to send: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   else if (static_cast<size_t>(nbytes) != len) {
@@ -69,11 +68,11 @@ bool
 safe_zmq_socket_bind(void *const zmq_context, void *&socket, const int zmq_socket_type, const std::string &addr) {
   socket = zmq_socket(zmq_context, zmq_socket_type);
   if (socket == nullptr) {
-    LOG(CRITICAL) << "Failed to create ØMQ socket: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to create ØMQ socket: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   if (zmq_bind(socket, addr.c_str()) == -1) {
-    LOG(CRITICAL) << "Failed to bind the ØMQ socket: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to bind the ØMQ socket: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   return true;
@@ -84,11 +83,11 @@ bool
 safe_zmq_socket_connect(void *const zmq_context, void *&socket, const int zmq_socket_type, const std::string &addr) {
   socket = zmq_socket(zmq_context, zmq_socket_type);
   if (socket == nullptr) {
-    LOG(CRITICAL) << "Failed to create ØMQ socket: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to create ØMQ socket: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   if (zmq_connect(socket, addr.c_str()) == -1) {
-    LOG(CRITICAL) << "Failed to connect the ØMQ socket: " << zmq_strerror(errno) << std::endl;
+    LOG(CRITICAL) << "Failed to connect the ØMQ socket: " << zmq_strerror(zmq_errno()) << std::endl;
     return false;
   }
   return true;
@@ -135,16 +134,14 @@ recv_multipart(void *const socket, std::unique_ptr<char[]> &buffer, size_t &buff
     // Initialise the ØMQ message part to read into.
     zmq_msg_t msg;
     if (zmq_msg_init(&msg) == -1) {
-      LOG(CRITICAL) << "Failed to init ØMQ message: " << zmq_strerror(errno) << std::endl;
+      LOG(CRITICAL) << "Failed to init ØMQ message: " << zmq_strerror(zmq_errno()) << std::endl;
       return false;
     }
 
     // Block until a message part is available.
-    LOG(DEBUG) << "Waiting for message..." << std::endl;
     const int nbytes = zmq_msg_recv(&msg, socket, 0);
-    LOG(DEBUG) << "Received message nbytes=" << nbytes << std::endl;
     if (nbytes == -1) {
-      LOG(CRITICAL) << "Failed to zmq_msg_recv: " << zmq_strerror(errno) << std::endl;
+      LOG(CRITICAL) << "Failed to zmq_msg_recv: " << zmq_strerror(zmq_errno()) << std::endl;
       return false;
     }
 
@@ -165,13 +162,13 @@ recv_multipart(void *const socket, std::unique_ptr<char[]> &buffer, size_t &buff
 
     // Determine if there are any more parts to this message.
     if (zmq_getsockopt(socket, ZMQ_RCVMORE, &more, &more_size) == -1) {
-      LOG(CRITICAL) << "Failed to zmq_getsockopt ZMQ_RCVMORE: " << zmq_strerror(errno) << std::endl;
+      LOG(CRITICAL) << "Failed to zmq_getsockopt ZMQ_RCVMORE: " << zmq_strerror(zmq_errno()) << std::endl;
       return false;
     }
 
     // Close the ØMQ message part.
     if (zmq_msg_close(&msg) == -1) {
-      LOG(CRITICAL) << "Failed to close ØMQ message: " << zmq_strerror(errno) << std::endl;
+      LOG(CRITICAL) << "Failed to close ØMQ message: " << zmq_strerror(zmq_errno()) << std::endl;
       return false;
     }
   } while (more);
