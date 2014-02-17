@@ -24,6 +24,17 @@ namespace schwa {
 
     template <>
     inline void
+    Op<bool>::_set(const std::string &value) {
+      if (value == "true" || value == "1")
+        _value = true;
+      else if (value == "false" || value == "0")
+        _value = false;
+      else
+        throw ConfigException("Error setting value", _name, value);
+    }
+
+    template <>
+    inline void
     Op<std::string>::_set(const std::string &value) {
       _value = value;
     }
@@ -37,7 +48,7 @@ namespace schwa {
     Op<T>::help(std::ostream &out, const std::string &prefix, unsigned int) const {
       out << "  " << port::BOLD << prefix << _name << port::OFF << ": " << _desc;
       if (_has_default)
-        out << " (default: " << _default << ")";
+        out << " (default: " << std::boolalpha << _default << ")";
       out << std::endl;
     }
 
