@@ -47,9 +47,9 @@ public:
 
 class DocProcessor {
 private:
-  static const char *SEP;
-  static const char *REPR_NIL;
-  static const char *REPR_UNKNOWN;
+  static constexpr const char *const SEP = "\t\033[1;30m # ";
+  static constexpr const char *const REPR_NIL = "<nil>";
+  static constexpr const char *const REPR_UNKNOWN = "<UNKNOWN VALUE>";
 
   const FauxDoc &_doc;
   std::ostream &_out;
@@ -83,9 +83,6 @@ private:
   friend class DocProcessorTest;
 };
 
-const char *DocProcessor::SEP = "\t\033[1;30m # ";
-const char *DocProcessor::REPR_NIL = "<nil>";
-const char *DocProcessor::REPR_UNKNOWN = "<UNKNOWN VALUE>";
 
 void
 DocProcessor::process_doc(void) {
