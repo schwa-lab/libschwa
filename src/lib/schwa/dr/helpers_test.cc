@@ -122,7 +122,7 @@ TEST(test_reverse_slices_mutex) {
   for (Token &t : doc.tokens)
     CHECK(t.sent == nullptr);
 
-  REVERSE_SLICES(&TestDoc::sents, &TestDoc::tokens, &Sent::span, &Token::sent)(doc);
+  DR_REVERSE_SLICES(&TestDoc::sents, &TestDoc::tokens, &Sent::span, &Token::sent)(doc);
 
   for (Token &t : doc.tokens)
     CHECK(t.sent != nullptr);
@@ -167,7 +167,7 @@ TEST(test_reverse_slices) {
   for (Token &t : doc.tokens)
     CHECK(t.sents.empty());
 
-  REVERSE_SLICES(&TestDoc::sents, &TestDoc::tokens, &Sent::span, &Token::sents)(doc);
+  DR_REVERSE_SLICES(&TestDoc::sents, &TestDoc::tokens, &Sent::span, &Token::sents)(doc);
 
   CHECK_EQUAL(1, doc.tokens[0].sents.size());
   CHECK_EQUAL(2, doc.tokens[1].sents.size());
