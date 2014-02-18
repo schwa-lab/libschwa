@@ -55,6 +55,7 @@ UNIT_TEST_OBJECTS = \
 		src/lib/schwa/pool_test.o \
 		src/lib/schwa/containers/block_vector_test.o \
 		src/lib/schwa/dr/lazy_test.o \
+		src/lib/schwa/dr/helpers_test.o \
 		src/lib/schwa/dr/pointers_test.o \
 		src/lib/schwa/dr/reader_test.o \
 		src/lib/schwa/dr/self_pointer_test.o \

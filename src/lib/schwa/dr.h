@@ -5,6 +5,7 @@
 #include <schwa/dr/exception.h>
 #include <schwa/dr/field_defs.h>
 #include <schwa/dr/fields.h>
+#include <schwa/dr/helpers.h>
 #include <schwa/dr/istore.h>
 #include <schwa/dr/reader.h>
 #include <schwa/dr/runtime.h>
