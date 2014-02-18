@@ -139,7 +139,7 @@ drworker(const std::string &source_addr, const std::string &sink_addr, const std
 
 template <typename DOC, typename LOGGER>
 int
-main(const int argc, char **const argv, cf::OpMain &cfg, typename DOC::Schema &schema, void (*callback)(DOC &)) {
+worker_main(const int argc, char **const argv, cf::OpMain &cfg, typename DOC::Schema &schema, void (*callback)(DOC &)) {
   // Build upon an option parser.
   cf::Op<std::string> host(cfg, "host", "The network host to connect to", "127.0.0.1");
   cf::Op<uint32_t> source_port(cfg, "source_port", "The network port to bind to on which to pull docrep documents", 7301);
@@ -163,6 +163,14 @@ main(const int argc, char **const argv, cf::OpMain &cfg, typename DOC::Schema &s
 
   const bool success = schwa::drdist::drworker(source_addr, sink_addr, control_addr, schema, callback);
   return success ? 0 : 1;
+}
+
+
+template <typename DOC, typename LOGGER>
+int
+worker_main(const int argc, char **const argv, cf::OpMain &cfg, void (*callback)(DOC &)) {
+  typename DOC::Schema schema;
+  return worker_main<DOC, LOGGER>(argc, argv, cfg, schema, callback);
 }
 
 }  // drdist

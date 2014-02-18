@@ -33,11 +33,8 @@ process_doc(EgDoc &doc) {
 
 int
 main(int argc, char **argv) {
-  // Instantiate a document schema for use in the docrep config framework.
-  EgDoc::Schema schema;
-
   // Construct an option parser.
   cf::OpMain cfg("drworker", "An example docrep parallelisation worker");
 
-  return schwa::drdist::main<EgDoc, io::PrettyLogger>(argc, argv, cfg, schema, &process_doc);
+  return schwa::drdist::worker_main<EgDoc, io::PrettyLogger>(argc, argv, cfg, &process_doc);
 }
