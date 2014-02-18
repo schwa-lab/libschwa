@@ -47,7 +47,7 @@ TOKENIZER_OBJECTS = \
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS)
 
 DRDIST_OBJECTS = \
-		src/lib/schwa/drdist.o
+		src/apps/schwa/drdist/helpers.o
 
 UNIT_TEST_OBJECTS = \
 		src/apps/schwa/unit_tests/main.o \

@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_DRDIST_H_
-#define SCHWA_DRDIST_H_
+#ifndef SCHWA_DRDIST_HELPERS_H_
+#define SCHWA_DRDIST_HELPERS_H_
 
 #include <iosfwd>
 #include <memory>
@@ -37,4 +37,4 @@ namespace schwa {
   }
 }
 
-#endif  // SCHWA_DRDIST_H_
+#endif  // SCHWA_DRDIST_HELPERS_H_

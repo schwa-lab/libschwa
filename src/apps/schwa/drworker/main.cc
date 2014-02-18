@@ -7,7 +7,7 @@
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
-#include <schwa/drdist.h>
+#include <schwa/drdist/helpers.h>
 #include <schwa/io/logging.h>
 
 #include <zmq.h>

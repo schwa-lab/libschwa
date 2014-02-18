@@ -16,7 +16,7 @@
 #include <unordered_map>
 
 #include <schwa/config.h>
-#include <schwa/drdist.h>
+#include <schwa/drdist/helpers.h>
 #include <schwa/io/logging.h>
 
 #include <zmq.h>
