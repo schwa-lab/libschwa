@@ -24,8 +24,8 @@ main(int argc, char **argv) {
   cf::OpMain cfg("tokenizer", "Schwa-Lab tokenizer");
   cf::IStreamOp input(cfg, "input", "The input file");
   cf::OStreamOp output(cfg, "output", "The output file");
-  cf::EnumOp<std::string> printer(cfg, "printer", "which printer to use as output", {"text", "debug", "docrep"}, "text");
-  cf::Op<size_t> input_buffer(cfg, "input_buffer", "input buffer size (bytes)", tok::BUFFER_SIZE);
+  cf::EnumOp<std::string> printer(cfg, "printer", "Which printer to use as output", {"text", "debug", "docrep"}, "text");
+  cf::Op<size_t> input_buffer(cfg, "input_buffer", "Tokenizer input buffer size (bytes)", tok::BUFFER_SIZE);
   cf::OStreamOp log(cfg, "log", "The file to log to", cf::OStreamOp::STDERR_STRING);
   cf::LogLevelOp log_level(cfg, "log_level", "The level to log at", "info");
   dr::DocrepOpGroup dr(cfg, schema);
