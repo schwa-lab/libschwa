@@ -11,16 +11,17 @@ namespace schwa {
   namespace msgpack {
 
     class ReadException : public IOException {
-    public:
-      const std::string local_msg;
-      const int read;
-      const int expected;
+    protected:
+      const int _read;
+      const int _expected;
 
+    public:
       ReadException(const std::string &msg, const int read, const int expected=-1);
       ReadException(const ReadException &o);
       virtual ~ReadException(void) throw() { }
 
-      virtual const char* what(void) const throw() override;
+      inline int expected(void) const { return _expected; }
+      inline int read(void) const { return _read; }
     };
 
   }

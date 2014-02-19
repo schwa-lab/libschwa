@@ -13,7 +13,7 @@ namespace schwa {
     class TokenError : public Exception {
     public:
       TokenError(const std::string &msg) : Exception(msg) { }
-      TokenError(const TokenError &other) : Exception(other.msg) { }
+      TokenError(const TokenError &o) : Exception(o) { }
       virtual ~TokenError(void) throw() { }
     };
 
