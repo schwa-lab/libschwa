@@ -12,13 +12,13 @@
 namespace schwa {
 namespace config {
 
-OpGroup::OpGroup(OpGroup &group, const std::string &name, const std::string &desc) : ConfigNode(name, desc) {
+Group::Group(Group &group, const std::string &name, const std::string &desc) : ConfigNode(name, desc) {
   group.add(*this);
 }
 
 
 ConfigNode *
-OpGroup::find(const std::string &key) {
+Group::find(const std::string &key) {
   const size_t pos = key.find(_name);
   if (pos != 0)
     return nullptr;
@@ -45,13 +45,13 @@ OpGroup::find(const std::string &key) {
 
 
 void
-OpGroup::help(std::ostream &out) const {
+Group::help(std::ostream &out) const {
   help(out, "", 0);
 }
 
 
 void
-OpGroup::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+Group::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
   const std::string me = (depth == 0) ? prefix : prefix + _name + "--";
   if (depth != 0)
     out << std::endl;
@@ -66,7 +66,7 @@ OpGroup::help(std::ostream &out, const std::string &prefix, const unsigned int d
 
 
 void
-OpGroup::_add_check(ConfigNode &child) {
+Group::_add_check(ConfigNode &child) {
   const std::string &child_name = child.name();
   for (auto &c : _options) {
     if (c->name() == child_name) {
@@ -86,45 +86,45 @@ OpGroup::_add_check(ConfigNode &child) {
 
 
 void
-OpGroup::add(Option &child) {
+Group::add(Option &child) {
   _add_check(child);
   _options.push_back(&child);
 }
 
 
 void
-OpGroup::add(OpGroup &child) {
+Group::add(Group &child) {
   _add_check(child);
   _groups.push_back(&child);
 }
 
 
 bool
-OpGroup::accepts_assignment(void) const {
+Group::accepts_assignment(void) const {
   return false;
 }
 
 
 bool
-OpGroup::accepts_mention(void) const {
+Group::accepts_mention(void) const {
   return false;
 }
 
 
 void
-OpGroup::assign(const std::string &) {
+Group::assign(const std::string &) {
   assert(false);
 }
 
 
 void
-OpGroup::mention(void) {
+Group::mention(void) {
   assert(false);
 }
 
 
 bool
-OpGroup::validate(const Main &main) {
+Group::validate(const Main &main) {
   for (auto &child : _options)
     if (!child->validate(main))
       return false;

@@ -73,7 +73,7 @@ DocrepFieldOp::validate(const cf::Main &) {
 // ============================================================================
 // DocrepClassOp
 // ============================================================================
-DocrepClassOp::DocrepClassOp(cf::OpGroup &group, BaseDocSchema &schema) :
+DocrepClassOp::DocrepClassOp(cf::Group &group, BaseDocSchema &schema) :
     cf::ConfigNode(schema.name, schema.help),
     _schema(schema) {
   //group.add(this);  FIXME
@@ -84,7 +84,7 @@ DocrepClassOp::DocrepClassOp(cf::OpGroup &group, BaseDocSchema &schema) :
     new DocrepFieldOp(*this, *s);
 }
 
-DocrepClassOp::DocrepClassOp(cf::OpGroup &group, BaseSchema &schema) :
+DocrepClassOp::DocrepClassOp(cf::Group &group, BaseSchema &schema) :
     cf::ConfigNode(schema.name, schema.help),
     _schema(schema) {
   //group.add(this);  FIXME
@@ -156,7 +156,7 @@ DocrepClassOp::validate(const cf::Main &) {
 // ============================================================================
 // DocrepOpGroup
 // ============================================================================
-DocrepOpGroup::DocrepOpGroup(OpGroup &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) : cf::OpGroup(group, name, desc), _dschema(dschema) {
+DocrepOpGroup::DocrepOpGroup(Group &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) : cf::Group(group, name, desc), _dschema(dschema) {
   new DocrepClassOp(*this, dschema);
   for (auto &s : dschema.schemas())
     new DocrepClassOp(*this, *s);

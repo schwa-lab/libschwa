@@ -16,7 +16,7 @@ namespace io = schwa::io;
 namespace schwa {
 namespace config {
 
-Option::Option(OpGroup &group, const std::string &name, const std::string &desc, const bool has_default) :
+Option::Option(Group &group, const std::string &name, const std::string &desc, const bool has_default) :
     ConfigNode(name, desc),
     _has_default(has_default),
     _was_mentioned(false),
@@ -127,7 +127,7 @@ OStreamOp::_validate(const Main &) {
 // ============================================================================
 // LogLevelOp
 // ============================================================================
-LogLevelOp::LogLevelOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_) :
+LogLevelOp::LogLevelOp(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
     ChoicesOp<std::string>(group, name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
     _level(io::LogLevel::INFO)
   { }

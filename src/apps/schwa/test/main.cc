@@ -146,15 +146,15 @@ main(int argc, char **argv) {
   cf::IStreamOp input(cfg, "input", "The input file");
   cf::OStreamOp output(cfg, "output", "The output file");
 
-  cf::OpGroup group1(cfg, "group1", "help text for some group");
+  cf::Group group1(cfg, "group1", "help text for some group");
   cf::Op<uint32_t> g1a(group1, "g1a", "meow", 8);
   cf::Op<uint32_t> g1b(group1, "g1b", "meow", 8);
 
-  cf::OpGroup group1_1(group1, "group11", "help text for some group");
+  cf::Group group1_1(group1, "group11", "help text for some group");
   cf::Op<uint32_t> g1_1a(group1_1, "g1a", "meow", 8);
   cf::Op<uint32_t> g1_1b(group1_1, "g1b", "meow", 8);
 
-  cf::OpGroup group2(cfg, "group2", "help text for some group");
+  cf::Group group2(cfg, "group2", "help text for some group");
   cf::Op<uint32_t> g2a(group2, "g2a", "meow", 0);
   cf::Op<uint32_t> g2b(group2, "g2b", "meow", 0);
 

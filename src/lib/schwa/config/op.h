@@ -14,7 +14,7 @@
 namespace schwa {
   namespace config {
 
-    class OpGroup;
+    class Group;
 
 
     class Option : public ConfigNode {
@@ -23,7 +23,7 @@ namespace schwa {
       bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
       bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
-      Option(OpGroup &group, const std::string &name, const std::string &desc, bool has_default);
+      Option(Group &group, const std::string &name, const std::string &desc, bool has_default);
 
       virtual void _assign(const std::string &value) = 0;
       virtual bool _validate(const Main &main) = 0;
@@ -60,8 +60,8 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      Op(OpGroup &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
-      Op(OpGroup &group, const std::string &name, const std::string &desc, const T &default_) :
+      Op(Group &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
+      Op(Group &group, const std::string &name, const std::string &desc, const T &default_) :
           Option(group, name, desc, true),
           _default(default_)
         { }
@@ -85,11 +85,11 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      ChoicesOp(OpGroup &group, const std::string &name, const std::string &desc, std::initializer_list<T> options) :
+      ChoicesOp(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options) :
           Op<T>(group, name, desc),
           _options(options)
         { }
-      ChoicesOp(OpGroup &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) :
+      ChoicesOp(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) :
           Op<T>(group, name, desc, default_),
           _options(options)
         { }
@@ -113,7 +113,7 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      IStreamOp(OpGroup &group, const std::string &name, const std::string &desc) :
+      IStreamOp(Group &group, const std::string &name, const std::string &desc) :
           Op<std::string>(group, name, desc, STDIN_STRING),
           _in(nullptr),
           _is_stdin(false)
@@ -139,8 +139,8 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      OStreamOp(OpGroup &group, const std::string &name, const std::string &desc) : OStreamOp(group, name, desc, STDOUT_STRING) { }
-      OStreamOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_) :
+      OStreamOp(Group &group, const std::string &name, const std::string &desc) : OStreamOp(group, name, desc, STDOUT_STRING) { }
+      OStreamOp(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
           Op<std::string>(group, name, desc, default_),
           _out(nullptr),
           _is_std(false)
@@ -161,7 +161,7 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      LogLevelOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_);
+      LogLevelOp(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
       virtual ~LogLevelOp(void);
 
       inline schwa::io::LogLevel operator ()(void) const { return _level; }
@@ -176,7 +176,7 @@ namespace schwa {
       virtual void _assign(const std::string &value) override;
 
     public:
-      CommandOption(OpGroup &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
+      CommandOption(Group &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
       virtual ~CommandOption(void) { }
 
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
@@ -191,7 +191,7 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      HelpOption(OpGroup &group, const std::string &name="help", const std::string &desc="Displays the help text") : CommandOption(group, name, desc) { }
+      HelpOption(Group &group, const std::string &name="help", const std::string &desc="Displays the help text") : CommandOption(group, name, desc) { }
       virtual ~HelpOption(void) { }
 
     private:
@@ -204,7 +204,7 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      VersionOption(OpGroup &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
+      VersionOption(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
       virtual ~VersionOption(void) { }
 
     private:

@@ -12,7 +12,7 @@
 namespace schwa {
   namespace config {
 
-    class Main : public OpGroup {
+    class Main : public Group {
     protected:
       std::vector<ConfigNode *> _owned;
       OStreamOp *_log;

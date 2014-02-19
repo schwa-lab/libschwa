@@ -23,7 +23,7 @@ throw_config_exception(const std::string &msg, const std::string &key) {
 }
 
 
-Main::Main(const std::string &name, const std::string &desc) : OpGroup(name, desc) {
+Main::Main(const std::string &name, const std::string &desc) : Group(name, desc) {
   _owned.push_back(new HelpOption(*this));
   _owned.push_back(new VersionOption(*this));
   _owned.push_back(_log = new OStreamOp(*this, "log", "The file to log to", OStreamOp::STDERR_STRING));

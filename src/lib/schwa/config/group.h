@@ -12,21 +12,21 @@
 namespace schwa {
   namespace config {
 
-    class OpGroup : public ConfigNode {
+    class Group : public ConfigNode {
     protected:
       std::vector<Option *> _options;
-      std::vector<OpGroup *> _groups;
+      std::vector<Group *> _groups;
 
-      OpGroup(const std::string &name, const std::string &desc) : ConfigNode(name, desc) { }
+      Group(const std::string &name, const std::string &desc) : ConfigNode(name, desc) { }
 
       void _add_check(ConfigNode &child);
 
     public:
-      OpGroup(OpGroup &group, const std::string &name, const std::string &desc);
-      virtual ~OpGroup(void) { }
+      Group(Group &group, const std::string &name, const std::string &desc);
+      virtual ~Group(void) { }
 
       void add(Option &child);
-      void add(OpGroup &child);
+      void add(Group &child);
 
       void help(std::ostream &out) const;
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
@@ -41,7 +41,7 @@ namespace schwa {
       virtual bool validate(const Main &main) override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpGroup);
+      DISALLOW_COPY_AND_ASSIGN(Group);
     };
 
   }

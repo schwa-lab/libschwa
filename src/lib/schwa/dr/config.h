@@ -46,8 +46,8 @@ namespace schwa {
       std::vector<DocrepFieldOp *> _children;
 
     public:
-      DocrepClassOp(config::OpGroup &group, BaseDocSchema &schema);
-      DocrepClassOp(config::OpGroup &group, BaseSchema &schema);
+      DocrepClassOp(config::Group &group, BaseDocSchema &schema);
+      DocrepClassOp(config::Group &group, BaseSchema &schema);
       virtual ~DocrepClassOp(void);
 
       void add(DocrepFieldOp *const child);
@@ -66,12 +66,12 @@ namespace schwa {
     };
 
 
-    class DocrepOpGroup : public config::OpGroup {
+    class DocrepOpGroup : public config::Group {
     protected:
       BaseDocSchema &_dschema;
 
     public:
-      DocrepOpGroup(OpGroup &group, BaseDocSchema &dschema, const std::string &name="dr", const std::string &desc="Docrep model options");
+      DocrepOpGroup(Group &group, BaseDocSchema &dschema, const std::string &name="dr", const std::string &desc="Docrep model options");
       virtual ~DocrepOpGroup(void) { }
 
     private:
