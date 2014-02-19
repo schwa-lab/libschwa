@@ -71,16 +71,24 @@ Option::validate(const Main &main) {
 
 
 // ============================================================================
-// IStreamOp
+// OpIStream
 // ============================================================================
-IStreamOp::~IStreamOp(void) {
+OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc) : OpIStream(group, name, desc, STDIN_STRING) { }
+
+OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
+    Op<std::string>(group, name, desc, default_),
+    _in(nullptr),
+    _is_stdin(false)
+  { }
+
+OpIStream::~OpIStream(void) {
   if (!_is_stdin)
     delete _in;
 }
 
 
 bool
-IStreamOp::_validate(const Main &) {
+OpIStream::_validate(const Main &) {
   if (_value == STDIN_STRING) {
     _is_stdin = true;
     _in = &std::cin;
@@ -96,16 +104,24 @@ IStreamOp::_validate(const Main &) {
 
 
 // ============================================================================
-// OStreamOp
+// OpOStream
 // ============================================================================
-OStreamOp::~OStreamOp(void) {
+OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc) : OpOStream(group, name, desc, STDOUT_STRING) { }
+
+OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
+    Op<std::string>(group, name, desc, default_),
+    _out(nullptr),
+    _is_std(false)
+  { }
+
+OpOStream::~OpOStream(void) {
   if (!_is_std)
     delete _out;
 }
 
 
 bool
-OStreamOp::_validate(const Main &) {
+OpOStream::_validate(const Main &) {
   if (_value == STDOUT_STRING) {
     _is_std = true;
     _out = &std::cout;
@@ -125,19 +141,19 @@ OStreamOp::_validate(const Main &) {
 
 
 // ============================================================================
-// LogLevelOp
+// OpLogLevel
 // ============================================================================
-LogLevelOp::LogLevelOp(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
-    ChoicesOp<std::string>(group, name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
+OpLogLevel::OpLogLevel(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
+    OpChoices<std::string>(group, name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
     _level(io::LogLevel::INFO)
   { }
 
-LogLevelOp::~LogLevelOp(void) { }
+OpLogLevel::~OpLogLevel(void) { }
 
 
 bool
-LogLevelOp::_validate(const Main &main) {
-  if (!ChoicesOp<std::string>::_validate(main))
+OpLogLevel::_validate(const Main &main) {
+  if (!OpChoices<std::string>::_validate(main))
     return false;
   if (_value == "critical")
     _level = io::LogLevel::CRITICAL;
@@ -185,10 +201,10 @@ CommandOption::set_default(void) {
 
 
 // ============================================================================
-// HelpOption
+// OpHelp
 // ============================================================================
 bool
-HelpOption::_validate(const Main &main) {
+OpHelp::_validate(const Main &main) {
   if (_was_mentioned) {
     main.help(std::cerr);
     return false;
@@ -198,10 +214,10 @@ HelpOption::_validate(const Main &main) {
 
 
 // ============================================================================
-// VersionOption
+// OpVersion
 // ============================================================================
 bool
-VersionOption::_validate(const Main &main) {
+OpVersion::_validate(const Main &main) {
   if (_was_mentioned) {
     std::cerr << port::BOLD << main.name() << port::OFF << ": " << VERSION << std::endl;
     return false;

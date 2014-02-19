@@ -116,9 +116,9 @@ do_read(std::istream &in, std::ostream &out) {
 int
 main(int argc, char *argv[]) {
   cf::Main cfg("test", "this is the toplevel help");
-  cf::ChoicesOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
-  cf::IStreamOp op_in(cfg, "input", "The input file");
-  cf::OStreamOp op_out(cfg, "output", "The output file");
+  cf::OpChoices<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
+  cf::OpIStream op_in(cfg, "input", "The input file");
+  cf::OpOStream op_out(cfg, "output", "The output file");
 
   cfg.main(argc, argv);
 
@@ -142,9 +142,9 @@ int
 main(int argc, char **argv) {
 
   cf::Main cfg("test", "this is the toplevel help");
-  cf::ChoicesOp<std::string> mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
-  cf::IStreamOp input(cfg, "input", "The input file");
-  cf::OStreamOp output(cfg, "output", "The output file");
+  cf::OpChoices<std::string> mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
+  cf::OpIStream input(cfg, "input", "The input file");
+  cf::OpOStream output(cfg, "output", "The output file");
 
   cf::Group group1(cfg, "group1", "help text for some group");
   cf::Op<uint32_t> g1a(group1, "g1a", "meow", 8);

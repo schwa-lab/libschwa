@@ -25,6 +25,7 @@ namespace schwa {
       }
     }
 
+
     template <>
     inline void
     Op<bool>::_assign(const std::string &value) {
@@ -39,17 +40,20 @@ namespace schwa {
       }
     }
 
+
     template <>
     inline void
     Op<std::string>::_assign(const std::string &value) {
       _value = value;
     }
 
+
     template <typename T>
     bool
     Op<T>::_validate(const Main &) {
       return true;
     }
+
 
     template <typename T>
     void
@@ -62,6 +66,7 @@ namespace schwa {
       out << std::endl;
     }
 
+
     template <typename T>
     void
     Op<T>::set_default(void) {
@@ -70,11 +75,11 @@ namespace schwa {
 
 
     // ========================================================================
-    // ChoicesOp<T>
+    // OpChoices<T>
     // ========================================================================
     template <typename T>
     bool
-    ChoicesOp<T>::_validate(const Main &) {
+    OpChoices<T>::_validate(const Main &) {
       if (_options.find(Op<T>::_value) == _options.end()) {
         std::ostringstream ss;
         ss << "Invalid value for \"" << Op<T>::_name << "\": \"" << Op<T>::_value << "\" is not a valid choice.";
@@ -83,9 +88,10 @@ namespace schwa {
       return true;
     }
 
+
     template <typename T>
     void
-    ChoicesOp<T>::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+    OpChoices<T>::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
       out << port::BOLD << "--" << prefix << Op<T>::_name << port::OFF << ": " << Op<T>::_desc;

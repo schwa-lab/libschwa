@@ -15,8 +15,8 @@ namespace schwa {
     class Main : public Group {
     protected:
       std::vector<ConfigNode *> _owned;
-      OStreamOp *_log;
-      LogLevelOp *_log_level;
+      OpOStream *_log;
+      OpLogLevel *_log_level;
 
     public:
       Main(const std::string &name, const std::string &desc);

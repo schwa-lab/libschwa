@@ -24,7 +24,7 @@ namespace {
 
 class Config : public cf::Main {
 public:
-  cf::IStreamOp input;
+  cf::OpIStream input;
   cf::Op<int> limit;
 
   Config(void) :

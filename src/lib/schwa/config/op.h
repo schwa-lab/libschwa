@@ -61,10 +61,7 @@ namespace schwa {
 
     public:
       Op(Group &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
-      Op(Group &group, const std::string &name, const std::string &desc, const T &default_) :
-          Option(group, name, desc, true),
-          _default(default_)
-        { }
+      Op(Group &group, const std::string &name, const std::string &desc, const T &default_) : Option(group, name, desc, true), _default(default_) { }
       virtual ~Op(void) { }
 
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
@@ -78,31 +75,25 @@ namespace schwa {
 
 
     template <typename T>
-    class ChoicesOp : public Op<T> {
+    class OpChoices : public Op<T> {
     protected:
       std::set<T> _options;
 
       virtual bool _validate(const Main &main) override;
 
     public:
-      ChoicesOp(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options) :
-          Op<T>(group, name, desc),
-          _options(options)
-        { }
-      ChoicesOp(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) :
-          Op<T>(group, name, desc, default_),
-          _options(options)
-        { }
-      virtual ~ChoicesOp(void) { }
+      OpChoices(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options) : Op<T>(group, name, desc), _options(options) { }
+      OpChoices(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) : Op<T>(group, name, desc, default_), _options(options) { }
+      virtual ~OpChoices(void) { }
 
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(ChoicesOp);
+      DISALLOW_COPY_AND_ASSIGN(OpChoices);
     };
 
 
-    class IStreamOp : public Op<std::string> {
+    class OpIStream : public Op<std::string> {
     public:
       static constexpr const char *const STDIN_STRING = "<stdin>";
 
@@ -113,21 +104,18 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      IStreamOp(Group &group, const std::string &name, const std::string &desc) :
-          Op<std::string>(group, name, desc, STDIN_STRING),
-          _in(nullptr),
-          _is_stdin(false)
-        { }
-      virtual ~IStreamOp(void);
+      OpIStream(Group &group, const std::string &name, const std::string &desc);
+      OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      virtual ~OpIStream(void);
 
       inline std::istream &file(void) const { return *_in; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(IStreamOp);
+      DISALLOW_COPY_AND_ASSIGN(OpIStream);
     };
 
 
-    class OStreamOp : public Op<std::string> {
+    class OpOStream : public Op<std::string> {
     public:
       static constexpr const char *const STDOUT_STRING = "<stdout>";
       static constexpr const char *const STDERR_STRING = "<stderr>";
@@ -139,35 +127,31 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      OStreamOp(Group &group, const std::string &name, const std::string &desc) : OStreamOp(group, name, desc, STDOUT_STRING) { }
-      OStreamOp(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
-          Op<std::string>(group, name, desc, default_),
-          _out(nullptr),
-          _is_std(false)
-        { }
-      virtual ~OStreamOp(void);
+      OpOStream(Group &group, const std::string &name, const std::string &desc);
+      OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      virtual ~OpOStream(void);
 
       inline std::ostream &file(void) const { return *_out; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OStreamOp);
+      DISALLOW_COPY_AND_ASSIGN(OpOStream);
     };
 
 
-    class LogLevelOp : public ChoicesOp<std::string> {
+    class OpLogLevel : public OpChoices<std::string> {
     protected:
       schwa::io::LogLevel _level;
 
       virtual bool _validate(const Main &main) override;
 
     public:
-      LogLevelOp(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
-      virtual ~LogLevelOp(void);
+      OpLogLevel(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      virtual ~OpLogLevel(void);
 
       inline schwa::io::LogLevel operator ()(void) const { return _level; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(LogLevelOp);
+      DISALLOW_COPY_AND_ASSIGN(OpLogLevel);
     };
 
 
@@ -186,29 +170,29 @@ namespace schwa {
     };
 
 
-    class HelpOption : public CommandOption {
+    class OpHelp : public CommandOption {
     protected:
       virtual bool _validate(const Main &main) override;
 
     public:
-      HelpOption(Group &group, const std::string &name="help", const std::string &desc="Displays the help text") : CommandOption(group, name, desc) { }
-      virtual ~HelpOption(void) { }
+      OpHelp(Group &group, const std::string &name="help", const std::string &desc="Displays the help text") : CommandOption(group, name, desc) { }
+      virtual ~OpHelp(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(HelpOption);
+      DISALLOW_COPY_AND_ASSIGN(OpHelp);
     };
 
 
-    class VersionOption : public CommandOption {
+    class OpVersion : public CommandOption {
     protected:
       virtual bool _validate(const Main &main) override;
 
     public:
-      VersionOption(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
-      virtual ~VersionOption(void) { }
+      OpVersion(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
+      virtual ~OpVersion(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(VersionOption);
+      DISALLOW_COPY_AND_ASSIGN(OpVersion);
     };
   }
 }

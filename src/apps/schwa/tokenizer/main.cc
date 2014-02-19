@@ -22,9 +22,9 @@ main(int argc, char **argv) {
 
   // Construct an option parser.
   cf::Main cfg("tokenizer", "Schwa-Lab tokenizer");
-  cf::IStreamOp input(cfg, "input", "The input file");
-  cf::OStreamOp output(cfg, "output", "The output file");
-  cf::ChoicesOp<std::string> printer(cfg, "printer", "Which printer to use as output", {"text", "debug", "docrep"}, "text");
+  cf::OpIStream input(cfg, "input", "The input file");
+  cf::OpOStream output(cfg, "output", "The output file");
+  cf::OpChoices<std::string> printer(cfg, "printer", "Which printer to use as output", {"text", "debug", "docrep"}, "text");
   cf::Op<size_t> input_buffer(cfg, "input-buffer", "Tokenizer input buffer size (bytes)", tok::BUFFER_SIZE);
   dr::DocrepOpGroup dr(cfg, schema);
 
