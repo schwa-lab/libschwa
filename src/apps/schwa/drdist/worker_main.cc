@@ -145,7 +145,7 @@ worker_main(const int argc, char **const argv, cf::Main &cfg, typename DOC::Sche
   cf::Op<uint32_t> source_port(cfg, "source-port", "The network port to bind to on which to pull docrep documents", 7301);
   cf::Op<uint32_t> sink_port(cfg, "sink-port", "The network port to bind to on which to push docrep documents", 7302);
   cf::Op<uint32_t> control_port(cfg, "control-port", "The network port to bind to on which to subscribe to control messages", 7303);
-  dr::DocrepOpGroup dr(cfg, schema);
+  dr::DocrepGroup dr(cfg, schema);
 
   // Parse argv.
   cfg.main<LOGGER>(argc, argv);

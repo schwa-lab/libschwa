@@ -3,11 +3,8 @@
 #define SCHWA_DR_CONFIG_H_
 
 #include <string>
-#include <vector>
 
-#include <schwa/_base.h>
-#include <schwa/config/base.h>
-#include <schwa/config/group.h>
+#include <schwa/config.h>
 
 namespace schwa {
   namespace dr {
@@ -15,67 +12,56 @@ namespace schwa {
     class BaseDocSchema;
     class BaseDef;
     class BaseSchema;
-    class DocrepClassOp;
+
+    class DocrepClassGroup;
+    class DocrepGroup;
 
 
-    class DocrepFieldOp : public config::ConfigNode {
+    class OpDocrepField : public config::Op<std::string> {
     protected:
       BaseDef &_field;
 
+      virtual bool _validate(const config::Main &main) override;
+
     public:
-      DocrepFieldOp(DocrepClassOp &group, BaseDef &field);
-      virtual ~DocrepFieldOp(void);
+      OpDocrepField(DocrepClassGroup &group, BaseDef &field);
+      virtual ~OpDocrepField(void) { }
 
-      virtual config::ConfigNode *find(const std::string &key) override;
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
-
-      virtual bool accepts_assignment(void) const override;
-      virtual bool accepts_mention(void) const override;
-
-      virtual void assign(const std::string &value) override;
-      virtual void mention(void) override;
-      virtual bool validate(const config::Main &main) override;
     private:
-      DISALLOW_COPY_AND_ASSIGN(DocrepFieldOp);
+      DISALLOW_COPY_AND_ASSIGN(OpDocrepField);
     };
 
 
-    class DocrepClassOp : public config::ConfigNode {
+    class DocrepClassGroup : public config::Group {
     protected:
       BaseSchema &_schema;
-      std::vector<DocrepFieldOp *> _children;
 
     public:
-      DocrepClassOp(config::Group &group, BaseDocSchema &schema);
-      DocrepClassOp(config::Group &group, BaseSchema &schema);
-      virtual ~DocrepClassOp(void);
-
-      void add(DocrepFieldOp *const child);
-
-      virtual config::ConfigNode *find(const std::string &key) override;
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      DocrepClassGroup(DocrepGroup &group, BaseDocSchema &schema);
+      DocrepClassGroup(DocrepGroup &group, BaseSchema &schema);
+      virtual ~DocrepClassGroup(void) { }
 
       virtual bool accepts_assignment(void) const override;
       virtual bool accepts_mention(void) const override;
 
       virtual void assign(const std::string &value) override;
       virtual void mention(void) override;
-      virtual bool validate(const config::Main &main) override;
+
     private:
-      DISALLOW_COPY_AND_ASSIGN(DocrepClassOp);
+      DISALLOW_COPY_AND_ASSIGN(DocrepClassGroup);
     };
 
 
-    class DocrepOpGroup : public config::Group {
+    class DocrepGroup : public config::Group {
     protected:
       BaseDocSchema &_dschema;
 
     public:
-      DocrepOpGroup(Group &group, BaseDocSchema &dschema, const std::string &name="dr", const std::string &desc="Docrep model options");
-      virtual ~DocrepOpGroup(void) { }
+      DocrepGroup(Group &group, BaseDocSchema &dschema, const std::string &name="dr", const std::string &desc="Schema configuration for docrep documents");
+      virtual ~DocrepGroup(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(DocrepOpGroup);
+      DISALLOW_COPY_AND_ASSIGN(DocrepGroup);
     };
 
   }

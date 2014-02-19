@@ -26,7 +26,7 @@ main(int argc, char **argv) {
   cf::OpOStream output(cfg, "output", "The output file");
   cf::OpChoices<std::string> printer(cfg, "printer", "Which printer to use as output", {"text", "debug", "docrep"}, "text");
   cf::Op<size_t> input_buffer(cfg, "input-buffer", "Tokenizer input buffer size (bytes)", tok::BUFFER_SIZE);
-  dr::DocrepOpGroup dr(cfg, schema);
+  dr::DocrepGroup dr(cfg, schema);
 
   // Parse argv.
   cfg.main<io::PrettyLogger>(argc, argv);
