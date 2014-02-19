@@ -1,7 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config/group.h>
 
+#include <cassert>
 #include <iostream>
+#include <sstream>
 
 #include <schwa/config/exception.h>
 #include <schwa/port.h>
@@ -10,27 +12,31 @@
 namespace schwa {
 namespace config {
 
-OpGroup::OpGroup(OpGroup &group, const std::string &name, const std::string &desc) : OptionBase(name, desc) {
-  group.add(this);
+OpGroup::OpGroup(OpGroup &group, const std::string &name, const std::string &desc) : ConfigNode(name, desc) {
+  group.add(*this);
 }
 
 
-OptionBase *
-OpGroup::find(const std::string &orig_key, const std::string &key) {
+ConfigNode *
+OpGroup::find(const std::string &key) {
   const size_t pos = key.find(_name);
   if (pos != 0)
     return nullptr;
-  else if (key.size() == _name.size())
+  if (key == _name)
     return this;
-  else if (key[_name.size()] != '-')
-    throw ConfigException("Invalid option key", orig_key);
 
-  const std::string new_key = key.substr(_name.size() + 1);
-  if (new_key.empty())
-    throw ConfigException("Invalid option key", orig_key);
+  std::string new_key = key.substr(_name.size());
+  if (new_key.find("--") != 0)
+    return nullptr;
+  new_key = new_key.substr(2);
 
-  for (auto &child : _children) {
-    OptionBase *const p = child->find(orig_key, new_key);
+  for (auto &child : _options) {
+    ConfigNode *const p = child->find(new_key);
+    if (p != nullptr)
+      return p;
+  }
+  for (auto &child : _groups) {
+    ConfigNode *const p = child->find(new_key);
     if (p != nullptr)
       return p;
   }
@@ -39,26 +45,93 @@ OpGroup::find(const std::string &orig_key, const std::string &key) {
 
 
 void
-OpGroup::help(std::ostream &out, const std::string &prefix, unsigned int depth) const {
-  const std::string me = prefix + _name + "-";
+OpGroup::help(std::ostream &out) const {
+  help(out, "", 0);
+}
+
+
+void
+OpGroup::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+  const std::string me = (depth == 0) ? prefix : prefix + _name + "--";
   if (depth != 0)
     out << std::endl;
+  for (unsigned int i = 0; i != depth; ++i)
+    out << "  ";
   out << port::BOLD << prefix << _name << port::OFF << ": " << _desc << std::endl;
-  for (auto &child : _children)
+  for (auto &child : _options)
+    child->help(out, me, depth + 1);
+  for (auto &child : _groups)
     child->help(out, me, depth + 1);
 }
 
 
 void
-OpGroup::set(const std::string &value) {
-  throw ConfigException("Cannot set the value of a option group", _name, value);
+OpGroup::_add_check(ConfigNode &child) {
+  const std::string &child_name = child.name();
+  for (auto &c : _options) {
+    if (c->name() == child_name) {
+      std::ostringstream ss;
+      ss << "Duplicate config option name \"" << child_name << "\"";
+      throw ConfigException(ss.str());
+    }
+  }
+  for (auto &c : _groups) {
+    if (c->name() == child_name) {
+      std::ostringstream ss;
+      ss << "Duplicate config option name \"" << child_name << "\"";
+      throw ConfigException(ss.str());
+    }
+  }
 }
 
 
 void
-OpGroup::validate(void) {
-  for (auto &child : _children)
-    child->validate();
+OpGroup::add(Option &child) {
+  _add_check(child);
+  _options.push_back(&child);
+}
+
+
+void
+OpGroup::add(OpGroup &child) {
+  _add_check(child);
+  _groups.push_back(&child);
+}
+
+
+bool
+OpGroup::accepts_assignment(void) const {
+  return false;
+}
+
+
+bool
+OpGroup::accepts_mention(void) const {
+  return false;
+}
+
+
+void
+OpGroup::assign(const std::string &) {
+  assert(false);
+}
+
+
+void
+OpGroup::mention(void) {
+  assert(false);
+}
+
+
+bool
+OpGroup::validate(const Main &main) {
+  for (auto &child : _options)
+    if (!child->validate(main))
+      return false;
+  for (auto &child : _groups)
+    if (!child->validate(main))
+      return false;
+  return true;
 }
 
 }  // namespace config

@@ -2,8 +2,9 @@
 #ifndef SCHWA_CONFIG_MAIN_H_
 #define SCHWA_CONFIG_MAIN_H_
 
-#include <iosfwd>
+#include <iostream>
 #include <string>
+#include <vector>
 
 #include <schwa/_base.h>
 #include <schwa/config/group.h>
@@ -11,28 +12,30 @@
 namespace schwa {
   namespace config {
 
-    class OpMain : public OpGroup {
+    class Main : public OpGroup {
     protected:
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      std::vector<ConfigNode *> _owned;
+      OStreamOp *_log;
+      LogLevelOp *_log_level;
 
     public:
-      OpMain(const std::string &name, const std::string &desc) : OpGroup(name, desc) { }
-      virtual ~OpMain(void) { }
+      Main(const std::string &name, const std::string &desc);
+      virtual ~Main(void);
 
-      virtual OptionBase *find(const std::string &orig_key, const std::string &key) override;
-      using OpGroup::help;
+      virtual ConfigNode *find(const std::string &key) override;
 
-      // Used to parse and accept argv. Calls ::exit(1) upon error. Logs to std::cerr.
-      void main(int argc, char **argv);
+      // Used to parse and accept argv. Returns whether or not to keep going.
+      bool process(int argc, char **argv);
 
-      // Used to parse and accept argv. Return success. Logs to help_ostream.
-      bool process(int argc, char **argv, std::ostream &help_ostream);
+      template <typename LOGGER> void main(int argc, char **argv);
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpMain);
+      DISALLOW_COPY_AND_ASSIGN(Main);
     };
 
   }
 }
+
+#include <schwa/config/main_impl.h>
 
 #endif  // SCHWA_CONFIG_MAIN_H_

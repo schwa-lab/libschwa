@@ -21,21 +21,15 @@ main(int argc, char **argv) {
   tok::Doc::Schema schema;
 
   // Construct an option parser.
-  cf::OpMain cfg("tokenizer", "Schwa-Lab tokenizer");
+  cf::Main cfg("tokenizer", "Schwa-Lab tokenizer");
   cf::IStreamOp input(cfg, "input", "The input file");
   cf::OStreamOp output(cfg, "output", "The output file");
-  cf::EnumOp<std::string> printer(cfg, "printer", "Which printer to use as output", {"text", "debug", "docrep"}, "text");
-  cf::Op<size_t> input_buffer(cfg, "input_buffer", "Tokenizer input buffer size (bytes)", tok::BUFFER_SIZE);
-  cf::OStreamOp log(cfg, "log", "The file to log to", cf::OStreamOp::STDERR_STRING);
-  cf::LogLevelOp log_level(cfg, "log_level", "The level to log at", "info");
+  cf::ChoicesOp<std::string> printer(cfg, "printer", "Which printer to use as output", {"text", "debug", "docrep"}, "text");
+  cf::Op<size_t> input_buffer(cfg, "input-buffer", "Tokenizer input buffer size (bytes)", tok::BUFFER_SIZE);
   dr::DocrepOpGroup dr(cfg, schema);
 
   // Parse argv.
-  cfg.main(argc, argv);
-
-  // Configure logging.
-  io::default_logger = new io::PrettyLogger(log.file());
-  io::default_logger->threshold(log_level());
+  cfg.main<io::PrettyLogger>(argc, argv);
 
   // Configure the tokenizer printer.
   std::unique_ptr<tok::Stream> stream;
@@ -45,8 +39,6 @@ main(int argc, char **argv) {
     stream.reset(new tok::DebugTextStream(output.file()));
   else if (printer() == "docrep")
     stream.reset(new tok::DocrepStream(output.file(), schema));
-  else
-    throw cf::ConfigException("Unknown value", "printer", printer());
 
   // Construct the tokenizer and tokenize the input.
   tok::Tokenizer t;

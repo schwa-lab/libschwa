@@ -7,6 +7,8 @@
 #include <schwa/dr/field_defs.h>
 #include <schwa/port.h>
 
+namespace cf = schwa::config;
+
 
 namespace schwa {
 namespace dr {
@@ -15,20 +17,20 @@ namespace dr {
 // DocrepFieldOp
 // ============================================================================
 DocrepFieldOp::DocrepFieldOp(DocrepClassOp &group, BaseDef &field) :
-    config::OptionBase(field.name, field.help),
+    cf::ConfigNode(field.name, field.help),
     _field(field) {
-  group.add(this);
+  //group.add(this);  FIXME
+  (void)group;
 }
 
 DocrepFieldOp::~DocrepFieldOp(void) { }
 
 
-config::OptionBase *
-DocrepFieldOp::find(const std::string &, const std::string &key) {
-  const size_t pos = key.find(_name);
-  if (key.empty() || pos != 0 || key.size() != _name.size())
-    return nullptr;
-  return this;
+cf::ConfigNode *
+DocrepFieldOp::find(const std::string &key) {
+  (void)key;
+  // FIXME
+  return nullptr;
 }
 
 
@@ -41,32 +43,52 @@ DocrepFieldOp::help(std::ostream &out, const std::string &prefix, unsigned int) 
 
 
 void
-DocrepFieldOp::set(const std::string &value) {
+DocrepFieldOp::assign(const std::string &value) {
   _field.serial = value;
 }
 
 
+bool
+DocrepFieldOp::accepts_assignment(void) const {
+  return true;
+}
+
+
+bool
+DocrepFieldOp::accepts_mention(void) const {
+  return true;
+}
+
+
 void
-DocrepFieldOp::validate(void) { }
+DocrepFieldOp::mention(void) { }
+
+
+bool
+DocrepFieldOp::validate(const cf::Main &) {
+  return true;
+}
 
 
 // ============================================================================
 // DocrepClassOp
 // ============================================================================
-DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseDocSchema &schema) :
-    config::OptionBase(schema.name, schema.help),
+DocrepClassOp::DocrepClassOp(cf::OpGroup &group, BaseDocSchema &schema) :
+    cf::ConfigNode(schema.name, schema.help),
     _schema(schema) {
-  group.add(this);
+  //group.add(this);  FIXME
+  (void)group;
   for (auto &f : schema.fields())
     new DocrepFieldOp(*this, *f);
   for (auto &s : schema.stores())
     new DocrepFieldOp(*this, *s);
 }
 
-DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseSchema &schema) :
-    config::OptionBase(schema.name, schema.help),
+DocrepClassOp::DocrepClassOp(cf::OpGroup &group, BaseSchema &schema) :
+    cf::ConfigNode(schema.name, schema.help),
     _schema(schema) {
-  group.add(this);
+  //group.add(this);  FIXME
+  (void)group;
   for (auto &f : schema.fields())
     new DocrepFieldOp(*this, *f);
 }
@@ -83,25 +105,10 @@ DocrepClassOp::add(DocrepFieldOp *const child) {
 }
 
 
-config::OptionBase *
-DocrepClassOp::find(const std::string &orig_key, const std::string &key) {
-  const size_t pos = key.find(_name);
-  if (pos != 0)
-    return nullptr;
-  else if (key.size() == _name.size())
-    return this;
-  else if (key[_name.size()] != '-')
-    throw config::ConfigException("Invalid option key", orig_key);
-
-  const std::string new_key = key.substr(_name.size() + 1);
-  if (new_key.empty())
-    throw config::ConfigException("Invalid option key", orig_key);
-
-  for (auto &child : _children) {
-    auto *p = child->find(orig_key, new_key);
-    if (p != nullptr)
-      return p;
-  }
+cf::ConfigNode *
+DocrepClassOp::find(const std::string &key) {
+  // FIXME
+  (void)key;
   return nullptr;
 }
 
@@ -119,19 +126,37 @@ DocrepClassOp::help(std::ostream &out, const std::string &prefix, unsigned int d
 
 
 void
-DocrepClassOp::set(const std::string &value) {
+DocrepClassOp::assign(const std::string &value) {
   _schema.serial = value;
 }
 
 
+bool
+DocrepClassOp::accepts_assignment(void) const {
+  return true;
+}
+
+
+bool
+DocrepClassOp::accepts_mention(void) const {
+  return true;
+}
+
+
 void
-DocrepClassOp::validate(void) { }
+DocrepClassOp::mention(void) { }
+
+
+bool
+DocrepClassOp::validate(const cf::Main &) {
+  return true;
+}
 
 
 // ============================================================================
 // DocrepOpGroup
 // ============================================================================
-DocrepOpGroup::DocrepOpGroup(OpGroup &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) : config::OpGroup(group, name, desc), _dschema(dschema) {
+DocrepOpGroup::DocrepOpGroup(OpGroup &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) : cf::OpGroup(group, name, desc), _dschema(dschema) {
   new DocrepClassOp(*this, dschema);
   for (auto &s : dschema.schemas())
     new DocrepClassOp(*this, *s);

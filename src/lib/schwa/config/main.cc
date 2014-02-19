@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <queue>
 #include <sstream>
 
 #include <schwa/config/exception.h>
@@ -14,10 +15,37 @@
 namespace schwa {
 namespace config {
 
-OptionBase *
-OpMain::find(const std::string &orig_key, const std::string &key) {
-  for (auto &child : _children) {
-    OptionBase *const p = child->find(orig_key, key);
+static void
+throw_config_exception(const std::string &msg, const std::string &key) {
+  std::ostringstream ss;
+  ss << msg << " \"" << key << "\"";
+  throw ConfigException(ss.str());
+}
+
+
+Main::Main(const std::string &name, const std::string &desc) : OpGroup(name, desc) {
+  _owned.push_back(new HelpOption(*this));
+  _owned.push_back(new VersionOption(*this));
+  _owned.push_back(_log = new OStreamOp(*this, "log", "The file to log to", OStreamOp::STDERR_STRING));
+  _owned.push_back(_log_level = new LogLevelOp(*this, "log-level", "The level to log at", "info"));
+}
+
+
+Main::~Main(void) {
+  for (auto &ptr : _owned)
+    delete ptr;
+}
+
+
+ConfigNode *
+Main::find(const std::string &key) {
+  for (auto &child : _options) {
+    ConfigNode *const p = child->find(key);
+    if (p != nullptr)
+      return p;
+  }
+  for (auto &child : _groups) {
+    ConfigNode *const p = child->find(key);
     if (p != nullptr)
       return p;
   }
@@ -25,65 +53,46 @@ OpMain::find(const std::string &orig_key, const std::string &key) {
 }
 
 
-void
-OpMain::help(std::ostream &out, const std::string &prefix, unsigned int depth) const {
-  out << port::BOLD << _name << port::OFF << ": " << _desc << std::endl;
-  for (auto &child : _children)
-    child->help(out, prefix, depth);
-}
-
-
 bool
-OpMain::process(const int argc, char **const argv, std::ostream &help_ostream) {
-  // do an initial pass for "--help" and "--version"
-  for (int i = 0; i != argc; ++i) {
-    if (std::strcmp(argv[i], "--help") == 0) {
-      help(help_ostream);
-      return false;
-    }
-    if (std::strcmp(argv[i], "--version") == 0) {
-      help_ostream << VERSION << std::endl;
-      return false;
-    }
-  }
+Main::process(const int argc, char **const argv) {
+  // Place the arguments into a queue for ease of processing.
+  std::queue<std::string> args;
+  for (int i = 0; i != argc; ++i)
+    args.push(argv[i]);
 
+  // Try and assign all of the arguments to nodes.
+  while (!args.empty()) {
+    const std::string &key = args.front();
+    args.pop();
 
-  // ensure we have key/value pairs
-  if (argc % 2 != 0) {
-    std::stringstream ss;
-    ss << "Arguments must be key/value pairs. Invalid number of arguments provided: " << argc;
-    throw ConfigException(ss.str());
-  }
+    const size_t pos = key.find("--");
+    if (pos != 0)
+      throw_config_exception("Invalid option", key);
 
-  // assign out all of the key/value pairs
-  for (int i = 0; i != argc; ) {
-    const std::string key(argv[i++]);
-    const std::string val(argv[i++]);
-    if (key.size() <= 2 || key[0] != '-' || key[1] != '-')
-      throw ConfigException("Invalid option key", key, val);
-    OptionBase *const node = find(key, key.substr(2));
+    // Find the config node corresponding to the key.
+    ConfigNode *const node = find(key.substr(2));
     if (node == nullptr)
-      throw ConfigException("Unknown option", _name, key.substr(2));
-    node->set(val);
+      throw_config_exception("Unknown option", key);
+
+    // Ensure the node can be mentioned.
+    if (node->accepts_mention())
+      node->mention();
+    else
+      throw_config_exception("Invalid option", key);
+
+    // If the node can be assigned a value, try and assign it one.
+    if (node->accepts_assignment()) {
+      if (args.empty())
+        throw_config_exception("Value missing for option", key);
+
+      const std::string value = args.front();
+      args.pop();
+      node->assign(value);
+    }
   }
 
-  // validate each of the nodes
-  validate();
-  return true;
-}
-
-
-void
-OpMain::main(int argc, char **argv) {
-  try {
-    if (!process(argc - 1, argv + 1, std::cerr))
-      std::exit(1);
-  }
-  catch (ConfigException &e) {
-    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
-    help(std::cerr);
-    std::exit(1);
-  }
+  // Validate each of the nodes.
+  return validate(*this);
 }
 
 }  // namespace config

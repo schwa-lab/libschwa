@@ -1,4 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+/** @file */
 #ifndef SCHWA_CONFIG_EXCEPTION_H_
 #define SCHWA_CONFIG_EXCEPTION_H_
 
@@ -10,23 +11,16 @@
 namespace schwa {
   namespace config {
 
+    /**
+     * Exception subclass to indicate an error in the configuration framework. This includes both
+     * the invalid setting up of the configuration framework itself and the invalid parsing of
+     * configuration values.
+     **/
     class ConfigException : public Exception {
     public:
-      const std::string msg;
-      const std::string name;
-      const std::string value;
-
-    private:
-      const std::string _what;
-
-    public:
-      explicit ConfigException(const std::string &msg);
-      ConfigException(const std::string &msg, const std::string &name);
-      ConfigException(const std::string &msg, const std::string &name, const std::string &value);
-      ConfigException(const ConfigException &o);
+      explicit ConfigException(const std::string &msg) : Exception(msg) { }
+      ConfigException(const ConfigException &other) : Exception(other) { }
       virtual ~ConfigException(void) throw() { }
-
-      virtual const char *what(void) const throw() override;
     };
 
   }

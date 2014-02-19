@@ -18,7 +18,7 @@ namespace schwa {
     class DocrepClassOp;
 
 
-    class DocrepFieldOp : public config::OptionBase {
+    class DocrepFieldOp : public config::ConfigNode {
     protected:
       BaseDef &_field;
 
@@ -26,17 +26,21 @@ namespace schwa {
       DocrepFieldOp(DocrepClassOp &group, BaseDef &field);
       virtual ~DocrepFieldOp(void);
 
-      virtual config::OptionBase *find(const std::string &orig_key, const std::string &key) override;
+      virtual config::ConfigNode *find(const std::string &key) override;
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
-      virtual void set(const std::string &value) override;
-      virtual void validate(void) override;
 
+      virtual bool accepts_assignment(void) const override;
+      virtual bool accepts_mention(void) const override;
+
+      virtual void assign(const std::string &value) override;
+      virtual void mention(void) override;
+      virtual bool validate(const config::Main &main) override;
     private:
       DISALLOW_COPY_AND_ASSIGN(DocrepFieldOp);
     };
 
 
-    class DocrepClassOp : public config::OptionBase {
+    class DocrepClassOp : public config::ConfigNode {
     protected:
       BaseSchema &_schema;
       std::vector<DocrepFieldOp *> _children;
@@ -48,11 +52,15 @@ namespace schwa {
 
       void add(DocrepFieldOp *const child);
 
-      virtual config::OptionBase *find(const std::string &orig_key, const std::string &key) override;
+      virtual config::ConfigNode *find(const std::string &key) override;
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
-      virtual void set(const std::string &value) override;
-      virtual void validate(void) override;
 
+      virtual bool accepts_assignment(void) const override;
+      virtual bool accepts_mention(void) const override;
+
+      virtual void assign(const std::string &value) override;
+      virtual void mention(void) override;
+      virtual bool validate(const config::Main &main) override;
     private:
       DISALLOW_COPY_AND_ASSIGN(DocrepClassOp);
     };

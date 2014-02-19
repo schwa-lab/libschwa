@@ -14,7 +14,6 @@ BASE_OBJECTS = \
 		src/lib/schwa/version.o
 CONFIG_OBJECTS = \
 		src/lib/schwa/config/base.o \
-		src/lib/schwa/config/exception.o \
 		src/lib/schwa/config/group.o \
 		src/lib/schwa/config/main.o \
 		src/lib/schwa/config/op.o

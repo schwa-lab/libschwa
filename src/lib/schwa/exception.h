@@ -15,7 +15,7 @@ namespace schwa {
   public:
     const std::string msg;
 
-    Exception(const std::string &msg) : msg(msg) { }
+    explicit Exception(const std::string &msg) : msg(msg) { }
     Exception(const Exception &other) : std::exception(other), msg(other.msg) { }
     virtual ~Exception(void) throw() { }
 
@@ -31,7 +31,7 @@ namespace schwa {
     const std::string uri;
     const int line;
 
-    IOException(const std::string &msg, int line=0);
+    explicit IOException(const std::string &msg, int line=0);
     IOException(const std::string &msg, const std::string &uri, int line=0);
     IOException(const IOException &other);
     virtual ~IOException(void) throw() { }
@@ -41,7 +41,7 @@ namespace schwa {
   // general errors with an error message
   class ValueException : public Exception {
   public:
-    ValueException(const std::string &msg) : Exception(msg) { }
+    explicit ValueException(const std::string &msg) : Exception(msg) { }
     ValueException(const ValueException &other) : Exception(other) { }
     virtual ~ValueException(void) throw() { }
   };
@@ -53,7 +53,7 @@ namespace schwa {
     const std::string name;
     const Exception &e;
 
-    print_exception(const Exception &e);
+    explicit print_exception(const Exception &e);
     print_exception(const std::string &name, const Exception &e);
 
     std::ostream &dump(std::ostream &out) const;

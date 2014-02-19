@@ -34,7 +34,7 @@ process_doc(EgDoc &doc) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::OpMain cfg("drworker", "An example docrep parallelisation worker");
+  cf::Main cfg("drworker", "An example docrep parallelisation worker");
 
   return schwa::drdist::worker_main<EgDoc, io::PrettyLogger>(argc, argv, cfg, &process_doc);
 }

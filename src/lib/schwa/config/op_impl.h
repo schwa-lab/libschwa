@@ -16,37 +16,47 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     void
-    Op<T>::_set(const std::string &value) {
-      std::stringstream ss(value);
-      if (!(ss >> _value))
-        throw ConfigException("Error setting value", _name, value);
+    Op<T>::_assign(const std::string &value) {
+      std::istringstream ss(value);
+      if (!(ss >> _value)) {
+        std::ostringstream ss;
+        ss << "Error setting value for \"" << _name << "\": \"" << value << "\"";
+        throw ConfigException(ss.str());
+      }
     }
 
     template <>
     inline void
-    Op<bool>::_set(const std::string &value) {
+    Op<bool>::_assign(const std::string &value) {
       if (value == "true" || value == "1")
         _value = true;
       else if (value == "false" || value == "0")
         _value = false;
-      else
-        throw ConfigException("Error setting value", _name, value);
+      else {
+        std::ostringstream ss;
+        ss << "Error setting value for \"" << _name << "\": \"" << value << "\"";
+        throw ConfigException(ss.str());
+      }
     }
 
     template <>
     inline void
-    Op<std::string>::_set(const std::string &value) {
+    Op<std::string>::_assign(const std::string &value) {
       _value = value;
     }
 
     template <typename T>
-    void
-    Op<T>::_validate(void) { }
+    bool
+    Op<T>::_validate(const Main &) {
+      return true;
+    }
 
     template <typename T>
     void
-    Op<T>::help(std::ostream &out, const std::string &prefix, unsigned int) const {
-      out << "  " << port::BOLD << prefix << _name << port::OFF << ": " << _desc;
+    Op<T>::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+      for (unsigned int i = 0; i != depth; ++i)
+        out << "  ";
+      out << port::BOLD << "--" << prefix << _name << port::OFF << ": " << _desc;
       if (_has_default)
         out << " (default: " << std::boolalpha << _default << ")";
       out << std::endl;
@@ -60,19 +70,25 @@ namespace schwa {
 
 
     // ========================================================================
-    // EnumOp<T>
+    // ChoicesOp<T>
     // ========================================================================
     template <typename T>
-    void
-    EnumOp<T>::_validate(void) {
-      if (_options.find(Op<T>::_value) == _options.end())
-        throw ConfigException("Invalid enum value", Op<T>::_name, Op<T>::_value);
+    bool
+    ChoicesOp<T>::_validate(const Main &) {
+      if (_options.find(Op<T>::_value) == _options.end()) {
+        std::ostringstream ss;
+        ss << "Invalid value for \"" << Op<T>::_name << "\": \"" << Op<T>::_value << "\" is not a valid choice.";
+        throw ConfigException(ss.str());
+      }
+      return true;
     }
 
     template <typename T>
     void
-    EnumOp<T>::help(std::ostream &out, const std::string &prefix, unsigned int) const {
-      out << "  " << port::BOLD << prefix << Op<T>::_name << port::OFF << ": " << Op<T>::_desc;
+    ChoicesOp<T>::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+      for (unsigned int i = 0; i != depth; ++i)
+        out << "  ";
+      out << port::BOLD << "--" << prefix << Op<T>::_name << port::OFF << ": " << Op<T>::_desc;
       out << " {";
       bool first = true;
       for (const auto &it : _options) {

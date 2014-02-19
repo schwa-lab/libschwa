@@ -139,22 +139,16 @@ drworker(const std::string &source_addr, const std::string &sink_addr, const std
 
 template <typename DOC, typename LOGGER>
 int
-worker_main(const int argc, char **const argv, cf::OpMain &cfg, typename DOC::Schema &schema, void (*callback)(DOC &)) {
+worker_main(const int argc, char **const argv, cf::Main &cfg, typename DOC::Schema &schema, void (*callback)(DOC &)) {
   // Build upon an option parser.
   cf::Op<std::string> host(cfg, "host", "The network host to connect to", "127.0.0.1");
-  cf::Op<uint32_t> source_port(cfg, "source_port", "The network port to bind to on which to pull docrep documents", 7301);
-  cf::Op<uint32_t> sink_port(cfg, "sink_port", "The network port to bind to on which to push docrep documents", 7302);
-  cf::Op<uint32_t> control_port(cfg, "control_port", "The network port to bind to on which to subscribe to control messages", 7303);
-  cf::OStreamOp log(cfg, "log", "The file to log to", cf::OStreamOp::STDERR_STRING);
-  cf::LogLevelOp log_level(cfg, "log_level", "The level to log at", "info");
+  cf::Op<uint32_t> source_port(cfg, "source-port", "The network port to bind to on which to pull docrep documents", 7301);
+  cf::Op<uint32_t> sink_port(cfg, "sink-port", "The network port to bind to on which to push docrep documents", 7302);
+  cf::Op<uint32_t> control_port(cfg, "control-port", "The network port to bind to on which to subscribe to control messages", 7303);
   dr::DocrepOpGroup dr(cfg, schema);
 
   // Parse argv.
-  cfg.main(argc, argv);
-
-  // Configure logging.
-  io::default_logger = new LOGGER(log.file());
-  io::default_logger->threshold(log_level());
+  cfg.main<LOGGER>(argc, argv);
 
   // Run the drworker main.
   const std::string source_addr = schwa::drdist::build_socket_addr(host(), source_port());
@@ -168,7 +162,7 @@ worker_main(const int argc, char **const argv, cf::OpMain &cfg, typename DOC::Sc
 
 template <typename DOC, typename LOGGER>
 int
-worker_main(const int argc, char **const argv, cf::OpMain &cfg, void (*callback)(DOC &)) {
+worker_main(const int argc, char **const argv, cf::Main &cfg, void (*callback)(DOC &)) {
   typename DOC::Schema schema;
   return worker_main<DOC, LOGGER>(argc, argv, cfg, schema, callback);
 }

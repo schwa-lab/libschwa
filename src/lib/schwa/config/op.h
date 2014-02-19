@@ -17,47 +17,57 @@ namespace schwa {
     class OpGroup;
 
 
-    class OpBase : public OptionBase {
+    class Option : public ConfigNode {
     protected:
-      const bool _has_default;
-      bool _is_set;
+      const bool _has_default;  //!< Whether or not this option has a default value that can be used.
+      bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
+      bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
-      OpBase(OpGroup &group, const std::string &name, const std::string &desc, bool has_default);
+      Option(OpGroup &group, const std::string &name, const std::string &desc, bool has_default);
 
-      virtual void _set(const std::string &value) = 0;
-      virtual void _validate(void) = 0;
+      virtual void _assign(const std::string &value) = 0;
+      virtual bool _validate(const Main &main) = 0;
 
     public:
-      virtual ~OpBase(void) { }
+      virtual ~Option(void) { }
 
-      virtual OptionBase *find(const std::string &orig_key, const std::string &key) override;
-      virtual void set(const std::string &value) override;
+      virtual ConfigNode *find(const std::string &key) override;
+
+      virtual bool accepts_assignment(void) const override;
+      virtual bool accepts_mention(void) const override;
+
+      void assign(const std::string &value) override;
+      void mention(void) override;
+      bool validate(const Main &main) override;
+
       virtual void set_default(void) = 0;
-      virtual void validate(void) override;
+
+      inline bool was_assigned(void) const { return _was_assigned; }
+      inline bool was_mentioned(void) const { return _was_mentioned; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpBase);
+      DISALLOW_COPY_AND_ASSIGN(Option);
     };
 
 
     template <typename T>
-    class Op : public OpBase {
+    class Op : public Option {
     protected:
       const T _default;
       T _value;
 
-      virtual void _set(const std::string &value) override;
-      virtual void _validate(void) override;
+      virtual void _assign(const std::string &value) override;
+      virtual bool _validate(const Main &main) override;
 
     public:
-      Op(OpGroup &group, const std::string &name, const std::string &desc) : OpBase(group, name, desc, false) { }
+      Op(OpGroup &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
       Op(OpGroup &group, const std::string &name, const std::string &desc, const T &default_) :
-          OpBase(group, name, desc, true),
+          Option(group, name, desc, true),
           _default(default_)
         { }
       virtual ~Op(void) { }
 
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int) const override;
+      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
       virtual void set_default(void) override;
 
       inline const T &operator ()(void) const { return _value; }
@@ -68,27 +78,27 @@ namespace schwa {
 
 
     template <typename T>
-    class EnumOp : public Op<T> {
+    class ChoicesOp : public Op<T> {
     protected:
       std::set<T> _options;
 
-      virtual void _validate(void) override;
+      virtual bool _validate(const Main &main) override;
 
     public:
-      EnumOp(OpGroup &group, const std::string &name, const std::string &desc, std::initializer_list<T> options) :
+      ChoicesOp(OpGroup &group, const std::string &name, const std::string &desc, std::initializer_list<T> options) :
           Op<T>(group, name, desc),
           _options(options)
         { }
-      EnumOp(OpGroup &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) :
+      ChoicesOp(OpGroup &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) :
           Op<T>(group, name, desc, default_),
           _options(options)
         { }
-      virtual ~EnumOp(void) { }
+      virtual ~ChoicesOp(void) { }
 
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(EnumOp);
+      DISALLOW_COPY_AND_ASSIGN(ChoicesOp);
     };
 
 
@@ -100,7 +110,7 @@ namespace schwa {
       std::istream *_in;
       bool _is_stdin;
 
-      virtual void _validate(void) override;
+      virtual bool _validate(const Main &main) override;
 
     public:
       IStreamOp(OpGroup &group, const std::string &name, const std::string &desc) :
@@ -126,7 +136,7 @@ namespace schwa {
       std::ostream *_out;
       bool _is_std;
 
-      virtual void _validate(void) override;
+      virtual bool _validate(const Main &main) override;
 
     public:
       OStreamOp(OpGroup &group, const std::string &name, const std::string &desc) : OStreamOp(group, name, desc, STDOUT_STRING) { }
@@ -144,11 +154,11 @@ namespace schwa {
     };
 
 
-    class LogLevelOp : public EnumOp<std::string> {
+    class LogLevelOp : public ChoicesOp<std::string> {
     protected:
       schwa::io::LogLevel _level;
 
-      virtual void _validate(void);
+      virtual bool _validate(const Main &main) override;
 
     public:
       LogLevelOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_);
@@ -160,6 +170,46 @@ namespace schwa {
       DISALLOW_COPY_AND_ASSIGN(LogLevelOp);
     };
 
+
+    class CommandOption : public Option {
+    protected:
+      virtual void _assign(const std::string &value) override;
+
+    public:
+      CommandOption(OpGroup &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
+      virtual ~CommandOption(void) { }
+
+      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+
+      virtual bool accepts_assignment(void) const override;
+      virtual void set_default(void) override;
+    };
+
+
+    class HelpOption : public CommandOption {
+    protected:
+      virtual bool _validate(const Main &main) override;
+
+    public:
+      HelpOption(OpGroup &group, const std::string &name="help", const std::string &desc="Displays the help text") : CommandOption(group, name, desc) { }
+      virtual ~HelpOption(void) { }
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(HelpOption);
+    };
+
+
+    class VersionOption : public CommandOption {
+    protected:
+      virtual bool _validate(const Main &main) override;
+
+    public:
+      VersionOption(OpGroup &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
+      virtual ~VersionOption(void) { }
+
+    private:
+      DISALLOW_COPY_AND_ASSIGN(VersionOption);
+    };
   }
 }
 

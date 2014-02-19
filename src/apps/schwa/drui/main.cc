@@ -4,13 +4,14 @@
 #include <iostream>
 #include <vector>
 
-#include <schwa/macros.h>
 #include <schwa/config.h>
-#include <schwa/pool.h>
-#include <schwa/port.h>
 #include <schwa/dr.h>
 #include <schwa/io/array_reader.h>
+#include <schwa/io/logging.h>
+#include <schwa/macros.h>
 #include <schwa/msgpack.h>
+#include <schwa/pool.h>
+#include <schwa/port.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -21,13 +22,13 @@ namespace port = schwa::port;
 
 namespace {
 
-class Config : public cf::OpMain {
+class Config : public cf::Main {
 public:
   cf::IStreamOp input;
   cf::Op<int> limit;
 
   Config(void) :
-      cf::OpMain("drui", "Schwa-Lab Docrep UI"),
+      cf::Main("drui", "Schwa-Lab Docrep UI"),
       input(*this, "input", "input filename"),
       limit(*this, "limit", "upper bound on the number of documents to process from the input stream", -1)
     { }
@@ -289,7 +290,7 @@ int
 main(int argc, char *argv[]) {
   // process args
   Config c;
-  c.main(argc, argv);
+  c.main<io::PrettyLogger>(argc, argv);
 
   // construct a docrep reader over the provided input stream
   std::istream &in = c.input.file();

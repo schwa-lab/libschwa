@@ -8,6 +8,7 @@ namespace io = schwa::io;
 namespace mp = schwa::msgpack;
 
 
+#if 0
 class Token : public dr::Ann {
 public:
   dr::Slice<uint64_t> slice;
@@ -114,8 +115,8 @@ do_read(std::istream &in, std::ostream &out) {
 
 int
 main(int argc, char *argv[]) {
-  cf::OpMain cfg("test", "this is the toplevel help");
-  cf::EnumOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
+  cf::Main cfg("test", "this is the toplevel help");
+  cf::ChoicesOp<std::string> op_mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
   cf::IStreamOp op_in(cfg, "input", "The input file");
   cf::OStreamOp op_out(cfg, "output", "The output file");
 
@@ -131,6 +132,39 @@ main(int argc, char *argv[]) {
     std::cerr << schwa::print_exception(e) << std::endl;
     return 1;
   }
+
+  return 0;
+}
+#endif
+
+
+int
+main(int argc, char **argv) {
+
+  cf::Main cfg("test", "this is the toplevel help");
+  cf::ChoicesOp<std::string> mode(cfg, "mode", "The mode of operation", {"read", "write"}, "write");
+  cf::IStreamOp input(cfg, "input", "The input file");
+  cf::OStreamOp output(cfg, "output", "The output file");
+
+  cf::OpGroup group1(cfg, "group1", "help text for some group");
+  cf::Op<uint32_t> g1a(group1, "g1a", "meow", 8);
+  cf::Op<uint32_t> g1b(group1, "g1b", "meow", 8);
+
+  cf::OpGroup group1_1(group1, "group11", "help text for some group");
+  cf::Op<uint32_t> g1_1a(group1_1, "g1a", "meow", 8);
+  cf::Op<uint32_t> g1_1b(group1_1, "g1b", "meow", 8);
+
+  cf::OpGroup group2(cfg, "group2", "help text for some group");
+  cf::Op<uint32_t> g2a(group2, "g2a", "meow", 0);
+  cf::Op<uint32_t> g2b(group2, "g2b", "meow", 0);
+
+  cfg.main<io::PrettyLogger>(argc, argv);
+
+  LOG(DEBUG) << "This is a debug statement." << std::endl;
+  LOG(INFO) << "This is a info statement." << std::endl;
+  LOG(WARNING) << "This is a warning statement." << std::endl;
+  LOG(ERROR) << "This is a error statement." << std::endl;
+  LOG(CRITICAL) << "This is a critical statement." << std::endl;
 
   return 0;
 }

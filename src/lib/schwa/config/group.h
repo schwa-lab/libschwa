@@ -7,28 +7,38 @@
 #include <vector>
 
 #include <schwa/_base.h>
-#include <schwa/config/base.h>
+#include <schwa/config/op.h>
 
 namespace schwa {
   namespace config {
 
-    class OpGroup : public OptionBase {
+    class OpGroup : public ConfigNode {
     protected:
-      std::vector<OptionBase *> _children;
+      std::vector<Option *> _options;
+      std::vector<OpGroup *> _groups;
 
-      OpGroup(const std::string &name, const std::string &desc) : OptionBase(name, desc) { }
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      OpGroup(const std::string &name, const std::string &desc) : ConfigNode(name, desc) { }
+
+      void _add_check(ConfigNode &child);
 
     public:
       OpGroup(OpGroup &group, const std::string &name, const std::string &desc);
       virtual ~OpGroup(void) { }
 
-      inline void add(OptionBase *const child) { _children.push_back(child); }
-      inline void help(std::ostream &out) const { help(out, "--", 0); }
+      void add(Option &child);
+      void add(OpGroup &child);
 
-      virtual OptionBase *find(const std::string &orig_key, const std::string &key) override;
-      virtual void set(const std::string &value) override;
-      virtual void validate(void) override;
+      void help(std::ostream &out) const;
+      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+
+      virtual ConfigNode *find(const std::string &key) override;
+
+      virtual bool accepts_assignment(void) const override;
+      virtual bool accepts_mention(void) const override;
+
+      virtual void assign(const std::string &value) override;
+      virtual void mention(void) override;
+      virtual bool validate(const Main &main) override;
 
     private:
       DISALLOW_COPY_AND_ASSIGN(OpGroup);

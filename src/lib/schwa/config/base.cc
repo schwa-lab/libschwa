@@ -1,23 +1,33 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config/base.h>
 
+#include <sstream>
+
 #include <schwa/config/exception.h>
 
 
 namespace schwa {
 namespace config {
 
-OptionBase::OptionBase(const std::string &name, const std::string &desc) : _name(name), _desc(desc) {
+ConfigNode::ConfigNode(const std::string &name, const std::string &desc) : _name(name), _desc(desc) {
+  // Option names cannot be empty.
   if (name.empty())
-    throw ConfigException("Option names cannot be empty", _name);
+    throw ConfigException("Option names cannot be empty");
 
-  if (name.size() > 1) {
-    for (auto &c : name) {
-      if (c == '-')
-        throw ConfigException("Option names cannot contain dashes", _name);
-      if (std::isspace(c))
-        throw ConfigException("Option names cannot contain spaces", _name);
+  // Option names cannot contain whitespace.
+  for (auto &c : name) {
+    if (std::isspace(c)) {
+      std::ostringstream ss;
+      ss << "Option names cannot contain whitespace characters: \"" << _name << "\"";
+      throw ConfigException(ss.str());
     }
+  }
+
+  // Option names cannot contain two dashes as they are the group-level separator.
+  if (name.find("--") != std::string::npos) {
+    std::ostringstream ss;
+    ss << "Option names cannot contain \"--\": \"" << _name << "\"";
+    throw ConfigException(ss.str());
   }
 }
 

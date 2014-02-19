@@ -3,9 +3,12 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <schwa/config/exception.h>
 #include <schwa/config/group.h>
+#include <schwa/config/main.h>
+#include <schwa/version.h>
 
 namespace io = schwa::io;
 
@@ -13,38 +16,57 @@ namespace io = schwa::io;
 namespace schwa {
 namespace config {
 
-OpBase::OpBase(OpGroup &group, const std::string &name, const std::string &desc, const bool has_default) :
-    OptionBase(name, desc),
+Option::Option(OpGroup &group, const std::string &name, const std::string &desc, const bool has_default) :
+    ConfigNode(name, desc),
     _has_default(has_default),
-    _is_set(false) {
-  group.add(this);
+    _was_mentioned(false),
+    _was_assigned(false) {
+  group.add(*this);
 }
 
 
-OptionBase *
-OpBase::find(const std::string &, const std::string &key) {
-  const size_t pos = key.find(_name);
-  if (key.empty() || pos != 0 || key.size() != _name.size())
-    return nullptr;
-  return this;
+ConfigNode *
+Option::find(const std::string &key) {
+  return (key == _name) ? this : nullptr;
+}
+
+
+bool
+Option::accepts_assignment(void) const {
+  return true;
+}
+
+
+bool
+Option::accepts_mention(void) const {
+  return true;
 }
 
 
 void
-OpBase::set(const std::string &value) {
-  _set(value);
-  _is_set = true;
+Option::assign(const std::string &value) {
+  _assign(value);
+  _was_assigned = true;
 }
 
 
 void
-OpBase::validate(void) {
-  if (!_is_set) {
-    if (!_has_default)
-      throw ConfigException("Unset configuration option", _name);
+Option::mention(void) {
+  _was_mentioned = true;
+}
+
+
+bool
+Option::validate(const Main &main) {
+  if (!_was_assigned && accepts_assignment()) {
+    if (!_has_default) {
+      std::ostringstream ss;
+      ss << "Configuration option \"" << _name << "\" is unset";
+      throw ConfigException(ss.str());
+    }
     set_default();
   }
-  _validate();
+  return _validate(main);
 }
 
 
@@ -57,8 +79,8 @@ IStreamOp::~IStreamOp(void) {
 }
 
 
-void
-IStreamOp::_validate(void) {
+bool
+IStreamOp::_validate(const Main &) {
   if (_value == STDIN_STRING) {
     _is_stdin = true;
     _in = &std::cin;
@@ -67,8 +89,9 @@ IStreamOp::_validate(void) {
     _is_stdin = false;
     _in = new std::ifstream(_value);
     if (!*_in)
-      throw ConfigException("Could not open file for reading", _name, _value);
+      throw IOException("Could not open file for reading", _value);
   }
+  return true;
 }
 
 
@@ -81,8 +104,8 @@ OStreamOp::~OStreamOp(void) {
 }
 
 
-void
-OStreamOp::_validate(void) {
+bool
+OStreamOp::_validate(const Main &) {
   if (_value == STDOUT_STRING) {
     _is_std = true;
     _out = &std::cout;
@@ -95,8 +118,9 @@ OStreamOp::_validate(void) {
     _is_std = false;
     _out = new std::ofstream(_value);
     if (!*_out)
-      throw ConfigException("Could not open file for writing", _name, _value);
+      throw IOException("Could not open file for writing", _value);
   }
+  return true;
 }
 
 
@@ -104,15 +128,17 @@ OStreamOp::_validate(void) {
 // LogLevelOp
 // ============================================================================
 LogLevelOp::LogLevelOp(OpGroup &group, const std::string &name, const std::string &desc, const std::string &default_) :
-    EnumOp<std::string>(group, name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
+    ChoicesOp<std::string>(group, name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
     _level(io::LogLevel::INFO)
   { }
 
 LogLevelOp::~LogLevelOp(void) { }
 
-void
-LogLevelOp::_validate(void) {
-  EnumOp<std::string>::_validate();
+
+bool
+LogLevelOp::_validate(const Main &main) {
+  if (!ChoicesOp<std::string>::_validate(main))
+    return false;
   if (_value == "critical")
     _level = io::LogLevel::CRITICAL;
   else if (_value == "error")
@@ -123,6 +149,64 @@ LogLevelOp::_validate(void) {
     _level = io::LogLevel::INFO;
   else if (_value == "debug")
     _level = io::LogLevel::DEBUG;
+  else
+    return false;
+  return true;
+}
+
+
+// ============================================================================
+// CommandOption
+// ============================================================================
+void
+CommandOption::_assign(const std::string &) {
+  throw Exception("should never be called");
+}
+
+
+void
+CommandOption::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+  for (unsigned int i = 0; i != depth; ++i)
+    out << "  ";
+  out << port::BOLD << "--" << prefix << _name << port::OFF << ": " << _desc << std::endl;
+}
+
+
+bool
+CommandOption::accepts_assignment(void) const {
+  return false;
+}
+
+
+void
+CommandOption::set_default(void) {
+  throw Exception("should never be called");
+}
+
+
+// ============================================================================
+// HelpOption
+// ============================================================================
+bool
+HelpOption::_validate(const Main &main) {
+  if (_was_mentioned) {
+    main.help(std::cerr);
+    return false;
+  }
+  return true;
+}
+
+
+// ============================================================================
+// VersionOption
+// ============================================================================
+bool
+VersionOption::_validate(const Main &main) {
+  if (_was_mentioned) {
+    std::cerr << port::BOLD << main.name() << port::OFF << ": " << VERSION << std::endl;
+    return false;
+  }
+  return true;
 }
 
 }  // namespace config
