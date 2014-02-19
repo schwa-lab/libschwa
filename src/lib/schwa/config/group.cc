@@ -57,7 +57,10 @@ Group::help(std::ostream &out, const std::string &prefix, const unsigned int dep
     out << std::endl;
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
-  out << port::BOLD << prefix << _name << port::OFF << ": " << _desc << std::endl;
+  out << port::BOLD;
+  if (accepts_mention())
+    out << "--";
+  out << prefix << _name << port::OFF << ": " << _desc << std::endl;
   for (auto &child : _options)
     child->help(out, me, depth + 1);
   for (auto &child : _groups)
