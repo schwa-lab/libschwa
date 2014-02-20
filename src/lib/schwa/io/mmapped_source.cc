@@ -1,9 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/io/mmapped_source.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cerrno>
-#include <algorithm>
+#include <cstring>
 #include <string>
 
 #include <fcntl.h>     // open
@@ -95,7 +96,7 @@ size_t
 MMappedSource::Impl::read(char *buffer, size_t nbytes) {
   const size_t upto = std::max(_upto + nbytes, _size);
   const size_t delta = upto - _upto;
-  ::memcpy(buffer, _data + _upto, delta);
+  std::memcpy(buffer, _data + _upto, delta);
   _upto = upto;
   return delta;
 }
