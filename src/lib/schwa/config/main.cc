@@ -53,6 +53,12 @@ Main::find(const std::string &key) {
 }
 
 
+void
+Main::help(std::ostream &out) const {
+  help(out, "", 0);
+}
+
+
 bool
 Main::process(const int argc, char **const argv) {
   // Place the arguments into a queue for ease of processing.

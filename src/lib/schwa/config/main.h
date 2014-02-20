@@ -24,6 +24,9 @@ namespace schwa {
 
       virtual ConfigNode *find(const std::string &key) override;
 
+      void help(std::ostream &out) const;
+      using Group::help;
+
       // Used to parse and accept argv. Returns whether or not to keep going.
       bool process(int argc, char **argv);
 

@@ -25,11 +25,11 @@ namespace schwa {
       Group(Group &group, const std::string &name, const std::string &desc);
       virtual ~Group(void) { }
 
-      void add(Option &child);
       void add(Group &child);
+      void add(Option &child);
 
-      void help(std::ostream &out) const;
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
 
       virtual ConfigNode *find(const std::string &key) override;
 

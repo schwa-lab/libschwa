@@ -28,7 +28,9 @@ namespace schwa {
       virtual ~ConfigNode(void) { }
 
       virtual ConfigNode *find(const std::string &key) = 0;
+
       virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const = 0;
+      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const = 0;
 
       virtual bool accepts_assignment(void) const = 0;
       virtual bool accepts_mention(void) const = 0;

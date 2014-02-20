@@ -45,22 +45,24 @@ Group::find(const std::string &key) {
 
 
 void
-Group::help(std::ostream &out) const {
-  help(out, "", 0);
-}
-
-
-void
-Group::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
-  const std::string me = (depth == 0) ? prefix : prefix + _name + "--";
-  if (depth != 0)
-    out << std::endl;
+Group::help_self(std::ostream &out, const std::string &, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
   out << port::BOLD;
   if (accepts_mention())
     out << "--";
-  out << prefix << _name << port::OFF << ": " << _desc << std::endl;
+  out << _name << port::OFF << ": " << _desc;
+}
+
+
+void
+Group::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+  if (depth != 0)
+    out << std::endl;
+  help_self(out, prefix, depth);
+  out << std::endl;
+
+  const std::string me = (depth == 0) ? prefix : prefix + _name + "--";
   for (auto &child : _options)
     child->help(out, me, depth + 1);
   for (auto &child : _groups)
@@ -89,16 +91,16 @@ Group::_add_check(ConfigNode &child) {
 
 
 void
-Group::add(Option &child) {
+Group::add(Group &child) {
   _add_check(child);
-  _options.push_back(&child);
+  _groups.push_back(&child);
 }
 
 
 void
-Group::add(Group &child) {
+Group::add(Option &child) {
   _add_check(child);
-  _groups.push_back(&child);
+  _options.push_back(&child);
 }
 
 

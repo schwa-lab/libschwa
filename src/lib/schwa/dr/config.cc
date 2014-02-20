@@ -57,6 +57,13 @@ DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseSchema &schema) :
 }
 
 
+void
+DocrepClassGroup::help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const {
+  Group::help_self(out, prefix, depth);
+  out << " (default: " << _schema.name << ")";
+}
+
+
 bool
 DocrepClassGroup::accepts_assignment(void) const {
   return true;
