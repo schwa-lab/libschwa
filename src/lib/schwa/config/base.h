@@ -18,6 +18,9 @@ namespace schwa {
      * is displayed upon a top-level call to --help.
      **/
     class ConfigNode {
+    public:
+      static constexpr const char *const SEPARATOR = "--";
+
     protected:
       const std::string _name;  //!< Name of the config option.
       const std::string _desc;  //!< Help text for the config option.

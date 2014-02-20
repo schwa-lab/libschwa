@@ -26,7 +26,7 @@ Group::find(const std::string &key) {
     return this;
 
   std::string new_key = key.substr(_name.size());
-  if (new_key.find("--") != 0)
+  if (new_key.find(SEPARATOR) != 0)
     return nullptr;
   new_key = new_key.substr(2);
 
@@ -45,13 +45,13 @@ Group::find(const std::string &key) {
 
 
 void
-Group::help_self(std::ostream &out, const std::string &, const unsigned int depth) const {
+Group::help_self(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
   out << port::BOLD;
   if (accepts_mention())
     out << "--";
-  out << _name << port::OFF << ": " << _desc;
+  out << prefix << _name << port::OFF << ": " << _desc;
 }
 
 
@@ -62,7 +62,7 @@ Group::help(std::ostream &out, const std::string &prefix, const unsigned int dep
   help_self(out, prefix, depth);
   out << std::endl;
 
-  const std::string me = (depth == 0) ? prefix : prefix + _name + "--";
+  const std::string me = (depth == 0) ? prefix : prefix + _name + SEPARATOR;
   for (auto &child : _options)
     child->help(out, me, depth + 1);
   for (auto &child : _groups)

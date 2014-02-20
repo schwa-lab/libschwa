@@ -24,9 +24,9 @@ ConfigNode::ConfigNode(const std::string &name, const std::string &desc) : _name
   }
 
   // Option names cannot contain two dashes as they are the group-level separator.
-  if (name.find("--") != std::string::npos) {
+  if (name.find(SEPARATOR) != std::string::npos) {
     std::ostringstream ss;
-    ss << "Option names cannot contain \"--\": \"" << _name << "\"";
+    ss << "Option names cannot contain \"" << SEPARATOR << "\": \"" << _name << "\"";
     throw ConfigException(ss.str());
   }
 }
