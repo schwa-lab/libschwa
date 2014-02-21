@@ -19,7 +19,8 @@ namespace schwa {
 
       Group(const std::string &name, const std::string &desc) : ConfigNode(name, desc) { }
 
-      void _add_check(ConfigNode &child);
+      virtual void _pre_add(ConfigNode &child);
+      virtual void _post_add(ConfigNode &child);
 
     public:
       Group(Group &group, const std::string &name, const std::string &desc);
@@ -28,8 +29,8 @@ namespace schwa {
       void add(Group &child);
       void add(Option &child);
 
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
-      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      virtual void help(std::ostream &out, unsigned int depth) const override;
+      virtual void help_self(std::ostream &out, unsigned int depth) const override;
 
       virtual ConfigNode *find(const std::string &key) override;
 

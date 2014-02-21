@@ -64,8 +64,8 @@ namespace schwa {
       Op(Group &group, const std::string &name, const std::string &desc, const T &default_) : Option(group, name, desc, true), _default(default_) { }
       virtual ~Op(void) { }
 
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
-      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      virtual void help(std::ostream &out, unsigned int depth) const override;
+      virtual void help_self(std::ostream &out, unsigned int depth) const override;
       virtual void set_default(void) override;
 
       inline const T &operator ()(void) const { return _value; }
@@ -87,7 +87,7 @@ namespace schwa {
       OpChoices(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) : Op<T>(group, name, desc, default_), _options(options) { }
       virtual ~OpChoices(void) { }
 
-      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int) const override;
+      virtual void help_self(std::ostream &out, unsigned int) const override;
 
     private:
       DISALLOW_COPY_AND_ASSIGN(OpChoices);
@@ -164,8 +164,8 @@ namespace schwa {
       CommandOption(Group &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
       virtual ~CommandOption(void) { }
 
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
-      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      virtual void help(std::ostream &out, unsigned int depth) const override;
+      virtual void help_self(std::ostream &out, unsigned int depth) const override;
 
       virtual bool accepts_assignment(void) const override;
       virtual void set_default(void) override;

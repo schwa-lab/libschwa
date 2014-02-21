@@ -58,8 +58,8 @@ DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseSchema &schema) :
 
 
 void
-DocrepClassGroup::help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const {
-  Group::help_self(out, prefix, depth);
+DocrepClassGroup::help_self(std::ostream &out, unsigned int depth) const {
+  Group::help_self(out, depth);
   out << " (default: " << _schema.name << ")";
 }
 

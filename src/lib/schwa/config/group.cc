@@ -45,33 +45,31 @@ Group::find(const std::string &key) {
 
 
 void
-Group::help_self(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+Group::help_self(std::ostream &out, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
   out << port::BOLD;
   if (accepts_mention())
     out << "--";
-  out << prefix << _name << port::OFF << ": " << _desc;
+  out << _full_name << port::OFF << ": " << _desc;
 }
 
 
 void
-Group::help(std::ostream &out, const std::string &prefix, const unsigned int depth) const {
+Group::help(std::ostream &out, const unsigned int depth) const {
   if (depth != 0)
     out << std::endl;
-  help_self(out, prefix, depth);
+  help_self(out, depth);
   out << std::endl;
-
-  const std::string me = (depth == 0) ? prefix : prefix + _name + SEPARATOR;
   for (auto &child : _options)
-    child->help(out, me, depth + 1);
+    child->help(out, depth + 1);
   for (auto &child : _groups)
-    child->help(out, me, depth + 1);
+    child->help(out, depth + 1);
 }
 
 
 void
-Group::_add_check(ConfigNode &child) {
+Group::_pre_add(ConfigNode &child) {
   const std::string &child_name = child.name();
   for (auto &c : _options) {
     if (c->name() == child_name) {
@@ -91,16 +89,24 @@ Group::_add_check(ConfigNode &child) {
 
 
 void
+Group::_post_add(ConfigNode &child) {
+  child.set_prefix(_name);
+}
+
+
+void
 Group::add(Group &child) {
-  _add_check(child);
+  _pre_add(child);
   _groups.push_back(&child);
+  _post_add(child);
 }
 
 
 void
 Group::add(Option &child) {
-  _add_check(child);
+  _pre_add(child);
   _options.push_back(&child);
+  _post_add(child);
 }
 
 

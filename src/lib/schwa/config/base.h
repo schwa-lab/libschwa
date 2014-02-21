@@ -22,8 +22,9 @@ namespace schwa {
       static constexpr const char *const SEPARATOR = "--";
 
     protected:
-      const std::string _name;  //!< Name of the config option.
-      const std::string _desc;  //!< Help text for the config option.
+      std::string _name;  //!< Name of the config option.
+      std::string _desc;  //!< Help text for the config option.
+      std::string _full_name;  //!< The full name of the option, accounting for nesting.
 
       ConfigNode(const std::string &name, const std::string &desc);
 
@@ -32,8 +33,8 @@ namespace schwa {
 
       virtual ConfigNode *find(const std::string &key) = 0;
 
-      virtual void help(std::ostream &out, const std::string &prefix, unsigned int depth) const = 0;
-      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const = 0;
+      virtual void help(std::ostream &out, unsigned int depth) const = 0;
+      virtual void help_self(std::ostream &out, unsigned int depth) const = 0;
 
       virtual bool accepts_assignment(void) const = 0;
       virtual bool accepts_mention(void) const = 0;
@@ -42,8 +43,11 @@ namespace schwa {
       virtual void mention(void) = 0;
       virtual bool validate(const Main &main) = 0;
 
-      inline const std::string &name(void) const { return _name; }
       inline const std::string &desc(void) const { return _desc; }
+      inline const std::string &full_name(void) const { return _full_name; }
+      inline const std::string &name(void) const { return _name; }
+
+      void set_prefix(const std::string &prefix);
 
     private:
       DISALLOW_COPY_AND_ASSIGN(ConfigNode);

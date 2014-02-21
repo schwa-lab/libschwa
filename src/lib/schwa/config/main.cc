@@ -54,8 +54,12 @@ Main::find(const std::string &key) {
 
 
 void
+Main::_post_add(ConfigNode &) { }
+
+
+void
 Main::help(std::ostream &out) const {
-  help(out, "", 0);
+  help(out, 0);
 }
 
 

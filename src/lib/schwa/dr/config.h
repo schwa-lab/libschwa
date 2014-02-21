@@ -41,7 +41,7 @@ namespace schwa {
       DocrepClassGroup(DocrepGroup &group, BaseSchema &schema);
       virtual ~DocrepClassGroup(void) { }
 
-      virtual void help_self(std::ostream &out, const std::string &prefix, unsigned int depth) const override;
+      virtual void help_self(std::ostream &out, unsigned int depth) const override;
 
       virtual bool accepts_assignment(void) const override;
       virtual bool accepts_mention(void) const override;

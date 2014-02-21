@@ -9,7 +9,7 @@
 namespace schwa {
 namespace config {
 
-ConfigNode::ConfigNode(const std::string &name, const std::string &desc) : _name(name), _desc(desc) {
+ConfigNode::ConfigNode(const std::string &name, const std::string &desc) : _name(name), _desc(desc), _full_name(name) {
   // Option names cannot be empty.
   if (name.empty())
     throw ConfigException("Option names cannot be empty");
@@ -29,6 +29,12 @@ ConfigNode::ConfigNode(const std::string &name, const std::string &desc) : _name
     ss << "Option names cannot contain \"" << SEPARATOR << "\": \"" << _name << "\"";
     throw ConfigException(ss.str());
   }
+}
+
+
+void
+ConfigNode::set_prefix(const std::string &prefix) {
+  _full_name = prefix + SEPARATOR + _name;
 }
 
 }  // namespace config

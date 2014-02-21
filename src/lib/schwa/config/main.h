@@ -18,6 +18,8 @@ namespace schwa {
       OpOStream *_log;
       OpLogLevel *_log_level;
 
+      virtual void _post_add(ConfigNode &child) override;
+
     public:
       Main(const std::string &name, const std::string &desc);
       virtual ~Main(void);
