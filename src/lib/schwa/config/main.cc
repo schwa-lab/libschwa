@@ -9,6 +9,7 @@
 
 #include <schwa/config/exception.h>
 #include <schwa/port.h>
+#include <schwa/utils/shlex.h>
 #include <schwa/version.h>
 
 
@@ -28,6 +29,7 @@ Main::Main(const std::string &name, const std::string &desc) : Group(name, desc)
   _owned.push_back(new OpVersion(*this));
   _owned.push_back(_log = new OpOStream(*this, "log", "The file to log to", OpOStream::STDERR_STRING));
   _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
+  _owned.push_back(_save_config = new OpSaveConfig(*this, "save-config", "The file to save the config to"));
 }
 
 
@@ -63,12 +65,28 @@ Main::help(std::ostream &out) const {
 }
 
 
+void
+Main::serialise(std::ostream &out) const {
+  out << "# $";
+  serialise_cmdline_args(out);
+  out << '\n';
+  Group::serialise(out);
+}
+
+
+void
+Main::serialise_cmdline_args(std::ostream &out) const {
+  for (auto &arg : _cmdline_args)
+    out << " " << utils::shlex_quote(arg);
+}
+
+
 bool
-Main::process(const int argc, char **const argv) {
+Main::_main(void) {
   // Place the arguments into a queue for ease of processing.
   std::queue<std::string> args;
-  for (int i = 0; i != argc; ++i)
-    args.push(argv[i]);
+  for (decltype(_cmdline_args)::size_type i = 1; i != _cmdline_args.size(); ++i)
+    args.push(_cmdline_args[i]);
 
   // Try and assign all of the arguments to nodes.
   while (!args.empty()) {
@@ -102,7 +120,13 @@ Main::process(const int argc, char **const argv) {
   }
 
   // Validate each of the nodes.
-  return validate(*this);
+  if (!validate(*this))
+    return false;
+
+  // Perform the saving of the config, if required.
+  _save_config->serialise_config(*this);
+
+  return true;
 }
 
 }  // namespace config

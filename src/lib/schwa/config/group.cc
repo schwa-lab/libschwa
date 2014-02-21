@@ -1,10 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config/group.h>
 
-#include <cassert>
 #include <iostream>
 #include <sstream>
 
+#include <schwa/exception.h>
 #include <schwa/config/exception.h>
 #include <schwa/port.h>
 
@@ -124,13 +124,31 @@ Group::accepts_mention(void) const {
 
 void
 Group::assign(const std::string &) {
-  assert(false);
+  throw Exception("should not be called");
 }
 
 
 void
 Group::mention(void) {
-  assert(false);
+  throw Exception("should not be called");
+}
+
+
+void
+Group::serialise(std::ostream &out) const {
+  for (auto &c : _options) {
+    if (c->was_mentioned()) {
+      out << c->full_name();
+      if (c->was_assigned()) {
+        out << '=';
+        c->serialise(out);
+        out << '\n';
+      }
+    }
+  }
+
+  for (auto &c : _groups)
+    c->serialise(out);
 }
 
 

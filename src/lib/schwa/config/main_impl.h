@@ -11,9 +11,14 @@ namespace schwa {
     template <typename LOGGER>
     void
     Main::main(int argc, char **argv) {
-      // Process the command-line arguments.
+      // Store a copy of the full commandline arguments for debugging/reproducability purposes.
+      _cmdline_args.clear();
+      for (int i = 0; i != argc; ++i)
+        _cmdline_args.push_back(argv[i]);
+
+      // Process the command line arguments.
       try {
-        if (!process(argc - 1, argv + 1))
+        if (!_main())
           std::exit(1);
       }
       catch (ConfigException &e) {

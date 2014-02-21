@@ -16,6 +16,7 @@ CONFIG_OBJECTS = \
 		src/lib/schwa/config/base.o \
 		src/lib/schwa/config/group.o \
 		src/lib/schwa/config/main.o \
+		src/lib/schwa/config/serialisation.o \
 		src/lib/schwa/config/op.o
 DR_OBJECTS = \
 		src/lib/schwa/dr/config.o \

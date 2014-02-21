@@ -73,10 +73,10 @@ Option::validate(const Main &main) {
 // ============================================================================
 // OpIStream
 // ============================================================================
-OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc) : OpIStream(group, name, desc, STDIN_STRING) { }
+OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpIStream(group, name, desc, STDIN_STRING, flags) { }
 
-OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
-    Op<std::string>(group, name, desc, default_),
+OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
+    Op<std::string>(group, name, desc, default_, flags),
     _in(nullptr),
     _is_stdin(false)
   { }
@@ -106,10 +106,10 @@ OpIStream::_validate(const Main &) {
 // ============================================================================
 // OpOStream
 // ============================================================================
-OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc) : OpOStream(group, name, desc, STDOUT_STRING) { }
+OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpOStream(group, name, desc, STDOUT_STRING, flags) { }
 
-OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
-    Op<std::string>(group, name, desc, default_),
+OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
+    Op<std::string>(group, name, desc, default_, flags),
     _out(nullptr),
     _is_std(false)
   { }
@@ -198,6 +198,12 @@ CommandOption::_help(std::ostream &out, const unsigned int depth) const {
 bool
 CommandOption::accepts_assignment(void) const {
   return false;
+}
+
+
+void
+CommandOption::serialise(std::ostream &) const {
+  throw Exception("should never be called");
 }
 
 

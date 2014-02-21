@@ -35,6 +35,7 @@ namespace schwa {
     class DocrepClassGroup : public config::Group {
     protected:
       BaseSchema &_schema;
+      bool _was_assigned;
 
       virtual void _help_self(std::ostream &out, unsigned int depth) const override;
 
@@ -48,6 +49,7 @@ namespace schwa {
 
       virtual void assign(const std::string &value) override;
       virtual void mention(void) override;
+      virtual void serialise(std::ostream &out) const override;
 
     private:
       DISALLOW_COPY_AND_ASSIGN(DocrepClassGroup);

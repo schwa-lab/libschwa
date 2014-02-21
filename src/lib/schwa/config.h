@@ -7,5 +7,6 @@
 #include <schwa/config/group.h>
 #include <schwa/config/main.h>
 #include <schwa/config/op.h>
+#include <schwa/config/serialisation.h>
 
 #endif  // SCHWA_CONFIG_H_

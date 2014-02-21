@@ -28,6 +28,13 @@ namespace schwa {
     }
 
 
+    template <typename T>
+    inline void
+    Op<T>::serialise(std::ostream &out) const {
+      out << _value;
+    }
+
+
     template <>
     inline void
     Op<bool>::_assign(const std::string &value) {
@@ -40,6 +47,13 @@ namespace schwa {
         ss << "Error setting value for \"" << _name << "\": \"" << value << "\"";
         throw ConfigException(ss.str());
       }
+    }
+
+
+    template <>
+    inline void
+    Op<bool>::serialise(std::ostream &out) const {
+      out << std::boolalpha << _value;
     }
 
 

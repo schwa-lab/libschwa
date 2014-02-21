@@ -66,6 +66,8 @@ namespace schwa {
       Op(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE) : Option(group, name, desc, flags, false), _default(T()) { }
       Op(Group &group, const std::string &name, const std::string &desc, const T &default_, Flags flags=Flags::NONE) : Option(group, name, desc, flags, true), _default(default_) { }
       virtual ~Op(void) { }
+
+      virtual void serialise(std::ostream &out) const override;
       virtual void set_default(void) override;
 
       inline const T &operator ()(void) const { return _value; }
@@ -105,8 +107,8 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      OpIStream(Group &group, const std::string &name, const std::string &desc);
-      OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      OpIStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
+      OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
       virtual ~OpIStream(void);
 
       inline std::istream &file(void) const { return *_in; }
@@ -128,8 +130,8 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      OpOStream(Group &group, const std::string &name, const std::string &desc);
-      OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      OpOStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
+      OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
       virtual ~OpOStream(void);
 
       inline std::ostream &file(void) const { return *_out; }
@@ -168,6 +170,7 @@ namespace schwa {
       virtual ~CommandOption(void) { }
 
       virtual bool accepts_assignment(void) const override;
+      virtual void serialise(std::ostream &out) const override;
       virtual void set_default(void) override;
     };
 

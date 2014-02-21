@@ -8,6 +8,7 @@
 
 #include <schwa/_base.h>
 #include <schwa/config/group.h>
+#include <schwa/config/serialisation.h>
 
 namespace schwa {
   namespace config {
@@ -15,21 +16,27 @@ namespace schwa {
     class Main : public Group {
     protected:
       std::vector<ConfigNode *> _owned;
+
       OpOStream *_log;
       OpLogLevel *_log_level;
+      OpSaveConfig *_save_config;
+
+      std::vector<std::string> _cmdline_args;
 
       virtual void _post_add(ConfigNode &child) override;
+
+      // Used to parse and accept argv. Returns whether or not to keep going.
+      bool _main(void);
 
     public:
       Main(const std::string &name, const std::string &desc);
       virtual ~Main(void);
 
       virtual ConfigNode *find(const std::string &key) override;
+      virtual void serialise(std::ostream &out) const override;
+      void serialise_cmdline_args(std::ostream &out) const;
 
       void help(std::ostream &out) const;
-
-      // Used to parse and accept argv. Returns whether or not to keep going.
-      bool process(int argc, char **argv);
 
       template <typename LOGGER> void main(int argc, char **argv);
 
