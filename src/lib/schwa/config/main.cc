@@ -59,7 +59,7 @@ Main::_post_add(ConfigNode &) { }
 
 void
 Main::help(std::ostream &out) const {
-  help(out, 0);
+  _help(out, 0);
 }
 
 

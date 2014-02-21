@@ -45,7 +45,7 @@ Group::find(const std::string &key) {
 
 
 void
-Group::help_self(std::ostream &out, const unsigned int depth) const {
+Group::_help_self(std::ostream &out, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
   out << port::BOLD;
@@ -56,15 +56,15 @@ Group::help_self(std::ostream &out, const unsigned int depth) const {
 
 
 void
-Group::help(std::ostream &out, const unsigned int depth) const {
+Group::_help(std::ostream &out, const unsigned int depth) const {
   if (depth != 0)
     out << std::endl;
-  help_self(out, depth);
+  _help_self(out, depth);
   out << std::endl;
   for (auto &child : _options)
-    child->help(out, depth + 1);
+    child->_help(out, depth + 1);
   for (auto &child : _groups)
-    child->help(out, depth + 1);
+    child->_help(out, depth + 1);
 }
 
 

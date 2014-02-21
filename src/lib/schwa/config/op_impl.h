@@ -57,7 +57,7 @@ namespace schwa {
 
     template <typename T>
     void
-    Op<T>::help_self(std::ostream &out, const unsigned int depth) const {
+    Op<T>::_help_self(std::ostream &out, const unsigned int depth) const {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
       out << port::BOLD << "--" << _full_name << port::OFF << ": " << _desc;
@@ -68,8 +68,8 @@ namespace schwa {
 
     template <typename T>
     void
-    Op<T>::help(std::ostream &out, const unsigned int depth) const {
-      Op<T>::help_self(out, depth);
+    Op<T>::_help(std::ostream &out, const unsigned int depth) const {
+      Op<T>::_help_self(out, depth);
       out << std::endl;
     }
 
@@ -98,7 +98,7 @@ namespace schwa {
 
     template <typename T>
     void
-    OpChoices<T>::help_self(std::ostream &out, const unsigned int depth) const {
+    OpChoices<T>::_help_self(std::ostream &out, const unsigned int depth) const {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
       out << port::BOLD << "--" << Op<T>::_full_name << port::OFF << ": " << Op<T>::_desc;

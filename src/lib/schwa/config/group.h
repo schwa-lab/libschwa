@@ -1,4 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+/** @file */
 #ifndef SCHWA_CONFIG_GROUP_H_
 #define SCHWA_CONFIG_GROUP_H_
 
@@ -19,6 +20,9 @@ namespace schwa {
 
       Group(const std::string &name, const std::string &desc) : ConfigNode(name, desc) { }
 
+      virtual void _help(std::ostream &out, unsigned int depth) const override;
+      virtual void _help_self(std::ostream &out, unsigned int depth) const override;
+
       virtual void _pre_add(ConfigNode &child);
       virtual void _post_add(ConfigNode &child);
 
@@ -28,9 +32,6 @@ namespace schwa {
 
       void add(Group &child);
       void add(Option &child);
-
-      virtual void help(std::ostream &out, unsigned int depth) const override;
-      virtual void help_self(std::ostream &out, unsigned int depth) const override;
 
       virtual ConfigNode *find(const std::string &key) override;
 

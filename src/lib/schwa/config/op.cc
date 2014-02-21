@@ -181,7 +181,7 @@ CommandOption::_assign(const std::string &) {
 
 
 void
-CommandOption::help_self(std::ostream &out, const unsigned int depth) const {
+CommandOption::_help_self(std::ostream &out, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
   out << port::BOLD << "--" << _full_name << port::OFF << ": " << _desc;
@@ -189,8 +189,8 @@ CommandOption::help_self(std::ostream &out, const unsigned int depth) const {
 
 
 void
-CommandOption::help(std::ostream &out, const unsigned int depth) const {
-  help_self(out, depth);
+CommandOption::_help(std::ostream &out, const unsigned int depth) const {
+  _help_self(out, depth);
   out << std::endl;
 }
 

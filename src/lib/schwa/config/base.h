@@ -11,6 +11,7 @@
 namespace schwa {
   namespace config {
 
+    class Group;
     class Main;
 
     /**
@@ -28,13 +29,15 @@ namespace schwa {
 
       ConfigNode(const std::string &name, const std::string &desc);
 
+      virtual void _help(std::ostream &out, unsigned int depth) const = 0;
+      virtual void _help_self(std::ostream &out, unsigned int depth) const = 0;
+
+      friend class Group;  // So that Group can access _help.
+
     public:
       virtual ~ConfigNode(void) { }
 
       virtual ConfigNode *find(const std::string &key) = 0;
-
-      virtual void help(std::ostream &out, unsigned int depth) const = 0;
-      virtual void help_self(std::ostream &out, unsigned int depth) const = 0;
 
       virtual bool accepts_assignment(void) const = 0;
       virtual bool accepts_mention(void) const = 0;
