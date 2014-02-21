@@ -12,7 +12,7 @@
 namespace schwa {
 namespace config {
 
-Group::Group(Group &group, const std::string &name, const std::string &desc) : ConfigNode(name, desc) {
+Group::Group(Group &group, const std::string &name, const std::string &desc, const Flags flags) : ConfigNode(name, desc, flags) {
   group.add(*this);
 }
 

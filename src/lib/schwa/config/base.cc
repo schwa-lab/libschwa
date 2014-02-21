@@ -9,7 +9,11 @@
 namespace schwa {
 namespace config {
 
-ConfigNode::ConfigNode(const std::string &name, const std::string &desc) : _name(name), _desc(desc), _full_name(name) {
+ConfigNode::ConfigNode(const std::string &name, const std::string &desc, const Flags flags) :
+    _name(name),
+    _desc(desc),
+    _full_name(name),
+    _flags(flags) {
   // Option names cannot be empty.
   if (name.empty())
     throw ConfigException("Option names cannot be empty");

@@ -18,7 +18,7 @@ namespace schwa {
       std::vector<Option *> _options;
       std::vector<Group *> _groups;
 
-      Group(const std::string &name, const std::string &desc) : ConfigNode(name, desc) { }
+      Group(const std::string &name, const std::string &desc, Flags flags=Flags::NONE) : ConfigNode(name, desc, flags) { }
 
       virtual void _help(std::ostream &out, unsigned int depth) const override;
       virtual void _help_self(std::ostream &out, unsigned int depth) const override;
@@ -27,7 +27,7 @@ namespace schwa {
       virtual void _post_add(ConfigNode &child);
 
     public:
-      Group(Group &group, const std::string &name, const std::string &desc);
+      Group(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
       virtual ~Group(void) { }
 
       void add(Group &child);

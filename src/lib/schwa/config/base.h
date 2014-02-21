@@ -7,12 +7,21 @@
 #include <string>
 
 #include <schwa/_base.h>
+#include <schwa/utils/enums.h>
 
 namespace schwa {
   namespace config {
 
     class Group;
     class Main;
+
+    enum class Flags : uint8_t {
+      NONE = 0,
+      OPTIONAL = 1 << 0,
+    };
+
+    inline bool operator &(const Flags a, const Flags b) { return to_underlying(a) & to_underlying(b); };
+
 
     /**
      * Base class for all config nodes. All nodes have a name and some associated help text which
@@ -26,8 +35,9 @@ namespace schwa {
       std::string _name;  //!< Name of the config option.
       std::string _desc;  //!< Help text for the config option.
       std::string _full_name;  //!< The full name of the option, accounting for nesting.
+      Flags _flags;
 
-      ConfigNode(const std::string &name, const std::string &desc);
+      ConfigNode(const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
 
       virtual void _help(std::ostream &out, unsigned int depth) const = 0;
       virtual void _help_self(std::ostream &out, unsigned int depth) const = 0;
@@ -49,6 +59,8 @@ namespace schwa {
       inline const std::string &desc(void) const { return _desc; }
       inline const std::string &full_name(void) const { return _full_name; }
       inline const std::string &name(void) const { return _name; }
+
+      inline bool optional(void) const { return _flags & Flags::OPTIONAL; }
 
       void set_prefix(const std::string &prefix);
 

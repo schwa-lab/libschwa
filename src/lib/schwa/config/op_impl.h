@@ -3,6 +3,8 @@
 #define SCHWA_CONFIG_OP_IMPL_H_
 
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include <schwa/config/exception.h>
 #include <schwa/config/op.h>
@@ -61,8 +63,6 @@ namespace schwa {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
       out << port::BOLD << "--" << _full_name << port::OFF << ": " << _desc;
-      if (_has_default)
-        out << " (default: " << std::boolalpha << _default << ")";
     }
 
 
@@ -70,6 +70,24 @@ namespace schwa {
     void
     Op<T>::_help(std::ostream &out, const unsigned int depth) const {
       Op<T>::_help_self(out, depth);
+
+      std::vector<std::string> extra;
+      if (optional())
+        extra.push_back("optional");
+      if (_has_default) {
+        std::ostringstream ss;
+        ss << "default: " << std::boolalpha << _default;
+        extra.push_back(ss.str());
+      }
+      if (!extra.empty()) {
+        out << " (";
+        for (decltype(extra)::size_type i = 0; i != extra.size(); ++i) {
+          if (i != 0)
+            out << ", ";
+          out << extra[i];
+        }
+        out << ")";
+      }
       out << std::endl;
     }
 
@@ -111,8 +129,6 @@ namespace schwa {
         first = false;
       }
       out << "}";
-      if (Op<T>::_has_default)
-        out << " (default: " << Op<T>::_default << ")";
     }
 
   }

@@ -23,7 +23,7 @@ namespace schwa {
       bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
       bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
-      Option(Group &group, const std::string &name, const std::string &desc, bool has_default);
+      Option(Group &group, const std::string &name, const std::string &desc, Flags flags, bool has_default);
 
       virtual void _assign(const std::string &value) = 0;
       virtual bool _validate(const Main &main) = 0;
@@ -63,8 +63,8 @@ namespace schwa {
       virtual void _help_self(std::ostream &out, unsigned int depth) const override;
 
     public:
-      Op(Group &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
-      Op(Group &group, const std::string &name, const std::string &desc, const T &default_) : Option(group, name, desc, true), _default(default_) { }
+      Op(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE) : Option(group, name, desc, flags, false), _default(T()) { }
+      Op(Group &group, const std::string &name, const std::string &desc, const T &default_, Flags flags=Flags::NONE) : Option(group, name, desc, flags, true), _default(default_) { }
       virtual ~Op(void) { }
       virtual void set_default(void) override;
 
@@ -164,7 +164,7 @@ namespace schwa {
       virtual void _help_self(std::ostream &out, unsigned int depth) const override;
 
     public:
-      CommandOption(Group &group, const std::string &name, const std::string &desc) : Option(group, name, desc, false) { }
+      CommandOption(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE) : Option(group, name, desc, flags, false) { }
       virtual ~CommandOption(void) { }
 
       virtual bool accepts_assignment(void) const override;

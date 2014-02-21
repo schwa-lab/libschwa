@@ -16,8 +16,8 @@ namespace io = schwa::io;
 namespace schwa {
 namespace config {
 
-Option::Option(Group &group, const std::string &name, const std::string &desc, const bool has_default) :
-    ConfigNode(name, desc),
+Option::Option(Group &group, const std::string &name, const std::string &desc, const Flags flags, const bool has_default) :
+    ConfigNode(name, desc, flags),
     _has_default(has_default),
     _was_mentioned(false),
     _was_assigned(false) {
@@ -58,7 +58,7 @@ Option::mention(void) {
 
 bool
 Option::validate(const Main &main) {
-  if (!_was_assigned && accepts_assignment()) {
+  if (!_was_assigned && accepts_assignment() && !optional()) {
     if (!_has_default) {
       std::ostringstream ss;
       ss << "Configuration option \"" << _name << "\" is unset";
