@@ -22,19 +22,6 @@ namespace port = schwa::port;
 
 namespace {
 
-class Config : public cf::Main {
-public:
-  cf::OpIStream input;
-  cf::Op<int> limit;
-
-  Config(void) :
-      cf::Main("drui", "Schwa-Lab Docrep UI"),
-      input(*this, "input", "input filename"),
-      limit(*this, "limit", "upper bound on the number of documents to process from the input stream", -1)
-    { }
-  virtual ~Config(void) { }
-};
-
 class FauxDoc : public dr::Doc {
 public:
   class Schema;
@@ -287,20 +274,26 @@ DocProcessor::write_primitive(const mp::Value &value) {
 
 
 int
-main(int argc, char *argv[]) {
-  // process args
-  Config c;
-  c.main<io::PrettyLogger>(argc, argv);
+main(int argc, char **argv) {
+  // Construct an option parser.
+  cf::Main cfg("dr-ui", "Schwa Lab docrep stream viewer");
+  cf::OpIStream input(cfg, "input", "The input file");
+  cf::Op<unsigned int> limit(cfg, "limit", "Limit on how many documents to process", cf::Flags::OPTIONAL);
 
-  // construct a docrep reader over the provided input stream
-  std::istream &in = c.input.file();
+  // Parse argv.
+  cfg.main<io::PrettyLogger>(argc, argv);
+
+  // Construct a docrep reader over the provided input stream.
   FauxDoc::Schema schema;
-  dr::Reader reader(in, schema);
+  dr::Reader reader(input.file(), schema);
 
-  // read the documents off the input stream
+  // Read the documents off the input stream.
   FauxDoc doc;
-  for (unsigned int i = 0; reader >> doc; ++i)
+  for (unsigned int i = 0; reader >> doc; ++i) {
+    if (limit.was_assigned() && i == limit())
+      break;
     DocProcessor(doc, std::cout, i)();
+  }
 
   return 0;
 }
