@@ -3,8 +3,8 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <deque>
 #include <iostream>
-#include <queue>
 #include <sstream>
 
 #include <schwa/config/exception.h>
@@ -29,6 +29,7 @@ Main::Main(const std::string &name, const std::string &desc) : Group(name, desc)
   _owned.push_back(new OpVersion(*this));
   _owned.push_back(_log = new OpOStream(*this, "log", "The file to log to", OpOStream::STDERR_STRING));
   _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
+  _owned.push_back(_load_config = new OpLoadConfig(*this, "load-config", "The file to load config from"));
   _owned.push_back(_save_config = new OpSaveConfig(*this, "save-config", "The file to save the config to"));
 }
 
@@ -84,14 +85,14 @@ Main::serialise_cmdline_args(std::ostream &out) const {
 bool
 Main::_main(void) {
   // Place the arguments into a queue for ease of processing.
-  std::queue<std::string> args;
+  std::deque<std::string> args;
   for (decltype(_cmdline_args)::size_type i = 1; i != _cmdline_args.size(); ++i)
-    args.push(_cmdline_args[i]);
+    args.push_back(_cmdline_args[i]);
 
   // Try and assign all of the arguments to nodes.
   while (!args.empty()) {
     const std::string &key = args.front();
-    args.pop();
+    args.pop_front();
 
     const size_t pos = key.find("--");
     if (pos != 0)
@@ -114,9 +115,13 @@ Main::_main(void) {
         throw_config_exception("Value missing for option", key);
 
       const std::string value = args.front();
-      args.pop();
+      args.pop_front();
       node->assign(value);
     }
+
+    // If the node is the load-config node, load the config.
+    if (node == _load_config)
+      _load_config->load_config(args);
   }
 
   // Validate each of the nodes.
@@ -124,7 +129,7 @@ Main::_main(void) {
     return false;
 
   // Perform the saving of the config, if required.
-  _save_config->serialise_config(*this);
+  _save_config->save_config(*this);
 
   return true;
 }

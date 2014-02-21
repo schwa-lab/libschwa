@@ -19,6 +19,7 @@ namespace schwa {
 
       OpOStream *_log;
       OpLogLevel *_log_level;
+      OpLoadConfig *_load_config;
       OpSaveConfig *_save_config;
 
       std::vector<std::string> _cmdline_args;
@@ -33,12 +34,14 @@ namespace schwa {
       virtual ~Main(void);
 
       virtual ConfigNode *find(const std::string &key) override;
+
       virtual void serialise(std::ostream &out) const override;
       void serialise_cmdline_args(std::ostream &out) const;
 
       void help(std::ostream &out) const;
 
-      template <typename LOGGER> void main(int argc, char **argv);
+      template <typename LOGGER>
+      void main(int argc, char **argv);
 
     private:
       DISALLOW_COPY_AND_ASSIGN(Main);
