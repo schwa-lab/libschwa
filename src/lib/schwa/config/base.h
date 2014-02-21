@@ -20,7 +20,7 @@ namespace schwa {
       OPTIONAL = 1 << 0,
     };
 
-    inline bool operator &(const Flags a, const Flags b) { return to_underlying(a) & to_underlying(b); };
+    inline bool operator &(const Flags a, const Flags b) { return to_underlying(a) & to_underlying(b); }
 
 
     /**
