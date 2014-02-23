@@ -35,6 +35,13 @@ namespace schwa {
       DISALLOW_COPY_AND_ASSIGN(Reader);
     };
 
+
+    /**
+     * Lazily read a document from \p in without forming any objects, writing the read in data back
+     * to \p out. Returns whether or not a document was successfully read and copied.
+     **/
+    bool read_lazy_doc(std::istream &in, std::ostream &out);
+
   }
 }
 

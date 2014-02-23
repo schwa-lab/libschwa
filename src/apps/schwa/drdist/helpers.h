@@ -32,8 +32,6 @@ namespace schwa {
 
     std::string build_socket_addr(const std::string &host, uint32_t port);
 
-    bool read_doc(std::istream &in, std::ostream &out);
-
   }
 }
 

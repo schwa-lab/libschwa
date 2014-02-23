@@ -17,12 +17,14 @@
 #include <unordered_map>
 
 #include <schwa/config.h>
+#include <schwa/dr/reader.h>
 #include <schwa/drdist/helpers.h>
 #include <schwa/io/logging.h>
 
 #include <zmq.h>
 
 namespace cf = schwa::config;
+namespace dr = schwa::dr;
 namespace io = schwa::io;
 
 static volatile bool sink_created = false;
@@ -57,7 +59,7 @@ drdist_source(const std::string &source_addr, const std::string &direct_sink_add
   for (doc_num = 0; ; ++doc_num) {
     LOG(DEBUG) << "Attempting to read doc_num=" << doc_num << std::endl;
     std::stringstream doc;
-    if (!read_doc(input, doc))
+    if (!dr::read_lazy_doc(input, doc))
       break;
     doc.seekg(0);
 

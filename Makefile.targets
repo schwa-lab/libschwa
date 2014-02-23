@@ -140,7 +140,7 @@ bin/test: src/apps/schwa/test/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJE
 bin/dr: src/apps/schwa/dr/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/dr-dist: src/apps/schwa/drdist/main.o $(DRDIST_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/dr-dist: src/apps/schwa/drdist/main.o $(DRDIST_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(LIBZMQ_LDFLAGS) -o $@
 
 bin/dr-ui: src/apps/schwa/drui/main.o $(DRUI_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)

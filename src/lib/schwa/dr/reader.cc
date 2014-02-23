@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 
@@ -469,6 +470,54 @@ Reader::read(Doc &doc) {
   _has_more = true;
   return *this;
 }
+
+
+bool
+read_lazy_doc(std::istream &in, std::ostream &out) {
+  std::unique_ptr<char[]> buf;
+  size_t buf_size = 0;
+
+  mp::WireType type;
+  if (in.peek() == EOF)
+    return false;
+
+  // <version> (omitted in version 1)
+  if (!mp::read_lazy(in, out, type))
+    return false;
+
+  if (mp::is_int(type)) {
+    // <klasses> header
+    if (!mp::read_lazy(in, out, type))
+      return false;
+  }
+  if (!mp::is_array(type))
+    return false;
+
+  // <stores> header
+  if (!mp::is_array(mp::header_type(in.peek())))
+    return false;
+  int nstores = mp::read_array_size(in);
+  mp::write_array_size(out, nstores);
+  for (int i = 0; i < nstores; ++i)
+    if (!mp::read_lazy(in, out, type))
+      return false;
+
+  // instances (nstores + 1 size-data pairs)
+  for (; nstores >= 0; --nstores) {
+    const uint64_t nbytes = mp::read_uint(in);
+    mp::write_uint(out, nbytes);
+
+    if (nbytes > buf_size) {
+      buf.reset(new char[nbytes]);
+      buf_size = nbytes;
+    }
+    in.read(buf.get(), nbytes);
+    out.write(buf.get(), nbytes);
+  }
+
+  return true;
+}
+
 
 }  // namespace dr
 }  // namespace schwa
