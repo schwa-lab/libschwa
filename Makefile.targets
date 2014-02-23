@@ -1,6 +1,7 @@
 SHELL = /bin/bash
 
 BINARIES = \
+		bin/dr \
 		bin/dr-dist \
 		bin/dr-ui \
 		bin/drworker \
@@ -133,6 +134,9 @@ wc:
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
 bin/test: src/apps/schwa/test/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
+
+bin/dr: src/apps/schwa/dr/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/dr-dist: src/apps/schwa/drdist/main.o $(DRDIST_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
