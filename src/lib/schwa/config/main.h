@@ -17,12 +17,14 @@ namespace schwa {
     protected:
       std::vector<ConfigNode *> _owned;
 
+      const bool _allow_unclaimed_args;
+      std::vector<std::string> _cmdline_args;
+      std::vector<std::string> _unclaimed_args;
+
       OpOStream *_log;
       OpLogLevel *_log_level;
       OpLoadConfig *_load_config;
       OpSaveConfig *_save_config;
-
-      std::vector<std::string> _cmdline_args;
 
       virtual void _post_add(ConfigNode &child) override;
 
@@ -30,7 +32,7 @@ namespace schwa {
       bool _main(void);
 
     public:
-      Main(const std::string &name, const std::string &desc);
+      Main(const std::string &name, const std::string &desc, bool allow_unclaimed_args=false);
       virtual ~Main(void);
 
       virtual ConfigNode *find(const std::string &key) override;
@@ -39,6 +41,9 @@ namespace schwa {
       void serialise_cmdline_args(std::ostream &out) const;
 
       void help(std::ostream &out) const;
+
+      inline bool allow_unclaimed_args(void) const { return _allow_unclaimed_args; }
+      inline const std::vector<std::string> &unclaimed_args(void) const { return _unclaimed_args; }
 
       template <typename LOGGER>
       void main(int argc, char **argv);

@@ -24,7 +24,9 @@ throw_config_exception(const std::string &msg, const std::string &key) {
 }
 
 
-Main::Main(const std::string &name, const std::string &desc) : Group(name, desc) {
+Main::Main(const std::string &name, const std::string &desc, const bool allow_unclaimed_args) :
+    Group(name, desc),
+    _allow_unclaimed_args(allow_unclaimed_args) {
   _owned.push_back(new OpHelp(*this));
   _owned.push_back(new OpVersion(*this));
   _owned.push_back(_log = new OpOStream(*this, "log", "The file to log to", OpOStream::STDERR_STRING));
@@ -95,13 +97,29 @@ Main::_main(void) {
     args.pop_front();
 
     const size_t pos = key.find("--");
-    if (pos != 0)
-      throw_config_exception("Invalid option", key);
+    if (pos != 0) {
+      if (_allow_unclaimed_args) {
+        _unclaimed_args.push_back(key);
+        continue;
+      }
+      else
+        throw_config_exception("Invalid option", key);
+    }
 
     // Find the config node corresponding to the key.
     ConfigNode *const node = find(key.substr(2));
-    if (node == nullptr)
-      throw_config_exception("Unknown option", key);
+    if (node == nullptr) {
+      if (_allow_unclaimed_args) {
+        _unclaimed_args.push_back(key);
+        continue;
+      }
+      else
+        throw_config_exception("Unknown option", key);
+    }
+    else if (_allow_unclaimed_args && !_unclaimed_args.empty()) {
+      _unclaimed_args.push_back(key);
+      continue;
+    }
 
     // Ensure the node can be mentioned.
     if (node->accepts_mention())
