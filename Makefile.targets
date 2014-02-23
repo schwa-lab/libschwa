@@ -58,6 +58,7 @@ UNIT_TEST_OBJECTS = \
 		src/apps/schwa/unit_tests/main.o \
 		src/lib/schwa/unittest.o \
 		src/lib/schwa/pool_test.o \
+		src/lib/schwa/port_test.o \
 		src/lib/schwa/containers/block_vector_test.o \
 		src/lib/schwa/dr/lazy_test.o \
 		src/lib/schwa/dr/helpers_test.o \
