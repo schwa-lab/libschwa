@@ -43,6 +43,14 @@ namespace schwa {
      **/
     std::string path_join(const std::string &a, const std::string &b);
 
+    /**
+     * If the functionality is available, and the provided ostream is stdout, fork and exec to make
+     * the stdout a pager. Returns whether or not this occurred.
+     *
+     * Warning: if successful, this function most likely forks.
+     **/
+    bool make_stdout_pager(std::ostream &out);
+
 #if defined(__APPLE__)
     inline uint16_t h_to_be16(const uint16_t x) { return OSSwapHostToBigConstInt16(x); }
     inline uint32_t h_to_be32(const uint32_t x) { return OSSwapHostToBigConstInt32(x); }
