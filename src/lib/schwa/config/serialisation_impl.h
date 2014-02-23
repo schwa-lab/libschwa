@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-/** @file */
 #ifndef SCHWA_CONFIG_SERIALISATION_IMPL_H_
 #define SCHWA_CONFIG_SERIALISATION_IMPL_H_
 

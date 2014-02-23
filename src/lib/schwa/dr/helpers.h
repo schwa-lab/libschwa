@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-/** @file */
 #ifndef SCHWA_DR_HELPERS_H_
 #define SCHWA_DR_HELPERS_H_
 

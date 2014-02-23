@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-/** @file */
 #ifndef SCHWA_CONFIG_BASE_H_
 #define SCHWA_CONFIG_BASE_H_
 

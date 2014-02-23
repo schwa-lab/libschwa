@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-/** @file */
 #ifndef SCHWA_UTILS_SHLEX_H_
 #define SCHWA_UTILS_SHLEX_H_
 
