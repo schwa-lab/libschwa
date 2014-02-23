@@ -3,6 +3,7 @@ SHELL = /bin/bash
 BINARIES = \
 		bin/dr \
 		bin/dr-dist \
+		bin/dr-head \
 		bin/dr-ui \
 		bin/drworker \
 		bin/tokenizer
@@ -142,6 +143,9 @@ bin/dr: src/apps/schwa/dr/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS)
 
 bin/dr-dist: src/apps/schwa/drdist/main.o $(DRDIST_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(LIBZMQ_LDFLAGS) -o $@
+
+bin/dr-head: src/apps/schwa/drhead/main.o $(DRUI_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/dr-ui: src/apps/schwa/drui/main.o $(DRUI_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
