@@ -4,8 +4,9 @@
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
-#include <schwa/dr-list-stores/processor.h>
 #include <schwa/io/logging.h>
+
+#include <schwa/dr-list-stores/processor.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;

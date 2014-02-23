@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <schwa/dr.h>
 
 namespace dr = schwa::dr;
 
@@ -29,12 +30,12 @@ public:
   Impl(std::ostream &out, const bool per_doc) : _out(out), _per_doc(per_doc) { }
 
   void finalise(void);
-  void process_doc(const dr::FauxDoc &doc);
+  void process_doc(const dr::Doc &doc);
 };
 
 
 void
-Processor::Impl::process_doc(const dr::FauxDoc &doc) {
+Processor::Impl::process_doc(const dr::Doc &doc) {
   const dr::RTManager &rt = *(doc.rt());
   const dr::RTSchema &schema = *(rt.doc);
 
@@ -89,7 +90,7 @@ Processor::~Processor(void) {
 }
 
 void
-Processor::process_doc(const dr::FauxDoc &doc) {
+Processor::process_doc(const dr::Doc &doc) {
   _impl->process_doc(doc);
 }
 

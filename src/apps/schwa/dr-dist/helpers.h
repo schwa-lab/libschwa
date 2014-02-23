@@ -9,7 +9,7 @@
 #include <schwa/_base.h>
 
 namespace schwa {
-  namespace drdist {
+  namespace dr_dist {
 
     enum class MessageType : uint8_t {
       DOCUMENT = 0,

@@ -18,8 +18,9 @@
 
 #include <schwa/config.h>
 #include <schwa/dr/reader.h>
-#include <schwa/dr-dist/helpers.h>
 #include <schwa/io/logging.h>
+
+#include <schwa/dr-dist/helpers.h>
 
 #include <zmq.h>
 
@@ -33,10 +34,10 @@ static std::mutex sink_created_lock;
 
 
 namespace schwa {
-namespace drdist {
+namespace dr_dist {
 
 static bool
-drdist_source(const std::string &source_addr, const std::string &direct_sink_addr, std::istream &input) {
+source(const std::string &source_addr, const std::string &direct_sink_addr, std::istream &input) {
   // Wait for the sink to be created before starting.
   LOG(DEBUG) << "Waiting for sink to be created..." << std::endl;
   {
@@ -84,7 +85,7 @@ drdist_source(const std::string &source_addr, const std::string &direct_sink_add
 
 
 static bool
-drdist_sink(const std::string &sink_addr, const std::string &control_addr, const bool preserve_order, const bool kill_clients, std::ostream &output) {
+sink(const std::string &sink_addr, const std::string &control_addr, const bool preserve_order, const bool kill_clients, std::ostream &output) {
   // Prepare the ØMQ context and create the sockets.
   void *context, *sink, *control;
   if (!safe_zmq_ctx_new(context))
@@ -191,18 +192,18 @@ main(int argc, char **argv) {
   cfg.main<io::ThreadsafePrettyLogger>(argc, argv);
 
   // Construct the network address strings.
-  const std::string source_addr = schwa::drdist::build_socket_addr(bind_host(), source_port());
-  const std::string sink_addr = schwa::drdist::build_socket_addr(bind_host(), sink_port());
-  const std::string control_addr = schwa::drdist::build_socket_addr(bind_host(), control_port());
-  const std::string direct_sink_addr = schwa::drdist::build_socket_addr(bind_host() == "*" ? "127.0.0.1" : bind_host(), sink_port());
+  const std::string source_addr = schwa::dr_dist::build_socket_addr(bind_host(), source_port());
+  const std::string sink_addr = schwa::dr_dist::build_socket_addr(bind_host(), sink_port());
+  const std::string control_addr = schwa::dr_dist::build_socket_addr(bind_host(), control_port());
+  const std::string direct_sink_addr = schwa::dr_dist::build_socket_addr(bind_host() == "*" ? "127.0.0.1" : bind_host(), sink_port());
 
   // Run the source and sink threads.
   bool success_source, success_sink;
   auto wrap_source = [&](std::istream &input) {
-    success_source = schwa::drdist::drdist_source(source_addr, direct_sink_addr, input);
+    success_source = schwa::dr_dist::source(source_addr, direct_sink_addr, input);
   };
   auto wrap_sink = [&](std::ostream &output) {
-    success_sink = schwa::drdist::drdist_sink(sink_addr, control_addr, preserve_order(), kill_clients(), output);
+    success_sink = schwa::dr_dist::sink(sink_addr, control_addr, preserve_order(), kill_clients(), output);
   };
   std::thread source_thread(wrap_source, std::ref(input.file()));
   std::thread sink_thread(wrap_sink, std::ref(output.file()));

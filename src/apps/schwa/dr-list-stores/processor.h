@@ -6,10 +6,13 @@
 #include <vector>
 
 #include <schwa/_base.h>
-#include <schwa/dr.h>
 
 
 namespace schwa {
+  namespace dr {
+    class Doc;
+  }
+
   namespace dr_list_stores {
 
     class Processor {
@@ -23,9 +26,9 @@ namespace schwa {
       ~Processor(void);
 
       void finalise(void);
-      void process_doc(const dr::FauxDoc &doc);
+      void process_doc(const dr::Doc &doc);
 
-      inline void operator ()(const dr::FauxDoc &doc) { process_doc(doc); }
+      inline void operator ()(const dr::Doc &doc) { process_doc(doc); }
 
     private:
       DISALLOW_COPY_AND_ASSIGN(Processor);

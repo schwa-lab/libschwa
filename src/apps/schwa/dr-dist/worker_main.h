@@ -8,8 +8,9 @@
 #include <schwa/config.h>
 #include <schwa/dr.h>
 #include <schwa/dr/config.h>
-#include <schwa/dr-dist/helpers.h>
 #include <schwa/io/logging.h>
+
+#include <schwa/dr-dist/helpers.h>
 
 #include <zmq.h>
 
@@ -17,8 +18,9 @@ namespace cf = schwa::config;
 namespace dr = schwa::dr;
 namespace io = schwa::io;
 
+
 namespace schwa {
-namespace drdist {
+namespace dr_dist {
 
 template <typename DOC>
 static std::string
@@ -151,11 +153,11 @@ worker_main(const int argc, char **const argv, cf::Main &cfg, typename DOC::Sche
   cfg.main<LOGGER>(argc, argv);
 
   // Run the drworker main.
-  const std::string source_addr = schwa::drdist::build_socket_addr(host(), source_port());
-  const std::string sink_addr = schwa::drdist::build_socket_addr(host(), sink_port());
-  const std::string control_addr = schwa::drdist::build_socket_addr(host(), control_port());
+  const std::string source_addr = build_socket_addr(host(), source_port());
+  const std::string sink_addr = build_socket_addr(host(), sink_port());
+  const std::string control_addr = build_socket_addr(host(), control_port());
 
-  const bool success = schwa::drdist::drworker(source_addr, sink_addr, control_addr, schema, callback);
+  const bool success = drworker(source_addr, sink_addr, control_addr, schema, callback);
   return success ? 0 : 1;
 }
 
@@ -167,5 +169,5 @@ worker_main(const int argc, char **const argv, cf::Main &cfg, void (*callback)(D
   return worker_main<DOC, LOGGER>(argc, argv, cfg, schema, callback);
 }
 
-}  // drdist
+}  // dr_dist
 }  // schwa

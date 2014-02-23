@@ -17,7 +17,7 @@ namespace mp = schwa::msgpack;
 
 
 namespace schwa {
-namespace drdist {
+namespace dr_dist {
 
 bool
 safe_zmq_close(void *const socket) {
