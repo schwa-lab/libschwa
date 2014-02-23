@@ -6,11 +6,13 @@
 #include <schwa/drui/drui.h>
 #include <schwa/exception.h>
 #include <schwa/io/logging.h>
+#include <schwa/port.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
 namespace drui = schwa::drui;
 namespace io = schwa::io;
+namespace port = schwa::port;
 
 
 namespace {
@@ -49,6 +51,7 @@ main(int argc, char **argv) {
 
   // Dispatch to main function.
   try {
+    port::make_stdout_pager(output.file());
     main(input.file(), output.file(), limit);
   }
   catch (schwa::Exception &e) {
