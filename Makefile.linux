@@ -12,6 +12,7 @@ ifdef RELEASE_VERSION
 OPTIMIZE_CXXFLAGS = -O4
 else
 OPTIMIZE_CXXFLAGS = -g -O0
+LIBS_LDFLAGS += -lprofiler -ltcmalloc
 endif
 BASE_CXXFLAGS = -std=c++11 $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -pedantic
 
