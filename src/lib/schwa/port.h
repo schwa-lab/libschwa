@@ -18,6 +18,7 @@ namespace schwa {
   namespace port {
 
     extern const char *BOLD;
+    extern const char *DARK_GREY;
     extern const char *RED;
     extern const char *OFF;
 
