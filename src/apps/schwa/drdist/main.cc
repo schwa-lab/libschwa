@@ -174,7 +174,7 @@ drdist_sink(const std::string &sink_addr, const std::string &control_addr, const
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("drdist", "A docrep parallelisation source and sink");
+  cf::Main cfg("dr-dist", "A docrep parallelisation source and sink");
   cf::OpIStream input(cfg, "input", "The input file");
   cf::OpOStream output(cfg, "output", "The output file");
   cf::Op<std::string> bind_host(cfg, "bind-host", "The network hostname to bind to", "*");
