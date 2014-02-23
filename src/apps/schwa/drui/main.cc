@@ -9,19 +9,21 @@
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
+namespace drui = schwa::drui;
 namespace io = schwa::io;
 
 
-namespace schwa {
-namespace drui {
+namespace {
 
 static void
 main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
   // Construct a docrep reader over the provided input stream.
-  FauxDoc doc;
-  FauxDoc::Schema schema;
-  FauxDocProcessor processor(output);
+  dr::FauxDoc doc;
+  dr::FauxDoc::Schema schema;
   dr::Reader reader(input, schema);
+
+  // Construct the processor functor to produce the pretty output.
+  drui::FauxDocProcessor processor(output);
 
   // Read the documents off the input stream.
   for (unsigned int i = 0; reader >> doc; ++i) {
@@ -31,7 +33,6 @@ main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
   }
 }
 
-}
 }
 
 
@@ -48,7 +49,7 @@ main(int argc, char **argv) {
 
   // Dispatch to main function.
   try {
-    schwa::drui::main(input.file(), output.file(), limit);
+    main(input.file(), output.file(), limit);
   }
   catch (schwa::Exception &e) {
     std::cerr << schwa::print_exception(e) << std::endl;

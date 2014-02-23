@@ -19,12 +19,6 @@ namespace schwa {
 namespace drui {
 
 // ============================================================================
-// FauxDoc
-// ============================================================================
-FauxDoc::Schema::Schema(void) : dr::Doc::Schema<FauxDoc>("FauxDoc", "The document class") { }
-
-
-// ============================================================================
 // FauxDocProcessor
 // ============================================================================
 const std::string FauxDocProcessor::SEP = std::string("\t") + port::DARK_GREY + "# ";
@@ -39,7 +33,7 @@ FauxDocProcessor::FauxDocProcessor(std::ostream &out) :
 
 
 void
-FauxDocProcessor::process_doc(const FauxDoc &doc, const unsigned int doc_num) {
+FauxDocProcessor::process_doc(const dr::FauxDoc &doc, const unsigned int doc_num) {
   _doc = &doc;
   _doc_num = doc_num;
   _indent = 0;

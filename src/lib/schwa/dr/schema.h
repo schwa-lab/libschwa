@@ -211,6 +211,21 @@ namespace schwa {
       virtual ~Schema(void) { }
     };
 
+
+    // ========================================================================
+    // Empty concrete implementation of a Doc for use in lazy input and output
+    // ========================================================================
+    class FauxDoc : public Doc {
+    public:
+      class Schema;
+    };
+
+
+    class FauxDoc::Schema : public Doc::Schema<FauxDoc> {
+    public:
+      Schema(void);
+    };
+
   }
 }
 

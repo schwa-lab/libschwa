@@ -13,18 +13,6 @@
 namespace schwa {
   namespace drui {
 
-    class FauxDoc : public dr::Doc {
-    public:
-      class Schema;
-    };
-
-
-    class FauxDoc::Schema : public dr::Doc::Schema<FauxDoc> {
-    public:
-      Schema(void);
-    };
-
-
     class FauxDocProcessor {
     private:
       static const std::string SEP;
@@ -32,7 +20,7 @@ namespace schwa {
       static constexpr const char *const REPR_UNKNOWN = "<UNKNOWN VALUE>";
 
       std::ostream &_out;
-      const FauxDoc *_doc;
+      const dr::FauxDoc *_doc;
       unsigned int _doc_num;
       unsigned int _indent;
 
@@ -49,8 +37,8 @@ namespace schwa {
     public:
       FauxDocProcessor(std::ostream &out);
 
-      void process_doc(const FauxDoc &doc, unsigned int doc_num);
-      inline void operator ()(const FauxDoc &doc, unsigned int doc_num) { process_doc(doc, doc_num); }
+      void process_doc(const dr::FauxDoc &doc, unsigned int doc_num);
+      inline void operator ()(const dr::FauxDoc &doc, unsigned int doc_num) { process_doc(doc, doc_num); }
 
     private:
       DISALLOW_COPY_AND_ASSIGN(FauxDocProcessor);

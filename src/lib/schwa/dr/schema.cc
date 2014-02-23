@@ -129,5 +129,10 @@ Doc::set_rt(RTManager *rt) {
 }
 
 
+// ============================================================================
+// FauxDoc
+// ============================================================================
+FauxDoc::Schema::Schema(void) : Doc::Schema<FauxDoc>("FauxDoc", "The faux document class") { }
+
 }  // namespace dr
 }  // namespace schwa
