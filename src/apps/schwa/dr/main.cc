@@ -43,17 +43,16 @@ _main(int argc, char **argv) {
 
   // If the first exec attempt failed, try looking in the the directory of argv[0].
   std::string path = port::abspath_to_argv0();
-  std::cout << path << std::endl;
   path = port::path_dirname(path);
-  std::cout << path << std::endl;
   path = port::path_join(path, app.get());
-  std::cout << path << std::endl;
 
+  // Try exec'ing again in the new directory.
   app.reset(new char[path.size() + 1]);
   args[0] = app.get();
   std::strcpy(app.get(), path.c_str());
-  execvp(app.get(), args.get());
+  execv(app.get(), args.get());
 
+  // If we still failed to find the executable, fail.
   const int errnum = errno;
   std::ostringstream ss;
   ss << "Failed to exec dr-" << argv[1] << ": " << std::strerror(errnum) << ".";
