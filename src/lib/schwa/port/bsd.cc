@@ -19,7 +19,7 @@ abspath_to_argv0(void) {
   char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
   const pid_t pid = ::getpid();
   if (::proc_pidpath(pid, pathbuf, sizeof(pathbuf)) <= 0) {
-    const auto errnum = errno;
+    const int errnum = errno;
     std::ostringstream ss;
     ss << "Call to proc_pidpath failed: " << std::strerror(errnum);
     throw Exception(ss.str());
