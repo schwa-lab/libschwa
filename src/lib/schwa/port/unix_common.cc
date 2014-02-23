@@ -9,6 +9,11 @@
   #include <cxxabi.h>
 #endif
 
+#include <cstring>
+#include <memory>
+
+#include <libgen.h>
+
 
 namespace schwa {
 namespace port {
@@ -33,6 +38,27 @@ demangle_typeid(const char *const typeid_name) {
   return typeid_name;
 }
 #endif
+
+
+std::string
+path_dirname(const std::string &path) {
+  std::unique_ptr<char[]> buf(new char[path.size() + 1]);
+  std::strcpy(buf.get(), path.c_str());
+  return ::dirname(buf.get());
+}
+
+
+std::string
+path_join(const std::string &a, const std::string &b) {
+  std::string path = a;
+  if (!b.empty() && b.front() == '/')
+    path = b;
+  else if (path.empty() || path.back() == '/')
+    path += b;
+  else
+    path += "/" + b;
+  return path;
+}
 
 }  // namespace port
 }  // namespace schwa

@@ -22,7 +22,26 @@ namespace schwa {
     extern const char *RED;
     extern const char *OFF;
 
+    /**
+     * Attempts to return a more meaningful version of a typeid name.
+     **/
     std::string demangle_typeid(const char *const typeid_name);
+
+    /**
+     * Returns the absolute path to the currently running executable.
+     * See http://stackoverflow.com/a/1024937 for the system-dependant ways to obtain this.
+     **/
+    std::string abspath_to_argv0(void);
+
+    /**
+     * Returns the directory of the provided \p path.
+     **/
+    std::string path_dirname(const std::string &path);
+
+    /**
+     * Returns paths \p a and \p b joined together.
+     **/
+    std::string path_join(const std::string &a, const std::string &b);
 
 #if defined(__APPLE__)
     inline uint16_t h_to_be16(const uint16_t x) { return OSSwapHostToBigConstInt16(x); }
