@@ -56,7 +56,7 @@ DR_DIST_OBJECTS = \
 DR_LIST_STORES_OBJECTS = \
 		src/apps/schwa/dr-list-stores/processor.o
 DR_UI_OBJECTS = \
-		src/apps/schwa/dr-ui/dr-ui.o
+		src/apps/schwa/dr-ui/processor.o
 
 UNIT_TEST_OBJECTS = \
 		src/apps/schwa/unittests/main.o \

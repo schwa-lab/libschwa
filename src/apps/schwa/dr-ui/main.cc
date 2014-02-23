@@ -3,16 +3,17 @@
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
-#include <schwa/dr-ui/dr-ui.h>
 #include <schwa/exception.h>
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 
+#include <schwa/dr-ui/processor.h>
+
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
-namespace drui = schwa::drui;
 namespace io = schwa::io;
 namespace port = schwa::port;
+namespace ui = schwa::dr_ui;
 
 
 namespace {
@@ -25,7 +26,7 @@ main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
   dr::Reader reader(input, schema);
 
   // Construct the processor functor to produce the pretty output.
-  drui::FauxDocProcessor processor(output);
+  ui::Processor processor(output);
 
   // Read the documents off the input stream.
   for (unsigned int i = 0; reader >> doc; ++i) {
