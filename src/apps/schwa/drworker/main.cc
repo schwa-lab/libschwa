@@ -2,7 +2,7 @@
 #include <schwa/config.h>
 #include <schwa/io/logging.h>
 
-#include <schwa/drdist/worker_main.cc>
+#include <schwa/dr-dist/worker_main.cc>
 
 namespace cf = schwa::config;
 namespace io = schwa::io;

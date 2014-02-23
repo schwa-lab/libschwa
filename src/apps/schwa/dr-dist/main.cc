@@ -18,7 +18,7 @@
 
 #include <schwa/config.h>
 #include <schwa/dr/reader.h>
-#include <schwa/drdist/helpers.h>
+#include <schwa/dr-dist/helpers.h>
 #include <schwa/io/logging.h>
 
 #include <zmq.h>

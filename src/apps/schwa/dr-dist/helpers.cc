@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/drdist/helpers.h>
+#include <schwa/dr-dist/helpers.h>
 
 #include <cstring>
 #include <iostream>

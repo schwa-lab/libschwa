@@ -3,7 +3,7 @@
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
-#include <schwa/drui/drui.h>
+#include <schwa/dr-ui/dr-ui.h>
 #include <schwa/exception.h>
 #include <schwa/io/logging.h>
 #include <schwa/port.h>

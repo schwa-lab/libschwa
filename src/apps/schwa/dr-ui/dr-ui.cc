@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/drui/drui.h>
+#include <schwa/dr-ui/dr-ui.h>
 
 #include <cassert>
 #include <iomanip>
