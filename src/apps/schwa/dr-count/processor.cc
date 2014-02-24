@@ -2,11 +2,11 @@
 #include <schwa/dr-count/processor.h>
 
 #include <algorithm>
-#include <cassert>
+#include <iomanip>
 #include <iostream>
+#include <map>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include <schwa/dr.h>
 
@@ -20,18 +20,40 @@ namespace dr_count {
 // Processor::Impl
 // ============================================================================
 class Processor::Impl {
+public:
+  static const size_t MIN_WIDTH;
+  static const size_t NDOCS_WIDTH;
+
 private:
   std::ostream &_out;
+  const bool _all_stores;
+  const bool _count_bytes;
+  const bool _cumulative;
   const bool _per_doc;
+  const Formatting _formatting;
 
-  std::unordered_map<std::string, unsigned int> _counts;
+  uint64_t _ndocs;
+  std::unordered_map<std::string, uint64_t> _counts;
+  std::unordered_map<std::string, uint64_t> _local_counts;
+  std::map<std::string, size_t> _widths;
 
 public:
-  Impl(std::ostream &out, const bool per_doc) : _out(out), _per_doc(per_doc) { }
+  Impl(std::ostream &out, bool all_stores, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting) :
+      _out(out),
+      _all_stores(all_stores),
+      _count_bytes(count_bytes),
+      _cumulative(cumulative),
+      _per_doc(per_doc),
+      _formatting(formatting),
+      _ndocs(0)
+    { }
 
   void finalise(void);
   void process_doc(const dr::Doc &doc);
 };
+
+const size_t Processor::Impl::MIN_WIDTH = 10;
+const size_t Processor::Impl::NDOCS_WIDTH = 10;
 
 
 void
@@ -39,25 +61,55 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
   const dr::RTManager &rt = *(doc.rt());
   const dr::RTSchema &schema = *(rt.doc);
 
-  // Add counts to the stream counter.
-  for (auto &it : schema.stores) {
-    const dr::RTStoreDef &store = *it;
-    _counts[store.serial] += 1;
+  // Increment the number of docs processed.
+  ++_ndocs;
+
+  // If we are outputting counts per store and we are the first document to be processed, initialise that state.
+  if (_all_stores && _ndocs == 1) {
+    // Calculate the widths per column.
+    for (auto &store : schema.stores)
+      _widths[store->serial] = std::max(MIN_WIDTH, store->serial.size());
+
+    // Output the column headings.
+    if (_formatting == Formatting::ALIGNED) {
+      _out << std::setw(NDOCS_WIDTH) << "ndocs";
+      for (auto &pair : _widths)
+        _out << ' ' << std::setw(pair.second) << pair.first;
+      _out << std::endl;
+    }
+    else {
+      _out << "ndocs";
+      for (auto &pair : _widths)
+        _out << '\t' << pair.first;
+      _out << std::endl;
+    }
   }
 
-  // Output the sorted store names for each doc, if required.
-  if (_per_doc) {
-    // Sort the names of the stores on the current doc.
-    std::vector<std::string> names;
-    for (auto &store : schema.stores)
-      names.push_back(store->serial);
-    std::sort(names.begin(), names.end());
+  // Output the document count if per_doc.
+  if (_per_doc && _all_stores) {
+    const uint64_t count = _cumulative ? _ndocs : 1;
+    if (_formatting == Formatting::ALIGNED)
+      _out << std::setw(NDOCS_WIDTH) << count;
+    else
+      _out << count;
+  }
 
-    // Output, tab separated.
-    for (decltype(names)::size_type i = 0; i != names.size(); ++i) {
-      if (i != 0)
-        _out << '\t';
-      _out << names[i];
+  // For each store, add its counts to the stream counts.
+  _local_counts.clear();
+  for (auto &store : schema.stores) {
+    uint64_t count = _count_bytes ? store->lazy_nbytes : store->lazy_nelem;
+    _counts[store->serial] += count;
+    _local_counts[store->serial] = count;
+  }
+
+  // Output the counts per store.
+  if (_per_doc && _all_stores) {
+    for (auto &pair : _widths) {
+      const uint64_t count = _cumulative ? _counts[pair.first] : _local_counts[pair.first];
+      if (_formatting == Formatting::ALIGNED)
+        _out << ' ' << std::setw(pair.second) << count;
+      else
+        _out << '\t' << count;
     }
     _out << std::endl;
   }
@@ -66,24 +118,34 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
 
 void
 Processor::Impl::finalise(void) {
-  // Sort the names of the found stores.
-  std::vector<std::string> names;
-  for (auto &it : _counts)
-    names.push_back(it.first);
-  std::sort(names.begin(), names.end());
+  // Output the document count.
+  if (_all_stores) {
+    if (_formatting == Formatting::ALIGNED)
+      _out << std::setw(NDOCS_WIDTH) << _ndocs;
+    else
+      _out << _ndocs;
+  }
+  else
+    _out << _ndocs;
 
-  // Output, tab separated.
-  if (_per_doc)
-    _out << "=== total ===" << std::endl;
-  for (auto &name : names)
-    _out << name << '\t' << _counts[name] << std::endl;
+  // Output the counts per store.
+  if (_all_stores) {
+    for (auto &pair : _widths) {
+      const uint64_t count = _counts[pair.first];
+      if (_formatting == Formatting::ALIGNED)
+        _out << ' ' << std::setw(pair.second) << count;
+      else
+        _out << '\t' << count;
+    }
+  }
+  _out << std::endl;
 }
 
 
 // ============================================================================
 // Processor
 // ============================================================================
-Processor::Processor(std::ostream &out, const bool per_doc) : _impl(new Processor::Impl(out, per_doc)) { }
+Processor::Processor(std::ostream &out, bool all_stores, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting) : _impl(new Processor::Impl(out, all_stores, count_bytes, cumulative, per_doc, formatting)) { }
 
 Processor::~Processor(void) {
   delete _impl;

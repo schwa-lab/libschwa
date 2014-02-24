@@ -16,13 +16,18 @@ namespace schwa {
   namespace dr_count {
 
     class Processor {
+    public:
+      enum class Formatting {
+        ALIGNED, TABS,
+      };
+
     private:
       class Impl;
 
       Impl *_impl;
 
     public:
-      Processor(std::ostream &out, bool per_doc);
+      Processor(std::ostream &out, bool all_stores, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting);
       ~Processor(void);
 
       void finalise(void);
