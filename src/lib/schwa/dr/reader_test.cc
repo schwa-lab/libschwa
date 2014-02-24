@@ -23,7 +23,7 @@ public:
   DR_FIELD(&DocWithField::name) name;
 
   Schema(void) :
-    Doc::Schema<DocWithField>("Doc", "Some help text about this Doc class"),
+    Doc::Schema<DocWithField>("DocWithField", "Some help text about this Doc class"),
     name(*this, "name", "some help text about name", FieldMode::READ_WRITE, "name")
     { }
   virtual ~Schema(void) { }
@@ -44,7 +44,7 @@ public:
   DR_FIELD(&DocWithFieldWithSerial::name) name;
 
   Schema(void) :
-    Doc::Schema<DocWithFieldWithSerial>("Doc", "Some help text about this Doc class"),
+    Doc::Schema<DocWithFieldWithSerial>("DocWithFieldWithSerial", "Some help text about this Doc class"),
     name(*this, "name", "some help text about name", FieldMode::READ_WRITE, "filename")
     { }
   virtual ~Schema(void) { }
