@@ -45,6 +45,12 @@ Option::accepts_mention(void) const {
 }
 
 
+bool
+Option::requires_assignment(void) const {
+  return true;
+}
+
+
 void
 Option::assign(const std::string &value) {
   _assign(value);

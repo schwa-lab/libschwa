@@ -141,6 +141,12 @@ Group::accepts_mention(void) const {
 }
 
 
+bool
+Group::requires_assignment(void) const {
+  return true;
+}
+
+
 void
 Group::assign(const std::string &) {
   throw Exception("should not be called");

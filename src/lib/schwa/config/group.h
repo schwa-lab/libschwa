@@ -37,6 +37,7 @@ namespace schwa {
 
       virtual bool accepts_assignment(void) const override;
       virtual bool accepts_mention(void) const override;
+      virtual bool requires_assignment(void) const override;
 
       virtual void assign(const std::string &value) override;
       virtual void mention(void) override;

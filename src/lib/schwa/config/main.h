@@ -26,6 +26,8 @@ namespace schwa {
       OpLoadConfig *_load_config;
       OpSaveConfig *_save_config;
 
+      ConfigNode *_find(const std::string &key);
+
       virtual void _help_self(std::ostream &out, unsigned int depth) const override;
       virtual void _post_add(ConfigNode &child) override;
 
@@ -50,6 +52,9 @@ namespace schwa {
 
       template <typename LOGGER>
       void main(int argc, char **argv);
+
+      static bool is_short_option(const std::string &key);
+      static bool is_long_option(const std::string &key);
 
     private:
       DISALLOW_COPY_AND_ASSIGN(Main);

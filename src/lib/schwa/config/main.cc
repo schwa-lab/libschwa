@@ -95,6 +95,17 @@ Main::serialise_cmdline_args(std::ostream &out) const {
 }
 
 
+ConfigNode *
+Main::_find(const std::string &key) {
+  if (is_short_option(key))
+    return find(key[1]);
+  else if (is_long_option(key))
+    return find(key.substr(2));
+  else
+    return nullptr;
+}
+
+
 bool
 Main::_main(void) {
   // Place the arguments into a queue for ease of processing.
@@ -107,25 +118,10 @@ Main::_main(void) {
     const std::string &key = args.front();
     args.pop_front();
 
-    // Is it a short name?
-    ConfigNode *node = nullptr;
-    if (key.size() == 2 && key[0] == '-' && std::isalnum(key[1]))
-      node = find(key[1]);
-    else {
-      // Is it a long name?
-      const size_t pos = key.find("--");
-      if (pos != 0) {
-        if (_allow_unclaimed_args) {
-          _unclaimed_args.push_back(key);
-          continue;
-        }
-        else
-          throw_config_exception("Invalid option", key);
-      }
-      node = find(key.substr(2));
-    }
+    // Try and find the corresponding config node.
+    ConfigNode *const node = _find(key);
 
-    // Was the config node found?
+    // If the config node wasn't found, work out what to do.
     if (node == nullptr) {
       if (_allow_unclaimed_args) {
         _unclaimed_args.push_back(key);
@@ -134,7 +130,9 @@ Main::_main(void) {
       else
         throw_config_exception("Unknown option", key);
     }
-    else if (_allow_unclaimed_args && !_unclaimed_args.empty()) {
+
+    // If we're allowing unclaimed args and we've already started collecting some, continue adding to its collection.
+    if (_allow_unclaimed_args && !_unclaimed_args.empty()) {
       _unclaimed_args.push_back(key);
       continue;
     }
@@ -147,12 +145,18 @@ Main::_main(void) {
 
     // If the node can be assigned a value, try and assign it one.
     if (node->accepts_assignment()) {
-      if (args.empty())
+      if (node->requires_assignment() && args.empty())
         throw_config_exception("Value missing for option", key);
-
-      const std::string value = args.front();
-      args.pop_front();
-      node->assign(value);
+      if (!args.empty()) {
+        const std::string value = args.front();
+        ConfigNode *const value_node = _find(value);
+        if (node->requires_assignment() && value_node != nullptr)
+          throw_config_exception("Value missing for option", key);
+        if (node->requires_assignment() || value_node == nullptr) {
+          args.pop_front();
+          node->assign(value);
+        }
+      }
     }
 
     // If the node is the load-config node, load the config.
@@ -168,6 +172,18 @@ Main::_main(void) {
   _save_config->save_config(*this);
 
   return true;
+}
+
+
+inline bool
+Main::is_short_option(const std::string &key) {
+  return key.size() == 2 && key[0] == '-' && std::isalnum(key[1]);
+}
+
+
+inline bool
+Main::is_long_option(const std::string &key) {
+  return key.size() > 2 && key[0] == '-' && key[1] == '-';
 }
 
 }  // namespace config

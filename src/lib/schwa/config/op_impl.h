@@ -17,6 +17,13 @@ namespace schwa {
     // Op<T>
     // ========================================================================
     template <typename T>
+    inline bool
+    Op<T>::requires_assignment(void) const {
+      return Option::requires_assignment();
+    }
+
+
+    template <typename T>
     void
     Op<T>::_assign(const std::string &value) {
       std::istringstream ss(value);
@@ -49,6 +56,19 @@ namespace schwa {
       }
     }
 
+    template <>
+    inline bool
+    Op<bool>::_validate(const Main &) {
+      if (_was_mentioned && !_was_assigned)
+        _value = true;
+      return true;
+    }
+
+    template <>
+    inline bool
+    Op<bool>::requires_assignment(void) const {
+      return false;
+    }
 
     template <>
     inline void
