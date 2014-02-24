@@ -19,9 +19,6 @@ TypeInfo::TypeInfo(const std::string &typeid_name) :
   { }
 #endif
 
-TypeInfo::TypeInfo(const TypeInfo &o) :
-    name(o.name)
-  { }
 
 std::ostream &
 operator <<(std::ostream &out, const TypeInfo &type) {

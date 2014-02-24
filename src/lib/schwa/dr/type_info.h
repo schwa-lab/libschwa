@@ -19,7 +19,7 @@ namespace schwa {
       TypeInfo(const std::string &typeid_name);
 
     public:
-      TypeInfo(const TypeInfo &other);
+      TypeInfo(const TypeInfo &o) : name(o.name) { }
       ~TypeInfo(void) { }
 
       inline bool operator ==(const TypeInfo &o) const { return name == o.name; }
@@ -27,7 +27,8 @@ namespace schwa {
       inline bool operator <(const TypeInfo &o) const { return name < o.name; }
 
       template <typename T>
-      static TypeInfo create(void) {
+      static inline TypeInfo
+      create(void) {
         return TypeInfo(typeid(T).name());
       }
     };
