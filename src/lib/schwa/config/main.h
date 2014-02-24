@@ -26,6 +26,7 @@ namespace schwa {
       OpLoadConfig *_load_config;
       OpSaveConfig *_save_config;
 
+      virtual void _help_self(std::ostream &out, unsigned int depth) const override;
       virtual void _post_add(ConfigNode &child) override;
 
       // Used to parse and accept argv. Returns whether or not to keep going.

@@ -57,7 +57,7 @@ main(std::istream &input, std::ostream &output, const unsigned int count) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr-tail", "A tail tool for docrep streams");
+  cf::Main cfg("dr-tail", "A `tail` tool for docrep streams.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<unsigned int> count(cfg, "count", 'n', "How many documents to keep", 10);

@@ -42,7 +42,7 @@ main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr-ui", "A visualiser for docrep streams");
+  cf::Main cfg("dr-ui", "A visualiser for docrep streams.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<unsigned int> limit(cfg, "limit", 'l', "Limit on how many documents to process", cf::Flags::OPTIONAL);

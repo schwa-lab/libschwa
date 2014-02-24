@@ -19,6 +19,19 @@ namespace port = schwa::port;
 
 namespace {
 
+class DrMain : public cf::Main {
+protected:
+  virtual void
+  _help_self(std::ostream &out, const unsigned int) const override {
+    out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
+    out << "  Usage: " << _full_name << " [options] (dist|head|list-stores|tail|ui) [command options]" << std::endl;
+  }
+
+public:
+  DrMain(const std::string &name, const std::string &desc, bool allow_unclaimed_args=false) : cf::Main(name, desc, allow_unclaimed_args) { }
+};
+
+
 static void
 _main(int argc, char **argv) {
   // The first unclaimed argument has to be the name of the app to call.
@@ -65,7 +78,7 @@ _main(int argc, char **argv) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr", "A dispatcher to other docrep binaries. Usage: dr {command} args...", true);
+  DrMain cfg("dr", "A dispatcher to other docrep processing tools.", true);
 
   // Parse argv.
   cfg.main<io::PrettyLogger>(argc, argv);

@@ -64,6 +64,16 @@ Main::_post_add(ConfigNode &) { }
 
 
 void
+Main::_help_self(std::ostream &out, const unsigned int) const {
+  out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
+  out << "  Usage: " << _full_name << " [options]";
+  if (_allow_unclaimed_args)
+    out << " [args]";
+  out << std::endl;
+}
+
+
+void
 Main::help(std::ostream &out) const {
   _help(out, 0);
 }

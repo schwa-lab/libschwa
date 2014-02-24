@@ -37,7 +37,7 @@ main(std::istream &input, std::ostream &output, const bool per_doc) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr-list-stores", "List the stores in a docrep stream");
+  cf::Main cfg("dr-list-stores", "List the stores in a docrep stream.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<bool> per_doc(cfg, "per-doc", "Whether to output the stores per document or per stream", false);
