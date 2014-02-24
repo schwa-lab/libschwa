@@ -21,10 +21,10 @@ main(int argc, char **argv) {
   tok::Doc::Schema schema;
 
   // Construct an option parser.
-  cf::Main cfg("tokenizer", "Schwa-Lab tokenizer");
-  cf::OpIStream input(cfg, "input", "The input file");
-  cf::OpOStream output(cfg, "output", "The output file");
-  cf::OpChoices<std::string> printer(cfg, "printer", "Which printer to use as output", {"text", "debug", "docrep"}, "text");
+  cf::Main cfg("tokenizer", "Schwa Lab tokenizer. Tokenizes a utf-8 input file, optionally accounting for markup.");
+  cf::OpIStream input(cfg, "input", 'i', "The input file");
+  cf::OpOStream output(cfg, "output", 'o', "The output file");
+  cf::OpChoices<std::string> printer(cfg, "printer", 'p', "Which printer to use as output", {"text", "debug", "docrep"}, "text");
   cf::Op<size_t> input_buffer(cfg, "input-buffer", "Tokenizer input buffer size (bytes)", tok::BUFFER_SIZE);
   dr::DocrepGroup dr(cfg, schema);
 

@@ -179,8 +179,8 @@ int
 main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("dr-dist", "A docrep parallelisation source and sink");
-  cf::OpIStream input(cfg, "input", "The input file");
-  cf::OpOStream output(cfg, "output", "The output file");
+  cf::OpIStream input(cfg, "input", 'i', "The input file");
+  cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<std::string> bind_host(cfg, "bind-host", "The network hostname to bind to", "*");
   cf::Op<uint32_t> source_port(cfg, "source-port", "The network port to bind to on which to push docrep documents", 7301);
   cf::Op<uint32_t> sink_port(cfg, "sink-port", "The network port to bind to on which to pull docrep documents", 7302);

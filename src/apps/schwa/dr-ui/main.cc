@@ -43,9 +43,9 @@ int
 main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("dr-ui", "A visualiser for docrep streams");
-  cf::OpIStream input(cfg, "input", "The input file");
-  cf::OpOStream output(cfg, "output", "The output file");
-  cf::Op<unsigned int> limit(cfg, "limit", "Limit on how many documents to process", cf::Flags::OPTIONAL);
+  cf::OpIStream input(cfg, "input", 'i', "The input file");
+  cf::OpOStream output(cfg, "output", 'o', "The output file");
+  cf::Op<unsigned int> limit(cfg, "limit", 'l', "Limit on how many documents to process", cf::Flags::OPTIONAL);
 
   // Parse argv.
   cfg.main<io::PrettyLogger>(argc, argv);

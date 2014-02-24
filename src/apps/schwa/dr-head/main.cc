@@ -39,10 +39,10 @@ int
 main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("dr-head", "A head tool for docrep streams");
-  cf::OpIStream input(cfg, "input", "The input file");
-  cf::OpOStream output(cfg, "output", "The output file");
-  cf::Op<unsigned int> count(cfg, "count", "How many documents to keep", 10);
-  cf::Op<unsigned int> skip(cfg, "skip", "How many documents to skip before counting", 0);
+  cf::OpIStream input(cfg, "input", 'i', "The input file");
+  cf::OpOStream output(cfg, "output", 'o', "The output file");
+  cf::Op<unsigned int> count(cfg, "count", 'n', "How many documents to keep", 10);
+  cf::Op<unsigned int> skip(cfg, "skip", 's', "How many documents to skip before counting", 0);
 
   // Parse argv.
   cfg.main<io::PrettyLogger>(argc, argv);
