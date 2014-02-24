@@ -36,10 +36,11 @@ private:
   const dr::Doc *_doc;
   unsigned int _indent;
 
-  void _process_fields(const std::vector<dr::RTFieldDef *> &fields);
+  void _process_doc_fields(const dr::RTSchema &schema);
   void _process_store(const dr::RTStoreDef &store);
 
   std::ostream &_write_indent(void);
+  std::ostream &_write_field(const dr::RTFieldDef &field, const mp::Value &value);
   std::ostream &_write_field(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value);
 
   void _write_pointer(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value);
@@ -60,19 +61,23 @@ const std::string Processor::Impl::REPR_UNKNOWN("<UNKNOWN VALUE>");
 
 void
 Processor::Impl::process_doc(const dr::Doc &doc, const unsigned int doc_num) {
+  // Reset our state.
   _doc = &doc;
   _indent = 0;
 
   const dr::RTManager &rt = *_doc->rt();
+  assert(rt.doc != nullptr);
+  const dr::RTSchema &rtdschema = *(rt.doc);
 
   _write_indent() << port::BOLD << doc_num << ":" << port::OFF << " {" << SEP << "Document" << port::OFF << "\n";
   ++_indent;
 
-  const dr::RTSchema *schema = rt.doc;
-  assert(schema != nullptr);
-  // TODO document fields? where are they?
-  //_process_fields(schema->fields);
-  for (const auto *store : schema->stores)
+  // Output any found fields on the doc.
+  if (rtdschema.has_lazy_data())
+    _process_doc_fields(rtdschema);
+
+  // Output each store.
+  for (const auto *store : rtdschema.stores)
     _process_store(*store);
 
   --_indent;
@@ -81,10 +86,38 @@ Processor::Impl::process_doc(const dr::Doc &doc, const unsigned int doc_num) {
 
 
 void
-Processor::Impl::_process_fields(const std::vector<dr::RTFieldDef *> &fields) {
-  for (const dr::RTFieldDef *field : fields) {
-    (void)field;
+Processor::Impl::_process_doc_fields(const dr::RTSchema &rtdschema) {
+  // Iterate through each field name to find the largest name so we can align all of the values
+  // when printing out.
+  unsigned int max_length = 0;
+  for (const auto& field : rtdschema.fields)
+    if (field->serial.size() > max_length)
+      max_length = field->serial.size();
+
+  // Decode the lazy document values into dynamic msgpack objects.
+  Pool pool(4096);
+  io::ArrayReader reader(rtdschema.lazy_data, rtdschema.lazy_nbytes);
+  mp::Value *value = mp::read_dynamic(reader, pool);
+  assert(value != nullptr);
+
+  assert(is_map(value->type));
+  const mp::Map &map = *value->via._map;
+
+  _write_indent() << port::BOLD << rtdschema.serial << ":" << port::OFF << " {\n";
+  ++_indent;
+
+  // <instance> ::= { <field_id> : <obj_val> }
+  for (uint32_t j = 0; j != map.size(); ++j) {
+    assert(is_uint(map.get(j).key.type));
+    const mp::Map::Pair &pair = map.get(j);
+    const dr::RTFieldDef &field = *rtdschema.fields[pair.key.via._uint64];
+
+    _write_indent() << port::BOLD << std::setw(max_length) << std::left << field.serial << ": " << port::OFF;
+    _write_field(field, pair.value) << "\n";
   }
+
+  --_indent;
+  _write_indent() << "},\n";
 }
 
 
@@ -146,6 +179,20 @@ std::ostream &
 Processor::Impl::_write_indent(void) {
   for (unsigned int i = 0; i != _indent; ++i)
     _out << "  ";
+  return _out;
+}
+
+
+std::ostream &
+Processor::Impl::_write_field(const dr::RTFieldDef &field, const mp::Value &value) {
+  const auto flags = _out.flags();
+
+  if (field.is_slice)
+    _write_slice(field, value);
+  else
+    _write_primitive(value);
+
+  _out.flags(flags);
   return _out;
 }
 
