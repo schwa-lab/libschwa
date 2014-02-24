@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_DRLISTSTORES_PROCESSOR_H_
-#define SCHWA_DRLISTSTORES_PROCESSOR_H_
+#ifndef SCHWA_DRCOUNT_PROCESSOR_H_
+#define SCHWA_DRCOUNT_PROCESSOR_H_
 
 #include <iosfwd>
 #include <vector>
@@ -13,7 +13,7 @@ namespace schwa {
     class Doc;
   }
 
-  namespace dr_list_stores {
+  namespace dr_count {
 
     class Processor {
     private:
@@ -37,4 +37,4 @@ namespace schwa {
   }
 }
 
-#endif  // SCHWA_DRLISTSTORES_PROCESSOR_H_
+#endif  // SCHWA_DRCOUNT_PROCESSOR_H_

@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr-list-stores/processor.h>
+#include <schwa/dr-count/processor.h>
 
 #include <algorithm>
 #include <cassert>
@@ -14,7 +14,7 @@ namespace dr = schwa::dr;
 
 
 namespace schwa {
-namespace dr_list_stores {
+namespace dr_count {
 
 // ============================================================================
 // Processor::Impl
@@ -99,5 +99,5 @@ Processor::finalise(void) {
   _impl->finalise();
 }
 
-}  // namespace dr_list_stores
+}  // namespace dr_count
 }  // namespace schwa

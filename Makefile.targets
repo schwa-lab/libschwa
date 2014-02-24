@@ -2,9 +2,9 @@ SHELL = /bin/bash
 
 BINARIES = \
 		bin/dr \
+		bin/dr-count \
 		bin/dr-dist \
 		bin/dr-head \
-		bin/dr-list-stores \
 		bin/dr-tail \
 		bin/dr-ui \
 		bin/drworker \
@@ -52,10 +52,10 @@ UTILS_OBJECTS = \
 
 OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
 
+DR_COUNT_OBJECTS = \
+		src/apps/schwa/dr-count/processor.o
 DR_DIST_OBJECTS = \
 		src/apps/schwa/dr-dist/helpers.o
-DR_LIST_STORES_OBJECTS = \
-		src/apps/schwa/dr-list-stores/processor.o
 DR_UI_OBJECTS = \
 		src/apps/schwa/dr-ui/processor.o
 
@@ -145,13 +145,13 @@ bin/test: src/apps/schwa/test/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJE
 bin/dr: src/apps/schwa/dr/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
+bin/dr-count: src/apps/schwa/dr-count/main.o $(DR_COUNT_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
+
 bin/dr-dist: src/apps/schwa/dr-dist/main.o $(DR_DIST_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(LIBZMQ_LDFLAGS) -o $@
 
 bin/dr-head: src/apps/schwa/dr-head/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
-	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
-
-bin/dr-list-stores: src/apps/schwa/dr-list-stores/main.o $(DR_LIST_STORES_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/dr-tail: src/apps/schwa/dr-tail/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)

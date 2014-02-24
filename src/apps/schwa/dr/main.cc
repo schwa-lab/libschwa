@@ -15,9 +15,9 @@
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 
+#include <schwa/dr-count/main.h>
 #include <schwa/dr-dist/main.h>
 #include <schwa/dr-head/main.h>
-#include <schwa/dr-list-stores/main.h>
 #include <schwa/dr-tail/main.h>
 #include <schwa/dr-ui/main.h>
 
@@ -35,7 +35,7 @@ class DrMain : public cf::Main {
 protected:
   std::vector<std::pair<const char *, const char *>> _commands;
 
-  inline void _add(const char *name, const char *desc) { _commands.emplace_back(std::pair<const char *, const char *>(name + 3, desc)); }
+  inline void _add(const char *name, const char *desc) { _commands.push_back(std::pair<const char *, const char *>(name + 3, desc)); }
   virtual void _help_self(std::ostream &out, const unsigned int) const override;
 
 public:
@@ -44,9 +44,9 @@ public:
 
 
 DrMain::DrMain(const std::string &name, const std::string &desc) : cf::Main(name, desc) {
+  _add(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
   _add(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
   _add(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
-  _add(schwa::dr_list_stores::PROGRAM_NAME, schwa::dr_list_stores::PROGRAM_DESC);
   _add(schwa::dr_tail::PROGRAM_NAME, schwa::dr_tail::PROGRAM_DESC);
   _add(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
 }

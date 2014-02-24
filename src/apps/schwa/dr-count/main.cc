@@ -6,8 +6,8 @@
 #include <schwa/dr.h>
 #include <schwa/io/logging.h>
 
-#include <schwa/dr-list-stores/main.h>
-#include <schwa/dr-list-stores/processor.h>
+#include <schwa/dr-count/main.h>
+#include <schwa/dr-count/processor.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -24,7 +24,7 @@ main(std::istream &input, std::ostream &output, const bool per_doc) {
   dr::Reader reader(input, schema);
 
   // Construct the document processor.
-  schwa::dr_list_stores::Processor processor(output, per_doc);
+  schwa::dr_count::Processor processor(output, per_doc);
 
   // Read the documents off the input stream.
   while (reader >> doc)
@@ -38,7 +38,7 @@ main(std::istream &input, std::ostream &output, const bool per_doc) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg(schwa::dr_list_stores::PROGRAM_NAME, schwa::dr_list_stores::PROGRAM_DESC);
+  cf::Main cfg(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<bool> per_doc(cfg, "per-doc", "Whether to output the stores per document or per stream", false);
