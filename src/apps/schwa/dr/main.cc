@@ -107,8 +107,14 @@ _main(int argc, char **argv) {
   // If we still failed to find the executable, fail.
   const int errnum = errno;
   std::ostringstream ss;
-  ss << "Failed to exec dr-" << argv[1] << ": " << std::strerror(errnum) << ".";
-  throw schwa::Exception(ss.str());
+  if (errnum == ENOENT) {
+    ss << "Command '" << argv[1] << "' not found.";
+    throw cf::ConfigException(ss.str());
+  }
+  else {
+    ss << "Failed to exec dr-" << argv[1] << ": " << std::strerror(errnum) << ".";
+    throw schwa::Exception(ss.str());
+  }
 }
 
 }
