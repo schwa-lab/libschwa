@@ -6,6 +6,8 @@
 #include <schwa/dr/reader.h>
 #include <schwa/io/logging.h>
 
+#include <schwa/dr-head/main.h>
+
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
 namespace io = schwa::io;
@@ -38,10 +40,10 @@ main(std::istream &input, std::ostream &output, const unsigned int count, const 
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr-head", "A `head` tool for docrep streams.");
+  cf::Main cfg(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
-  cf::Op<unsigned int> count(cfg, "count", 'n', "How many documents to keep", 10);
+  cf::Op<unsigned int> count(cfg, "count", 'n', "How many documents to keep", 1);
   cf::Op<unsigned int> skip(cfg, "skip", 's', "How many documents to skip before counting", 0);
 
   // Parse argv.

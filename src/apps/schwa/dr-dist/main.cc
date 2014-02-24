@@ -21,6 +21,7 @@
 #include <schwa/io/logging.h>
 
 #include <schwa/dr-dist/helpers.h>
+#include <schwa/dr-dist/main.h>
 
 #include <zmq.h>
 
@@ -178,7 +179,7 @@ sink(const std::string &sink_addr, const std::string &control_addr, const bool p
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr-dist", "A docrep parallelisation source and sink");
+  cf::Main cfg(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<std::string> bind_host(cfg, "bind-host", "The network hostname to bind to", "*");

@@ -5,6 +5,8 @@
 #include <memory>
 #include <sstream>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 #include <unistd.h>
 
@@ -13,25 +15,62 @@
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 
+#include <schwa/dr-dist/main.h>
+#include <schwa/dr-head/main.h>
+#include <schwa/dr-list-stores/main.h>
+#include <schwa/dr-tail/main.h>
+#include <schwa/dr-ui/main.h>
+
+
 namespace cf = schwa::config;
 namespace io = schwa::io;
 namespace port = schwa::port;
 
 namespace {
 
+// ============================================================================
+// Config option parser
+// ============================================================================
 class DrMain : public cf::Main {
 protected:
-  virtual void
-  _help_self(std::ostream &out, const unsigned int) const override {
-    out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
-    out << "  Usage: " << _full_name << " [options] (dist|head|list-stores|tail|ui) [command options]" << std::endl;
-  }
+  std::vector<std::pair<const char *, const char *>> _commands;
+
+  inline void _add(const char *name, const char *desc) { _commands.emplace_back(std::pair<const char *, const char *>(name + 3, desc)); }
+  virtual void _help_self(std::ostream &out, const unsigned int) const override;
 
 public:
-  DrMain(const std::string &name, const std::string &desc, bool allow_unclaimed_args=false) : cf::Main(name, desc, allow_unclaimed_args) { }
+  DrMain(const std::string &name, const std::string &desc);
 };
 
 
+DrMain::DrMain(const std::string &name, const std::string &desc) : cf::Main(name, desc) {
+  _add(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
+  _add(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
+  _add(schwa::dr_list_stores::PROGRAM_NAME, schwa::dr_list_stores::PROGRAM_DESC);
+  _add(schwa::dr_tail::PROGRAM_NAME, schwa::dr_tail::PROGRAM_DESC);
+  _add(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
+}
+
+
+void
+DrMain::_help_self(std::ostream &out, const unsigned int) const {
+  out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
+  //out << "  Usage: " << _full_name << " [options] (dist|head|list-stores|tail|ui) [command options]" << std::endl;
+  out << "  Usage: " << _full_name << " [options] (";
+  for (decltype(_commands)::size_type i = 0; i != _commands.size(); ++i) {
+    if (i != 0)
+      out << '|';
+    out << _commands[i].first;
+  }
+  out << ") [command options]" << std::endl;
+  for (auto &pair : _commands)
+    out << "    " << port::BOLD << pair.first << port::OFF << ": " << pair.second << std::endl;
+}
+
+
+// ============================================================================
+// main
+// ============================================================================
 static void
 _main(int argc, char **argv) {
   // The first unclaimed argument has to be the name of the app to call.
@@ -78,9 +117,10 @@ _main(int argc, char **argv) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  DrMain cfg("dr", "A dispatcher to other docrep processing tools.", true);
+  DrMain cfg("dr", "A dispatcher to other docrep processing tools.");
 
   // Parse argv.
+  cfg.allow_unclaimed_args(true);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Dispatch to main function.

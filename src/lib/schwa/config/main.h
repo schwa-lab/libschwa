@@ -17,7 +17,7 @@ namespace schwa {
     protected:
       std::vector<ConfigNode *> _owned;
 
-      const bool _allow_unclaimed_args;
+      bool _allow_unclaimed_args;
       std::vector<std::string> _cmdline_args;
       std::vector<std::string> _unclaimed_args;
 
@@ -33,7 +33,7 @@ namespace schwa {
       bool _main(void);
 
     public:
-      Main(const std::string &name, const std::string &desc, bool allow_unclaimed_args=false);
+      Main(const std::string &name, const std::string &desc);
       virtual ~Main(void);
 
       using Group::find;
@@ -44,6 +44,7 @@ namespace schwa {
 
       void help(std::ostream &out) const;
 
+      inline void allow_unclaimed_args(const bool allow_unclaimed_args) { _allow_unclaimed_args = allow_unclaimed_args; }
       inline bool allow_unclaimed_args(void) const { return _allow_unclaimed_args; }
       inline const std::vector<std::string> &unclaimed_args(void) const { return _unclaimed_args; }
 

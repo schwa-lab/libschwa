@@ -25,9 +25,9 @@ throw_config_exception(const std::string &msg, const std::string &key) {
 }
 
 
-Main::Main(const std::string &name, const std::string &desc, const bool allow_unclaimed_args) :
+Main::Main(const std::string &name, const std::string &desc) :
     Group(name, desc),
-    _allow_unclaimed_args(allow_unclaimed_args) {
+    _allow_unclaimed_args(false) {
   _owned.push_back(new OpHelp(*this));
   _owned.push_back(new OpVersion(*this));
   _owned.push_back(_log = new OpOStream(*this, "log", 'l', "The file to log to", OpOStream::STDERR_STRING));

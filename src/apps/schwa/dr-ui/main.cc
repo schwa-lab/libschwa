@@ -7,13 +7,13 @@
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 
+#include <schwa/dr-ui/main.h>
 #include <schwa/dr-ui/processor.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
 namespace io = schwa::io;
 namespace port = schwa::port;
-namespace ui = schwa::dr_ui;
 
 
 namespace {
@@ -26,7 +26,7 @@ main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
   dr::Reader reader(input, schema);
 
   // Construct the processor functor to produce the pretty output.
-  ui::Processor processor(output);
+  schwa::dr_ui::Processor processor(output);
 
   // Read the documents off the input stream.
   for (unsigned int i = 0; reader >> doc; ++i) {
@@ -42,10 +42,10 @@ main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr-ui", "A visualiser for docrep streams.");
+  cf::Main cfg(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
-  cf::Op<unsigned int> limit(cfg, "limit", 'l', "Limit on how many documents to process", cf::Flags::OPTIONAL);
+  cf::Op<unsigned int> limit(cfg, "limit", 'n', "Limit on how many documents to process", cf::Flags::OPTIONAL);
 
   // Parse argv.
   cfg.main<io::PrettyLogger>(argc, argv);
