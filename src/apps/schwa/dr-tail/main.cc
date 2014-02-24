@@ -29,7 +29,10 @@ main(std::istream &input, std::ostream &output, const unsigned int count) {
       break;
 
     // Move the read in data into the next buffer element, and increment the counts.
-    bufs[bufs_upto].swap(tmp);
+    // XXX Annoyingly, libstdc++ (gcc) hasn't implemented move semantics for iostreams yet.
+    // XXX bufs[bufs_upto].swap(tmp);
+    bufs[bufs_upto].str(tmp.str());
+    bufs[bufs_upto].clear();
     bufs_upto = (bufs_upto + 1) % count;
     ++nread;
   }
