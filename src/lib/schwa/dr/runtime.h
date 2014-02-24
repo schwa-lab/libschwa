@@ -73,9 +73,11 @@ namespace schwa {
     class RTSchema {
     public:
       const BaseSchema *def;
+      const char *lazy_data;  //!< Used by the __meta__ instance to store all of the read in fields if the Doc class did not specify any fields. Rough equivalent of RTStoreDef::lazy_data/
+      uint32_t lazy_nbytes;
+      const uint32_t klass_id;
       std::vector<RTFieldDef *> fields;
       std::vector<RTStoreDef *> stores;
-      const uint32_t klass_id;
       const std::string serial;
 
       RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def=nullptr);
@@ -83,6 +85,7 @@ namespace schwa {
       ~RTSchema(void);
 
       inline bool is_lazy(void) const { return def == nullptr; }
+      inline bool has_lazy_data(void) const { return lazy_data != nullptr; }
 
       std::ostream &dump(std::ostream &out) const;
 

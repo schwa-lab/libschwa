@@ -54,6 +54,8 @@ namespace schwa {
       inline void add(BaseFieldDef *const field) { _fields.push_back(field); }
       inline const field_container &fields(void) const { return _fields; }
 
+      inline bool has_fields(void) const { return !_fields.empty(); }
+
       virtual std::ostream &dump(std::ostream &out) const;
 
     private:
