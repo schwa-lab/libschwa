@@ -34,9 +34,11 @@ namespace schwa {
       std::string _name;  //!< Name of the config option.
       std::string _desc;  //!< Help text for the config option.
       std::string _full_name;  //!< The full name of the option, accounting for nesting.
-      Flags _flags;
+      char _short_name;  //!< The short single-letter name for the option. '\0' if not defined.
+      Flags _flags;  //!< The bitmask of the flags set for this config node.
 
       ConfigNode(const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
+      ConfigNode(const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
 
       virtual void _help(std::ostream &out, unsigned int depth) const = 0;
       virtual void _help_self(std::ostream &out, unsigned int depth) const = 0;
@@ -46,7 +48,8 @@ namespace schwa {
     public:
       virtual ~ConfigNode(void) { }
 
-      virtual ConfigNode *find(const std::string &key) = 0;
+      virtual ConfigNode *find(char short_name);
+      virtual ConfigNode *find(const std::string &key);
 
       virtual bool accepts_assignment(void) const = 0;
       virtual bool accepts_mention(void) const = 0;

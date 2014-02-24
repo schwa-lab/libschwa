@@ -76,6 +76,9 @@ namespace schwa {
     Op<T>::_help_self(std::ostream &out, const unsigned int depth) const {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
+      out << port::BOLD;
+      if (_short_name)
+        out << port::BOLD << '-' << _short_name << port::OFF << ", ";
       out << port::BOLD << "--" << _full_name << port::OFF << ": " << _desc;
     }
 
@@ -83,7 +86,7 @@ namespace schwa {
     template <typename T>
     void
     Op<T>::_help(std::ostream &out, const unsigned int depth) const {
-      Op<T>::_help_self(out, depth);
+      _help_self(out, depth);
 
       std::vector<std::string> extra;
       if (optional())
@@ -94,13 +97,13 @@ namespace schwa {
         extra.push_back(ss.str());
       }
       if (!extra.empty()) {
-        out << " (";
+        out << port::DARK_GREY << " (";
         for (decltype(extra)::size_type i = 0; i != extra.size(); ++i) {
           if (i != 0)
             out << ", ";
           out << extra[i];
         }
-        out << ")";
+        out << ")" << port::OFF;
       }
       out << std::endl;
     }
@@ -133,6 +136,9 @@ namespace schwa {
     OpChoices<T>::_help_self(std::ostream &out, const unsigned int depth) const {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
+      out << port::BOLD;
+      if (Op<T>::_short_name)
+        out << port::BOLD << '-' << Op<T>::_short_name << port::OFF << ", ";
       out << port::BOLD << "--" << Op<T>::_full_name << port::OFF << ": " << Op<T>::_desc;
       out << " {";
       bool first = true;

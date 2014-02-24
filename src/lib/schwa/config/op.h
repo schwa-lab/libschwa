@@ -24,14 +24,13 @@ namespace schwa {
       bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
       Option(Group &group, const std::string &name, const std::string &desc, Flags flags, bool has_default);
+      Option(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags, bool has_default);
 
       virtual void _assign(const std::string &value) = 0;
       virtual bool _validate(const Main &main) = 0;
 
     public:
       virtual ~Option(void) { }
-
-      virtual ConfigNode *find(const std::string &key) override;
 
       virtual bool accepts_assignment(void) const override;
       virtual bool accepts_mention(void) const override;
@@ -64,7 +63,9 @@ namespace schwa {
 
     public:
       Op(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE) : Option(group, name, desc, flags, false), _default(T()) { }
+      Op(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE) : Option(group, name, short_name, desc, flags, false), _default(T()) { }
       Op(Group &group, const std::string &name, const std::string &desc, const T &default_, Flags flags=Flags::NONE) : Option(group, name, desc, flags, true), _default(default_) { }
+      Op(Group &group, const std::string &name, char short_name, const std::string &desc, const T &default_, Flags flags=Flags::NONE) : Option(group, name, short_name, desc, flags, true), _default(default_) { }
       virtual ~Op(void) { }
 
       virtual void serialise(std::ostream &out) const override;
@@ -88,7 +89,9 @@ namespace schwa {
 
     public:
       OpChoices(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options) : Op<T>(group, name, desc), _options(options) { }
+      OpChoices(Group &group, const std::string &name, char short_name, const std::string &desc, std::initializer_list<T> options) : Op<T>(group, name, short_name, desc), _options(options) { }
       OpChoices(Group &group, const std::string &name, const std::string &desc, std::initializer_list<T> options, const T &default_) : Op<T>(group, name, desc, default_), _options(options) { }
+      OpChoices(Group &group, const std::string &name, char short_name, const std::string &desc, std::initializer_list<T> options, const T &default_) : Op<T>(group, name, short_name, desc, default_), _options(options) { }
       virtual ~OpChoices(void) { }
 
     private:
@@ -108,7 +111,9 @@ namespace schwa {
 
     public:
       OpIStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
+      OpIStream(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
       OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
+      OpIStream(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
       virtual ~OpIStream(void);
 
       inline std::istream &file(void) const { return *_in; }
@@ -131,7 +136,9 @@ namespace schwa {
 
     public:
       OpOStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
+      OpOStream(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
       OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
+      OpOStream(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
       virtual ~OpOStream(void);
 
       inline std::ostream &file(void) const { return *_out; }
@@ -149,6 +156,7 @@ namespace schwa {
 
     public:
       OpLogLevel(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      OpLogLevel(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
       virtual ~OpLogLevel(void);
 
       inline schwa::io::LogLevel operator ()(void) const { return _level; }
@@ -167,6 +175,7 @@ namespace schwa {
 
     public:
       CommandOption(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE) : Option(group, name, desc, flags, false) { }
+      CommandOption(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE) : Option(group, name, short_name, desc, flags, false) { }
       virtual ~CommandOption(void) { }
 
       virtual bool accepts_assignment(void) const override;
@@ -180,7 +189,7 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      OpHelp(Group &group, const std::string &name="help", const std::string &desc="Displays the help text") : CommandOption(group, name, desc) { }
+      OpHelp(Group &group, const std::string &name="help", char short_name='h', const std::string &desc="Displays the help text") : CommandOption(group, name, short_name, desc) { }
       virtual ~OpHelp(void) { }
 
     private:
@@ -193,7 +202,7 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      OpVersion(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
+      OpVersion(Group &group, const std::string &name="version", char short_name='v', const std::string &desc="Displays the version") : CommandOption(group, name, short_name, desc) { }
       virtual ~OpVersion(void) { }
 
     private:

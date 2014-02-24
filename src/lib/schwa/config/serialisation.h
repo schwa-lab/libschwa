@@ -19,7 +19,8 @@ namespace schwa {
      **/
     class OpLoadConfig : public Op<std::string> {
     public:
-      OpLoadConfig(Group &group, const std::string &name, const std::string &desc);
+      OpLoadConfig(Group &group, const std::string &name="load-config", const std::string &desc="The file to load config from");
+      OpLoadConfig(Group &group, const std::string &name, char short_name, const std::string &desc);
       virtual ~OpLoadConfig(void) { }
 
       template <typename C>
@@ -34,7 +35,8 @@ namespace schwa {
      **/
     class OpSaveConfig : public Op<std::string> {
     public:
-      OpSaveConfig(Group &group, const std::string &name, const std::string &desc);
+      OpSaveConfig(Group &group, const std::string &name="save-config", const std::string &desc="The file to save the config to");
+      OpSaveConfig(Group &group, const std::string &name, char short_name, const std::string &desc);
       virtual ~OpSaveConfig(void) { }
 
       void save_config(const Main &main) const;

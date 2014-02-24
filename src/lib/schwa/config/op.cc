@@ -24,10 +24,12 @@ Option::Option(Group &group, const std::string &name, const std::string &desc, c
   group.add(*this);
 }
 
-
-ConfigNode *
-Option::find(const std::string &key) {
-  return (key == _name) ? this : nullptr;
+Option::Option(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags, const bool has_default) :
+    ConfigNode(name, short_name, desc, flags),
+    _has_default(has_default),
+    _was_mentioned(false),
+    _was_assigned(false) {
+  group.add(*this);
 }
 
 
@@ -75,8 +77,16 @@ Option::validate(const Main &main) {
 // ============================================================================
 OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpIStream(group, name, desc, STDIN_STRING, flags) { }
 
+OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpIStream(group, name, short_name, desc, STDIN_STRING, flags) { }
+
 OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
     Op<std::string>(group, name, desc, default_, flags),
+    _in(nullptr),
+    _is_stdin(false)
+  { }
+
+OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_, const Flags flags) :
+    Op<std::string>(group, name, short_name, desc, default_, flags),
     _in(nullptr),
     _is_stdin(false)
   { }
@@ -108,8 +118,16 @@ OpIStream::_validate(const Main &) {
 // ============================================================================
 OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpOStream(group, name, desc, STDOUT_STRING, flags) { }
 
+OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpOStream(group, name, short_name, desc, STDOUT_STRING, flags) { }
+
 OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
     Op<std::string>(group, name, desc, default_, flags),
+    _out(nullptr),
+    _is_std(false)
+  { }
+
+OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_, const Flags flags) :
+    Op<std::string>(group, name, short_name, desc, default_, flags),
     _out(nullptr),
     _is_std(false)
   { }
@@ -145,6 +163,11 @@ OpOStream::_validate(const Main &) {
 // ============================================================================
 OpLogLevel::OpLogLevel(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
     OpChoices<std::string>(group, name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
+    _level(io::LogLevel::INFO)
+  { }
+
+OpLogLevel::OpLogLevel(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_) :
+    OpChoices<std::string>(group, name, short_name, desc, {"critical", "error", "warning", "info", "debug"}, default_),
     _level(io::LogLevel::INFO)
   { }
 
@@ -184,6 +207,8 @@ void
 CommandOption::_help_self(std::ostream &out, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
+  if (_short_name)
+    out << port::BOLD << '-' << _short_name << port::OFF << ", ";
   out << port::BOLD << "--" << _full_name << port::OFF << ": " << _desc;
 }
 

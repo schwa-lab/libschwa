@@ -15,11 +15,15 @@ namespace config {
 // ============================================================================
 OpLoadConfig::OpLoadConfig(Group &group, const std::string &name, const std::string &desc) : Op<std::string>(group, name, desc, Flags::OPTIONAL) { }
 
+OpLoadConfig::OpLoadConfig(Group &group, const std::string &name, const char short_name, const std::string &desc) : Op<std::string>(group, name, short_name, desc, Flags::OPTIONAL) { }
+
 
 // ============================================================================
 // OpSaveConfig
 // ============================================================================
 OpSaveConfig::OpSaveConfig(Group &group, const std::string &name, const std::string &desc) : Op<std::string>(group, name, desc, Flags::OPTIONAL) { }
+
+OpSaveConfig::OpSaveConfig(Group &group, const std::string &name, const char short_name, const std::string &desc) : Op<std::string>(group, name, short_name, desc, Flags::OPTIONAL) { }
 
 void
 OpSaveConfig::save_config(const Main &main) const {

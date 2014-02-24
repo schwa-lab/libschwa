@@ -32,6 +32,7 @@ namespace schwa {
       void add(Group &child);
       void add(Option &child);
 
+      virtual ConfigNode *find(char short_name) override;
       virtual ConfigNode *find(const std::string &key) override;
 
       virtual bool accepts_assignment(void) const override;

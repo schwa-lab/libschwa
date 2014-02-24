@@ -1,6 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config/main.h>
 
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <deque>
@@ -29,10 +30,10 @@ Main::Main(const std::string &name, const std::string &desc, const bool allow_un
     _allow_unclaimed_args(allow_unclaimed_args) {
   _owned.push_back(new OpHelp(*this));
   _owned.push_back(new OpVersion(*this));
-  _owned.push_back(_log = new OpOStream(*this, "log", "The file to log to", OpOStream::STDERR_STRING));
-  _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
-  _owned.push_back(_load_config = new OpLoadConfig(*this, "load-config", "The file to load config from"));
-  _owned.push_back(_save_config = new OpSaveConfig(*this, "save-config", "The file to save the config to"));
+  _owned.push_back(_log = new OpOStream(*this, "log", 'l', "The file to log to", OpOStream::STDERR_STRING));
+  _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", 'L', "The level to log at", "info"));
+  _owned.push_back(_load_config = new OpLoadConfig(*this));
+  _owned.push_back(_save_config = new OpSaveConfig(*this));
 }
 
 
@@ -96,18 +97,25 @@ Main::_main(void) {
     const std::string &key = args.front();
     args.pop_front();
 
-    const size_t pos = key.find("--");
-    if (pos != 0) {
-      if (_allow_unclaimed_args) {
-        _unclaimed_args.push_back(key);
-        continue;
+    // Is it a short name?
+    ConfigNode *node = nullptr;
+    if (key.size() == 2 && key[0] == '-' && std::isalnum(key[1]))
+      node = find(key[1]);
+    else {
+      // Is it a long name?
+      const size_t pos = key.find("--");
+      if (pos != 0) {
+        if (_allow_unclaimed_args) {
+          _unclaimed_args.push_back(key);
+          continue;
+        }
+        else
+          throw_config_exception("Invalid option", key);
       }
-      else
-        throw_config_exception("Invalid option", key);
+      node = find(key.substr(2));
     }
 
-    // Find the config node corresponding to the key.
-    ConfigNode *const node = find(key.substr(2));
+    // Was the config node found?
     if (node == nullptr) {
       if (_allow_unclaimed_args) {
         _unclaimed_args.push_back(key);

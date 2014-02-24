@@ -62,7 +62,7 @@ DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseSchema &schema) :
 void
 DocrepClassGroup::_help_self(std::ostream &out, unsigned int depth) const {
   Group::_help_self(out, depth);
-  out << " (default: " << _schema.name << ")";
+  out << port::DARK_GREY << " (default: " << _schema.name << ")" << port::OFF;
 }
 
 

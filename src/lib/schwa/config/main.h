@@ -35,6 +35,7 @@ namespace schwa {
       Main(const std::string &name, const std::string &desc, bool allow_unclaimed_args=false);
       virtual ~Main(void);
 
+      using Group::find;
       virtual ConfigNode *find(const std::string &key) override;
 
       virtual void serialise(std::ostream &out) const override;

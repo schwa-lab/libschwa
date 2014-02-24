@@ -18,6 +18,25 @@ Group::Group(Group &group, const std::string &name, const std::string &desc, con
 
 
 ConfigNode *
+Group::find(const char short_name) {
+  if (_short_name == short_name)
+    return this;
+
+  for (auto &child : _options) {
+    ConfigNode *const p = child->find(short_name);
+    if (p != nullptr)
+      return p;
+  }
+  for (auto &child : _groups) {
+    ConfigNode *const p = child->find(short_name);
+    if (p != nullptr)
+      return p;
+  }
+  return nullptr;
+}
+
+
+ConfigNode *
 Group::find(const std::string &key) {
   const size_t pos = key.find(_name);
   if (pos != 0)
