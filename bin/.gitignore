@@ -1,7 +1,8 @@
 dr
 dr-dist
-dr-list-stores
 dr-head
+dr-list-stores
+dr-tail
 dr-ui
 test
 tokenizer

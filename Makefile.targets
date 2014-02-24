@@ -5,6 +5,7 @@ BINARIES = \
 		bin/dr-dist \
 		bin/dr-head \
 		bin/dr-list-stores \
+		bin/dr-tail \
 		bin/dr-ui \
 		bin/drworker \
 		bin/tokenizer
@@ -151,6 +152,9 @@ bin/dr-head: src/apps/schwa/dr-head/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(D
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/dr-list-stores: src/apps/schwa/dr-list-stores/main.o $(DR_LIST_STORES_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
+
+bin/dr-tail: src/apps/schwa/dr-tail/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
 bin/dr-ui: src/apps/schwa/dr-ui/main.o $(DR_UI_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
