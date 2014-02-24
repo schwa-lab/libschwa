@@ -19,8 +19,8 @@ namespace schwa {
 
     extern const char *BOLD;
     extern const char *DARK_GREY;
-    extern const char *RED;
     extern const char *OFF;
+    extern const char *RED;
 
     /**
      * Attempts to return a more meaningful version of a typeid name.
