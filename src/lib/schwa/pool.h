@@ -50,7 +50,7 @@ namespace schwa {
       }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Block);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Block);
     };
 
     const size_t _block_size;
@@ -93,7 +93,7 @@ namespace schwa {
     }
 
   private:
-    DISALLOW_COPY_AND_ASSIGN(Pool);
+    SCHWA_DISALLOW_COPY_AND_ASSIGN(Pool);
   };
 
 }

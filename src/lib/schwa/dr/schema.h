@@ -59,7 +59,7 @@ namespace schwa {
       virtual std::ostream &dump(std::ostream &out) const;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(BaseSchema);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(BaseSchema);
     };
 
     std::ostream &operator <<(std::ostream &out, const BaseSchema &s);
@@ -124,7 +124,7 @@ namespace schwa {
       template <typename T> class Schema;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Doc);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Doc);
     };
 
 

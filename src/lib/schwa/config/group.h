@@ -45,7 +45,7 @@ namespace schwa {
       virtual bool validate(const Main &main) override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Group);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Group);
     };
 
   }

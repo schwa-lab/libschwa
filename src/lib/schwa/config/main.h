@@ -57,7 +57,7 @@ namespace schwa {
       static bool is_long_option(const std::string &key);
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Main);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Main);
     };
 
   }

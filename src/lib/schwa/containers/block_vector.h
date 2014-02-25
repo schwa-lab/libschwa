@@ -63,7 +63,7 @@ namespace schwa {
         inline void set_next(Block *const next) { _next = next; }
 
       private:
-        DISALLOW_COPY_AND_ASSIGN(Block);
+        SCHWA_DISALLOW_COPY_AND_ASSIGN(Block);
       };
 
       class Iterator : public std::iterator<std::forward_iterator_tag, T> {

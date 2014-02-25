@@ -36,7 +36,7 @@ namespace schwa {
       inline void operator ()(const dr::Doc &doc) { process_doc(doc); }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Processor);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Processor);
     };
 
   }

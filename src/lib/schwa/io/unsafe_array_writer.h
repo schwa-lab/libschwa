@@ -33,7 +33,7 @@ namespace schwa {
       }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(UnsafeArrayWriter);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(UnsafeArrayWriter);
     };
 
   }

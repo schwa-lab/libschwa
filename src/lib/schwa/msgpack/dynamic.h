@@ -59,7 +59,7 @@ namespace schwa {
       const uint32_t _size;
 
       explicit Array(uint32_t size);
-      DISALLOW_COPY_AND_ASSIGN(Array);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Array);
 
     public:
       ~Array(void) { }
@@ -93,7 +93,7 @@ namespace schwa {
       const uint32_t _size;
 
       explicit Map(uint32_t size);
-      DISALLOW_COPY_AND_ASSIGN(Map);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Map);
 
     public:
       ~Map(void) { }
@@ -117,7 +117,7 @@ namespace schwa {
       const char *const _value;
 
       Raw(uint32_t size, const char *value);
-      DISALLOW_COPY_AND_ASSIGN(Raw);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Raw);
 
     public:
       ~Raw(void) { }

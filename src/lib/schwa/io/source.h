@@ -17,7 +17,7 @@ namespace schwa {
       virtual size_t read(char *buffer, size_t nbytes) = 0;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Source);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Source);
     };
 
   }

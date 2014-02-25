@@ -76,7 +76,7 @@ namespace schwa {
     std::ostream &dump(std::ostream &out) const;
 
   private:
-    DISALLOW_COPY_AND_ASSIGN(print_exception);
+    SCHWA_DISALLOW_COPY_AND_ASSIGN(print_exception);
   };
 
   std::ostream &operator <<(std::ostream &out, const print_exception &obj);

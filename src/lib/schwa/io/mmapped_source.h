@@ -25,7 +25,7 @@ namespace schwa {
       size_t read(char *buffer, size_t nbytes) override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(MMappedSource);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(MMappedSource);
     };
 
   }

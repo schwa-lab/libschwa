@@ -29,7 +29,7 @@ namespace schwa {
       void read(char *const buf, const size_t amount);
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(ArrayReader);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(ArrayReader);
     };
 
   }

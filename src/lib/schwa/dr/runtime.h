@@ -38,7 +38,7 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(RTFieldDef);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(RTFieldDef);
     };
 
     std::ostream &operator <<(std::ostream &out, const RTFieldDef &field);
@@ -64,7 +64,7 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(RTStoreDef);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(RTStoreDef);
     };
 
     std::ostream &operator <<(std::ostream &out, const RTStoreDef &store);
@@ -90,7 +90,7 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(RTSchema);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(RTSchema);
     };
 
     std::ostream &operator <<(std::ostream &out, const RTSchema &schema);
@@ -108,7 +108,7 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(RTManager);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(RTManager);
     };
 
     std::ostream &operator <<(std::ostream &out, const RTManager &rt);

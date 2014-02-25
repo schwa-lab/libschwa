@@ -25,7 +25,7 @@ namespace schwa {
         Block(size_t capacity, char *data, size_t size=0) : capacity(capacity), data(data), size(size) { }
 
       private:
-        DISALLOW_COPY_AND_ASSIGN(Block);
+        SCHWA_DISALLOW_COPY_AND_ASSIGN(Block);
       };
 
     private:
@@ -74,7 +74,7 @@ namespace schwa {
       std::ostream &dump(std::ostream &out) const;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(WriteBuffer);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(WriteBuffer);
     };
 
   }

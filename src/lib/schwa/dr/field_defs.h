@@ -112,7 +112,7 @@ namespace schwa {
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(FieldDef);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(FieldDef);
     };
 
 
@@ -150,7 +150,7 @@ namespace schwa {
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(FieldDefWithStore);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(FieldDefWithStore);
     };
 
     template <typename R, typename T, typename S, typename D, R T::*field_ptr, BlockStore<S> D::*store_ptr>
@@ -181,7 +181,7 @@ namespace schwa {
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(FieldDefWithStore);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(FieldDefWithStore);
     };
 
 
@@ -215,7 +215,7 @@ namespace schwa {
       bool write_field(io::WriteBuffer &out, const uint32_t key, const Doc &_doc) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(FieldDefWithSelfStore);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(FieldDefWithSelfStore);
     };
 
 
@@ -246,7 +246,7 @@ namespace schwa {
       void resize(Doc &doc, const size_t size) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(StoreDef);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(StoreDef);
     };
 
     template <typename S, typename T, BlockStore<S> T::*store_ptr>
@@ -270,7 +270,7 @@ namespace schwa {
       void resize(Doc &doc, const size_t size) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(StoreDef);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(StoreDef);
     };
 
 

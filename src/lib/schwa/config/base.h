@@ -69,7 +69,7 @@ namespace schwa {
       void set_prefix(const std::string &prefix);
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(ConfigNode);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(ConfigNode);
     };
 
   }

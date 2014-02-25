@@ -34,7 +34,7 @@ namespace schwa {
       }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Writer);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Writer);
     };
 
   }

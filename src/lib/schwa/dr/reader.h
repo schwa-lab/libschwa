@@ -32,7 +32,7 @@ namespace schwa {
       inline Reader &operator >>(Doc &doc) { return read(doc); }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Reader);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Reader);
     };
 
 

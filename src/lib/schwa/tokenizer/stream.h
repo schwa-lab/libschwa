@@ -37,7 +37,7 @@ namespace schwa {
       virtual void end_document(void) { end_paragraph(); }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Stream);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Stream);
     };
 
   }

@@ -46,7 +46,7 @@ namespace schwa {
       inline bool was_mentioned(void) const { return _was_mentioned; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Option);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Option);
     };
 
 
@@ -77,7 +77,7 @@ namespace schwa {
       inline const T &operator ()(void) const { return _value; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(Op);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Op);
     };
 
 
@@ -98,7 +98,7 @@ namespace schwa {
       virtual ~OpChoices(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpChoices);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpChoices);
     };
 
 
@@ -122,7 +122,7 @@ namespace schwa {
       inline std::istream &file(void) const { return *_in; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpIStream);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpIStream);
     };
 
 
@@ -147,7 +147,7 @@ namespace schwa {
       inline std::ostream &file(void) const { return *_out; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpOStream);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpOStream);
     };
 
 
@@ -165,7 +165,7 @@ namespace schwa {
       inline schwa::io::LogLevel operator ()(void) const { return _level; }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpLogLevel);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpLogLevel);
     };
 
 
@@ -196,7 +196,7 @@ namespace schwa {
       virtual ~OpHelp(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpHelp);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpHelp);
     };
 
 
@@ -209,7 +209,7 @@ namespace schwa {
       virtual ~OpVersion(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpVersion);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpVersion);
     };
   }
 }

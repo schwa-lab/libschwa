@@ -38,7 +38,7 @@ public:
   size_t read(char *buffer, const size_t nbytes);
 
 private:
-  DISALLOW_COPY_AND_ASSIGN(Impl);
+  SCHWA_DISALLOW_COPY_AND_ASSIGN(Impl);
 };
 
 

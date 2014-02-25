@@ -44,7 +44,7 @@ namespace schwa {
       virtual void end_document(void) override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(TextStream);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(TextStream);
     };
 
   }

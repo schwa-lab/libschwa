@@ -28,7 +28,7 @@ namespace schwa {
       virtual ~OpDocrepField(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(OpDocrepField);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpDocrepField);
     };
 
 
@@ -52,7 +52,7 @@ namespace schwa {
       virtual void serialise(std::ostream &out) const override;
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(DocrepClassGroup);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(DocrepClassGroup);
     };
 
 
@@ -65,7 +65,7 @@ namespace schwa {
       virtual ~DocrepGroup(void) { }
 
     private:
-      DISALLOW_COPY_AND_ASSIGN(DocrepGroup);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(DocrepGroup);
     };
 
   }
