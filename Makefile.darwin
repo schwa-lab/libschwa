@@ -1,9 +1,3 @@
-DESTDIR=/
-prefix=/usr
-#RELEASE_VERSION_MAJOR=0
-#RELEASE_VERSION_MINOR=0
-#RELEASE_VERSION=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)
-
 INCLUDE = -Isrc/lib -Isrc/apps $(shell pkg-config --cflags libzmq)
 LIBS_LDFLAGS = -Llibs
 DEFINES =
