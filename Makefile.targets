@@ -105,22 +105,7 @@ doxygen:
 	doxygen docs/Doxyfile
 
 install:
-	install -d -v $(DESTDIR)$(prefix)/{bin,include,lib}
-	# Install the header files.
-	for d in `find src/lib -type d`; do \
-		install -d -v $${d/src/$(DESTDIR)$(prefix)}; \
-	done
-	for f in `find src/lib -type f -name '*.h'`; do \
-		install -p -v $${f} $${f/src\/lib\//$(DESTDIR)$(prefix)\/include\/}; \
-	done
-	# Install the shared libraries.
-	for f in $(SHARED_LIBS); do \
-		install -p -v $${f} $(DESTDIR)$(prefix)/lib; \
-	done
-	# Install the binaries.
-	for f in $(BINARIES); do \
-		install -p -v $${f} $(DESTDIR)$(prefix)/bin; \
-	done
+	src/scripts/do-install "$(DESTDIR)" "$(prefix)" "$(SHARED_LIBS)" "$(BINARIES)"
 
 release:
 	src/scripts/make-release $(RELEASE_VERSION)
