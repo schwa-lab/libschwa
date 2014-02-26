@@ -1,5 +1,3 @@
-SHELL = /bin/bash
-
 BINARIES = \
 		bin/dr \
 		bin/dr-count \
@@ -7,7 +5,6 @@ BINARIES = \
 		bin/dr-head \
 		bin/dr-tail \
 		bin/dr-ui \
-		bin/drworker \
 		bin/tokenizer
 SHARED_LIBS = \
 		libs/libschwa.a \
@@ -50,7 +47,7 @@ TOKENIZER_OBJECTS = \
 UTILS_OBJECTS = \
 		src/lib/schwa/utils/shlex.o
 
-OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
+LIBSCHWA_OBJECTS = $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
 
 DR_COUNT_OBJECTS = \
 		src/apps/schwa/dr-count/processor.o
@@ -89,14 +86,14 @@ GENERATED_SOURCES = \
 		src/lib/schwa/tokenizer/tokenizer.cc
 
 
-.PHONY: all clean depends doxygen install release sharedlibs test wc
+.PHONY: all clean depends doxygen install release sharedlibs tests test wc
 
 all: $(BINARIES) $(SHARED_LIBS)
 
 clean:
 	-find src -name "*.o" -exec rm -f {} \;
-	-rm -f libs/*.{a,dylib,so}
-	-rm -f $(BINARIES) $(TEST_BINARIES)
+	-rm -f -- bin/*
+	-rm -f -- libs/*.{a,dylib,so}
 
 depends:
 	src/scripts/make-depends "$(CXX) -MM $(CXXFLAGS) $(PYTHON_INCLUDE) $(TEST_INCLUDE) $(PYAPI_INCLUDE)" `find src -name '*.cc' | grep -v ^src/lib/schwa/port` $(PORT_OBJECTS:%.o=%.cc) > Makefile.depends
@@ -118,48 +115,49 @@ wc:
 	find src/api/java/ -name "*.java" | xargs wc -l
 
 
-# -------------------------------------------------------------------------------
+# ===============================================================================
 # Base targets.
-# -------------------------------------------------------------------------------
+# ===============================================================================
 %.h.gch: %.h
 	$(CXX) -x c++-header $(CXXFLAGS) -o $@ $<
 
-bin/test: src/apps/schwa/test/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/test: src/apps/schwa/test/main.o libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/dr: src/apps/schwa/dr/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(IO_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/dr: src/apps/schwa/dr/main.o libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/dr-count: src/apps/schwa/dr-count/main.o $(DR_COUNT_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/dr-count: src/apps/schwa/dr-count/main.o $(DR_COUNT_OBJECTS) libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/dr-dist: src/apps/schwa/dr-dist/main.o $(DR_DIST_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/dr-dist: src/apps/schwa/dr-dist/main.o $(DR_DIST_OBJECTS) libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(LIBZMQ_LDFLAGS) -o $@
 
-bin/dr-head: src/apps/schwa/dr-head/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/dr-head: src/apps/schwa/dr-head/main.o libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/dr-tail: src/apps/schwa/dr-tail/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/dr-tail: src/apps/schwa/dr-tail/main.o libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/dr-ui: src/apps/schwa/dr-ui/main.o $(DR_UI_OBJECTS) $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/dr-ui: src/apps/schwa/dr-ui/main.o $(DR_UI_OBJECTS) libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-bin/drworker: src/apps/schwa/drworker/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(DR_DIST_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(UTILS_OBJECTS)
+bin/drworker: src/apps/schwa/drworker/main.o $(DR_DIST_OBJECTS) libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) $(LIBZMQ_LDFLAGS) -o $@
 
-bin/tokenizer: src/apps/schwa/tokenizer/main.o $(BASE_OBJECTS) $(CONFIG_OBJECTS) $(DR_OBJECTS) $(IO_OBJECTS) $(MSGPACK_OBJECTS) $(PORT_OBJECTS) $(TOKENIZER_OBJECTS) $(UTILS_OBJECTS)
+bin/tokenizer: src/apps/schwa/tokenizer/main.o libs/libschwa.a
 	$(CXX) $^ $(LDFLAGS) $(LIBS_LDFLAGS) -o $@
 
-libs/libschwa.a: $(OBJECTS)
+libs/libschwa.a: $(LIBSCHWA_OBJECTS)
 	ar rcs $@ $^
 
-libs/libschwa.$(SHARED_LIB_SUFFIX): $(OBJECTS)
+libs/libschwa.$(SHARED_LIB_SUFFIX): $(LIBSCHWA_OBJECTS)
 	$(CXX) $(SHARED_LIB_LDFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS_LDFLAGS)
 
-# -------------------------------------------------------------------------------
-# generated sources
-# -------------------------------------------------------------------------------
+
+# ===============================================================================
+# Generated sources
+# ===============================================================================
 ifdef RELEASE_VERSION
 src/lib/schwa/version.cc: .force
 	@echo 'namespace schwa { const char *VERSION = "$(RELEASE_VERSION) (release)"; }' > $@
@@ -175,9 +173,9 @@ src/lib/schwa/tokenizer/tokenizer.cc: src/ragel/tokenizer.rl src/ragel/rules/*.r
 	$(RAGEL) -G2 -o $@ $<
 
 
-# -----------------------------------------------------------------------------
+# ===============================================================================
 # third_party/UnitTest++_1.4
-# -----------------------------------------------------------------------------
+# ===============================================================================
 libs/libUnitTest++.a:
 	cd third_party/UnitTest++; $(MAKE) $(MFLAGS)
 
@@ -185,9 +183,9 @@ libs/libUnitTest++.$(SHARED_LIB_SUFFIX):
 	cd third_party/UnitTest++; $(MAKE) $(MFLAGS)
 
 
-# -------------------------------------------------------------------------------
+# ===============================================================================
 # Testing
-# -------------------------------------------------------------------------------
+# ===============================================================================
 $(UNIT_TEST_OBJECTS): CXXFLAGS += $(TEST_CXXFLAGS)
 $(UNIT_TEST_OBJECTS): LDFLAGS += $(TEST_LDFLAGS)
 
