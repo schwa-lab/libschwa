@@ -205,7 +205,7 @@ namespace schwa {
       virtual bool _validate(const Main &main) override;
 
     public:
-      OpVersion(Group &group, const std::string &name="version", char short_name='v', const std::string &desc="Displays the version") : CommandOption(group, name, short_name, desc) { }
+      OpVersion(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
       virtual ~OpVersion(void) { }
 
     private:

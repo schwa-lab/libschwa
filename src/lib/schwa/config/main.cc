@@ -30,8 +30,8 @@ Main::Main(const std::string &name, const std::string &desc) :
     _allow_unclaimed_args(false) {
   _owned.push_back(new OpHelp(*this));
   _owned.push_back(new OpVersion(*this));
-  _owned.push_back(_log = new OpOStream(*this, "log", 'l', "The file to log to", OpOStream::STDERR_STRING));
-  _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", 'L', "The level to log at", "info"));
+  _owned.push_back(_log = new OpOStream(*this, "log", "The file to log to", OpOStream::STDERR_STRING));
+  _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
   _owned.push_back(_load_config = new OpLoadConfig(*this));
   _owned.push_back(_save_config = new OpSaveConfig(*this));
 }
