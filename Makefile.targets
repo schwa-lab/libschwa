@@ -249,8 +249,8 @@ $(UNITTESTS): $(UNITTESTS_OBJECTS) libs/libUnitTest++.a libs/libschwa.a
 apps: $(APPS)
 
 clean:
-	-find bin -type f -exec rm -f {} \;
-	-find libs -type f -exec rm -f {} \;
+	-rm -f bin/*
+	-rm -f libs/*
 	-find src -name "*.o" -exec rm -f {} \;
 
 depends:
