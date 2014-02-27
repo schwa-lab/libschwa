@@ -1,27 +1,8 @@
-INCLUDE = -Isrc/lib -Isrc/apps $(shell pkg-config --cflags libzmq)
-LIBS_LDFLAGS = -Llibs
-DEFINES =
+PLATFORM_CPPFLAGS =
+PLATFORM_CXXFLAGS =
+PLATFORM_LDFLAGS =
 
-ifdef RELEASE_VERSION
-OPTIMIZE_CXXFLAGS = -O4
-else
-OPTIMIZE_CXXFLAGS = -g -O0
-LIBS_LDFLAGS += -lprofiler -ltcmalloc
-endif
-BASE_CXXFLAGS = -std=c++11 $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -pedantic
+PLATFORM_SHARED_LIB_SUFFIX = so
+PLATFORM_SHARED_LIB_LDFLAGS = -shared
 
-CXX = g++
-CXXFLAGS = $(BASE_CXXFLAGS) $(INCLUDE) $(DEFINES)
-LDFLAGS =
-SHARED_LIB_SUFFIX = so
-SHARED_LIB_LDFLAGS = -shared
-
-PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
-
-LIBZMQ_LDFLAGS = $(shell pkg-config --libs libzmq)
-
-RAGEL = ragel
-RAGEL_CXXFLAGS = $(CXXFLAGS)
-
-PYTHON_VERSION=2.7
-PYTHON_INCLUDE=-isystem /usr/include/python$(PYTHON_VERSION)
+LIBSCHWA_PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o

@@ -5,7 +5,6 @@
 *.pyc
 # generated files
 Makefile.depends
-src/lib/schwa/version.cc
 # build locations
 build
 tags

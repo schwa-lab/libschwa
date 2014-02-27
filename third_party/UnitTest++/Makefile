@@ -1,7 +1,9 @@
-include ../../Makefile.$(shell uname -s | tr '[:upper:]' '[:lower:]')
+include       ../../Makefile.$(shell uname -s | tr '[:upper:]' '[:lower:]')
+TARGET_DIR = ../../libs
 
-INCLUDE = -I.
-LIB_DIR = ../../libs
+CPPFLAGS += -I. $(PLATFORM_CPPFLAGS)
+CXXFLAGS += -std=c++11 -fPIC $(PLATFORM_CXXFLAGS)
+LDFLAGS += $(PLATFORM_LDFLAGS)
 
 OBJECTS =\
 		AssertException.o \
@@ -24,8 +26,8 @@ OBJECTS =\
 		Posix/TimeHelpers.o
 
 LIBS = \
-		$(LIB_DIR)/libUnitTest++.a \
-		$(LIB_DIR)/libUnitTest++.$(SHARED_LIB_SUFFIX)
+		$(TARGET_DIR)/libUnitTest++.a \
+		$(TARGET_DIR)/libUnitTest++.$(PLATFORM_SHARED_LIB_SUFFIX)
 
 .PHONY: all clean
 
@@ -38,8 +40,8 @@ clean:
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(LIB_DIR)/libUnitTest++.a: $(OBJECTS)
+$(TARGET_DIR)/libUnitTest++.a: $(OBJECTS)
 	ar rcs $@ $^
 
-$(LIB_DIR)/libUnitTest++.$(SHARED_LIB_SUFFIX): $(OBJECTS)
-	$(CXX) $(SHARED_LIB_LDFLAGS) $^ -o $@ $(LDFLAGS)
+$(TARGET_DIR)/libUnitTest++.$(PLATFORM_SHARED_LIB_SUFFIX): $(OBJECTS)
+	$(CXX) $(PLATFORM_SHARED_LIB_LDFLAGS) $^ -o $@ $(LDFLAGS)
