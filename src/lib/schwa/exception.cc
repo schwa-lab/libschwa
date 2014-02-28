@@ -1,7 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/exception.h>
 
+#include <cstring>
 #include <iostream>
+#include <sstream>
 #include <typeinfo>
 
 #include <schwa/port.h>
@@ -12,11 +14,23 @@ namespace schwa {
 // ============================================================================
 // IOException
 // ============================================================================
-IOException::IOException(const std::string &msg, int line) : Exception(msg), line(line) { }
+IOException::IOException(const std::string &msg, const int linenum) : IOException(msg, "", linenum) { }
 
-IOException::IOException(const std::string &msg, const std::string &uri, int line) : Exception(msg), uri(uri), line(line) { }
+IOException::IOException(int errno_, const std::string &uri, int linenum) : IOException(std::strerror(errno_), uri, linenum) { }
 
-IOException::IOException(const IOException &other) : Exception(other), uri(other.uri), line(other.line) { }
+IOException::IOException(const std::string &msg, const std::string &uri, const int linenum) : Exception(""), _uri(uri), _linenum(linenum) {
+  std::ostringstream ss;
+  ss << msg;
+  if (!uri.empty()) {
+    ss << " (file=" << _uri;
+    if (linenum != -1)
+      ss << ":" << linenum;
+    ss << ")";
+  }
+  _msg = ss.str();
+}
+
+IOException::IOException(const IOException &o) : Exception(o), _uri(o._uri), _linenum(o._linenum) { }
 
 
 // ============================================================================

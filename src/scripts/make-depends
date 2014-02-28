@@ -1,21 +1,66 @@
 #!/usr/bin/env python
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import os
+import re
+import shlex
 import subprocess
-import sys
+
+RE_KEEP = re.compile(r'^src/(apps|lib)/')
 
 
-def main(compile_cmd, filenames):
-  for filename in filenames:
-    rules = subprocess.check_output(compile_cmd + ' ' + filename, shell=True)
-    path = os.path.dirname(filename) + os.path.sep
-    sys.stdout.write(path)
-    sys.stdout.write(rules)
+def run(*cmd):
+  return subprocess.check_output(cmd).decode('utf-8').strip()
+
+
+def main():
+  # Find the name of CXX.
+  cxx = run('make', '--no-print-directory', 'echo-CXX').split('=', 1)[1]
+
+  # Find the commands that would be run that produce a .o file in src/{apps,lib}
+  compiler_cmds = run('env', 'CPPFLAGS=-MM', 'make', '--always-make', '--dry-run', '--no-print-directory', 'all', 'tests').split('\n')
+  for compiler_cmd in compiler_cmds:
+    # Filter out things like changing directory, etc.
+    if not compiler_cmd.startswith(cxx):
+      continue
+
+    # Split the compile command into its args.
+    compiler_cmd = shlex.split(compiler_cmd)
+    if compiler_cmd[0] != cxx:
+      continue
+
+    # Find the `-o X`.
+    try:
+      dash_o = compiler_cmd.index('-o')
+    except ValueError:
+      continue
+
+    # Is the compiler command something we care about?
+    o_file = compiler_cmd[dash_o + 1]
+    if not RE_KEEP.match(o_file):
+      continue
+
+    # Remove the `-o X` as we want the output sent to stdout.
+    del compiler_cmd[dash_o:dash_o + 2]
+
+    # Find the .cc file.
+    for arg in compiler_cmd[1:]:
+      if arg.endswith('.cc'):
+        cc_file = arg
+        break
+    else:
+      raise ValueError('Could not find .cc file in {}'.format(compiler_cmd))
+
+    # Run the resultant compiler command.
+    rules = run(*compiler_cmd).split('\n')
+
+    # Add the path of .cc file to the target definition.
+    target, deps = rules[0].split(':', 1)
+    target = os.path.join(os.path.dirname(cc_file), target)
+    rules[0] = target + ':' + deps
+
+    # Output the modified rules.
+    print('\n'.join(rules))
 
 
 if __name__ == '__main__':
-  if len(sys.argv) < 3:
-    print('Usage: {0} compile_cmd file0.cc file1.cc ...'.format(sys.argv[0]), file=sys.stderr)
-    sys.exit(1)
-
-  main(sys.argv[1], sys.argv[2:])
+  main()

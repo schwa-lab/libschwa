@@ -2,7 +2,9 @@
 #include <schwa/config/group.h>
 
 #include <iostream>
+#include <sstream>
 
+#include <schwa/exception.h>
 #include <schwa/config/exception.h>
 #include <schwa/port.h>
 
@@ -10,27 +12,50 @@
 namespace schwa {
 namespace config {
 
-OpGroup::OpGroup(OpGroup &group, const std::string &name, const std::string &desc) : OptionBase(name, desc) {
-  group.add(this);
+Group::Group(Group &group, const std::string &name, const std::string &desc, const Flags flags) : ConfigNode(name, desc, flags) {
+  group.add(*this);
 }
 
 
-OptionBase *
-OpGroup::find(const std::string &orig_key, const std::string &key) {
+ConfigNode *
+Group::find(const char short_name) {
+  if (_short_name == short_name)
+    return this;
+
+  for (auto &child : _options) {
+    ConfigNode *const p = child->find(short_name);
+    if (p != nullptr)
+      return p;
+  }
+  for (auto &child : _groups) {
+    ConfigNode *const p = child->find(short_name);
+    if (p != nullptr)
+      return p;
+  }
+  return nullptr;
+}
+
+
+ConfigNode *
+Group::find(const std::string &key) {
   const size_t pos = key.find(_name);
   if (pos != 0)
     return nullptr;
-  else if (key.size() == _name.size())
+  if (key == _name)
     return this;
-  else if (key[_name.size()] != '-')
-    throw ConfigException("Invalid option key", orig_key);
 
-  const std::string new_key = key.substr(_name.size() + 1);
-  if (new_key.empty())
-    throw ConfigException("Invalid option key", orig_key);
+  std::string new_key = key.substr(_name.size());
+  if (new_key.find(SEPARATOR) != 0)
+    return nullptr;
+  new_key = new_key.substr(2);
 
-  for (auto &child : _children) {
-    OptionBase *const p = child->find(orig_key, new_key);
+  for (auto &child : _options) {
+    ConfigNode *const p = child->find(new_key);
+    if (p != nullptr)
+      return p;
+  }
+  for (auto &child : _groups) {
+    ConfigNode *const p = child->find(new_key);
     if (p != nullptr)
       return p;
   }
@@ -39,26 +64,128 @@ OpGroup::find(const std::string &orig_key, const std::string &key) {
 
 
 void
-OpGroup::help(std::ostream &out, const std::string &prefix, unsigned int depth) const {
-  const std::string me = prefix + _name + "-";
+Group::_help_self(std::ostream &out, const unsigned int depth) const {
+  for (unsigned int i = 0; i != depth; ++i)
+    out << "  ";
+  out << port::BOLD;
+  if (accepts_mention())
+    out << "--";
+  out << _full_name << port::OFF << ": " << _desc;
+}
+
+
+void
+Group::_help(std::ostream &out, const unsigned int depth) const {
   if (depth != 0)
     out << std::endl;
-  out << port::BOLD << prefix << _name << port::OFF << ": " << _desc << std::endl;
-  for (auto &child : _children)
-    child->help(out, me, depth + 1);
+  _help_self(out, depth);
+  out << std::endl;
+  for (auto &child : _options)
+    child->_help(out, depth + 1);
+  for (auto &child : _groups)
+    child->_help(out, depth + 1);
 }
 
 
 void
-OpGroup::set(const std::string &value) {
-  throw ConfigException("Cannot set the value of a option group", _name, value);
+Group::_pre_add(ConfigNode &child) {
+  const std::string &child_name = child.name();
+  for (auto &c : _options) {
+    if (c->name() == child_name) {
+      std::ostringstream ss;
+      ss << "Duplicate config option name \"" << child_name << "\"";
+      throw ConfigException(ss.str());
+    }
+  }
+  for (auto &c : _groups) {
+    if (c->name() == child_name) {
+      std::ostringstream ss;
+      ss << "Duplicate config option name \"" << child_name << "\"";
+      throw ConfigException(ss.str());
+    }
+  }
 }
 
 
 void
-OpGroup::validate(void) {
-  for (auto &child : _children)
-    child->validate();
+Group::_post_add(ConfigNode &child) {
+  child.set_prefix(_name);
+}
+
+
+void
+Group::add(Group &child) {
+  _pre_add(child);
+  _groups.push_back(&child);
+  _post_add(child);
+}
+
+
+void
+Group::add(Option &child) {
+  _pre_add(child);
+  _options.push_back(&child);
+  _post_add(child);
+}
+
+
+bool
+Group::accepts_assignment(void) const {
+  return false;
+}
+
+
+bool
+Group::accepts_mention(void) const {
+  return false;
+}
+
+
+bool
+Group::requires_assignment(void) const {
+  return true;
+}
+
+
+void
+Group::assign(const std::string &) {
+  throw Exception("should not be called");
+}
+
+
+void
+Group::mention(void) {
+  throw Exception("should not be called");
+}
+
+
+void
+Group::serialise(std::ostream &out) const {
+  for (auto &c : _options) {
+    if (c->was_mentioned()) {
+      out << c->full_name();
+      if (c->was_assigned()) {
+        out << '=';
+        c->serialise(out);
+        out << '\n';
+      }
+    }
+  }
+
+  for (auto &c : _groups)
+    c->serialise(out);
+}
+
+
+bool
+Group::validate(const Main &main) {
+  for (auto &child : _options)
+    if (!child->validate(main))
+      return false;
+  for (auto &child : _groups)
+    if (!child->validate(main))
+      return false;
+  return true;
 }
 
 }  // namespace config

@@ -152,10 +152,16 @@ Writer::write(const Doc &doc) {
 
   // <doc_instance> ::= <instances_nbytes> <instance>
   {
-    io::WriteBuffer buf;
-    write_instance(buf, doc, *rtdschema);
-    mp::write_uint(_out, buf.size());
-    buf.copy_to(_out);
+    if (rtdschema->has_lazy_data()) {
+      mp::write_uint(_out, rtdschema->lazy_nbytes);
+      _out.write(rtdschema->lazy_data, rtdschema->lazy_nbytes);
+    }
+    else {
+      io::WriteBuffer buf;
+      write_instance(buf, doc, *rtdschema);
+      mp::write_uint(_out, buf.size());
+      buf.copy_to(_out);
+    }
   }
 
   // <instances_groups> ::= <instances_group>*

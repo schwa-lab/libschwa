@@ -1,30 +1,8 @@
-DESTDIR=/
-prefix=/usr
-#RELEASE_VERSION_MAJOR=0
-#RELEASE_VERSION_MINOR=0
-#RELEASE_VERSION=$(RELEASE_VERSION_MAJOR).$(RELEASE_VERSION_MINOR)
+PLATFORM_CPPFLAGS =
+PLATFORM_CXXFLAGS =
+PLATFORM_LDFLAGS =
 
-INCLUDE = -Isrc/include -I/n/schwafs/home/schwa/include
-LIBS_LDFLAGS = -Llibs -L/n/schwafs/home/schwa/lib
-DEFINES =
+PLATFORM_SHARED_LIB_SUFFIX = so
+PLATFORM_SHARED_LIB_LDFLAGS = -shared
 
-ifdef RELEASE_VERSION
-OPTIMIZE_CXXFLAGS = -O4
-else
-OPTIMIZE_CXXFLAGS = -g -O0
-endif
-BASE_CXXFLAGS = -std=c++11 $(OPTIMIZE_CXXFLAGS) -fPIC -W -Wall -Wextra -Werror -pedantic
-
-CXX = g++
-CXXFLAGS = $(BASE_CXXFLAGS) $(INCLUDE) $(DEFINES)
-LDFLAGS =
-SHARED_LIB_SUFFIX = so
-SHARED_LIB_LDFLAGS = -shared
-
-PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
-
-RAGEL = ragel
-RAGEL_CXXFLAGS = $(CXXFLAGS)
-
-PYTHON_VERSION=2.7
-PYTHON_INCLUDE=-isystem /usr/include/python$(PYTHON_VERSION)
+LIBSCHWA_PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o

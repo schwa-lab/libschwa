@@ -104,15 +104,19 @@ operator <<(std::ostream &out, const RTStoreDef &store) {
 // ============================================================================
 RTSchema::RTSchema(uint32_t klass_id, const std::string &serial, const BaseSchema *def) :
     def(def),
+    lazy_data(nullptr),
+    lazy_nbytes(0),
     klass_id(klass_id),
     serial(serial)
   { }
 
 RTSchema::RTSchema(const RTSchema &&o) :
     def(o.def),
+    lazy_data(o.lazy_data),
+    lazy_nbytes(o.lazy_nbytes),
+    klass_id(o.klass_id),
     fields(o.fields),
     stores(o.stores),
-    klass_id(o.klass_id),
     serial(o.serial)
   { }
 

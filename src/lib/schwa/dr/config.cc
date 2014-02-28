@@ -2,139 +2,115 @@
 #include <schwa/dr/config.h>
 
 #include <iostream>
+#include <sstream>
 
 #include <schwa/config/exception.h>
 #include <schwa/dr/field_defs.h>
 #include <schwa/port.h>
+
+namespace cf = schwa::config;
 
 
 namespace schwa {
 namespace dr {
 
 // ============================================================================
-// DocrepFieldOp
+// OpDocrepField
 // ============================================================================
-DocrepFieldOp::DocrepFieldOp(DocrepClassOp &group, BaseDef &field) :
-    config::OptionBase(field.name, field.help),
-    _field(field) {
-  group.add(this);
-}
-
-DocrepFieldOp::~DocrepFieldOp(void) { }
+OpDocrepField::OpDocrepField(DocrepClassGroup &group, BaseDef &field) :
+    cf::Op<std::string>(group, field.name, field.help, field.serial),
+    _field(field)
+  { }
 
 
-config::OptionBase *
-DocrepFieldOp::find(const std::string &, const std::string &key) {
-  const size_t pos = key.find(_name);
-  if (key.empty() || pos != 0 || key.size() != _name.size())
-    return nullptr;
-  return this;
-}
-
-
-void
-DocrepFieldOp::help(std::ostream &out, const std::string &prefix, unsigned int) const {
-  out << "  " << port::BOLD << prefix << _name << port::OFF << ": " << _desc;
-    out << " (default: " << _field.serial << ")";
-  out << std::endl;
-}
-
-
-void
-DocrepFieldOp::set(const std::string &value) {
-  _field.serial = value;
-}
-
-
-void
-DocrepFieldOp::validate(void) { }
-
-
-// ============================================================================
-// DocrepClassOp
-// ============================================================================
-DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseDocSchema &schema) :
-    config::OptionBase(schema.name, schema.help),
-    _schema(schema) {
-  group.add(this);
-  for (auto &f : schema.fields())
-    new DocrepFieldOp(*this, *f);
-  for (auto &s : schema.stores())
-    new DocrepFieldOp(*this, *s);
-}
-
-DocrepClassOp::DocrepClassOp(config::OpGroup &group, BaseSchema &schema) :
-    config::OptionBase(schema.name, schema.help),
-    _schema(schema) {
-  group.add(this);
-  for (auto &f : schema.fields())
-    new DocrepFieldOp(*this, *f);
-}
-
-DocrepClassOp::~DocrepClassOp(void) {
-  for (auto &c : _children)
-    delete c;
-}
-
-
-void
-DocrepClassOp::add(DocrepFieldOp *const child) {
-  _children.push_back(child);
-}
-
-
-config::OptionBase *
-DocrepClassOp::find(const std::string &orig_key, const std::string &key) {
-  const size_t pos = key.find(_name);
-  if (pos != 0)
-    return nullptr;
-  else if (key.size() == _name.size())
-    return this;
-  else if (key[_name.size()] != '-')
-    throw config::ConfigException("Invalid option key", orig_key);
-
-  const std::string new_key = key.substr(_name.size() + 1);
-  if (new_key.empty())
-    throw config::ConfigException("Invalid option key", orig_key);
-
-  for (auto &child : _children) {
-    auto *p = child->find(orig_key, new_key);
-    if (p != nullptr)
-      return p;
+bool
+OpDocrepField::_validate(const cf::Main &main) {
+  if (!cf::Op<std::string>::_validate(main))
+    return false;
+  if (_value.empty()) {
+    std::ostringstream ss;
+    ss << "Error setting value for \"" << _name << "\": value is empty";
+    throw cf::ConfigException(ss.str());
   }
-  return nullptr;
+  _field.serial = _value;
+  return true;
+}
+
+
+// ============================================================================
+// DocrepClassGroup
+// ============================================================================
+DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseDocSchema &schema) :
+    cf::Group(group, schema.name, schema.help),
+    _schema(schema),
+    _was_assigned(false) {
+  for (auto &f : schema.fields())
+    new OpDocrepField(*this, *f);
+  for (auto &s : schema.stores())
+    new OpDocrepField(*this, *s);
+}
+
+DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseSchema &schema) :
+    cf::Group(group, schema.name, schema.help),
+    _schema(schema),
+    _was_assigned(false) {
+  for (auto &f : schema.fields())
+    new OpDocrepField(*this, *f);
 }
 
 
 void
-DocrepClassOp::help(std::ostream &out, const std::string &prefix, unsigned int depth) const {
-  const std::string me = prefix + _name + "-";
-  if (depth != 0)
-    out << std::endl;
-  out << port::BOLD << prefix << _name << port::OFF << ": " << _desc;
-  out << " (default: " << _schema.serial << ")" << std::endl;
-  for (auto &child : _children)
-    child->help(out, me, depth + 1);
+DocrepClassGroup::_help_self(std::ostream &out, unsigned int depth) const {
+  Group::_help_self(out, depth);
+  out << port::DARK_GREY << " (default: " << _schema.name << ")" << port::OFF;
+}
+
+
+bool
+DocrepClassGroup::accepts_assignment(void) const {
+  return true;
+}
+
+
+bool
+DocrepClassGroup::accepts_mention(void) const {
+  return true;
 }
 
 
 void
-DocrepClassOp::set(const std::string &value) {
+DocrepClassGroup::assign(const std::string &value) {
+  if (value.empty()) {
+    std::ostringstream ss;
+    ss << "Error setting value for \"" << _name << "\": value is empty";
+    throw cf::ConfigException(ss.str());
+  }
+  _was_assigned = true;
   _schema.serial = value;
 }
 
 
 void
-DocrepClassOp::validate(void) { }
+DocrepClassGroup::mention(void) { }
+
+
+void
+DocrepClassGroup::serialise(std::ostream &out) const {
+  if (_was_assigned)
+    out << _full_name << '=' << _schema.serial << '\n';
+  Group::serialise(out);
+}
 
 
 // ============================================================================
-// DocrepOpGroup
+// DocrepGroup
 // ============================================================================
-DocrepOpGroup::DocrepOpGroup(OpGroup &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) : config::OpGroup(group, name, desc), _dschema(dschema) {
-  new DocrepClassOp(*this, dschema);
+DocrepGroup::DocrepGroup(Group &group, BaseDocSchema &dschema, const std::string &name, const std::string &desc) :
+    cf::Group(group, name, desc),
+    _dschema(dschema) {
+  new DocrepClassGroup(*this, dschema);
   for (auto &s : dschema.schemas())
-    new DocrepClassOp(*this, *s);
+    new DocrepClassGroup(*this, *s);
 }
 
 }  // namespace dr

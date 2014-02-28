@@ -1,5 +1,9 @@
-drdist
-drui
+dr
+dr-count
+dr-dist
+dr-head
+dr-tail
+dr-ui
 test
 tokenizer
-unit_tests
+unittests

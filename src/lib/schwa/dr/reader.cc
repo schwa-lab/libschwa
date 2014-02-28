@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 
@@ -53,7 +54,6 @@ Reader::read(Doc &doc) {
 
   // construct the lazy runtime manager for the document
   doc.set_rt(new RTManager());
-  assert(doc.rt() != nullptr);
   RTManager &rt = *doc.rt();
 
   // map of each of the registered types
@@ -88,7 +88,6 @@ Reader::read(Doc &doc) {
         rtschema = new RTSchema(k, klass_name);
       else
         rtschema = new RTSchema(k, klass_name, kit->second);
-      assert(rtschema != nullptr);
     }
     rt.klasses.push_back(rtschema);
 
@@ -144,10 +143,8 @@ Reader::read(Doc &doc) {
 
       // see if the read in field exists on the registered class's schema
       RTFieldDef *rtfield;
-      if (rtschema->is_lazy()) {
+      if (rtschema->is_lazy())
         rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, is_collection);
-        assert(rtfield != nullptr);
-      }
       else {
         // try and find the field on the registered class
         const BaseFieldDef *def = nullptr;
@@ -158,7 +155,6 @@ Reader::read(Doc &doc) {
           }
         }
         rtfield = new RTFieldDef(f, field_name, reinterpret_cast<const RTStoreDef *>(store_id), is_slice, is_self_pointer, is_collection, def);
-        assert(rtfield != nullptr);
 
         // perform some sanity checks that the type of data on the stream is what we're expecting
         if (def != nullptr) {
@@ -229,7 +225,6 @@ Reader::read(Doc &doc) {
       rtstore = new RTStoreDef(n, store_name, rt.klasses[klass_id], nullptr, 0, nelem);
     else
       rtstore = new RTStoreDef(n, store_name, rt.klasses[klass_id], def);
-    assert(rtstore != nullptr);
     rt.klasses[klass_id_meta]->stores.push_back(rtstore);
 
     // ensure that the stream store and the static store agree on the klass they're storing
@@ -293,17 +288,37 @@ Reader::read(Doc &doc) {
   const char *instances_bytes = nullptr;
   size_t instances_bytes_size = 0;
 
-  // read the document instance
-  // <doc_instance> ::= <instances_nbytes> <instance>
-  {
+  // Read the document instance.
+  do {
+    // <doc_instance> ::= <instances_nbytes> <instance>
     const size_t instances_nbytes = mp::read_uint(_in);
 
-    // read in all of the instances data in one go into a buffer
+    // Allocate space to write the lazy attributes to.
+    char *const lazy_bytes = new char[instances_nbytes];
+
+    // Read all of the doc's fields lazily if required.
+    if (!_dschema.has_fields()) {
+      _in.read(lazy_bytes, instances_nbytes);
+      if (!_in.good()) {
+        std::stringstream msg;
+        msg << "Failed to read in " << instances_nbytes << " from the input stream";
+        throw ReaderException(msg.str());
+      }
+
+      // Attach the lazy fields to the doc.
+      rt.klasses[klass_id_meta]->lazy_data = lazy_bytes;
+      rt.klasses[klass_id_meta]->lazy_nbytes = instances_nbytes;
+
+      // Keep track of this buffer so we know to dealloc it later.
+      rt.lazy_buffers.push_back(lazy_bytes);
+      break;
+    }
+
+    // Read in all of the instances data in one go into a buffer.
     if (instances_nbytes > instances_bytes_size) {
       delete [] instances_bytes;
       instances_bytes = new char[instances_nbytes];
       instances_bytes_size = instances_nbytes;
-      assert(instances_bytes != nullptr);
     }
     _in.read(const_cast<char *>(instances_bytes), instances_nbytes);
     if (!_in.good()) {
@@ -312,16 +327,13 @@ Reader::read(Doc &doc) {
       throw ReaderException(msg.str());
     }
 
-    // wrap the read in instances in a reader
+    // Wrap the read in instances in a reader.
     io::ArrayReader reader(instances_bytes, instances_nbytes);
 
-    // allocate space to write the lazy attributes to
-    char *const lazy_bytes = new char[instances_nbytes];
-    assert(lazy_bytes != nullptr);
-    uint32_t lazy_nfields = 0;
-
-    // wrap the lazy bytes in a writer
+    // Wrap the lazy bytes in a writer.
     io::UnsafeArrayWriter lazy_writer(lazy_bytes);
+
+    uint32_t lazy_nfields = 0;
 
     // <instance> ::= { <field_id> : <obj_val> }
     const uint32_t size = mp::read_map_size(reader);
@@ -329,7 +341,7 @@ Reader::read(Doc &doc) {
       const uint32_t key = static_cast<uint32_t>(mp::read_uint(reader));
       RTFieldDef &field = *rt.klasses[klass_id_meta]->fields[key];
 
-      // deserialize the field value if required
+      // Deserialize the field value if required.
       if (field.is_lazy()) {
         mp::WireType type;
         ++lazy_nfields;
@@ -350,16 +362,19 @@ Reader::read(Doc &doc) {
       }
     } // for each field
 
-    // check whether or not the lazy slab was used
+    // Check whether or not the allocated lazy slab was used.
     if (lazy_writer.data() == lazy_writer.upto())
       delete [] lazy_bytes;
     else {
+      // Store the lazy slab on the doc.
       doc._lazy = lazy_writer.data();
       doc._lazy_nelem = lazy_nfields;
       doc._lazy_nbytes = lazy_writer.upto() - lazy_writer.data();
+
+      // Keep track of this buffer so we know to dealloc it later.
       rt.lazy_buffers.push_back(lazy_bytes);
     }
-  }
+  } while (false);
 
 
   // read the store instances
@@ -370,7 +385,6 @@ Reader::read(Doc &doc) {
 
     // allocate space to write the lazy attributes to
     char *const lazy_bytes = new char[instances_nbytes];
-    assert(lazy_bytes != nullptr);
 
     // read in the store lazily if required
     if (store->is_lazy()) {
@@ -395,7 +409,6 @@ Reader::read(Doc &doc) {
       delete [] instances_bytes;
       instances_bytes = new char[instances_nbytes];
       instances_bytes_size = instances_nbytes;
-      assert(instances_bytes != nullptr);
     }
     _in.read(const_cast<char *>(instances_bytes), instances_nbytes);
     if (!_in.good()) {
@@ -469,6 +482,54 @@ Reader::read(Doc &doc) {
   _has_more = true;
   return *this;
 }
+
+
+bool
+read_lazy_doc(std::istream &in, std::ostream &out) {
+  std::unique_ptr<char[]> buf;
+  size_t buf_size = 0;
+
+  mp::WireType type;
+  if (in.peek() == EOF)
+    return false;
+
+  // <version> (omitted in version 1)
+  if (!mp::read_lazy(in, out, type))
+    return false;
+
+  if (mp::is_int(type)) {
+    // <klasses> header
+    if (!mp::read_lazy(in, out, type))
+      return false;
+  }
+  if (!mp::is_array(type))
+    return false;
+
+  // <stores> header
+  if (!mp::is_array(mp::header_type(in.peek())))
+    return false;
+  int nstores = mp::read_array_size(in);
+  mp::write_array_size(out, nstores);
+  for (int i = 0; i < nstores; ++i)
+    if (!mp::read_lazy(in, out, type))
+      return false;
+
+  // instances (nstores + 1 size-data pairs)
+  for (; nstores >= 0; --nstores) {
+    const uint64_t nbytes = mp::read_uint(in);
+    mp::write_uint(out, nbytes);
+
+    if (nbytes > buf_size) {
+      buf.reset(new char[nbytes]);
+      buf_size = nbytes;
+    }
+    in.read(buf.get(), nbytes);
+    out.write(buf.get(), nbytes);
+  }
+
+  return true;
+}
+
 
 }  // namespace dr
 }  // namespace schwa
