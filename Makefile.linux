@@ -1,8 +1,0 @@
-PLATFORM_CPPFLAGS =
-PLATFORM_CXXFLAGS =
-PLATFORM_LDFLAGS =
-
-PLATFORM_SHARED_LIB_SUFFIX = so
-PLATFORM_SHARED_LIB_LDFLAGS = -shared
-
-LIBSCHWA_PORT_OBJECTS = src/lib/schwa/port/unix.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o

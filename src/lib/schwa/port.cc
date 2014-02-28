@@ -1,28 +1,44 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <config.h>
 #include <schwa/port.h>
 
-#if defined(__GNUC__) \
-    && ((__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1))) \
-    && !defined(__EDG_VERSION__) \
-    && (defined(__GLIBCXX__) || defined(__GLIBCPP__))
-  #define SCHWA_PORT_HAS_CXXABI
+#ifdef HAVE_CXXABI_H
   #include <cxxabi.h>
 #endif
+#ifdef HAVE_LIBGEN_H
+  #include <libgen.h>
+#endif
+#ifdef HAVE_LIMITS_H
+  #include <limits.h>
+#endif
+#ifdef HAVE_LIBPROC_H
+  #include <libproc.h>
+#endif
+#ifdef HAVE_UNISTD_H
+  #include <unistd.h>
+#endif
 
+#include <cerrno>
 #include <cstring>
-#include <memory>
 #include <iostream>
+#include <memory>
+#include <sstream>
 
-#include <libgen.h>
-#include <unistd.h>
-
+#include <schwa/exception.h>
 #include <schwa/io/logging.h>
 
 
 namespace schwa {
 namespace port {
 
-#ifdef SCHWA_PORT_HAS_CXXABI
+// Assume that we always can output colours for the moment.
+const char *BOLD = "\033[1m";
+const char *DARK_GREY = "\033[1;30m";
+const char *OFF = "\033[0m";
+const char *RED = "\033[31m";
+
+
+#ifdef HAVE_CXXABI_H
 std::string
 demangle_typeid(const char *const typeid_name) {
   char *name;
@@ -41,6 +57,46 @@ std::string
 demangle_typeid(const char *const typeid_name) {
   return typeid_name;
 }
+#endif
+
+
+#if defined(__APPLE__)
+std::string
+abspath_to_argv0(void) {
+  char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+  const pid_t pid = ::getpid();
+  if (::proc_pidpath(pid, pathbuf, sizeof(pathbuf)) <= 0) {
+    const int errnum = errno;
+    std::ostringstream ss;
+    ss << "Call to proc_pidpath failed: " << std::strerror(errnum);
+    throw Exception(ss.str());
+  }
+  return pathbuf;
+}
+#elif defined(__linux)
+std::string
+abspath_to_argv0(void) {
+  char buf[PATH_MAX];
+
+  // Call readlink on the symlink to self.
+  const ssize_t r = ::readlink("/proc/self/exe", buf, sizeof(buf));
+  if (r < 0) {
+    const int errnum = errno;
+    std::ostringstream ss;
+    ss << "Call to readlink failed: " << std::strerror(errnum);
+    throw Exception(ss.str());
+  }
+  else if (static_cast<size_t>(r) > sizeof(buf)) {
+    std::ostringstream ss;
+    ss << "Buffer was not large enough for call to readlink (" << sizeof(buf) << " bytes)";
+    throw Exception(ss.str());
+  }
+  buf[r] = '\0';
+
+  return buf;
+}
+#else
+  #error Do not know how to find the absolute path to argv[0] on your platform.
 #endif
 
 

@@ -1,8 +1,0 @@
-PLATFORM_CPPFLAGS = -stdlib=libc++
-PLATFORM_CXXFLAGS =
-PLATFORM_LDFLAGS = -stdlib=libc++
-
-PLATFORM_SHARED_LIB_SUFFIX = dylib
-PLATFORM_SHARED_LIB_LDFLAGS = -dynamiclib
-
-LIBSCHWA_PORT_OBJECTS = src/lib/schwa/port/bsd.o src/lib/schwa/port/unix_common.o src/lib/schwa/port/colour.o
