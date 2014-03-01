@@ -74,7 +74,13 @@ AC_CONFIG_FILES([
   src/lib/Makefile
   src/lib/schwa/_base.h:src/lib/schwa/_base.h.in
   src/lib/schwa/port.h:src/lib/schwa/port.h.in
+  src/third-party/Makefile
   dist/libschwa.pc:dist/libschwa.pc.in
+])
+
+# Configure third party modules
+AC_CONFIG_SUBDIRS([
+  src/third-party/unittest-cpp
 ])
 
 AC_OUTPUT

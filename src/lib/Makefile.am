@@ -61,7 +61,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/tokenizer/tokenizer_state.h \
 		schwa/tokenizer.h \
 		schwa/utils/enums.h \
-		schwa/utils/shlex.h
+		schwa/utils/shlex.h \
+		schwa/version.h
 
 LIBSCHWA_SOURCE_FILES = \
 		schwa/config/base.cc \
@@ -92,7 +93,28 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/docrep_stream.cc \
 		schwa/tokenizer/text_stream.cc \
 		schwa/tokenizer/tokenizer.cc \
-		schwa/utils/shlex.cc
+		schwa/utils/shlex.cc \
+		schwa/version.cc
+
+LIBSCHWA_TEST_SOURCE_FILES = \
+		schwa/containers/block_vector_test.cc  \
+		schwa/dr/helpers_test.cc  \
+		schwa/dr/lazy_test.cc  \
+		schwa/dr/pointers_test.cc  \
+		schwa/dr/reader_test.cc  \
+		schwa/dr/self_pointer_test.cc  \
+		schwa/dr/slices_test.cc  \
+		schwa/dr/writer_test.cc  \
+		schwa/io/mmapped_source_test.cc  \
+		schwa/io/write_buffer_test.cc  \
+		schwa/mpl/if_test.cc  \
+		schwa/msgpack/wire_test.cc  \
+		schwa/pool_test.cc  \
+		schwa/port_test.cc  \
+		schwa/utils/shlex_test.cc
+
+LIBSCHWA_TEST_COMMON_HEADER_FILES = schwa/unittest.h
+LIBSCHWA_TEST_COMMON_SOURCE_FILES = schwa/unittest.cc
 
 
 # =============================================================================
@@ -108,3 +130,17 @@ libschwa_la_SOURCES = $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
 nobase_library_include_HEADERS = $(LIBSCHWA_HEADER_FILES)
+
+TESTS = unittests
+check_LIBRARIES = libschwa_unittest.a
+check_PROGRAMS = unittests
+
+unittests_CPPFLAGS = -I$(srcdir)/../third-party/unittest-cpp/UnitTest++
+unittests_LDADD = \
+		../third-party/unittest-cpp/UnitTest++/libUnitTest++.la \
+		libschwa_unittest.a \
+		libschwa.la
+unittests_SOURCES = schwa/unittest_main.cc $(LIBSCHWA_TEST_SOURCE_FILES)
+
+libschwa_unittest_a_SOURCES = $(LIBSCHWA_TEST_COMMON_HEADER_FILES) $(LIBSCHWA_TEST_COMMON_SOURCE_FILES)
+libschwa_unittest_a_CPPFLAGS = -I$(srcdir)/../third-party/unittest-cpp/UnitTest++

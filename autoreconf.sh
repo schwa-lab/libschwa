@@ -15,7 +15,9 @@ function cleanup {
     config.h.in~ \
     config.log \
     config.status \
-    configure
+    configure \
+    src/lib/Makefile \
+    src/lib/Makefile.in
 }
 
 
@@ -24,13 +26,14 @@ cd $(dirname ${0})
 
 # Clean and maybe exit.
 cleanup
+(cd src/third-party/unittest-cpp && cleanup)
 test "${1+set}" = "set" && exit 0
 
 # Run autoreconf.
 autoreconf --install
 
 # Ensure any missing files are writable.
-chmod 0755 build-aux/*
+test -d build-aux && chmod 0755 build-aux/*
 
 # Cleanup.
 rm -rf autom4te.cache
