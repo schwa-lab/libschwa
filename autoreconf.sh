@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Define a cleanup function to easily remove the autoconf/autotools files.
-function cleanup {
+cleanup() {
   # Use any existing Makefiles to clean what was created
   test -f Makefile && make distclean
 

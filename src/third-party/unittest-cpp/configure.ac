@@ -1,4 +1,4 @@
-AC_PREREQ([2.69])
+AC_PREREQ([2.63])
 AC_INIT([UnitTest++], [1.4], [victor.lavaud@gmail.com])
 AC_CONFIG_AUX_DIR([.])
 AC_CONFIG_SRCDIR([UnitTest++/TestDetails.cpp])
