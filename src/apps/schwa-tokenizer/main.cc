@@ -1,7 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <iostream>
 #include <memory>
 
 #include <schwa/config.h>
+#include <schwa/exception.h>
 #include <schwa/dr/config.h>
 #include <schwa/io/logging.h>
 #include <schwa/tokenizer.h>
@@ -21,7 +23,7 @@ main(int argc, char **argv) {
   tok::Doc::Schema schema;
 
   // Construct an option parser.
-  cf::Main cfg("tokenizer", "Schwa Lab tokenizer. Tokenizes a utf-8 input file, optionally accounting for markup.");
+  cf::Main cfg("schwa-tokenizer", "Schwa Lab tokenizer. Tokenizes a utf-8 input file, optionally accounting for markup.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::OpChoices<std::string> printer(cfg, "printer", 'p', "Which printer to use as output", {"text", "debug", "docrep"}, "text");
@@ -41,7 +43,14 @@ main(int argc, char **argv) {
     stream.reset(new tok::DocrepStream(output.file(), schema));
 
   // Construct the tokenizer and tokenize the input.
-  tok::Tokenizer t;
-  const bool success = t.tokenize_stream(*stream, input.file(), input_buffer());
+  bool success;
+  try {
+    tok::Tokenizer t;
+    success = t.tokenize_stream(*stream, input.file(), input_buffer());
+  }
+  catch (schwa::Exception &e) {
+    std::cerr << schwa::print_exception(e) << std::endl;
+    return 1;
+  }
   return success ? 0 : 1;
 }

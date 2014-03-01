@@ -17,6 +17,7 @@
 /stamp-h*
 /test-driver
 /UnitTest++/TestUnitTest++
+/tests/TestUnitTest++
 Makefile
 Makefile.in
 .deps

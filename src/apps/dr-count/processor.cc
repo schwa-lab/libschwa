@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr-count/processor.h>
+#include <dr-count/processor.h>
 
 #include <algorithm>
 #include <iomanip>

@@ -7,8 +7,8 @@
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 
-#include <schwa/dr-ui/main.h>
-#include <schwa/dr-ui/processor.h>
+#include <dr-ui/main.h>
+#include <dr-ui/processor.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -19,7 +19,7 @@ namespace port = schwa::port;
 namespace {
 
 static void
-main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
+main(std::istream &input, std::ostream &output, const cf::Op<unsigned int> &limit) {
   // Construct a docrep reader over the provided input stream.
   dr::FauxDoc doc;
   dr::FauxDoc::Schema schema;
@@ -36,7 +36,7 @@ main(std::istream &input, std::ostream &output, cf::Op<unsigned int> &limit) {
   }
 }
 
-}
+}  // namespace
 
 
 int

@@ -15,11 +15,11 @@
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 
-#include <schwa/dr-count/main.h>
-#include <schwa/dr-dist/main.h>
-#include <schwa/dr-head/main.h>
-#include <schwa/dr-tail/main.h>
-#include <schwa/dr-ui/main.h>
+#include <dr-count/main.h>
+#include <dr-dist/main.h>
+#include <dr-head/main.h>
+#include <dr-tail/main.h>
+#include <dr-ui/main.h>
 
 
 namespace cf = schwa::config;
@@ -31,7 +31,7 @@ namespace {
 // ============================================================================
 // Config option parser
 // ============================================================================
-class DrMain : public cf::Main {
+class Main : public cf::Main {
 protected:
   std::vector<std::pair<const char *, const char *>> _commands;
 
@@ -39,11 +39,11 @@ protected:
   virtual void _help_self(std::ostream &out, const unsigned int) const override;
 
 public:
-  DrMain(const std::string &name, const std::string &desc);
+  Main(const std::string &name, const std::string &desc);
 };
 
 
-DrMain::DrMain(const std::string &name, const std::string &desc) : cf::Main(name, desc) {
+Main::Main(const std::string &name, const std::string &desc) : cf::Main(name, desc) {
   _add(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
   _add(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
   _add(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
@@ -53,7 +53,7 @@ DrMain::DrMain(const std::string &name, const std::string &desc) : cf::Main(name
 
 
 void
-DrMain::_help_self(std::ostream &out, const unsigned int) const {
+Main::_help_self(std::ostream &out, const unsigned int) const {
   out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
   //out << "  Usage: " << _full_name << " [options] (dist|head|list-stores|tail|ui) [command options]" << std::endl;
   out << "  Usage: " << _full_name << " [options] (";
@@ -86,23 +86,21 @@ _main(int argc, char **argv) {
   // Construct the name of the binary to exec.
   const size_t len = std::strlen(argv[1]);
   std::unique_ptr<char[]> app(new char[3 + len + 1]);
-  args[0] = app.get();
   std::memcpy(app.get() + 0, "dr-", 3);
   std::memcpy(app.get() + 3, argv[1], len + 1);
 
-  // First try exec'ing using the current definition of PATH.
-  execvp(app.get(), args.get());
-
-  // If the first exec attempt failed, try looking in the the directory of argv[0].
+  // First, try looking in the the directory of argv[0].
   std::string path = port::abspath_to_argv0();
   path = port::path_dirname(path);
   path = port::path_join(path, app.get());
+  std::unique_ptr<char[]> abspath_app(new char[path.size() + 1]);
+  args[0] = abspath_app.get();
+  std::strcpy(args[0], path.c_str());
+  execv(args[0], args.get());
 
-  // Try exec'ing again in the new directory.
-  app.reset(new char[path.size() + 1]);
+  // If the first exaec attempt failed, try exec'ing using the current definition of PATH.
   args[0] = app.get();
-  std::strcpy(app.get(), path.c_str());
-  execv(app.get(), args.get());
+  execvp(args[0], args.get());
 
   // If we still failed to find the executable, fail.
   const int errnum = errno;
@@ -123,7 +121,7 @@ _main(int argc, char **argv) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  DrMain cfg("dr", "A dispatcher to other docrep processing tools.");
+  Main cfg("dr", "A dispatcher to other docrep processing tools.");
 
   // Parse argv.
   cfg.allow_unclaimed_args(true);

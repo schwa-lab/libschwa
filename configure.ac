@@ -71,6 +71,13 @@ AC_SUBST([TCMALLOCLIB])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
+  src/apps/Makefile
+  src/apps/dr/Makefile
+  src/apps/dr-count/Makefile
+  src/apps/dr-head/Makefile
+  src/apps/dr-tail/Makefile
+  src/apps/dr-ui/Makefile
+  src/apps/schwa-tokenizer/Makefile
   src/lib/Makefile
   src/lib/schwa/_base.h:src/lib/schwa/_base.h.in
   src/lib/schwa/port.h:src/lib/schwa/port.h.in

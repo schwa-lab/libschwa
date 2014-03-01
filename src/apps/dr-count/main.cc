@@ -6,8 +6,8 @@
 #include <schwa/dr.h>
 #include <schwa/io/logging.h>
 
-#include <schwa/dr-count/main.h>
-#include <schwa/dr-count/processor.h>
+#include <dr-count/main.h>
+#include <dr-count/processor.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;

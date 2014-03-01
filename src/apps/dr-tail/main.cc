@@ -7,7 +7,7 @@
 #include <schwa/dr/reader.h>
 #include <schwa/io/logging.h>
 
-#include <schwa/dr-tail/main.h>
+#include <dr-tail/main.h>
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -53,7 +53,7 @@ main(std::istream &input, std::ostream &output, const unsigned int count) {
   }
 }
 
-}
+}  // namespace
 
 
 int

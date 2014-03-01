@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/dr-ui/processor.h>
+#include <dr-ui/processor.h>
 
 #include <cassert>
 #include <iomanip>
