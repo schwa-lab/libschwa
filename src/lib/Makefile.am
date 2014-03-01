@@ -1,4 +1,18 @@
 # =============================================================================
+# Automake
+# =============================================================================
+lib_LTLIBRARIES = libschwa.la
+
+libschwa_la_CXXFLAGS = -W -Wall -Wextra -Werror -pedantic
+libschwa_la_LIBADD =
+libschwa_la_SOURCES =
+
+if ENABLE_DEBUG
+libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB)
+endif
+
+
+# =============================================================================
 # Scafolding
 # =============================================================================
 LIBSCHWA_HEADER_FILES = \
@@ -30,6 +44,9 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/dr/wire.h \
 		schwa/dr/writer.h \
 		schwa/dr.h \
+		schwa/dr-dist/helpers.h \
+		schwa/dr-dist/server.h \
+		schwa/dr-dist/worker_main.h \
 		schwa/exception.h \
 		schwa/io/array_reader.h \
 		schwa/io/file_source.h \
@@ -117,16 +134,24 @@ LIBSCHWA_TEST_COMMON_HEADER_FILES = schwa/unittest.h
 LIBSCHWA_TEST_COMMON_SOURCE_FILES = schwa/unittest.cc
 
 
+if HAVE_LIBZMQ
+noinst_LTLIBRARIES = libschwa_drdist.la
+libschwa_drdist_la_SOURCES = \
+		schwa/dr-dist/helpers.cc \
+		schwa/dr-dist/helpers.h \
+		schwa/dr-dist/server.cc \
+		schwa/dr-dist/server.h
+libschwa_drdist_la_CXXFLAGS = $(libschwa_la_CXXFLAGS) $(ZMQLIB_CFLAGS)
+libschwa_drdist_la_LIBADD = $(ZMQLIB_LIBS)
+
+libschwa_la_LIBADD += libschwa_drdist.la
+endif
+
+
 # =============================================================================
 # Automake
 # =============================================================================
-lib_LTLIBRARIES = libschwa.la
-
-libschwa_la_CXXFLAGS = -W -Wall -Wextra -Werror -pedantic
-if ENABLE_DEBUG
-libschwa_la_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB)
-endif
-libschwa_la_SOURCES = $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
+libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
 nobase_library_include_HEADERS = $(LIBSCHWA_HEADER_FILES)

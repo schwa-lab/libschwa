@@ -1,4 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <config.h>
+
 #include <cerrno>
 #include <cstring>
 #include <iostream>

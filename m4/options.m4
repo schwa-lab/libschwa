@@ -9,4 +9,12 @@ no) libschwa_cv_enable_debug=no;;
 esac
 AC_MSG_RESULT($libschwa_cv_enable_debug)
 
+AC_MSG_CHECKING(if --enable-libzmq option specified)
+AC_ARG_ENABLE(libzmq, [AS_HELP_STRING([--enable-libzmq], [Enable building the libzmq components.])], r=$enableval, r=yes)
+case "$r" in
+no) libschwa_cv_enable_libzmq=no;;
+ *) libschwa_cv_enable_libzmq=yes;;
+esac
+AC_MSG_RESULT($libschwa_cv_enable_libzmq)
+
 ])

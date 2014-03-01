@@ -1,16 +1,16 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <cstring>
 #include <cerrno>
+#include <cstring>
+#include <functional>
 #include <memory>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
 #include <schwa/dr/config.h>
-#include <schwa/io/logging.h>
-
 #include <schwa/dr-dist/helpers.h>
+#include <schwa/io/logging.h>
 
 #include <zmq.h>
 
@@ -24,7 +24,7 @@ namespace dr_dist {
 
 template <typename DOC>
 static std::string
-process_doc(const std::string &input_doc_bytes, typename DOC::Schema &schema, void (*callback)(DOC &)) {
+process_doc(const std::string &input_doc_bytes, typename DOC::Schema &schema, std::function<void(DOC &)> callback) {
   std::istringstream in(input_doc_bytes);
   std::ostringstream out;
 
@@ -48,7 +48,7 @@ process_doc(const std::string &input_doc_bytes, typename DOC::Schema &schema, vo
 
 template <typename DOC>
 static bool
-drworker_recv(void *const source, void *const sink, void *const control, typename DOC::Schema &schema, void (*callback)(DOC &)) {
+drworker_recv(void *const source, void *const sink, void *const control, typename DOC::Schema &schema, std::function<void(DOC &)> callback) {
   size_t buffer_written;
   size_t buffer_len = 2*1024*1024;  // 2MB
   std::unique_ptr<char[]> buffer(new char[buffer_len]);
@@ -111,7 +111,7 @@ drworker_recv(void *const source, void *const sink, void *const control, typenam
 
 template <typename DOC>
 static bool
-drworker(const std::string &source_addr, const std::string &sink_addr, const std::string &control_addr, typename DOC::Schema &schema, void (*callback)(DOC &)) {
+drworker(const std::string &source_addr, const std::string &sink_addr, const std::string &control_addr, typename DOC::Schema &schema, std::function<void(DOC &)> callback) {
   // Prepare the ØMQ context and connect to the sockets.
   void *context, *source, *sink, *control;
   if (!safe_zmq_ctx_new(context))
@@ -141,7 +141,7 @@ drworker(const std::string &source_addr, const std::string &sink_addr, const std
 
 template <typename DOC, typename LOGGER>
 int
-worker_main(const int argc, char **const argv, cf::Main &cfg, typename DOC::Schema &schema, void (*callback)(DOC &)) {
+worker_main(const int argc, char **const argv, cf::Main &cfg, typename DOC::Schema &schema, std::function<void(DOC &)> callback) {
   // Build upon an option parser.
   cf::Op<std::string> host(cfg, "host", "The network host to connect to", "127.0.0.1");
   cf::Op<uint32_t> source_port(cfg, "source-port", "The network port to bind to on which to pull docrep documents", 7301);
@@ -164,7 +164,7 @@ worker_main(const int argc, char **const argv, cf::Main &cfg, typename DOC::Sche
 
 template <typename DOC, typename LOGGER>
 int
-worker_main(const int argc, char **const argv, cf::Main &cfg, void (*callback)(DOC &)) {
+worker_main(const int argc, char **const argv, cf::Main &cfg, std::function<void(DOC &)> callback) {
   typename DOC::Schema schema;
   return worker_main<DOC, LOGGER>(argc, argv, cfg, schema, callback);
 }

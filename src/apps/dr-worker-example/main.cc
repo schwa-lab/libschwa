@@ -23,7 +23,7 @@ process_doc(dr::FauxDoc &doc) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("drworker", "An example docrep parallelisation worker");
+  cf::Main cfg("dr-worker-example", "An example docrep parallelisation worker");
 
-  return schwa::dr_dist::worker_main<dr::FauxDoc, io::PrettyLogger>(argc, argv, cfg, &process_doc);
+  return schwa::dr_dist::worker_main<dr::FauxDoc, io::PrettyLogger>(argc, argv, cfg, process_doc);
 }

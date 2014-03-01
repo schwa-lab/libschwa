@@ -2,11 +2,12 @@
 #ifndef SCHWA_DRDIST_HELPERS_H_
 #define SCHWA_DRDIST_HELPERS_H_
 
+#include <schwa/_base.h>
+
 #include <iosfwd>
 #include <memory>
 #include <string>
 
-#include <schwa/_base.h>
 
 namespace schwa {
   namespace dr_dist {

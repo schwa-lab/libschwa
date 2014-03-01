@@ -1,5 +1,6 @@
 AC_PREREQ(2.63)
-AC_INIT([libschwa], m4_normalize(m4_include([m4/version.m4])), [schwa-lab@it.usyd.edu.au])
+AC_INIT([libschwa], m4_normalize(m4_include([m4/version.m4])), [schwa-lab@it.usyd.edu.au], [], [https://github.com/schwa-lab/libschwa])
+: ${CXXFLAGS=""}
 
 m4_include([m4/version-set.m4])
 
@@ -12,11 +13,24 @@ AM_INIT_AUTOMAKE([1.11 foreign -Wall -Werror parallel-tests subdir-objects])
 AM_OPTIONS
 AM_PROG_AR
 
-# If CFLAGS was not set on entry and we are not debugging, default to -O3.
-libschwa_test_CFLAGS="${CFLAGS+set}"
-if test "$libschwa_test_CFLAGS" != set && test "$libschwa_cv_enable_debug" != 'yes'; then
-  CFLAGS='-O3'
+# If CXXFLAGS was not set on entry and we are not debugging, default to -O4.
+libschwa_test_CXXFLAGS="${CXXFLAGS+set}"
+if test "$libschwa_test_CXXFLAGS" = "set"; then
+  if test "$libschwa_cv_enable_debug" != "yes"; then
+    CXXFLAGS='-O4'
+  else
+    CXXFLAGS='-O0'
+  fi
 fi
+
+# Add debugging flags if requested and not already in CFLAGS.
+if test "$libschwa_cv_enable_debug" = "yes"; then
+  case "${CXXFLAGS}" in
+    *-g*) ;;
+       *) CXXFLAGS="${CXXFLAGS} -g" ;;
+  esac
+fi
+AM_CONDITIONAL([ENABLE_DEBUG], [test "$libschwa_cv_enable_debug" = "yes"])
 
 # Initialise libtool (platform independant shared library generation).
 LT_INIT
@@ -27,14 +41,8 @@ AC_PROG_CXX
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
-# Add debugging flags if requested and not already in CFLAGS.
-if test "$libschwa_cv_enable_debug" = "yes"; then
-  case "${CFLAGS}" in
-    *-g*) ;;
-       *) AM_CFLAGS="${AM_CFLAGS} -g" ;;
-  esac
-fi
-AM_CONDITIONAL([ENABLE_DEBUG], [test "$libschwa_cv_enable_debug" = "yes"])
+# Initialise pkg-config.
+PKG_PROG_PKG_CONFIG
 
 # Check for headers.
 AC_CHECK_HEADERS([unistd.h])
@@ -67,6 +75,10 @@ AC_SUBST([PROFILERLIB])
 AC_CHECK_LIB([tcmalloc], [malloc], [TCMALLOCLIB=-ltcmalloc])
 AC_SUBST([TCMALLOCLIB])
 
+# Check if we have ØMQ >= 3.
+PKG_CHECK_MODULES([ZMQLIB], [libzmq >= 3], [have_libzmq=yes], [have_libzmq=no])
+AM_CONDITIONAL([HAVE_LIBZMQ],  [test "$have_libzmq" = "yes" && test "$libschwa_cv_enable_libzmq" = "yes"])
+
 # Configure autoconf inputs and outputs.
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
@@ -74,9 +86,11 @@ AC_CONFIG_FILES([
   src/apps/Makefile
   src/apps/dr/Makefile
   src/apps/dr-count/Makefile
+  src/apps/dr-dist/Makefile
   src/apps/dr-head/Makefile
   src/apps/dr-tail/Makefile
   src/apps/dr-ui/Makefile
+  src/apps/dr-worker-example/Makefile
   src/apps/schwa-tokenizer/Makefile
   src/lib/Makefile
   src/lib/schwa/_base.h:src/lib/schwa/_base.h.in
