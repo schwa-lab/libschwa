@@ -1,5 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 /**
+ * \namespace schwa::dr_dist
  * The parallel processing topology used here is what is described in Figure 19 of
  * http://zguide.zeromq.org/page:all#Handling-Errors-and-ETERM.
  *
