@@ -1,10 +1,12 @@
 ====== libschwa ======
 
 === Dependencies ===
-libschwa is written in C++11, and as such, you will need a compiler that supports C++11. The
-autoconf macro which detects compiler support for this is ./m4/ax_cxx_compile_stdcxx_11.m4.
+libschwa is written in C++11, and as such, you will need a compiler that
+supports C++11. The autoconf macro which detects compiler support for this is
+./m4/ax_cxx_compile_stdcxx_11.m4.
 
-The distributed processing components and binaries are only built if libzmq >= 3 is found.
+The distributed processing components and binaries are only built if ZeroMQ[1]
+(libzmq >= 3) is found.
 
 The debug builds are linked against gperftools if they're found on the system.
 
@@ -19,14 +21,15 @@ libschwa is built using autotools so the standard compilations steps apply.
 
 
 === Development ===
-To generate the configure script initially, or any time that you change the build dependency
-structure, rerun ./autoreconf.sh.
+To generate the configure script initially, or any time that you change the
+build dependency structure, rerun ./autoreconf.sh.
 
   $ ./autoreconf.sh
 
-This runs the appropriate autotools command. Once you have a configure script, compile the source
-in debug mode (-O0 -g). If you'd like the resultant binaries in one place, you might want to setup
-a temporary workspace to build libschwa into.
+This runs the appropriate autotools command. Once you have a configure script,
+compile the source in debug mode (-O0 -g). If you'd like the resultant binaries
+in one place, you might want to setup a temporary workspace to build libschwa
+into.
 
   $ D=/tmp/`whoami`/working
   $ mkdir -p ${D}
@@ -37,10 +40,13 @@ Running the unit tests can be done with `make check`.
 
   $ make check
 
-The debug builds are linked against gperftools if they're installed on your system. See
-https://code.google.com/p/gperftools/wiki/GooglePerformanceTools for instructions on how to use the
-memory and CPU profiling. If you'd like to not link against these libraries but they are installed
+The doxygen documentation can be built by `make docs`. The configure script
+currently does not detect if you have doxygen installed or not.
+
+The debug builds are linked against gperftools[2] if they're installed on your
+system. If you'd like to not link against these libraries but they are installed
 on your system, update ./src/lib/Makefile.am and rerun ./autoreconf.sh.
 
-The doxygen documentation can be built by `make docs`. The configure script currently does not
-detect if you have doxygen installed or not.
+
+[1] http://zeromq.org/
+[2] https://code.google.com/p/gperftools/wiki/GooglePerformanceTools
