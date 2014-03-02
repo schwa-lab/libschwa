@@ -11,6 +11,10 @@
 namespace schwa {
   namespace io {
 
+    /**
+     * Concrete Source implementataion which wraps over a C-level FILE pointer. This class does not
+     * take ownership of the underlying opened file.
+     **/
     class FileSource : public Source {
     protected:
       FILE *_file;

@@ -20,13 +20,11 @@ namespace io {
 
 class MMappedSource::Impl {
 private:
-  const int _fd;
-  char *const _data;
-  const size_t _size;
+  int _fd;
+  char *_data;
+  size_t _size;
   size_t _upto;
   const std::string _filename;
-
-  void open_file(void);
 
 public:
   Impl(const char *filename);
@@ -42,53 +40,33 @@ private:
 };
 
 
-MMappedSource::Impl::Impl(const char *filename) :
-    _fd(0),
-    _data(nullptr),
-    _size(0),
-    _upto(0),
-    _filename(filename) {
-  open_file();
-}
-
-MMappedSource::Impl::~Impl(void) {
-  // unmap the region
-  if (_data != nullptr) {
-    const int ret = ::munmap(_data, _size);
-    if (ret == -1)
-      throw IOException(errno, _filename);
-  }
-
-  // close the file descriptor
-  if (_fd > 0) {
-    const int ret = ::close(_fd);
-    if (ret == -1)
-      throw IOException(errno, _filename);
-  }
-}
-
-
-void
-MMappedSource::Impl::open_file(void) {
-  // open the file in read-only mode
-  const_cast<int &>(_fd) = ::open(_filename.c_str(), O_RDONLY);
+MMappedSource::Impl::Impl(const char *const filename) : _data(nullptr), _filename(filename) {
+  // Open the file in read-only mode.
+  _fd = ::open(_filename.c_str(), O_RDONLY);
   if (_fd == -1)
     throw IOException(errno, _filename);
 
-  // discover the size of the file
+  // Discover the size of the file.
   struct stat stat;
-  int ret = ::fstat(_fd, &stat);
-  if (ret == -1)
+  if (::fstat(_fd, &stat) == -1)
     throw IOException(errno, _filename);
-  const_cast<size_t &>(_size) = stat.st_size;
+  _size = stat.st_size;
+  _upto = 0;
 
-  // mmap the whole contents of the file
-  void *const ptr = ::mmap(nullptr, _size, PROT_READ, MAP_FILE | MAP_SHARED, _fd, 0);
-  if (ptr == MAP_FAILED)
+  // mmap the whole contents of the file.
+  _data = static_cast<char *>(::mmap(nullptr, _size, PROT_READ, MAP_FILE | MAP_SHARED, _fd, 0));
+  if (_data == MAP_FAILED)
+    throw IOException(errno, _filename);
+}
+
+MMappedSource::Impl::~Impl(void) {
+  // unmap the region.
+  if (_data != nullptr && ::munmap(_data, _size) == -1)
     throw IOException(errno, _filename);
 
-  // update internal information
-  const_cast<char *&>(_data) = static_cast<char *>(ptr);
+  // Close the file descriptor.
+  if (_fd > 0 && ::close(_fd) == -1)
+    throw IOException(errno, _filename);
 }
 
 
@@ -105,11 +83,7 @@ MMappedSource::Impl::read(char *buffer, size_t nbytes) {
 // ============================================================================
 // MMappedSource
 // ============================================================================
-MMappedSource::MMappedSource(const char *filename) :
-    _impl(new Impl(filename))
-  {
-  assert(_impl != nullptr);
-}
+MMappedSource::MMappedSource(const char *filename) : _impl(new Impl(filename)) { }
 
 MMappedSource::~MMappedSource(void) {
   delete _impl;
