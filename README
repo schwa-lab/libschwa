@@ -1,24 +1,46 @@
-1: Compile
+====== libschwa ======
 
-  $ make depends
+=== Dependencies ===
+libschwa is written in C++11, and as such, you will need a compiler that supports C++11. The
+autoconf macro which detects compiler support for this is ./m4/ax_cxx_compile_stdcxx_11.m4.
+
+The distributed processing components and binaries are only built if libzmq >= 3 is found.
+
+The debug builds are linked against gperftools if they're found on the system.
+
+
+=== Compiling a release version ===
+libschwa is built using autotools so the standard compilations steps apply.
+
+  $ ./configure
+  $ make
+  $ make check (optional: runs the unit tests)
+  $ make install
+
+
+=== Development ===
+To generate the configure script initially, or any time that you change the build dependency
+structure, rerun ./autoreconf.sh.
+
+  $ ./autoreconf.sh
+
+This runs the appropriate autotools command. Once you have a configure script, compile the source
+in debug mode (-O0 -g). If you'd like the resultant binaries in one place, you might want to setup
+a temporary workspace to build libschwa into.
+
+  $ D=/tmp/`whoami`/working
+  $ mkdir -p ${D}
+  $ ./configure --enable-debug --prefix=${D}
   $ make
 
-= Gotchas =
+Running the unit tests can be done with `make check`.
 
-* Running on versions of Mac OS X may mean you don't have clang available in xcode.
-  * Download binary (tested with LLVM 3.1) from http://llvm.org/releases/download.html#3.1
-  * Unpack and add the bin directory to $PATH
+  $ make check
 
-= Building, deploying and installing source distributions =
+The debug builds are linked against gperftools if they're installed on your system. See
+https://code.google.com/p/gperftools/wiki/GooglePerformanceTools for instructions on how to use the
+memory and CPU profiling. If you'd like to not link against these libraries but they are installed
+on your system, update ./src/lib/Makefile.am and rerun ./autoreconf.sh.
 
-1: Build a virtualenv
-  virtualenv --distribute ve
-  source ve/bin/activate
-
-2: Build the source distribution (or just run publish.sh)
-  ./ve/bin/python setup.py clean sdist
-  cp dist/*gz /n/ch2/var/www/sites/downloads/packages/pypi/schwa
-  ./ve/bin/python setup.py clean --all
-
-3: This can be installed in another virtualenv directly or as a "requires" item by pip from the schwa index.
-  ./ve/bin/pip install schwa --extra-index-url http://downloads.schwa.org/packages/pypi --upgrade
+The doxygen documentation can be built by `make docs`. The configure script currently does not
+detect if you have doxygen installed or not.
