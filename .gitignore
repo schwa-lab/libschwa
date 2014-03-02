@@ -1,13 +1,31 @@
-# vim swap files
+# Vim swap files.
 .*.sw[opq]
-# compiled files
+
+# Compiled files.
+*.a
 *.o
-*.pyc
-# generated files
-Makefile.depends
-# build locations
-build
-tags
-ve
-dist
-schwa.egg-info
+
+# Autotools generated files.
+*.la
+*.lo
+*.log
+*.trs
+.deps
+.dirstamp
+.libs
+Makefile
+Makefile.in
+aclocal.in
+aclocal.m4
+autom4te.cache
+build-aux
+config.h*
+config.log
+config.status
+configure
+dist/libschwa.pc
+libtool
+m4/*.m4
+stamp-h1
+/src/lib/schwa/_base.h
+/src/lib/schwa/port.h

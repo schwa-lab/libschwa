@@ -1,3 +1,5 @@
 #!/bin/bash
 
-find src -name '*.cc' -or -name '*.h' | egrep 'src/(apps|lib)/' | sort | xargs egrep -n -H --color "${@}"
+for d in src/lib src/apps; do
+  find ${d} \( -name '*.cc' -or -name '*.h' \) | sort | xargs egrep -n -H --color "${@}"
+done
