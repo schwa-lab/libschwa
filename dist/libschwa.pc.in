@@ -7,5 +7,5 @@ Name: libschwa
 Description: Schwa Lab core C++ tools.
 Requires:
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lschwa-@VERSION_NOPATCH@
-Cflags: -I${includedir}/schwa-@VERSION_NOPATCH@
+Libs: -L${libdir} -lschwa
+Cflags: -std=c++11 -I${includedir}
