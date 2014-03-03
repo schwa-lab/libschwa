@@ -15,7 +15,7 @@ TextStream::TextStream(std::ostream &out, bool normalise) :
   { }
 
 void
-TextStream::add(Type, const char *raw, offset_type, offset_type len, const char *norm) {
+TextStream::add(Type, const char *raw, size_t, size_t len, const char *norm) {
   if (!_new_sentence)
     _out << ' ';
   _new_sentence = false;
@@ -27,7 +27,7 @@ TextStream::add(Type, const char *raw, offset_type, offset_type len, const char 
 }
 
 void
-TextStream::error(const char *, offset_type, offset_type) { }
+TextStream::error(const char *, size_t, size_t) { }
 
 void
 TextStream::begin_sentence(void) {
