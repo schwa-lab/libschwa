@@ -63,6 +63,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/source.h \
 		schwa/io/traits.h \
 		schwa/io/unsafe_array_writer.h \
+		schwa/io/utils.h \
 		schwa/io/write_buffer.h \
 		schwa/macros.h \
 		schwa/mpl/if.h \
@@ -106,6 +107,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/istream_source.cc \
 		schwa/io/logging.cc \
 		schwa/io/mmapped_source.cc \
+		schwa/io/utils.cc \
 		schwa/io/write_buffer.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/enums.cc \

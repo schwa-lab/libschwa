@@ -4,11 +4,14 @@
 #include <cassert>
 #include <cstring>
 #include <ctime>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <thread>
 
 #include <sys/time.h>
+
+#include <schwa/io/utils.h>
 
 
 namespace schwa {
@@ -88,20 +91,37 @@ pretty_log_header_threaded(const LogLevel level, const char *file, const unsigne
 }
 
 
-BasicLogger::Streambuf::Streambuf(std::ostream &out, LogLevel threshold) : _out(out), _threshold(threshold), _level(LogLevel::INFO) { }
+BasicLogger::Streambuf::Streambuf(std::ostream &out, LogLevel threshold) :
+    _out(&out),
+    _opened_out(false),
+    _threshold(threshold),
+    _level(LogLevel::INFO)
+  { }
 
-BasicLogger::Streambuf::~Streambuf(void) { }
+BasicLogger::Streambuf::Streambuf(const char *const filename, LogLevel threshold) :
+    _out(safe_open_ofstream(filename)),
+    _opened_out(true),
+    _threshold(threshold),
+    _level(LogLevel::INFO)
+  { }
+
+BasicLogger::Streambuf::~Streambuf(void) {
+  if (_opened_out)
+    delete _out;
+}
 
 int
 BasicLogger::Streambuf::sync(void) {
   if (_level >= _threshold)
-    _out << str();
+    (*_out) << str();
   str("");
   return 0;
 }
 
 
 BasicLogger::BasicLogger(std::ostream &out, LogLevel threshold) : Logger(&_streambuf), _streambuf(out, threshold) { }
+
+BasicLogger::BasicLogger(const char *filename, LogLevel threshold) : Logger(&_streambuf), _streambuf(filename, threshold) { }
 
 BasicLogger::~BasicLogger(void) { }
 
@@ -115,6 +135,8 @@ BasicLogger::operator ()(const LogLevel level, const char *, unsigned int) {
 
 PrettyLogger::PrettyLogger(std::ostream &out, LogLevel threshold) : BasicLogger(out, threshold) { }
 
+PrettyLogger::PrettyLogger(const char *filename, LogLevel threshold) : BasicLogger(filename, threshold) { }
+
 PrettyLogger::~PrettyLogger(void) { }
 
 Logger &
@@ -127,7 +149,9 @@ PrettyLogger::operator ()(const LogLevel level, const char *const file, const un
 }
 
 
-ThreadsafeBasicLogger::Streambuf::Streambuf(std::ostream &ostream, LogLevel threshold) : BasicLogger::Streambuf(ostream, threshold) { }
+ThreadsafeBasicLogger::Streambuf::Streambuf(std::ostream &out, LogLevel threshold) : BasicLogger::Streambuf(out, threshold) { }
+
+ThreadsafeBasicLogger::Streambuf::Streambuf(const char *filename, LogLevel threshold) : BasicLogger::Streambuf(filename, threshold) { }
 
 ThreadsafeBasicLogger::Streambuf::~Streambuf(void) { }
 
@@ -141,6 +165,8 @@ ThreadsafeBasicLogger::Streambuf::sync(void) {
 
 ThreadsafeBasicLogger::ThreadsafeBasicLogger(std::ostream &out, LogLevel threshold) : Logger(&_streambuf), _streambuf(out, threshold) { }
 
+ThreadsafeBasicLogger::ThreadsafeBasicLogger(const char *filename, LogLevel threshold) : Logger(&_streambuf), _streambuf(filename, threshold) { }
+
 ThreadsafeBasicLogger::~ThreadsafeBasicLogger(void) { }
 
 Logger &
@@ -153,6 +179,8 @@ ThreadsafeBasicLogger::operator ()(const LogLevel level, const char *, unsigned 
 
 
 ThreadsafePrettyLogger::ThreadsafePrettyLogger(std::ostream &out, LogLevel threshold) : ThreadsafeBasicLogger(out, threshold) { }
+
+ThreadsafePrettyLogger::ThreadsafePrettyLogger(const char *filename, LogLevel threshold) : ThreadsafeBasicLogger(filename, threshold) { }
 
 ThreadsafePrettyLogger::~ThreadsafePrettyLogger(void) { }
 
