@@ -79,7 +79,7 @@ namespace schwa {
 
     template <typename IN, typename T>
     inline void
-    read_bytes8(IN &in, T &x) {
+    read_bytes_8(IN &in, T &x) {
       uint8_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 1);
       x = tmp;
@@ -87,7 +87,7 @@ namespace schwa {
 
     template <typename IN, typename T>
     inline void
-    read_bytes16(IN &in, T &x) {
+    read_bytes_16(IN &in, T &x) {
       uint16_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 2);
       x = port::be16_to_h(tmp);
@@ -95,7 +95,7 @@ namespace schwa {
 
     template <typename IN, typename T>
     inline void
-    read_bytes32(IN &in, T &x) {
+    read_bytes_32(IN &in, T &x) {
       uint32_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 4);
       x = port::be32_to_h(tmp);
@@ -103,7 +103,7 @@ namespace schwa {
 
     template <typename IN, typename T>
     inline void
-    read_bytes64(IN &in, T &x) {
+    read_bytes_64(IN &in, T &x) {
       uint64_t tmp;
       in.read(reinterpret_cast<char *>(&tmp), 8);
       x = port::be64_to_h(tmp);
@@ -141,7 +141,7 @@ namespace schwa {
       float x;
       const int h = in.get();
       assert(h == header::FLOAT);
-      read_bytes32(in, x);
+      read_bytes_32(in, x);
       return x;
     }
 
@@ -151,7 +151,7 @@ namespace schwa {
       double x;
       const int h = in.get();
       assert(h == header::DOUBLE);
-      read_bytes64(in, x);
+      read_bytes_64(in, x);
       return x;
     }
 
@@ -164,7 +164,7 @@ namespace schwa {
     inline int8_t
     read_val_int8(IN &in) {
       int8_t x;
-      read_bytes8(in, x);
+      read_bytes_8(in, x);
       return x;
     }
 
@@ -172,7 +172,7 @@ namespace schwa {
     inline int16_t
     read_val_int16(IN &in) {
       int16_t x;
-      read_bytes16(in, x);
+      read_bytes_16(in, x);
       return x;
     }
 
@@ -180,7 +180,7 @@ namespace schwa {
     inline int32_t
     read_val_int32(IN &in) {
       int32_t x;
-      read_bytes32(in, x);
+      read_bytes_32(in, x);
       return x;
     }
 
@@ -188,7 +188,7 @@ namespace schwa {
     inline int64_t
     read_val_int64(IN &in) {
       int64_t x;
-      read_bytes64(in, x);
+      read_bytes_64(in, x);
       return x;
     }
 
@@ -267,7 +267,7 @@ namespace schwa {
     inline uint8_t
     read_val_uint8(IN &in) {
       uint8_t x;
-      read_bytes8(in, x);
+      read_bytes_8(in, x);
       return x;
     }
 
@@ -275,7 +275,7 @@ namespace schwa {
     inline uint16_t
     read_val_uint16(IN &in) {
       uint16_t x;
-      read_bytes16(in, x);
+      read_bytes_16(in, x);
       return x;
     }
 
@@ -283,7 +283,7 @@ namespace schwa {
     inline uint32_t
     read_val_uint32(IN &in) {
       uint32_t x;
-      read_bytes32(in, x);
+      read_bytes_32(in, x);
       return x;
     }
 
@@ -291,7 +291,7 @@ namespace schwa {
     inline uint64_t
     read_val_uint64(IN &in) {
       uint64_t x;
-      read_bytes64(in, x);
+      read_bytes_64(in, x);
       return x;
     }
 
@@ -367,10 +367,10 @@ namespace schwa {
       case WireType::ARRAY_FIXED:
         return header & 0x0F;
       case WireType::ARRAY_16:
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         return s16;
       case WireType::ARRAY_32:
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         return s32;
       default:
         assert(!"header is not an array");
@@ -389,10 +389,10 @@ namespace schwa {
       case WireType::MAP_FIXED:
         return header & 0x0F;
       case WireType::MAP_16:
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         return s16;
       case WireType::MAP_32:
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         return s32;
       default:
         assert(!"header is not a map");
@@ -413,11 +413,11 @@ namespace schwa {
         s32 = header & 0x1F;
         break;
       case WireType::RAW_16:
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         s32 = s16;
         break;
       case WireType::RAW_32:
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         break;
       default:
         assert(!"header is not a raw");
@@ -479,13 +479,13 @@ namespace schwa {
         recurse = true;
         break;
       case WireType::ARRAY_16:
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         write_bytes_16(out, s16);
         s32 = s16;
         recurse = true;
         break;
       case WireType::ARRAY_32:
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         write_bytes_32(out, s32);
         recurse = true;
         break;
@@ -495,13 +495,13 @@ namespace schwa {
         recurse = true;
         break;
       case WireType::MAP_16:
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         write_bytes_16(out, s16);
         s32 = 2 * s16;
         recurse = true;
         break;
       case WireType::MAP_32:
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         write_bytes_32(out, s32);
         s32 *= 2;
         recurse = true;
@@ -511,13 +511,13 @@ namespace schwa {
         raw = true;
         break;
       case WireType::RAW_16:
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         write_bytes_16(out, s16);
         s32 = s16;
         raw = true;
         break;
       case WireType::RAW_32:
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         write_bytes_32(out, s32);
         raw = true;
         break;
@@ -595,13 +595,13 @@ namespace schwa {
         break;
       case WireType::ARRAY_16:
         in.get();
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         s32 = s16;
         is_array = true;
         break;
       case WireType::ARRAY_32:
         in.get();
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         is_array = true;
         break;
       case WireType::MAP_FIXED:
@@ -610,13 +610,13 @@ namespace schwa {
         is_map = true;
         break;
       case WireType::MAP_16:
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         s32 = s16;
         is_map = true;
         break;
       case WireType::MAP_32:
         in.get();
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         is_map = true;
         break;
       case WireType::RAW_FIXED:
@@ -626,13 +626,13 @@ namespace schwa {
         break;
       case WireType::RAW_16:
         in.get();
-        read_bytes16(in, s16);
+        read_bytes_16(in, s16);
         s32 = s16;
         is_raw = true;
         break;
       case WireType::RAW_32:
         in.get();
-        read_bytes32(in, s32);
+        read_bytes_32(in, s32);
         is_raw = true;
         break;
       case WireType::RESERVED:
