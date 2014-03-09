@@ -1,6 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/config/main.h>
 
+#include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
@@ -30,7 +31,7 @@ Main::Main(const std::string &name, const std::string &desc) :
     _allow_unclaimed_args(false) {
   _owned.push_back(new OpHelp(*this));
   _owned.push_back(new OpVersion(*this));
-  _owned.push_back(_log = new OpOStream(*this, "log", "The file to log to", OpOStream::STDERR_STRING));
+  _owned.push_back(_log = new Op<std::string>(*this, "log", "The file to log to", "/dev/stderr"));
   _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
   _owned.push_back(_load_config = new OpLoadConfig(*this));
   _owned.push_back(_save_config = new OpSaveConfig(*this));
@@ -61,6 +62,25 @@ Main::find(const std::string &key) {
 
 void
 Main::_post_add(ConfigNode &) { }
+
+
+void
+Main::_help(std::ostream &out, const unsigned int depth) const {
+  if (depth != 0)
+    out << std::endl;
+  _help_self(out, depth);
+  out << std::endl;
+  auto end = _owned.cend();
+  for (auto &child : _options)
+    if (std::find(_owned.cbegin(), _owned.cend(), child) == end)
+      child->_help(out, depth + 1);
+  for (auto &child : _groups)
+    if (std::find(_owned.cbegin(), _owned.cend(), child) == end)
+      child->_help(out, depth + 1);
+  out << std::endl;
+  for (auto &child : _owned)
+    child->_help(out, depth + 1);
+}
 
 
 void

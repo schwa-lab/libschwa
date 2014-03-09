@@ -74,6 +74,7 @@ namespace schwa {
       virtual void serialise(std::ostream &out) const override;
       virtual void set_default(void) override;
 
+      inline const T &value(void) const { return _value; }
       inline const T &operator ()(void) const { return _value; }
 
     private:
@@ -162,7 +163,7 @@ namespace schwa {
       OpLogLevel(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
       virtual ~OpLogLevel(void);
 
-      inline schwa::io::LogLevel operator ()(void) const { return _level; }
+      inline schwa::io::LogLevel level(void) const { return _level; }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpLogLevel);
