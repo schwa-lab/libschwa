@@ -43,12 +43,12 @@ namespace schwa {
     public:
       class Streambuf : public std::stringbuf {
       protected:
-        std::ostream &_ostream;
+        std::ostream &_out;
         LogLevel _threshold;
         LogLevel _level;
 
       public:
-        Streambuf(std::ostream &ostream, LogLevel threshold);
+        Streambuf(std::ostream &out, LogLevel threshold);
         virtual ~Streambuf(void);
 
         inline LogLevel level(void) const { return _level; }
@@ -147,8 +147,7 @@ namespace schwa {
      * @see default_logger
      */
     #define LOG(level) (*::schwa::io::default_logger)(::schwa::io::LogLevel::level, __FILE__, __LINE__)
-
-    #define LOG2(level, log)                      log(::schwa::io::LogLevel::level, __FILE__, __LINE__)
+    #define LOG2(level, logger)                logger(::schwa::io::LogLevel::level, __FILE__, __LINE__)
 
   }
 }

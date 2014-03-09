@@ -88,15 +88,14 @@ pretty_log_header_threaded(const LogLevel level, const char *file, const unsigne
 }
 
 
-BasicLogger::Streambuf::Streambuf(std::ostream &ostream, LogLevel threshold) : _ostream(ostream), _threshold(threshold), _level(LogLevel::INFO) { }
+BasicLogger::Streambuf::Streambuf(std::ostream &out, LogLevel threshold) : _out(out), _threshold(threshold), _level(LogLevel::INFO) { }
 
 BasicLogger::Streambuf::~Streambuf(void) { }
 
 int
 BasicLogger::Streambuf::sync(void) {
-  if (_level >= _threshold) {
-    _ostream << str();
-  }
+  if (_level >= _threshold)
+    _out << str();
   str("");
   return 0;
 }
@@ -107,9 +106,7 @@ BasicLogger::BasicLogger(std::ostream &out, LogLevel threshold) : Logger(&_strea
 BasicLogger::~BasicLogger(void) { }
 
 Logger &
-BasicLogger::operator ()(const LogLevel level, const char *const file, const unsigned int linenum) {
-  (void)file;
-  (void)linenum;
+BasicLogger::operator ()(const LogLevel level, const char *, unsigned int) {
   _streambuf.level(level);
   *this << "[" << level << "]";
   return *this;
@@ -147,9 +144,7 @@ ThreadsafeBasicLogger::ThreadsafeBasicLogger(std::ostream &out, LogLevel thresho
 ThreadsafeBasicLogger::~ThreadsafeBasicLogger(void) { }
 
 Logger &
-ThreadsafeBasicLogger::operator ()(const LogLevel level, const char *const file, const unsigned int linenum) {
-  (void)file;
-  (void)linenum;
+ThreadsafeBasicLogger::operator ()(const LogLevel level, const char *, unsigned int) {
   _streambuf.lock();
   _streambuf.level(level);
   *this << "[" << level << "]";
