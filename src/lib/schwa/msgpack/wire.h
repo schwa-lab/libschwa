@@ -110,10 +110,6 @@ namespace schwa {
     template <typename OUT> inline void write_raw(OUT &out, const std::string &data);
     template <typename OUT> inline void write_raw(OUT &out, const char *const data, const size_t size);
 
-    template <typename OUT, typename T> inline void write_bytes_8(OUT &out, const T x);
-    template <typename OUT, typename T> inline void write_bytes_16(OUT &out, const T x);
-    template <typename OUT, typename T> inline void write_bytes_32(OUT &out, const T x);
-
     template <typename OUT> inline void write_int_fixed(OUT &out, const int8_t x);
     template <typename OUT> inline void write_int8(OUT &out, const int8_t x);
     template <typename OUT> inline void write_int16(OUT &out, const int16_t x);

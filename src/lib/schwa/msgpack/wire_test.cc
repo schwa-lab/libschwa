@@ -27,73 +27,81 @@ namespace msgpack {
 SUITE(schwa__msgpack__wire) {
 
 // ----------------------------------------------------------------------------
-// write_bytes_8
+// _write_be8
 //  100 = 0110 0100
 // -100 = 1001 1100
 // ----------------------------------------------------------------------------
-TEST(test_raw_8_unsigned) {
+TEST(test_write_be8_unsigned) {
   BYTES_BEGIN() = {0x64};
-  write_bytes_8(ss, 100);
+  const uint8_t x = 100;
+  _write_be8(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
-TEST(test_raw_8_signed) {
+TEST(test_write_be8_signed) {
   BYTES_BEGIN() = {0x9c};
-  write_bytes_8(ss, -100);
+  const int8_t x = -100;
+  _write_be8(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
 
 // ----------------------------------------------------------------------------
-// write_bytes_16
+// _write_be16
 //  4957 = 0001 0011 0101 1101
 // -4957 = 1110 1100 1010 0011
 // ----------------------------------------------------------------------------
-TEST(test_raw_16_unsigned) {
+TEST(test_write_be16_unsigned) {
   BYTES_BEGIN() = {0x13, 0x5D};
-  write_bytes_16(ss, 4957);
+  const uint16_t x = 4957;
+  _write_be16(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
-TEST(test_raw_16_signed) {
+TEST(test_write_be16_signed) {
   BYTES_BEGIN() = {0xEC, 0xA3};
-  write_bytes_16(ss, -4957);
+  const int16_t x = -4957;
+  _write_be16(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
 
 // ----------------------------------------------------------------------------
-// write_bytes_32
+// _write_be32
 //  584667347 = 0010 0010 1101 1001 0101 0000 1101 0011
 // -584667347 = 1101 1101 0010 0110 1010 1111 0010 1101
 // ----------------------------------------------------------------------------
-TEST(test_raw_32_unsigned) {
+TEST(test_write_be32_unsigned) {
   BYTES_BEGIN() = {0x22, 0xD9, 0x50, 0xD3};
-  write_bytes_32(ss, 584667347);
+  const uint32_t x = 584667347;
+  _write_be32(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
-TEST(test_raw_32_signed) {
+TEST(test_write_be32_signed) {
   BYTES_BEGIN() = {0xDD, 0x26, 0xAF, 0x2D};
-  write_bytes_32(ss, -584667347);
+  const int32_t x = -584667347;
+  _write_be32(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
 
 // ----------------------------------------------------------------------------
-// write_bytes_64
+// _write_be64
 //  8436114578613100000 = 0111 0101 0001 0011 0001 1001 1000 0011 0100 0110 1011 1010 0101 1101 1110 0000
 // -8436114578613100000 = 1000 1010 1110 1100 1110 0110 0111 1100 1011 1001 0100 0101 1010 0010 0010 0000
 // ----------------------------------------------------------------------------
-TEST(test_raw_64_unsigned) {
+TEST(test_write_be64_unsigned) {
   BYTES_BEGIN() = {0x75, 0x13, 0x19, 0x83, 0x46, 0xBA, 0x5D, 0xE0};
-  write_bytes_64(ss, 8436114578613100000ULL);
+  const uint64_t x = 8436114578613100000ULL;
+  _write_be64(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
-TEST(test_raw_64_signed) {
+TEST(test_write_be64_signed) {
   BYTES_BEGIN() = {0x8A, 0xEC, 0xE6, 0x7C, 0xB9, 0x45, 0xA2, 0x20};
-  write_bytes_64(ss, -8436114578613100000ULL);
+  const int64_t x = -8436114578613100000LL;
+  _write_be64(ss, &x);
   BYTES_WRITE_CHECK();
 }
 
@@ -267,6 +275,34 @@ TEST(test_uint_64_max) {
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(WireType::UINT_64);
   CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
+}
+
+
+// ----------------------------------------------------------------------------
+// write_float
+// ----------------------------------------------------------------------------
+TEST(test_float) {
+  BYTES_BEGIN() = {0xCA, 0x46, 0x40, 0xE4, 0x90};
+  VALUE_BEGIN(float) = 12345.141;
+  write_float(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(WireType::FLOAT);
+  CHECK_EQUAL(value, read_float(ss));
+  BYTES_CONSUMED_CHECK();
+}
+
+
+// ----------------------------------------------------------------------------
+// write_double
+// ----------------------------------------------------------------------------
+TEST(test_double) {
+  BYTES_BEGIN() = {0xCB, 0x40, 0xC8, 0x1C, 0x92, 0x0C, 0x49, 0xBA, 0x5E};
+  VALUE_BEGIN(double) = 12345.141;
+  write_double(ss, value);
+  BYTES_WRITE_CHECK();
+  BYTES_READ_HEADER_CHECK(WireType::DOUBLE);
+  CHECK_EQUAL(value, read_double(ss));
   BYTES_CONSUMED_CHECK();
 }
 

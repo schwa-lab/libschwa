@@ -14,6 +14,81 @@
 namespace schwa {
   namespace msgpack {
 
+    // ========================================================================
+    // Host <--> big endian low level functions.
+    // ========================================================================
+    template <typename IN, typename T>
+    inline void
+    _read_be8(IN &in, T *const h8) {
+      static_assert(sizeof(T) == 1, "wrong sized pointer target");
+      uint8_t be8;
+      in.read(reinterpret_cast<char *>(&be8), 1);
+      *reinterpret_cast<uint8_t *>(h8) = be8;
+    }
+
+    template <typename IN, typename T>
+    inline void
+    _read_be16(IN &in, T *const h16) {
+      static_assert(sizeof(T) == 2, "wrong sized pointer target");
+      uint16_t be16;
+      in.read(reinterpret_cast<char *>(&be16), 2);
+      *reinterpret_cast<uint16_t *>(h16) = port::be16_to_h(be16);
+    }
+
+    template <typename IN, typename T>
+    inline void
+    _read_be32(IN &in, T *const h32) {
+      static_assert(sizeof(T) == 4, "wrong sized pointer target");
+      uint32_t be32;
+      in.read(reinterpret_cast<char *>(&be32), 4);
+      *reinterpret_cast<uint32_t *>(h32) = port::be32_to_h(be32);
+    }
+
+    template <typename IN, typename T>
+    inline void
+    _read_be64(IN &in, T *const h64) {
+      static_assert(sizeof(T) == 8, "wrong sized pointer target");
+      uint64_t be64;
+      in.read(reinterpret_cast<char *>(&be64), 8);
+      *reinterpret_cast<uint64_t *>(h64) = port::be64_to_h(be64);
+    }
+
+    template <typename OUT, typename T>
+    inline void
+    _write_be8(OUT &out, const T *const h8) {
+      static_assert(sizeof(T) == 1, "wrong sized pointer target");
+      const uint8_t be8 = *reinterpret_cast<const uint8_t *>(h8);
+      out.write(reinterpret_cast<const char *>(&be8), 1);
+    }
+
+    template <typename OUT, typename T>
+    inline void
+    _write_be16(OUT &out, const T *const h16) {
+      static_assert(sizeof(T) == 2, "wrong sized pointer target");
+      const uint16_t be16 = port::h_to_be16(*reinterpret_cast<const uint16_t *>(h16));
+      out.write(reinterpret_cast<const char *>(&be16), 2);
+    }
+
+    template <typename OUT, typename T>
+    inline void
+    _write_be32(OUT &out, const T *const h32) {
+      static_assert(sizeof(T) == 4, "wrong sized pointer target");
+      const uint32_t be32 = port::h_to_be32(*reinterpret_cast<const uint32_t *>(h32));
+      out.write(reinterpret_cast<const char *>(&be32), 4);
+    }
+
+    template <typename OUT, typename T>
+    inline void
+    _write_be64(OUT &out, const T *const h64) {
+      static_assert(sizeof(T) == 8, "wrong sized pointer target");
+      const uint64_t be64 = port::h_to_be64(*reinterpret_cast<const uint64_t *>(h64));
+      out.write(reinterpret_cast<const char *>(&be64), 8);
+    }
+
+
+    // ========================================================================
+    // Type traits
+    // ========================================================================
     namespace traits {
       template <typename T, bool>
       struct rw_integral_signed {
@@ -77,38 +152,6 @@ namespace schwa {
       traits::rw<T>::read(in, val);
     }
 
-    template <typename IN, typename T>
-    inline void
-    read_bytes_8(IN &in, T &x) {
-      uint8_t tmp;
-      in.read(reinterpret_cast<char *>(&tmp), 1);
-      x = tmp;
-    }
-
-    template <typename IN, typename T>
-    inline void
-    read_bytes_16(IN &in, T &x) {
-      uint16_t tmp;
-      in.read(reinterpret_cast<char *>(&tmp), 2);
-      x = port::be16_to_h(tmp);
-    }
-
-    template <typename IN, typename T>
-    inline void
-    read_bytes_32(IN &in, T &x) {
-      uint32_t tmp;
-      in.read(reinterpret_cast<char *>(&tmp), 4);
-      x = port::be32_to_h(tmp);
-    }
-
-    template <typename IN, typename T>
-    inline void
-    read_bytes_64(IN &in, T &x) {
-      uint64_t tmp;
-      in.read(reinterpret_cast<char *>(&tmp), 8);
-      x = port::be64_to_h(tmp);
-    }
-
     inline WireType
     header_type(const int header) {
       if (header < 0 || header > 255)
@@ -141,7 +184,7 @@ namespace schwa {
       float x;
       const int h = in.get();
       assert(h == header::FLOAT);
-      read_bytes_32(in, x);
+      _read_be32(in, &x);
       return x;
     }
 
@@ -151,7 +194,7 @@ namespace schwa {
       double x;
       const int h = in.get();
       assert(h == header::DOUBLE);
-      read_bytes_64(in, x);
+      _read_be64(in, &x);
       return x;
     }
 
@@ -164,7 +207,7 @@ namespace schwa {
     inline int8_t
     read_val_int8(IN &in) {
       int8_t x;
-      read_bytes_8(in, x);
+      _read_be8(in, &x);
       return x;
     }
 
@@ -172,7 +215,7 @@ namespace schwa {
     inline int16_t
     read_val_int16(IN &in) {
       int16_t x;
-      read_bytes_16(in, x);
+      _read_be16(in, &x);
       return x;
     }
 
@@ -180,7 +223,7 @@ namespace schwa {
     inline int32_t
     read_val_int32(IN &in) {
       int32_t x;
-      read_bytes_32(in, x);
+      _read_be32(in, &x);
       return x;
     }
 
@@ -188,7 +231,7 @@ namespace schwa {
     inline int64_t
     read_val_int64(IN &in) {
       int64_t x;
-      read_bytes_64(in, x);
+      _read_be64(in, &x);
       return x;
     }
 
@@ -267,7 +310,7 @@ namespace schwa {
     inline uint8_t
     read_val_uint8(IN &in) {
       uint8_t x;
-      read_bytes_8(in, x);
+      _read_be8(in, &x);
       return x;
     }
 
@@ -275,7 +318,7 @@ namespace schwa {
     inline uint16_t
     read_val_uint16(IN &in) {
       uint16_t x;
-      read_bytes_16(in, x);
+      _read_be16(in, &x);
       return x;
     }
 
@@ -283,7 +326,7 @@ namespace schwa {
     inline uint32_t
     read_val_uint32(IN &in) {
       uint32_t x;
-      read_bytes_32(in, x);
+      _read_be32(in, &x);
       return x;
     }
 
@@ -291,7 +334,7 @@ namespace schwa {
     inline uint64_t
     read_val_uint64(IN &in) {
       uint64_t x;
-      read_bytes_64(in, x);
+      _read_be64(in, &x);
       return x;
     }
 
@@ -367,10 +410,10 @@ namespace schwa {
       case WireType::ARRAY_FIXED:
         return header & 0x0F;
       case WireType::ARRAY_16:
-        read_bytes_16(in, s16);
+        _read_be16(in, &s16);
         return s16;
       case WireType::ARRAY_32:
-        read_bytes_32(in, s32);
+        _read_be32(in, &s32);
         return s32;
       default:
         assert(!"header is not an array");
@@ -389,10 +432,10 @@ namespace schwa {
       case WireType::MAP_FIXED:
         return header & 0x0F;
       case WireType::MAP_16:
-        read_bytes_16(in, s16);
+        _read_be16(in, &s16);
         return s16;
       case WireType::MAP_32:
-        read_bytes_32(in, s32);
+        _read_be32(in, &s32);
         return s32;
       default:
         assert(!"header is not a map");
@@ -413,11 +456,11 @@ namespace schwa {
         s32 = header & 0x1F;
         break;
       case WireType::RAW_16:
-        read_bytes_16(in, s16);
+        _read_be16(in, &s16);
         s32 = s16;
         break;
       case WireType::RAW_32:
-        read_bytes_32(in, s32);
+        _read_be32(in, &s32);
         break;
       default:
         assert(!"header is not a raw");
@@ -479,14 +522,14 @@ namespace schwa {
         recurse = true;
         break;
       case WireType::ARRAY_16:
-        read_bytes_16(in, s16);
-        write_bytes_16(out, s16);
+        _read_be16(in, &s16);
+        _write_be16(out, &s16);
         s32 = s16;
         recurse = true;
         break;
       case WireType::ARRAY_32:
-        read_bytes_32(in, s32);
-        write_bytes_32(out, s32);
+        _read_be32(in, &s32);
+        _write_be32(out, &s32);
         recurse = true;
         break;
       case WireType::MAP_FIXED:
@@ -495,14 +538,14 @@ namespace schwa {
         recurse = true;
         break;
       case WireType::MAP_16:
-        read_bytes_16(in, s16);
-        write_bytes_16(out, s16);
+        _read_be16(in, &s16);
+        _write_be16(out, &s16);
         s32 = 2 * s16;
         recurse = true;
         break;
       case WireType::MAP_32:
-        read_bytes_32(in, s32);
-        write_bytes_32(out, s32);
+        _read_be32(in, &s32);
+        _write_be32(out, &s32);
         s32 *= 2;
         recurse = true;
         break;
@@ -511,14 +554,14 @@ namespace schwa {
         raw = true;
         break;
       case WireType::RAW_16:
-        read_bytes_16(in, s16);
-        write_bytes_16(out, s16);
+        _read_be16(in, &s16);
+        _write_be16(out, &s16);
         s32 = s16;
         raw = true;
         break;
       case WireType::RAW_32:
-        read_bytes_32(in, s32);
-        write_bytes_32(out, s32);
+        _read_be32(in, &s32);
+        _write_be32(out, &s32);
         raw = true;
         break;
       case WireType::RESERVED:
@@ -595,13 +638,13 @@ namespace schwa {
         break;
       case WireType::ARRAY_16:
         in.get();
-        read_bytes_16(in, s16);
+        _read_be16(in, &s16);
         s32 = s16;
         is_array = true;
         break;
       case WireType::ARRAY_32:
         in.get();
-        read_bytes_32(in, s32);
+        _read_be32(in, &s32);
         is_array = true;
         break;
       case WireType::MAP_FIXED:
@@ -610,13 +653,13 @@ namespace schwa {
         is_map = true;
         break;
       case WireType::MAP_16:
-        read_bytes_16(in, s16);
+        _read_be16(in, &s16);
         s32 = s16;
         is_map = true;
         break;
       case WireType::MAP_32:
         in.get();
-        read_bytes_32(in, s32);
+        _read_be32(in, &s32);
         is_map = true;
         break;
       case WireType::RAW_FIXED:
@@ -626,13 +669,13 @@ namespace schwa {
         break;
       case WireType::RAW_16:
         in.get();
-        read_bytes_16(in, s16);
+        _read_be16(in, &s16);
         s32 = s16;
         is_raw = true;
         break;
       case WireType::RAW_32:
         in.get();
-        read_bytes_32(in, s32);
+        _read_be32(in, &s32);
         is_raw = true;
         break;
       case WireType::RESERVED:
@@ -676,47 +719,20 @@ namespace schwa {
     // Writing API implementations
     // ========================================================================
     template <typename OUT, typename T>
-    inline void write(OUT &out, const T &val) {
+    inline void
+    write(OUT &out, const T &val) {
       traits::rw<T>::write(out, val);
     }
 
-    template <typename OUT, typename T>
-    inline void
-    write_bytes_8(OUT &out, const T _x) {
-      const unsigned char *x = reinterpret_cast<const unsigned char *>(&_x);
-      out.put(x[0]);
-    }
+    template <typename OUT> inline void write_raw_uint8(OUT &out, const uint8_t x) { _write_be8<OUT, uint8_t>(out, &x); }
+    template <typename OUT> inline void write_raw_uint16(OUT &out, const uint16_t x) { _write_be16<OUT, uint16_t>(out, &x); }
+    template <typename OUT> inline void write_raw_uint32(OUT &out, const uint32_t x) { _write_be32<OUT, uint32_t>(out, &x); }
+    template <typename OUT> inline void write_raw_uint64(OUT &out, const uint64_t x) { _write_be64<OUT, uint64_t>(out, &x); }
 
-    template <typename OUT, typename T>
-    inline void
-    write_bytes_16(OUT &out, const T _x) {
-      const uint16_t x = port::h_to_be16(static_cast<uint16_t>(_x));
-      out.write(reinterpret_cast<const char *>(&x), 2);
-    }
-
-    template <typename OUT, typename T>
-    inline void
-    write_bytes_32(OUT &out, const T _x) {
-      const uint32_t x = port::h_to_be32(static_cast<uint32_t>(_x));
-      out.write(reinterpret_cast<const char *>(&x), 4);
-    }
-
-    template <typename OUT, typename T>
-    inline void
-    write_bytes_64(OUT &out, const T _x) {
-      const uint64_t x = port::h_to_be64(static_cast<uint64_t>(_x));
-      out.write(reinterpret_cast<const char *>(&x), 8);
-    }
-
-    template <typename OUT> inline void write_raw_uint8(OUT &out, const uint8_t x) { write_bytes_8<OUT, uint8_t>(out, x); }
-    template <typename OUT> inline void write_raw_uint16(OUT &out, const uint16_t x) { write_bytes_16<OUT, uint16_t>(out, x); }
-    template <typename OUT> inline void write_raw_uint32(OUT &out, const uint32_t x) { write_bytes_32<OUT, uint32_t>(out, x); }
-    template <typename OUT> inline void write_raw_uint64(OUT &out, const uint64_t x) { write_bytes_64<OUT, uint64_t>(out, x); }
-
-    template <typename OUT> inline void write_raw_int8(OUT &out, const int8_t x) { write_bytes_8<OUT, int8_t>(out, x); }
-    template <typename OUT> inline void write_raw_int16(OUT &out, const int16_t x) { write_bytes_16<OUT, int16_t>(out, x); }
-    template <typename OUT> inline void write_raw_int32(OUT &out, const int32_t x) { write_bytes_32<OUT, int32_t>(out, x); }
-    template <typename OUT> inline void write_raw_int64(OUT &out, const int64_t x) { write_bytes_64<OUT, int64_t>(out, x); }
+    template <typename OUT> inline void write_raw_int8(OUT &out, const int8_t x) { _write_be8<OUT, int8_t>(out, &x); }
+    template <typename OUT> inline void write_raw_int16(OUT &out, const int16_t x) { _write_be16<OUT, int16_t>(out, &x); }
+    template <typename OUT> inline void write_raw_int32(OUT &out, const int32_t x) { _write_be32<OUT, int32_t>(out, &x); }
+    template <typename OUT> inline void write_raw_int64(OUT &out, const int64_t x) { _write_be64<OUT, int64_t>(out, &x); }
 
     template <typename OUT>
     inline void
@@ -864,14 +880,14 @@ namespace schwa {
     inline void
     write_float(OUT &out, const float x) {
       out.put(header::FLOAT);
-      write_bytes_32(out, x);
+      _write_be32(out, &x);
     }
 
     template <typename OUT>
     inline void
     write_double(OUT &out, const double x) {
       out.put(header::DOUBLE);
-      write_bytes_64(out, x);
+      _write_be64(out, &x);
     }
 
     template <typename OUT>
