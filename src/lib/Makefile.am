@@ -16,7 +16,7 @@ endif
 # Ragel
 # =============================================================================
 schwa/tokenizer/tokenizer.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
-	ragel -G2 -o $@ $<
+	ragel -C -G2 -o $@ $<
 
 # =============================================================================
 # Scafolding
