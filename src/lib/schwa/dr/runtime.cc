@@ -261,7 +261,6 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
     const auto &it = known_stores.find(store->name);
     if (it == known_stores.end()) {
       rtstore = new RTStoreDef(store_id, store->serial, nullptr, store);
-      assert(rtstore != nullptr);
       rtdschema->stores.push_back(rtstore);
       known_stores.insert({store->name, rtstore});
       ++store_id;
@@ -287,16 +286,14 @@ merge_rt(RTManager *const rt, const BaseDocSchema &dschema) {
     const auto &it = known_klasses.find(schema->name);
     if (it == known_klasses.end()) {
       rtschema = new RTSchema(klass_id, schema->serial, schema);
-      assert(rtschema != nullptr);
-      merge_rtschema_fields(*rtschema, *schema, store_offsets);
       rt->klasses.push_back(rtschema);
       ++klass_id;
     }
     else {
       rtschema = const_cast<RTSchema *>(it->second);
       rtschema->def = schema;
-      merge_rtschema_fields(*rtschema, *schema, store_offsets);
     }
+    merge_rtschema_fields(*rtschema, *schema, store_offsets);
     typeinfo_to_schema.insert(std::make_pair(schema->type, rtschema));
   }
   std::sort(rt->klasses.begin(), rt->klasses.end(), [](const RTSchema *a, const RTSchema *b) { return a->klass_id < b->klass_id; });
