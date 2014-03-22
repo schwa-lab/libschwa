@@ -10,9 +10,11 @@
 
 namespace schwa {
 
-  // Objects allocated within a Pool WILL NOT have their destructors called when
-  // the Pool is destroyed. As such, it is only safe to allocate within the Pool
-  // objects that don't need destructors.
+  /**
+   * Objects allocated within a Pool WILL NOT have their destructors called when
+   * the Pool is destroyed. As such, it is only safe to allocate within the Pool
+   * objects that don't need destructors.
+   **/
   class Pool {
   private:
     class Block {
@@ -67,7 +69,8 @@ namespace schwa {
         delete b;
     }
 
-    inline void *
+    template <typename T=void *>
+    inline T
     alloc(size_t size) {
       void *ptr = _current->alloc(size);
       if (ptr == nullptr) {
@@ -75,7 +78,7 @@ namespace schwa {
         _blocks.push_back(_current);
         ptr = _current->alloc(size);
       }
-      return ptr;
+      return static_cast<T>(ptr);
     }
 
     inline size_t nblocks(void) const { return _blocks.size(); }
@@ -96,6 +99,58 @@ namespace schwa {
     SCHWA_DISALLOW_COPY_AND_ASSIGN(Pool);
   };
 
+
+  /**
+   * A std::allocator conforming class for use with a Pool. The deallocate
+   * method does not free up any resources.
+   **/
+  template <class T>
+  struct PoolAllocator {
+    using const_pointer = const T *;
+    using const_reference = const T &;
+    using difference_type = std::ptrdiff_t;
+    using pointer = T *;
+    using reference = T &;
+    using size_type = std::size_t;
+    using value_type = T;
+    template <class U> struct rebind { using other = PoolAllocator<U>; };
+
+    Pool &pool;
+
+    PoolAllocator(schwa::Pool &pool) noexcept : pool(pool) { }
+    template <typename U> PoolAllocator(const PoolAllocator<U> &o) : pool(o.pool) { }
+
+    inline T *
+    allocate(const std::size_t n) {
+      return pool.alloc<T *>(n * sizeof(T));
+    }
+
+    template <class U, class... Args>
+    inline void
+    construct (U* p, Args&&... args) {
+      new (p) U(args...);
+    }
+
+    inline void
+    deallocate(T *, std::size_t) { }
+
+    template <class U>
+    inline void
+    destroy (U* p) {
+      p->~U();
+    }
+  };
+
+}  // namespace schwa
+
+
+/**
+ * std::new operator for use with a Pool.
+ **/
+inline void *
+operator new(std::size_t nbytes, ::schwa::Pool &pool) {
+  return pool.alloc(nbytes);
 }
+
 
 #endif  // SCHWA_POOL_H_
