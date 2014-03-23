@@ -33,12 +33,13 @@
   literal_regex = regex ;
   literal_str = '"' ('\\"' | [^"])* '"' ;
 
-  op_boolean = "&&" | "||" | "!" ;
+  op_boolean = "&&" | "||" ;
   op_comparison = "==" | "!=" | "<" | "<=" | ">" | ">=" | "~" | "~=" ;
   op_numeric3 = "+" | "-" | "%" ;
   op_numeric4 = "*" | "/" ;
   attribute_access = ("ann" | "doc") "." [_0-9a-zA-Z]+ ;
-  function = "all" | "any" | "int" | "str" ;
+  function_cast = "int" | "str" ;
+  function_store = "all" | "any" ;
 
   main := |*
     literal_int => { PUSH_TOKEN(LITERAL_INTEGER); };
@@ -51,7 +52,8 @@
     op_numeric4 => { PUSH_TOKEN(OP_NUMERIC4); };
 
     attribute_access => { PUSH_TOKEN(ATTRIBUTE_ACCESS); };
-    function => { PUSH_TOKEN(FUNCTION); };
+    function_cast => { PUSH_TOKEN(FUNCTION_CAST); };
+    function_store => { PUSH_TOKEN(FUNCTION_STORE); };
     "index" => { PUSH_TOKEN(INDEX); };
 
     "(" => { PUSH_TOKEN(OPEN_PAREN); };

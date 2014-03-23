@@ -22,7 +22,7 @@ namespace schwa {
       LITERAL_INTEGER, LITERAL_REGEX, LITERAL_STRING,
       OP_BOOLEAN, OP_COMPARISON, OP_NUMERIC3, OP_NUMERIC4,
       ATTRIBUTE_ACCESS,
-      FUNCTION,
+      FUNCTION_CAST, FUNCTION_STORE,
       INDEX,
       OPEN_PAREN, CLOSE_PAREN,
       COMMA,
@@ -34,6 +34,14 @@ namespace schwa {
       explicit CompileError(const std::string &msg) : Exception(msg) { }
       CompileError(const CompileError &o) : Exception(o) { }
       virtual ~CompileError(void) throw() { }
+    };
+
+
+    class RuntimeError : public Exception {
+    public:
+      explicit RuntimeError(const std::string &msg) : Exception(msg) { }
+      RuntimeError(const RuntimeError &o) : Exception(o) { }
+      virtual ~RuntimeError(void) throw() { }
     };
 
 
@@ -55,8 +63,7 @@ namespace schwa {
       void _parse(void);
       void _push_token(const TokenType type, const char *ts, const char *te);
       void _tokenise(const char *str, size_t len);
-      void _throw_compile_error(const char *str, size_t len);
-      void _throw_compile_error(const char *ts, const char *te);
+      void _throw_compile_error(const char *p, const char *pe);
 
     public:
       Interpreter(void);
@@ -66,6 +73,7 @@ namespace schwa {
       inline void compile(const std::string &str) { compile(str.c_str(), str.size()); }
 
       bool eval(uint64_t index, const dr::FauxDoc &doc) const;
+      inline bool operator ()(uint64_t index, const dr::FauxDoc &doc) const { return eval(index, doc); }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Interpreter);

@@ -25,6 +25,7 @@ here, buildling up an expresssion tree as it goes along.
 #include <cstdio>
 #include <regex>
 #include <sstream>
+#include <string>
 
 #include <schwa/dr.h>
 #include <schwa/utils/enums.h>
@@ -35,19 +36,109 @@ namespace dr = schwa::dr;
 namespace schwa {
 namespace dr_grep {
 
+using type_t = uint32_t;
+static constexpr const type_t TYPE_INTEGER = 1 << 0;
+static constexpr const type_t TYPE_STRING  = 1 << 1;
+static constexpr const type_t TYPE_REGEX   = 1 << 2;
+static constexpr const type_t TYPE_STORE   = 1 << 3;
+static constexpr const type_t TYPE_ANY = TYPE_INTEGER | TYPE_STRING | TYPE_REGEX | TYPE_STORE;
+
+static const char *
+type_t_name(const type_t type) {
+  switch (type) {
+  case TYPE_INTEGER: return "integer";
+  case TYPE_STRING: return "string";
+  case TYPE_REGEX: return "regex";
+  case TYPE_STORE: return "store";
+  default: return "";
+  }
+}
+
+
+// ============================================================================
+// Exception helpers.
+// ============================================================================
+static int64_t
+cast_to_int(const std::string &value) {
+  char *end;
+  const int64_t v_int = std::strtoll(value.c_str(), &end, 10);
+  if (*end != '\0') {
+    std::ostringstream ss;
+    ss << "Failed to convert string value '" << value << "' to an integer";
+    throw RuntimeError(ss.str());
+  }
+  return v_int;
+}
+
+
+static std::string
+cast_to_str(const int64_t value) {
+  std::ostringstream ss;
+  ss << value;
+  return ss.str();
+}
+
+
+static void
+check_accepts(const char *const msg, const type_t type, const type_t accepts_mask) {
+  if ((type & accepts_mask) == 0) {
+    std::ostringstream ss;
+    ss << "Invalid input type to " << msg << ": found " << type_t_name(type);
+    throw RuntimeError(ss.str());
+  }
+}
+
+
+static void
+check_same_accepts(const char *const msg, const type_t t1, const type_t t2, const type_t accepts_mask) {
+  if ((t1 & accepts_mask) == 0) {
+    std::ostringstream ss;
+    ss << "Invalid left type to " << msg << ": found " << type_t_name(t1);
+    throw RuntimeError(ss.str());
+  }
+  if ((t2 & accepts_mask) == 0) {
+    std::ostringstream ss;
+    ss << "Invalid right type to " << msg << ": found " << type_t_name(t2);
+    throw RuntimeError(ss.str());
+  }
+  if (t1 != t2) {
+    std::ostringstream ss;
+    ss << "Left and right types to " << msg << " do not match. Found " << type_t_name(t1) << " and " << type_t_name(t2);
+    throw RuntimeError(ss.str());
+  }
+}
+
+
+static void
+throw_compile_error(const char *const str, const size_t len) {
+  std::ostringstream ss;
+  ss << "Invalid input found at '";
+  ss.write(str, len);
+  ss << "'";
+  throw CompileError(ss.str());
+}
+
+
 // ============================================================================
 // Value object
 // ============================================================================
-using type_t = unsigned int;
-static const type_t TYPE_INT   = 1 << 0;
-static const type_t TYPE_STR   = 1 << 1;
-static const type_t TYPE_REGEX = 1 << 2;
-static const type_t TYPE_STORE = 1 << 3;
+class Value {
+public:
+  const type_t type;
+  const int64_t v_int;
+  const std::string v_str;
+  const std::regex *const v_re;
 
-struct Value {
-  type_t type;
-  int64_t _int;
-  std::string _str;
+protected:
+  Value(type_t type, int64_t v_int, const std::string &v_str, const std::regex *v_re) : type(type), v_int(v_int), v_str(v_str), v_re(v_re) { }
+
+public:
+  Value(const Value &o) : type(o.type), v_int(o.v_int), v_str(o.v_str), v_re(o.v_re) { }
+  Value(const Value &&o) : type(o.type), v_int(o.v_int), v_str(o.v_str), v_re(o.v_re) { }
+
+  static inline Value as_int(int64_t value) { return Value(TYPE_INTEGER, value, "", nullptr); }
+  static inline Value as_str(const std::string &value) { return Value(TYPE_STRING, 0, value, nullptr); }
+  static inline Value as_re(const std::regex *value) { return Value(TYPE_REGEX, 0, "", value); }
 };
 
 
@@ -60,18 +151,17 @@ protected:
   const char *const _token;
 
   Expr(TokenType token_type, const char *token) : _token_type(token_type), _token(token) { }
-
 public:
   virtual ~Expr(void) { }
 
-  virtual bool eval(uint64_t index, const dr::FauxDoc &doc) const = 0;
+  virtual Value eval(uint64_t index, const dr::FauxDoc &doc) const = 0;
 };
 
 
 class AttributeAccessExpr : public Expr {
 protected:
   const bool _is_ann;
-  const char *const _attribute;
+  const std::string _attribute;
 
 public:
   AttributeAccessExpr(TokenType token_type, const char *token) :
@@ -80,11 +170,10 @@ public:
       _attribute(_token + 4) { }
   virtual ~AttributeAccessExpr(void) { }
 
-  virtual bool
-  eval(const uint64_t index, const dr::FauxDoc &doc) const override {
-    (void)index;  // TODO
-    (void)doc;
-    return false;
+  virtual Value
+  eval(const uint64_t, const dr::FauxDoc &doc) const override {
+    (void)doc;  // TODO
+    return Value::as_int(0);
   }
 };
 
@@ -101,32 +190,159 @@ public:
       _right(right) { }
   virtual ~BinaryOperatorExpr(void) { }
 
-  virtual bool
+  virtual Value
   eval(const uint64_t index, const dr::FauxDoc &doc) const override {
-    (void)index;  // TODO
-    (void)doc;
-    return false;
+    const Value v1 = _left->eval(index, doc);
+    const Value v2 = _right->eval(index, doc);
+    if (std::strcmp(_token, "&&") == 0) {
+      check_same_accepts("BinaryOperatorExpr(&&)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int && v2.v_int);
+    }
+    else if (std::strcmp(_token, "||") == 0) {
+      check_same_accepts("BinaryOperatorExpr(||)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int || v2.v_int);
+    }
+    else if (std::strcmp(_token, "==") == 0) {
+      check_same_accepts("BinaryOperatorExpr(==)", v1.type, v2.type, TYPE_INTEGER | TYPE_STRING);
+      if (v1.type == TYPE_INTEGER)
+        return Value::as_int(v1.v_int == v2.v_int);
+      else
+        return Value::as_int(v1.v_str == v2.v_str);
+    }
+    else if (std::strcmp(_token, "!=") == 0) {
+      check_same_accepts("BinaryOperatorExpr(!=)", v1.type, v2.type, TYPE_INTEGER | TYPE_STRING);
+      if (v1.type == TYPE_INTEGER)
+        return Value::as_int(v1.v_int != v2.v_int);
+      else
+        return Value::as_int(v1.v_str != v2.v_str);
+    }
+    else if (std::strcmp(_token, "<=") == 0) {
+      check_same_accepts("BinaryOperatorExpr(<=)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int <= v2.v_int);
+    }
+    else if (std::strcmp(_token, "<") == 0) {
+      check_same_accepts("BinaryOperatorExpr(<)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int < v2.v_int);
+    }
+    else if (std::strcmp(_token, ">=") == 0) {
+      check_same_accepts("BinaryOperatorExpr(>=)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int >= v2.v_int);
+    }
+    else if (std::strcmp(_token, ">") == 0) {
+      check_same_accepts("BinaryOperatorExpr(>)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int > v2.v_int);
+    }
+    else if (std::strcmp(_token, "~=") == 0) {
+      check_accepts("BinaryOperatorExpr(~= lhs)", v1.type, TYPE_STRING);
+      check_accepts("BinaryOperatorExpr(~= rhs)", v2.type, TYPE_REGEX);
+      std::smatch m;
+      const bool found = std::regex_search(v1.v_str, m, *v2.v_re);
+      return Value::as_int(found && static_cast<size_t>(m.length()) == v1.v_str.size());
+    }
+    else if (std::strcmp(_token, "~") == 0) {
+      check_accepts("BinaryOperatorExpr(~ lhs)", v1.type, TYPE_STRING);
+      check_accepts("BinaryOperatorExpr(~ rhs)", v2.type, TYPE_REGEX);
+      return Value::as_int(std::regex_search(v1.v_str, *v2.v_re));
+    }
+    else if (std::strcmp(_token, "+") == 0) {
+      check_same_accepts("BinaryOperatorExpr(+)", v1.type, v2.type, TYPE_INTEGER | TYPE_STRING);
+      if (v1.type == TYPE_INTEGER)
+        return Value::as_int(v1.v_int + v2.v_int);
+      else
+        return Value::as_str(v1.v_str + v2.v_str);
+    }
+    else if (std::strcmp(_token, "-") == 0) {
+      check_same_accepts("BinaryOperatorExpr(-)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int - v2.v_int);
+    }
+    else if (std::strcmp(_token, "%") == 0) {
+      check_same_accepts("BinaryOperatorExpr(%)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int % v2.v_int);
+    }
+    else if (std::strcmp(_token, "*") == 0) {
+      check_same_accepts("BinaryOperatorExpr(*)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int * v2.v_int);
+    }
+    else if (std::strcmp(_token, "/") == 0) {
+      check_same_accepts("BinaryOperatorExpr(/)", v1.type, v2.type, TYPE_INTEGER);
+      return Value::as_int(v1.v_int / v2.v_int);
+    }
+    else {
+      assert(!"Should never get here");
+      return Value::as_int(0);
+    }
   }
 };
 
 
-class FunctionExpr : public Expr {
+class FunctionCastExpr : public Expr {
+protected:
+  Expr *const _expr;
+
+public:
+  FunctionCastExpr(TokenType token_type, const char *token, Expr *expr) : Expr(token_type, token), _expr(expr) { }
+  virtual ~FunctionCastExpr(void) { }
+
+  virtual Value
+  eval(const uint64_t index, const dr::FauxDoc &doc) const override {
+    const Value v = _expr->eval(index, doc);
+    if (std::strcmp(_token, "int") == 0) {
+      check_accepts("FunctionCastExpr(int)", v.type, TYPE_INTEGER | TYPE_STRING);
+      if (v.type == TYPE_INTEGER)
+        return v;
+      else
+        return Value::as_int(cast_to_int(v.v_str));
+    }
+    else if (std::strcmp(_token, "str") == 0) {
+      check_accepts("FunctionCastExpr(str)", v.type, TYPE_INTEGER | TYPE_STRING);
+      if (v.type == TYPE_INTEGER)
+        return Value::as_str(cast_to_str(v.v_int));
+      else
+        return v;
+    }
+    else {
+      assert(!"Should never get here");
+      return Value::as_int(0);
+    }
+  }
+};
+
+
+class FunctionStoreExpr : public Expr {
 protected:
   Expr *const _attribute_access;
   Expr *const _expr;
 
 public:
-  FunctionExpr(TokenType token_type, const char *token, Expr *attribute_access, Expr *expr) :
+  FunctionStoreExpr(TokenType token_type, const char *token, Expr *attribute_access, Expr *expr) :
       Expr(token_type, token),
       _attribute_access(attribute_access),
       _expr(expr) { }
-  virtual ~FunctionExpr(void) { }
+  virtual ~FunctionStoreExpr(void) { }
 
-  virtual bool
+  virtual Value
   eval(const uint64_t index, const dr::FauxDoc &doc) const override {
+    if (std::strcmp(_token, "all") == 0) {
+    }
+    else if (std::strcmp(_token, "any") == 0) {
+    }
+    else
+      assert(!"Should never get here");
     (void)index;  // TODO
     (void)doc;
-    return false;
+    return Value::as_int(0);
+  }
+};
+
+
+class IndexExpr : public Expr {
+public:
+  IndexExpr(TokenType token_type, const char *token) : Expr(token_type, token) { }
+  virtual ~IndexExpr(void) { }
+
+  virtual Value
+  eval(const uint64_t index, const dr::FauxDoc &) const override {
+    return Value::as_int(static_cast<int64_t>(index));
   }
 };
 
@@ -142,11 +358,9 @@ public:
   }
   virtual ~LiteralIntegerExpr(void) { }
 
-  virtual bool
-  eval(const uint64_t index, const dr::FauxDoc &doc) const override {
-    (void)index;  // TODO
-    (void)doc;
-    return false;
+  virtual Value
+  eval(const uint64_t, const dr::FauxDoc &) const override {
+    return Value::as_int(_value);
   }
 };
 
@@ -166,25 +380,24 @@ public:
   }
   virtual ~LiteralRegexExpr(void) { }
 
-  virtual bool
-  eval(const uint64_t index, const dr::FauxDoc &doc) const override {
-    (void)index;  // TODO
-    (void)doc;
-    return false;
+  virtual Value
+  eval(const uint64_t, const dr::FauxDoc &) const override {
+    return Value::as_re(&_re);
   }
 };
 
 
 class LiteralStringExpr : public Expr {
+protected:
+  const std::string _value;
+
 public:
-  LiteralStringExpr(TokenType token_type, const char *token) : Expr(token_type, token) { }
+  LiteralStringExpr(TokenType token_type, const char *token) : Expr(token_type, token), _value(token + 1, std::strlen(token) - 2) { }
   virtual ~LiteralStringExpr(void) { }
 
-  virtual bool
-  eval(const uint64_t index, const dr::FauxDoc &doc) const override {
-    (void)index;  // TODO
-    (void)doc;
-    return false;
+  virtual Value
+  eval(const uint64_t, const dr::FauxDoc &) const override {
+    return Value::as_str(_value);
   }
 };
 
@@ -277,52 +490,82 @@ Interpreter::_parse_e5(void) {
     }
     break;
 
+  case TokenType::INDEX:
+    expr = new (_pool) IndexExpr(pair.first, pair.second);
+    break;
+
   case TokenType::ATTRIBUTE_ACCESS:
     expr = new (_pool) AttributeAccessExpr(pair.first, pair.second);
     break;
 
-  case TokenType::FUNCTION:
+  case TokenType::FUNCTION_CAST:
     {
       // "("
       if (_tokens.empty())
-        throw CompileError("Expected OPEN_PAREN in <e5> function but no more tokens available");
+        throw CompileError("Expected OPEN_PAREN in <e5> function_cast but no more tokens available");
       pair = _tokens.front();
       _tokens.pop_front();
       if (pair.first != TokenType::OPEN_PAREN) {
-        msg << "Expected OPEN_PAREN in <e5> function but found token type " << to_underlying(pair.first) << " instead";
+        msg << "Expected OPEN_PAREN in <e5> function_cast but found token type " << to_underlying(pair.first) << " instead";
+        throw CompileError(msg.str());
+      }
+      // expr
+      Expr *const e1 = _parse_e1();
+      // ")"
+      if (_tokens.empty())
+        throw CompileError("Expected CLOSE_PAREN in <e5> function_cast but no more tokens available");
+      pair = _tokens.front();
+      _tokens.pop_front();
+      if (pair.first != TokenType::CLOSE_PAREN) {
+        msg << "Expected CLOSE_PAREN in <e5> function_cast but found token type " << to_underlying(pair.first) << " instead";
+        throw CompileError(msg.str());
+      }
+      expr = new (_pool) FunctionCastExpr(pair.first, pair.second, e1);
+    }
+    break;
+
+  case TokenType::FUNCTION_STORE:
+    {
+      // "("
+      if (_tokens.empty())
+        throw CompileError("Expected OPEN_PAREN in <e5> function_store but no more tokens available");
+      pair = _tokens.front();
+      _tokens.pop_front();
+      if (pair.first != TokenType::OPEN_PAREN) {
+        msg << "Expected OPEN_PAREN in <e5> function_store but found token type " << to_underlying(pair.first) << " instead";
         throw CompileError(msg.str());
       }
       // attribute_access
       if (_tokens.empty())
-        throw CompileError("Expected attribute_access in <e5> function but no more tokens available");
+        throw CompileError("Expected attribute_access in <e5> function_store but no more tokens available");
       pair = _tokens.front();
       _tokens.pop_front();
       if (pair.first != TokenType::ATTRIBUTE_ACCESS) {
-        msg << "Expected attribute_access in <e5> function but found token type " << to_underlying(pair.first) << " instead";
+        msg << "Expected attribute_access in <e5> function_store but found token type " << to_underlying(pair.first) << " instead";
         throw CompileError(msg.str());
       }
       Expr *const attribute_access = new (_pool) AttributeAccessExpr(pair.first, pair.second);
       // ","
       if (_tokens.empty())
-        throw CompileError("Expected COMMA in <e5> function but no more tokens available");
+        throw CompileError("Expected COMMA in <e5> function_store but no more tokens available");
       pair = _tokens.front();
       _tokens.pop_front();
       if (pair.first != TokenType::COMMA) {
-        msg << "Expected COMMA in <e5> function but found token type " << to_underlying(pair.first) << " instead";
+        msg << "Expected COMMA in <e5> function_store but found token type " << to_underlying(pair.first) << " instead";
         throw CompileError(msg.str());
       }
-      // attribute_access
+      // expr
       Expr *const e1 = _parse_e1();
       // ")"
       if (_tokens.empty())
-        throw CompileError("Expected CLOSE_PAREN in <e5> function but no more tokens available");
+        throw CompileError("Expected CLOSE_PAREN in <e5> function_store but no more tokens available");
       pair = _tokens.front();
       _tokens.pop_front();
       if (pair.first != TokenType::CLOSE_PAREN) {
-        msg << "Expected CLOSE_PAREN in <e5> function but found token type " << to_underlying(pair.first) << " instead";
+        msg << "Expected CLOSE_PAREN in <e5> function_store but found token type " << to_underlying(pair.first) << " instead";
         throw CompileError(msg.str());
       }
-      expr = new (_pool) FunctionExpr(pair.first, pair.second, attribute_access, e1);
+      expr = new (_pool) FunctionStoreExpr(pair.first, pair.second, attribute_access, e1);
     }
     break;
 
@@ -355,7 +598,7 @@ Interpreter::_parse(void) {
   // Ensure there are no more tokens left to consume.
   if (!_tokens.empty()) {
     const auto &pair = _tokens.front();
-    _throw_compile_error(pair.second, std::strlen(pair.second));
+    throw_compile_error(pair.second, std::strlen(pair.second));
   }
 }
 
@@ -371,18 +614,8 @@ Interpreter::_push_token(const TokenType type, const char *const ts, const char 
 
 
 void
-Interpreter::_throw_compile_error(const char *const str, const size_t len) {
-  std::ostringstream ss;
-  ss << "Invalid input found at '";
-  ss.write(str, len);
-  ss << "'";
-  throw CompileError(ss.str());
-}
-
-
-void
-Interpreter::_throw_compile_error(const char *const ts, const char *const te) {
-  _throw_compile_error(ts, te - ts);
+Interpreter::_throw_compile_error(const char *const p, const char *const pe) {
+  throw_compile_error(p, pe - p);
 }
 
 
@@ -397,8 +630,9 @@ bool
 Interpreter::eval(const uint64_t index, const dr::FauxDoc &doc) const {
   if (_expr == nullptr)
     return true;
-  else
-    return _expr->eval(index, doc);
+  const Value v = _expr->eval(index, doc);
+  std::cout << "Value{type=" << v.type << " int=" << v.v_int << " str=" << v.v_str << " re=" << v.v_re << "}";
+  return false;
 }
 
 }  // namesapce dr_grep

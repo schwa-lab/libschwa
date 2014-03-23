@@ -13,12 +13,26 @@ namespace cf = schwa::config;
 namespace dr = schwa::dr;
 namespace io = schwa::io;
 
+
 namespace {
 
 void
-main(const std::string &expression) {
+main(std::istream &input, std::ostream &output, const std::string &expression) {
+  // Construct a docrep reader and writer over the provided streams.
+  dr::FauxDoc doc;
+  dr::FauxDoc::Schema schema;
+  dr::Reader reader(input, schema);
+  dr::Writer writer(output, schema);
+
+  // Construct an interpreter and compile the expression.
   schwa::dr_grep::Interpreter interpreter;
   interpreter.compile(expression);
+
+  // Read the documents off the input stream and evaluate them against the expression.
+  for (uint64_t i = 0; reader >> doc; ++i) {
+    if (interpreter(i, doc))
+      writer << doc;
+  }
 }
 
 }  // namespace
@@ -37,7 +51,7 @@ main(int argc, char **argv) {
 
   // Dispatch to main function.
   try {
-    main(expression());
+    main(input.file(), output.file(), expression());
   }
   catch (schwa::Exception &e) {
     std::cerr << schwa::print_exception(e) << std::endl;
