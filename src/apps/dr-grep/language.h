@@ -13,7 +13,7 @@
 
 namespace schwa {
   namespace dr {
-    class FauxDoc;
+    class Doc;
   }
 
   namespace dr_grep {
@@ -22,7 +22,7 @@ namespace schwa {
       LITERAL_INTEGER, LITERAL_REGEX, LITERAL_STRING,
       OP_BOOLEAN, OP_COMPARISON, OP_NUMERIC3, OP_NUMERIC4,
       ATTRIBUTE_ACCESS,
-      FUNCTION_CAST, FUNCTION_STORE,
+      FUNCTION_UNARY, FUNCTION_STORE,
       INDEX,
       OPEN_PAREN, CLOSE_PAREN,
       COMMA,
@@ -72,8 +72,8 @@ namespace schwa {
       void compile(const char *str, size_t len);
       inline void compile(const std::string &str) { compile(str.c_str(), str.size()); }
 
-      bool eval(uint64_t index, const dr::FauxDoc &doc) const;
-      inline bool operator ()(uint64_t index, const dr::FauxDoc &doc) const { return eval(index, doc); }
+      bool eval(uint64_t index, const dr::Doc &doc) const;
+      inline bool operator ()(uint64_t index, const dr::Doc &doc) const { return eval(index, doc); }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Interpreter);

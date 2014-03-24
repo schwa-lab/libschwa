@@ -38,8 +38,8 @@
   op_numeric3 = "+" | "-" | "%" ;
   op_numeric4 = "*" | "/" ;
   attribute_access = ("ann" | "doc") "." [_0-9a-zA-Z]+ ;
-  function_cast = "int" | "str" ;
   function_store = "all" | "any" ;
+  function_unary = "int" | "len" | "str" ;
 
   main := |*
     literal_int => { PUSH_TOKEN(LITERAL_INTEGER); };
@@ -52,8 +52,8 @@
     op_numeric4 => { PUSH_TOKEN(OP_NUMERIC4); };
 
     attribute_access => { PUSH_TOKEN(ATTRIBUTE_ACCESS); };
-    function_cast => { PUSH_TOKEN(FUNCTION_CAST); };
     function_store => { PUSH_TOKEN(FUNCTION_STORE); };
+    function_unary => { PUSH_TOKEN(FUNCTION_UNARY); };
     "index" => { PUSH_TOKEN(INDEX); };
 
     "(" => { PUSH_TOKEN(OPEN_PAREN); };
