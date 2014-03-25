@@ -19,7 +19,9 @@
 
 #include <dr-count/main.h>
 #include <dr-dist/main.h>
+#include <dr-grep/main.h>
 #include <dr-head/main.h>
+#include <dr-sample/main.h>
 #include <dr-tail/main.h>
 #include <dr-ui/main.h>
 
@@ -48,7 +50,9 @@ public:
 Main::Main(const std::string &name, const std::string &desc) : cf::Main(name, desc) {
   _add(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
   _add(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
+  _add(schwa::dr_grep::PROGRAM_NAME, schwa::dr_grep::PROGRAM_DESC);
   _add(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
+  _add(schwa::dr_sample::PROGRAM_NAME, schwa::dr_sample::PROGRAM_DESC);
   _add(schwa::dr_tail::PROGRAM_NAME, schwa::dr_tail::PROGRAM_DESC);
   _add(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
 }
