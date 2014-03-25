@@ -19,7 +19,7 @@ namespace port = schwa::port;
 namespace {
 
 static void
-main(std::istream &input, std::ostream &output, const cf::Op<unsigned int> &limit) {
+main(std::istream &input, std::ostream &output, const cf::Op<uint32_t> &limit) {
   // Construct a docrep reader over the provided input stream.
   dr::FauxDoc doc;
   dr::FauxDoc::Schema schema;
@@ -29,7 +29,7 @@ main(std::istream &input, std::ostream &output, const cf::Op<unsigned int> &limi
   schwa::dr_ui::Processor processor(output);
 
   // Read the documents off the input stream.
-  for (unsigned int i = 0; reader >> doc; ++i) {
+  for (uint32_t i = 0; reader >> doc; ++i) {
     if (limit.was_assigned() && i == limit())
       break;
     processor(doc, i);
@@ -45,7 +45,7 @@ main(int argc, char **argv) {
   cf::Main cfg(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
-  cf::Op<unsigned int> limit(cfg, "limit", 'n', "Limit on how many documents to process", cf::Flags::OPTIONAL);
+  cf::Op<uint32_t> limit(cfg, "limit", 'n', "Limit on how many documents to process", cf::Flags::OPTIONAL);
 
   // Parse argv.
   cfg.main<io::PrettyLogger>(argc, argv);

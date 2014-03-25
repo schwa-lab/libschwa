@@ -32,7 +32,7 @@ private:
   const bool _per_doc;
   const Formatting _formatting;
 
-  uint64_t _ndocs;
+  uint32_t _ndocs;
   std::unordered_map<std::string, uint64_t> _counts;
   std::unordered_map<std::string, uint64_t> _local_counts;
   std::map<std::string, size_t> _widths;
@@ -87,7 +87,7 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
 
   // Output the document count if per_doc.
   if (_per_doc && _all_stores) {
-    const uint64_t count = _cumulative ? _ndocs : 1;
+    const uint32_t count = _cumulative ? _ndocs : 1;
     if (_formatting == Formatting::ALIGNED)
       _out << std::setw(NDOCS_WIDTH) << count;
     else

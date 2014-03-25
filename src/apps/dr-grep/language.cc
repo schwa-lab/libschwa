@@ -865,13 +865,13 @@ Interpreter::compile(const char *const str, const size_t len) {
 
 
 bool
-Interpreter::eval(const uint64_t index, const dr::Doc &doc) const {
+Interpreter::eval(const dr::Doc &doc, const uint32_t doc_num) const {
   if (_expr == nullptr)
     return true;
 
   EvalContext ctx(doc);
   ctx.set_var("doc", Value::as_doc(&doc));
-  ctx.set_var("index", Value::as_int(static_cast<int64_t>(index)));
+  ctx.set_var("index", Value::as_int(static_cast<int64_t>(doc_num)));
 
   const Value v = _expr->eval(ctx);
   return v.to_bool();

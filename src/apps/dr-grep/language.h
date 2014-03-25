@@ -70,8 +70,8 @@ namespace schwa {
       void compile(const char *str, size_t len);
       inline void compile(const std::string &str) { compile(str.c_str(), str.size()); }
 
-      bool eval(uint64_t index, const dr::Doc &doc) const;
-      inline bool operator ()(uint64_t index, const dr::Doc &doc) const { return eval(index, doc); }
+      bool eval(const dr::Doc &doc, uint32_t doc_num) const;
+      inline bool operator ()(const dr::Doc &doc, uint32_t doc_num) const { return eval(doc, doc_num); }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Interpreter);

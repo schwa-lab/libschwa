@@ -16,10 +16,10 @@ namespace io = schwa::io;
 namespace {
 
 static void
-main(std::istream &input, std::ostream &output, const unsigned int count, const unsigned int skip) {
+main(std::istream &input, std::ostream &output, const uint32_t count, const uint32_t skip) {
   // Read the documents off the input stream.
-  unsigned int nread = 0;
-  for (unsigned int i = 0; ; ++i) {
+  uint32_t nread = 0;
+  for (uint32_t i = 0; ; ++i) {
     std::stringstream tmp;
     if (nread == count)
       break;
@@ -43,8 +43,8 @@ main(int argc, char **argv) {
   cf::Main cfg(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
-  cf::Op<unsigned int> count(cfg, "count", 'n', "How many documents to keep", 1);
-  cf::Op<unsigned int> skip(cfg, "skip", 's', "How many documents to skip before counting", 0);
+  cf::Op<uint32_t> count(cfg, "count", 'n', "How many documents to keep", 1);
+  cf::Op<uint32_t> skip(cfg, "skip", 's', "How many documents to skip before counting", 0);
 
   // Parse argv.
   cfg.main<io::PrettyLogger>(argc, argv);

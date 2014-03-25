@@ -29,8 +29,8 @@ main(std::istream &input, std::ostream &output, const std::string &expression) {
   interpreter.compile(expression);
 
   // Read the documents off the input stream and evaluate them against the expression.
-  for (uint64_t i = 0; reader >> doc; ++i) {
-    if (interpreter(i, doc))
+  for (uint32_t i = 0; reader >> doc; ++i) {
+    if (interpreter(doc, i))
       writer << doc;
   }
 }
