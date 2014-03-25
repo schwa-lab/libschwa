@@ -39,9 +39,9 @@ main(std::istream &input, std::ostream &output, const uint32_t count) {
     bool keep = true;
     uint32_t index = nread;
     if (nread >= count) {
-      const uint32_t n = generator() % (nread + 1);
-      if (n < count)
-        index = n;
+      const uint32_t r = generator();
+      if ((r % (nread + 1)) < count)
+        index = r % count;
       else
         keep = false;
     }
