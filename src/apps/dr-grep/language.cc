@@ -22,9 +22,11 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
 */
 #include <dr-grep/language.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include <iterator>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -163,6 +165,9 @@ public:
 };
 
 
+// ============================================================================
+// Evaluation context data
+// ============================================================================
 class EvalContext {
 private:
   const dr::Doc &_doc;
@@ -209,14 +214,17 @@ public:
 };
 
 
+// ============================================================================
+// Type casting helpers
+// ============================================================================
 static int64_t
 cast_to_int(const char *const str) {
   char *end;
   const int64_t value = std::strtoll(str, &end, 10);
   if (*end != '\0') {
-    std::ostringstream ss;
-    ss << "Failed to convert string value '" << str << "' to an integer";
-    throw RuntimeError(ss.str());
+    std::ostringstream msg;
+    msg << "Failed to convert string value '" << str << "' to an integer";
+    throw RuntimeError(msg.str());
   }
   return value;
 }
@@ -320,6 +328,7 @@ public:
 
   virtual Value
   eval(EvalContext &ctx) const override {
+    // Ensure the variable exists.
     if (!ctx.has_var(_token)) {
       std::ostringstream msg;
       msg << "Variable '" << _token << "' does not exist";
@@ -327,7 +336,7 @@ public:
     }
 
     // If we don't require an attribute, return the raw value of the variable.
-    Value v = ctx.get_var(_token);
+    const Value v = ctx.get_var(_token);
     if (_attribute == nullptr)
       return v;
 
@@ -449,7 +458,7 @@ public:
 
 class FunctionExpr : public Expr {
 protected:
-  std::vector<Expr *> _args;
+  std::vector<Expr *, PoolAllocator<Expr *>> _args;
 
   void
   _check_arity(const decltype(_args)::size_type arity) const {
@@ -461,7 +470,9 @@ protected:
   }
 
 public:
-  FunctionExpr(const char *token, std::vector<Expr *> &args) : Expr(token), _args(args) { }
+  FunctionExpr(const char *token, Pool &pool, const std::vector<Expr *> &args) : Expr(token), _args(PoolAllocator<Expr *>(pool)) {
+    std::copy(args.begin(), args.end(), std::back_inserter(_args));
+  }
   virtual ~FunctionExpr(void) { }
 
   virtual Value
@@ -699,9 +710,10 @@ Interpreter::_parse_e5(void) {
         if (_tokens.empty())
           throw CompileError("Expected CLOSE_PAREN in <e5> function but no more tokens available");
         tmp_pair = _tokens.front();
-        _tokens.pop_front();
-        if (tmp_pair.first == TokenType::CLOSE_PAREN)
+        if (tmp_pair.first == TokenType::CLOSE_PAREN) {
+          _tokens.pop_front();
           break;
+        }
         // <e1>
         Expr *arg = _parse_e1();
         args.push_back(arg);
@@ -718,7 +730,7 @@ Interpreter::_parse_e5(void) {
           }
         }
       }
-      expr = new (_pool) FunctionExpr(pair.second, args);
+      expr = new (_pool) FunctionExpr(pair.second, _pool, args);
     }
     break;
 
