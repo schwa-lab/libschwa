@@ -24,6 +24,7 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
 
 #include <algorithm>
 #include <cassert>
+#include <cinttypes>
 #include <cstring>
 #include <cstdio>
 #include <iterator>
@@ -609,7 +610,7 @@ protected:
 
 public:
   explicit LiteralIntegerExpr(const char *token) : Expr(token) {
-    const int ret = std::sscanf(_token, "%lld", &_value);
+    const int ret = std::sscanf(_token, "%" PRId64, &_value);
     assert(ret == 1);
   }
   virtual ~LiteralIntegerExpr(void) { }
