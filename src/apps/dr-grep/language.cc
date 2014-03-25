@@ -29,6 +29,7 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
 #include <iterator>
 #include <regex>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <unordered_map>
 
@@ -127,6 +128,7 @@ public:
     const std::regex *_re;
     const VariableExpr *_variable;
     const dr::Doc *_doc;
+    const mp::Map *_map;
   } via;
 
 protected:
@@ -134,6 +136,7 @@ protected:
   Value(ValueType type, const char *value) : type(type) { via._str = value; }
   Value(ValueType type, const VariableExpr *value) : type(type) { via._variable = value; }
   Value(ValueType type, const dr::Doc *value) : type(type) { via._doc = value; }
+  Value(ValueType type, const mp::Map *value) : type(type) { via._map = value; }
   Value(ValueType type, const std::regex *value) : type(type) { via._re = value; }
 
 public:
@@ -156,6 +159,7 @@ public:
     }
   }
 
+  static inline Value as_ann(const mp::Map *value) { return Value(TYPE_ANN, value); }
   static inline Value as_doc(const dr::Doc *value) { return Value(TYPE_DOC, value); }
   static inline Value as_int(int64_t value) { return Value(TYPE_INTEGER, value); }
   static inline Value as_missing(const VariableExpr *value) { return Value(TYPE_MISSING, value); }
@@ -172,6 +176,7 @@ class EvalContext {
 private:
   const dr::Doc &_doc;
   Pool _pool;
+  std::stack<const dr::RTStoreDef *> _stores;
   std::unordered_map<const char *, Value, cstr_hash, cstr_equal_to> _vars;
 
 public:
@@ -194,6 +199,15 @@ public:
     _vars.emplace(key, value);
   }
 
+  inline void
+  unset_var(decltype(_vars)::key_type key) {
+    _vars.erase(key);
+  }
+
+  inline void pop_rtstore(void) { _stores.pop(); }
+  inline void push_rtstore(const dr::RTStoreDef *store) { _stores.push(store); }
+  inline const dr::RTStoreDef *top_rtstore(void) const { return _stores.top(); }
+
   char *
   create_str(const char *const orig, const size_t len) {
     char *str = _pool.alloc<char *>(len + 1);
@@ -211,6 +225,9 @@ public:
     std::memcpy(str + len0, orig1, len1 + 1);
     return str;
   }
+
+private:
+  SCHWA_DISALLOW_COPY_AND_ASSIGN(EvalContext);
 };
 
 
@@ -262,9 +279,45 @@ protected:
   mutable const dr::RTStoreDef *_rtstore;
 
   Value
-  _eval_ann_attribute(void) const {
-    // FIXME
-    return Value::as_int(0);
+  _field_to_value(EvalContext &ctx, const dr::RTFieldDef &field, const mp::Value &value) const {
+    if (field.is_slice || field.points_into != nullptr || field.is_self_pointer) {
+      std::ostringstream msg;
+      msg << "Field '" << _attribute << "' is of an invalid type";
+      throw RuntimeError(msg.str());
+    }
+    else if (mp::is_bool(value.type))
+      return Value::as_int(value.via._bool);
+    else if (mp::is_sint(value.type))
+      return Value::as_int(value.via._int64);
+    else if (mp::is_uint(value.type))
+      return Value::as_int(static_cast<int64_t>(value.via._uint64));
+    else if (mp::is_raw(value.type)) {
+      const mp::Raw &raw = *value.via._raw;
+      char *const str = ctx.create_str(raw.value(), raw.size());
+      return Value::as_str(str);
+    }
+    else {
+      std::ostringstream msg;
+      msg << "Field '" << _attribute << "' is of an invalid type";
+      throw RuntimeError(msg.str());
+    }
+  }
+
+  Value
+  _eval_ann_attribute(EvalContext &ctx, const Value &v) const {
+    const mp::Map &map = *v.via._map;
+    const dr::RTStoreDef *const rtstore = ctx.top_rtstore();
+
+    // <instance> ::= { <field_id> : <obj_val> }
+    for (uint32_t j = 0; j != map.size(); ++j) {
+      assert(mp::is_uint(map.get(j).key.type));
+      const mp::Map::Pair &pair = map.get(j);
+      const dr::RTFieldDef &field = *rtstore->klass->fields[pair.key.via._uint64];
+      if (field.serial == _attribute)
+        return _field_to_value(ctx, field, pair.value);
+    }
+
+    return Value::as_missing(this);
   }
 
   Value
@@ -284,30 +337,8 @@ protected:
       assert(mp::is_uint(map.get(j).key.type));
       const mp::Map::Pair &pair = map.get(j);
       const dr::RTFieldDef &field = *rtdschema->fields[pair.key.via._uint64];
-      if (field.serial == _attribute) {
-        if (field.is_slice || field.points_into != nullptr || field.is_self_pointer) {
-          std::ostringstream ss;
-          ss << "Field '" << _attribute << "' is of an invalid type";
-          throw RuntimeError(ss.str());
-        }
-
-        if (mp::is_bool(pair.value.type))
-          return Value::as_int(pair.value.via._bool);
-        else if (mp::is_sint(pair.value.type))
-          return Value::as_int(pair.value.via._int64);
-        else if (mp::is_uint(pair.value.type))
-          return Value::as_int(static_cast<int64_t>(pair.value.via._uint64));
-        else if (mp::is_raw(pair.value.type)) {
-          const mp::Raw &raw = *pair.value.via._raw;
-          char *const str = ctx.create_str(raw.value(), raw.size());
-          return Value::as_str(str);
-        }
-        else {
-          std::ostringstream ss;
-          ss << "Field '" << _attribute << "' is of an invalid type";
-          throw RuntimeError(ss.str());
-        }
-      }
+      if (field.serial == _attribute)
+        return _field_to_value(ctx, field, pair.value);
     }
 
     for (const dr::RTStoreDef *store : rtdschema->stores) {
@@ -320,8 +351,39 @@ protected:
     return Value::as_missing(this);
   }
 
+  bool
+  _store_iter(EvalContext &ctx, const Expr *const expr, const bool is_any) const {
+    assert(_rtstore != nullptr);
+
+    // Decode the lazy store values into dynamic msgpack objects.
+    Pool pool(4096);
+    io::ArrayReader reader(_rtstore->lazy_data, _rtstore->lazy_nbytes);
+    mp::Value *value = mp::read_dynamic(reader, pool);
+
+    // <instances> ::= [ <instance> ]
+    assert(is_array(value->type));
+    const mp::Array &array = *value->via._array;
+    for (uint32_t i = 0; i != array.size(); ++i) {
+      assert(is_map(array[i].type));
+      const mp::Map &map = *array[i].via._map;
+
+      ctx.set_var("ann", Value::as_ann(&map));
+      ctx.push_rtstore(_rtstore);
+      const Value v = expr->eval(ctx);
+      ctx.pop_rtstore();
+      ctx.unset_var("ann");
+
+      if (is_any && v.to_bool())
+        return true;
+      else if (!is_any && !v.to_bool())
+        return false;
+    }
+
+    return is_any ? false : true;
+  }
+
 public:
-  explicit VariableExpr(const char *token, const char *attribute=nullptr) : Expr(token), _attribute(attribute) { }
+  explicit VariableExpr(const char *token, const char *attribute=nullptr) : Expr(token), _attribute(attribute), _rtstore(nullptr) { }
   virtual ~VariableExpr(void) { }
 
   inline uint32_t store_nelem(void) const { return _rtstore->lazy_nelem; }
@@ -350,9 +412,19 @@ public:
     // Create the runtime support and try the attribute lookup.
     _rt = ctx.doc().rt();
     if (v.type == TYPE_ANN)
-      return _eval_ann_attribute();
+      return _eval_ann_attribute(ctx, v);
     else
       return _eval_doc_attribute(ctx);
+  }
+
+  inline bool
+  store_all(EvalContext &ctx, const Expr *const expr) const {
+    return _store_iter(ctx, expr, false);
+  }
+
+  inline bool
+  store_any(EvalContext &ctx, const Expr *const expr) const {
+    return _store_iter(ctx, expr, true);
   }
 };
 
@@ -479,17 +551,21 @@ public:
   eval(EvalContext &ctx) const override {
     if (std::strcmp(_token, "all") == 0) {
       _check_arity(2);
-      const Value v0 = _args[0]->eval(ctx);
-      check_accepts("arg0 of 'all'", v0.type, TYPE_STORE);
-      // FIXME
-      return Value::as_int(0);
+      const Value v = _args[0]->eval(ctx);
+      check_accepts("arg0 of 'all'", v.type, TYPE_MISSING | TYPE_STORE);
+      if (v.type == TYPE_MISSING)
+        return Value::as_int(false);
+      const bool all = v.via._variable->store_all(ctx, _args[1]);
+      return Value::as_int(all);
     }
     if (std::strcmp(_token, "any") == 0) {
       _check_arity(2);
-      const Value v0 = _args[0]->eval(ctx);
-      check_accepts("arg0 of 'any'", v0.type, TYPE_STORE);
-      // FIXME
-      return Value::as_int(0);
+      const Value v = _args[0]->eval(ctx);
+      check_accepts("arg0 of 'any'", v.type, TYPE_MISSING | TYPE_STORE);
+      if (v.type == TYPE_MISSING)
+        return Value::as_int(false);
+      const bool any = v.via._variable->store_any(ctx, _args[1]);
+      return Value::as_int(any);
     }
     else if (std::strcmp(_token, "int") == 0) {
       _check_arity(1);
@@ -714,11 +790,8 @@ Interpreter::_parse_e5(void) {
           _tokens.pop_front();
           break;
         }
-        // <e1>
-        Expr *arg = _parse_e1();
-        args.push_back(arg);
         // ","?
-        if (args.size() > 1) {
+        if (!args.empty()) {
           if (_tokens.empty())
             throw CompileError("Expected COMMA in <e5> function but no more tokens available");
           tmp_pair = _tokens.front();
@@ -729,6 +802,9 @@ Interpreter::_parse_e5(void) {
             throw CompileError(msg.str());
           }
         }
+        // <e1>
+        Expr *arg = _parse_e1();
+        args.push_back(arg);
       }
       expr = new (_pool) FunctionExpr(pair.second, _pool, args);
     }
@@ -736,8 +812,14 @@ Interpreter::_parse_e5(void) {
 
   default:
     {
+      _tokens.push_front(pair);
       std::ostringstream msg;
-      msg << "Expected <e5> token but found token type " << to_underlying(pair.first) << " instead";
+      msg << "Expected <e5> token but found token type " << to_underlying(pair.first) << " instead (";
+      while (!_tokens.empty()) {
+        msg << " '" << _tokens.front().second << "'";
+        _tokens.pop_front();
+      }
+      msg << ")";
       throw CompileError(msg.str());
     }
   }
