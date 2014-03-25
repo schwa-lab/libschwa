@@ -37,24 +37,24 @@
   op_comparison = "==" | "!=" | "<" | "<=" | ">" | ">=" | "~" | "~=" ;
   op_numeric3 = "+" | "-" | "%" ;
   op_numeric4 = "*" | "/" ;
-  attribute_access = ("ann" | "doc") "." [_0-9a-zA-Z]+ ;
-  function_store = "all" | "any" ;
-  function_unary = "int" | "len" | "str" ;
+
+  function = "all" | "any" | "int" | "len" | "str" ;
+  var = [_a-zA-Z][_9a-zA-Z0-9]* ;
+  var_attribute = "." [_a-zA-Z][_9a-zA-Z0-9]* ;
 
   main := |*
     literal_int => { PUSH_TOKEN(LITERAL_INTEGER); };
-    literal_regex => { PUSH_TOKEN(LITERAL_REGEX); };
-    literal_str => { PUSH_TOKEN(LITERAL_STRING); };
+    literal_regex => { _push_token(TokenType::LITERAL_REGEX, ts + 1, te - 1); };
+    literal_str => { _push_token(TokenType::LITERAL_STRING, ts + 1, te - 1); };
 
     op_boolean => { PUSH_TOKEN(OP_BOOLEAN); };
     op_comparison => { PUSH_TOKEN(OP_COMPARISON); };
     op_numeric3 => { PUSH_TOKEN(OP_NUMERIC3); };
     op_numeric4 => { PUSH_TOKEN(OP_NUMERIC4); };
 
-    attribute_access => { PUSH_TOKEN(ATTRIBUTE_ACCESS); };
-    function_store => { PUSH_TOKEN(FUNCTION_STORE); };
-    function_unary => { PUSH_TOKEN(FUNCTION_UNARY); };
-    "index" => { PUSH_TOKEN(INDEX); };
+    function => { PUSH_TOKEN(FUNCTION); };
+    var => { PUSH_TOKEN(VAR); };
+    var_attribute => { _push_token(TokenType::VAR_ATTRIBUTE, ts + 1, te); };
 
     "(" => { PUSH_TOKEN(OPEN_PAREN); };
     ")" => { PUSH_TOKEN(CLOSE_PAREN); };
