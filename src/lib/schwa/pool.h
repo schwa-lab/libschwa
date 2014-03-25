@@ -117,7 +117,7 @@ namespace schwa {
 
     Pool &pool;
 
-    PoolAllocator(schwa::Pool &pool) noexcept : pool(pool) { }
+    explicit PoolAllocator(schwa::Pool &pool) noexcept : pool(pool) { }
     template <typename U> PoolAllocator(const PoolAllocator<U> &o) : pool(o.pool) { }
 
     inline T *
