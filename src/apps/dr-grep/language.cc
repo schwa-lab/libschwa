@@ -610,7 +610,7 @@ protected:
 
 public:
   explicit LiteralIntegerExpr(const char *token) : Expr(token) {
-    const int ret = std::sscanf(_token, "%" PRId64, &_value);
+    const int ret = std::sscanf(_token, "%" SCNd64, &_value);
     assert(ret == 1);
   }
   virtual ~LiteralIntegerExpr(void) { }
