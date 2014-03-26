@@ -30,7 +30,8 @@ main(std::istream &input, std::ostream &output, const std::string &expression) {
 
   // Read the documents off the input stream and evaluate them against the expression.
   for (uint32_t i = 0; reader >> doc; ++i) {
-    if (interpreter(doc, i))
+    const auto v = interpreter(doc, i);
+    if (v)
       writer << doc;
   }
 }

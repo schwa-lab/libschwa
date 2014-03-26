@@ -48,18 +48,8 @@ namespace schwa {
 namespace dr {
 namespace query {
 
-using ValueType = uint32_t;
-static constexpr const ValueType TYPE_ANN     = 1 << 0;
-static constexpr const ValueType TYPE_DOC     = 1 << 1;
-static constexpr const ValueType TYPE_INTEGER = 1 << 2;
-static constexpr const ValueType TYPE_MISSING = 1 << 3;
-static constexpr const ValueType TYPE_REGEX   = 1 << 4;
-static constexpr const ValueType TYPE_STORE   = 1 << 5;
-static constexpr const ValueType TYPE_STRING  = 1 << 6;
-static constexpr const ValueType TYPE_ANY     = (1 << 7) - 1;
-
-static const char *
-type_t_name(const ValueType type) {
+const char *
+valuetype_name(const ValueType type) {
   switch (type) {
   case TYPE_ANN: return "ann";
   case TYPE_DOC: return "doc";
@@ -80,7 +70,7 @@ static void
 check_accepts(const char *const msg, const ValueType type, const ValueType accepts_mask) {
   if ((type & accepts_mask) == 0) {
     std::ostringstream ss;
-    ss << "Invalid input type to " << msg << ": found " << type_t_name(type);
+    ss << "Invalid input type to " << msg << ": found " << valuetype_name(type);
     throw RuntimeError(ss.str());
   }
 }
@@ -90,17 +80,17 @@ static void
 check_same_accepts(const char *const msg, const ValueType t1, const ValueType t2, const ValueType accepts_mask) {
   if ((t1 & accepts_mask) == 0) {
     std::ostringstream ss;
-    ss << "Invalid left type to " << msg << ": found " << type_t_name(t1);
+    ss << "Invalid left type to " << msg << ": found " << valuetype_name(t1);
     throw RuntimeError(ss.str());
   }
   if ((t2 & accepts_mask) == 0) {
     std::ostringstream ss;
-    ss << "Invalid right type to " << msg << ": found " << type_t_name(t2);
+    ss << "Invalid right type to " << msg << ": found " << valuetype_name(t2);
     throw RuntimeError(ss.str());
   }
   if (t1 != t2) {
     std::ostringstream ss;
-    ss << "Left and right types to " << msg << " do not match. Found " << type_t_name(t1) << " and " << type_t_name(t2);
+    ss << "Left and right types to " << msg << " do not match. Found " << valuetype_name(t1) << " and " << valuetype_name(t2);
     throw RuntimeError(ss.str());
   }
 }
@@ -119,56 +109,21 @@ throw_compile_error(const char *const str, const size_t len) {
 // ============================================================================
 // Value object
 // ============================================================================
-class VariableExpr;
-
-class Value {
-public:
-  ValueType type;
-  union {
-    int64_t _int;
-    const char *_str;
-    const std::regex *_re;
-    const VariableExpr *_variable;
-    const dr::Doc *_doc;
-    const mp::Map *_map;
-  } via;
-
-protected:
-  Value(ValueType type, int64_t value) : type(type) { via._int = value; }
-  Value(ValueType type, const char *value) : type(type) { via._str = value; }
-  Value(ValueType type, const VariableExpr *value) : type(type) { via._variable = value; }
-  Value(ValueType type, const dr::Doc *value) : type(type) { via._doc = value; }
-  Value(ValueType type, const mp::Map *value) : type(type) { via._map = value; }
-  Value(ValueType type, const std::regex *value) : type(type) { via._re = value; }
-
-public:
-  Value(const Value &o) : type(o.type), via(o.via) { }
-  Value(const Value &&o) : type(o.type), via(o.via) { }
-
-  bool
-  to_bool(void) const {
-    switch (type) {
-    case TYPE_ANN: return true;
-    case TYPE_DOC: return true;
-    case TYPE_INTEGER: return via._int;
-    case TYPE_MISSING: return false;
-    case TYPE_REGEX: return true;
-    case TYPE_STORE: return true;
-    case TYPE_STRING: return std::strlen(via._str) != 0;
-    default:
-      assert(!"Should not get here.");
-      return false;
-    }
+bool
+Value::to_bool(void) const {
+  switch (type) {
+  case TYPE_ANN: return true;
+  case TYPE_DOC: return true;
+  case TYPE_INTEGER: return via._int;
+  case TYPE_MISSING: return false;
+  case TYPE_REGEX: return true;
+  case TYPE_STORE: return true;
+  case TYPE_STRING: return std::strlen(via._str) != 0;
+  default:
+    assert(!"Should not get here.");
+    return false;
   }
-
-  static inline Value as_ann(const mp::Map *value) { return Value(TYPE_ANN, value); }
-  static inline Value as_doc(const dr::Doc *value) { return Value(TYPE_DOC, value); }
-  static inline Value as_int(int64_t value) { return Value(TYPE_INTEGER, value); }
-  static inline Value as_missing(const VariableExpr *value) { return Value(TYPE_MISSING, value); }
-  static inline Value as_re(const std::regex *value) { return Value(TYPE_REGEX, value); }
-  static inline Value as_store(const VariableExpr *value) { return Value(TYPE_STORE, value); }
-  static inline Value as_str(const char *value) { return Value(TYPE_STRING, value); }
-};
+}
 
 
 // ============================================================================
@@ -407,7 +362,7 @@ public:
     // If we have an attribute, ensure the variable is an ann or a doc.
     if (!(v.type == TYPE_ANN || v.type == TYPE_DOC)) {
       std::ostringstream msg;
-      msg << "Invalid access to attribute '" << _attribute << "' of variable '" << _token << "' of type " << type_t_name(v.type);
+      msg << "Invalid access to attribute '" << _attribute << "' of variable '" << _token << "' of type " << valuetype_name(v.type);
       throw RuntimeError(msg.str());
     }
 
@@ -831,9 +786,11 @@ Interpreter::_parse_e5(void) {
 
 void
 Interpreter::_parse(void) {
+  if (_tokens.empty())
+    throw CompileError("Query string cannot be empty");
+
   // Parse and consume the tokens.
-  if (!_tokens.empty())
-    _expr = _parse_e1();
+  _expr = _parse_e1();
 
   // Ensure there are no more tokens left to consume.
   if (!_tokens.empty()) {
@@ -866,17 +823,13 @@ Interpreter::compile(const char *const str, const size_t len) {
 }
 
 
-bool
+Value
 Interpreter::eval(const dr::Doc &doc, const uint32_t doc_num) const {
-  if (_expr == nullptr)
-    return true;
-
   EvalContext ctx(doc);
   ctx.set_var("doc", Value::as_doc(&doc));
   ctx.set_var("index", Value::as_int(static_cast<int64_t>(doc_num)));
 
-  const Value v = _expr->eval(ctx);
-  return v.to_bool();
+  return _expr->eval(ctx);
 }
 
 }  // namespace query
