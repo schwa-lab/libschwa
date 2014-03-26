@@ -18,7 +18,7 @@ endif
 schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
 	ragel -C -G2 -o $@ $<
 
-schwa/tokenizer/tokenizer.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
+schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
 	ragel -C -G2 -o $@ $<
 
 # =============================================================================
@@ -124,6 +124,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/docrep_stream.cc \
 		schwa/tokenizer/text_stream.cc \
 		schwa/tokenizer/tokenizer.cc \
+		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 
