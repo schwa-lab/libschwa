@@ -3,7 +3,7 @@
 # =============================================================================
 lib_LTLIBRARIES = libschwa.la
 
-libschwa_la_CXXFLAGS = -W -Wall -Wextra -Werror -pedantic
+libschwa_la_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
 libschwa_la_LIBADD =
 libschwa_la_SOURCES =
 
@@ -174,7 +174,8 @@ TESTS = unittests
 check_LIBRARIES = libschwa_unittest.a
 check_PROGRAMS = unittests
 
-unittests_CPPFLAGS = -I$(srcdir)/../third-party/unittest-cpp/UnitTest++
+unittests_CPPFLAGS = -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
+unittests_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
 unittests_LDADD = \
 		../third-party/unittest-cpp/UnitTest++/libUnitTest++.la \
 		libschwa_unittest.a \
