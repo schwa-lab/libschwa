@@ -37,6 +37,7 @@ private:
   const Formatting _formatting;
   const std::string _store;
   const std::string _doc_id;
+  size_t _doc_id_width;
 
   uint32_t _ndocs;
   std::unordered_map<std::string, uint64_t> _counts;
@@ -59,7 +60,10 @@ public:
       _store(store),
       _doc_id(doc_id),
       _ndocs(0)
-    { }
+    {
+    if (!_doc_id.empty())
+      _interpreter.compile(_doc_id);
+  }
 
   void finalise(void);
   void process_doc(const dr::Doc &doc);
@@ -79,9 +83,7 @@ Processor::Impl::_int_to_str(const dq::Value &v) {
 
 std::string
 Processor::Impl::_get_doc_id(const dr::Doc &doc) const {
-  std::cerr << "_get_doc_id before" << std::endl;
   const dq::Value v = _interpreter(doc, _ndocs - 1);
-  std::cerr << "_get_doc_id after " << v.type << std::endl;
   switch (v.type) {
   case dq::TYPE_STRING: return v.via._str;
   case dq::TYPE_INTEGER: return _int_to_str(v);
@@ -95,21 +97,28 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
   const dr::RTManager &rt = *(doc.rt());
   const dr::RTSchema &schema = *(rt.doc);
 
-  // Increment the number of docs processed.
-  ++_ndocs;
-
-  // If we are outputting counts per store and we are the first document to be processed, initialise that state.
-  if (_all_stores && _ndocs == 1) {
-    // Calculate the widths per column.
-    for (auto &store : schema.stores)
-      _widths[store->serial] = std::max(MIN_WIDTH, store->serial.size());
+  // Initialise state.
+  if (_ndocs == 0) {
     if (!_doc_id.empty())
-      _widths["__doc_id__"] = std::max(MIN_WIDTH, _get_doc_id(doc).size());
+      _doc_id_width = std::max(MIN_WIDTH, _get_doc_id(doc).size());
 
-    // Output the column headings.
+    if (_all_stores || !_store.empty()) {
+      // Calculate the widths per column.
+      for (auto &store : schema.stores) {
+        bool keep = true;
+        if (!_store.empty())
+          keep = store->serial == _store;
+        if (keep)
+          _widths[store->serial] = std::max(MIN_WIDTH, store->serial.size());
+      }
+    }
+  }
+
+  // Output the column headings.
+  if (_ndocs == 0 && !_widths.empty()) {
     if (_formatting == Formatting::ALIGNED) {
       if (!_doc_id.empty())
-        _out << std::setw(_widths["__doc_id__"]) << "doc-id ";
+        _out << std::setw(_doc_id_width) << "doc-id ";
       _out << std::setw(NDOCS_WIDTH) << "ndocs";
       for (auto &pair : _widths)
         _out << ' ' << std::setw(pair.second) << pair.first;
@@ -125,8 +134,20 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
     }
   }
 
-  // Output the document count/doc_id if per_doc.
-  if (_per_doc && _all_stores) {
+  // Increment the number of docs processed.
+  ++_ndocs;
+
+  // Output the doc_id if per doc.
+  if (_per_doc && !_doc_id.empty()) {
+    const std::string doc_id = _get_doc_id(doc);
+    if (_formatting == Formatting::ALIGNED)
+      _out << std::setw(_doc_id_width) << doc_id << ' ';
+    else
+      _out << doc_id << '\t';
+  }
+
+  // Output the document count if per_doc.
+  if (_per_doc && !_widths.empty()) {
     const uint32_t count = _cumulative ? _ndocs : 1;
     if (_formatting == Formatting::ALIGNED)
       _out << std::setw(NDOCS_WIDTH) << count;
@@ -143,7 +164,7 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
   }
 
   // Output the counts per store.
-  if (_per_doc && _all_stores) {
+  if (_per_doc && !_widths.empty()) {
     for (auto &pair : _widths) {
       const uint64_t count = _cumulative ? _counts[pair.first] : _local_counts[pair.first];
       if (_formatting == Formatting::ALIGNED)
@@ -151,13 +172,22 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
       else
         _out << '\t' << count;
     }
-    _out << std::endl;
   }
+  if (_per_doc)
+    _out << std::endl;
 }
 
 
 void
 Processor::Impl::finalise(void) {
+  // Output the doc_id.
+  if (!_doc_id.empty()) {
+    if (_formatting == Formatting::ALIGNED)
+      _out << std::setw(_doc_id_width) << "" << ' ';
+    else
+      _out << '\t';
+  }
+
   // Output the document count.
   if (_all_stores) {
     if (_formatting == Formatting::ALIGNED)
