@@ -1,21 +1,22 @@
 
-#line 1 "../../ragel/dr-grep/language.rl"
+#line 1 "../ragel/dr-query/language.rl"
 // vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #define PUSH_TOKEN(type) _push_token(TokenType::type, ts, te)
 
 
-#line 65 "../../ragel/dr-grep/language.rl"
+#line 65 "../ragel/dr-query/language.rl"
 
 
 
-#include <dr-grep/language.h>
+#include <schwa/dr/query.h>
 
 namespace schwa {
-namespace dr_grep {
+namespace dr {
+namespace query {
 
 
-#line 19 "language_gen.cc"
+#line 20 "schwa/dr/query_gen.cc"
 static const int language_start = 11;
 static const int language_first_final = 11;
 static const int language_error = 0;
@@ -23,7 +24,7 @@ static const int language_error = 0;
 static const int language_en_main = 11;
 
 
-#line 74 "../../ragel/dr-grep/language.rl"
+#line 75 "../ragel/dr-query/language.rl"
 
 void
 Interpreter::_tokenise(const char *const str, const size_t len) {
@@ -36,7 +37,7 @@ Interpreter::_tokenise(const char *const str, const size_t len) {
 
   // Initialise and run the FSA.
   
-#line 40 "language_gen.cc"
+#line 41 "schwa/dr/query_gen.cc"
 	{
 	cs = language_start;
 	ts = 0;
@@ -44,16 +45,16 @@ Interpreter::_tokenise(const char *const str, const size_t len) {
 	act = 0;
 	}
 
-#line 86 "../../ragel/dr-grep/language.rl"
+#line 87 "../ragel/dr-query/language.rl"
   
-#line 50 "language_gen.cc"
+#line 51 "schwa/dr/query_gen.cc"
 	{
 	if ( p == pe )
 		goto _test_eof;
 	switch ( cs )
 	{
 tr0:
-#line 51 "../../ragel/dr-grep/language.rl"
+#line 51 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(OP_COMPARISON); }}
 	goto st11;
 tr2:
@@ -75,75 +76,75 @@ tr2:
 	}
 	goto st11;
 tr4:
-#line 48 "../../ragel/dr-grep/language.rl"
+#line 48 "../ragel/dr-query/language.rl"
 	{te = p+1;{ _push_token(TokenType::LITERAL_STRING, ts + 1, te - 1); }}
 	goto st11;
 tr7:
-#line 50 "../../ragel/dr-grep/language.rl"
+#line 50 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(OP_BOOLEAN); }}
 	goto st11;
 tr9:
-#line 53 "../../ragel/dr-grep/language.rl"
+#line 53 "../ragel/dr-query/language.rl"
 	{{p = ((te))-1;}{ PUSH_TOKEN(OP_NUMERIC4); }}
 	goto st11;
 tr11:
-#line 47 "../../ragel/dr-grep/language.rl"
+#line 47 "../ragel/dr-query/language.rl"
 	{te = p+1;{ _push_token(TokenType::LITERAL_REGEX, ts + 1, te - 1); }}
 	goto st11;
 tr17:
-#line 52 "../../ragel/dr-grep/language.rl"
+#line 52 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(OP_NUMERIC3); }}
 	goto st11;
 tr19:
-#line 59 "../../ragel/dr-grep/language.rl"
+#line 59 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(OPEN_PAREN); }}
 	goto st11;
 tr20:
-#line 60 "../../ragel/dr-grep/language.rl"
+#line 60 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(CLOSE_PAREN); }}
 	goto st11;
 tr21:
-#line 53 "../../ragel/dr-grep/language.rl"
+#line 53 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(OP_NUMERIC4); }}
 	goto st11;
 tr23:
-#line 61 "../../ragel/dr-grep/language.rl"
+#line 61 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(COMMA); }}
 	goto st11;
 tr26:
-#line 46 "../../ragel/dr-grep/language.rl"
+#line 46 "../ragel/dr-query/language.rl"
 	{te = p+1;{ PUSH_TOKEN(LITERAL_INTEGER); }}
 	goto st11;
 tr35:
-#line 63 "../../ragel/dr-grep/language.rl"
+#line 63 "../ragel/dr-query/language.rl"
 	{te = p;p--;}
 	goto st11;
 tr36:
-#line 48 "../../ragel/dr-grep/language.rl"
+#line 48 "../ragel/dr-query/language.rl"
 	{te = p;p--;{ _push_token(TokenType::LITERAL_STRING, ts + 1, te - 1); }}
 	goto st11;
 tr37:
-#line 52 "../../ragel/dr-grep/language.rl"
+#line 52 "../ragel/dr-query/language.rl"
 	{te = p;p--;{ PUSH_TOKEN(OP_NUMERIC3); }}
 	goto st11;
 tr38:
-#line 46 "../../ragel/dr-grep/language.rl"
+#line 46 "../ragel/dr-query/language.rl"
 	{te = p;p--;{ PUSH_TOKEN(LITERAL_INTEGER); }}
 	goto st11;
 tr39:
-#line 57 "../../ragel/dr-grep/language.rl"
+#line 57 "../ragel/dr-query/language.rl"
 	{te = p;p--;{ _push_token(TokenType::VAR_ATTRIBUTE, ts + 1, te); }}
 	goto st11;
 tr40:
-#line 53 "../../ragel/dr-grep/language.rl"
+#line 53 "../ragel/dr-query/language.rl"
 	{te = p;p--;{ PUSH_TOKEN(OP_NUMERIC4); }}
 	goto st11;
 tr41:
-#line 51 "../../ragel/dr-grep/language.rl"
+#line 51 "../ragel/dr-query/language.rl"
 	{te = p;p--;{ PUSH_TOKEN(OP_COMPARISON); }}
 	goto st11;
 tr42:
-#line 56 "../../ragel/dr-grep/language.rl"
+#line 56 "../ragel/dr-query/language.rl"
 	{te = p;p--;{ PUSH_TOKEN(VAR); }}
 	goto st11;
 st11:
@@ -156,7 +157,7 @@ st11:
 case 11:
 #line 1 "NONE"
 	{ts = p;}
-#line 160 "language_gen.cc"
+#line 161 "schwa/dr/query_gen.cc"
 	switch( (*p) ) {
 		case 32: goto st12;
 		case 33: goto st1;
@@ -237,14 +238,14 @@ case 3:
 tr6:
 #line 1 "NONE"
 	{te = p+1;}
-#line 48 "../../ragel/dr-grep/language.rl"
+#line 48 "../ragel/dr-query/language.rl"
 	{act = 3;}
 	goto st13;
 st13:
 	if ( ++p == pe )
 		goto _test_eof13;
 case 13:
-#line 248 "language_gen.cc"
+#line 249 "schwa/dr/query_gen.cc"
 	switch( (*p) ) {
 		case 34: goto tr4;
 		case 92: goto st3;
@@ -308,7 +309,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 312 "language_gen.cc"
+#line 313 "schwa/dr/query_gen.cc"
 	switch( (*p) ) {
 		case 10: goto tr40;
 		case 42: goto tr40;
@@ -362,20 +363,20 @@ case 18:
 tr29:
 #line 1 "NONE"
 	{te = p+1;}
-#line 56 "../../ragel/dr-grep/language.rl"
+#line 56 "../ragel/dr-query/language.rl"
 	{act = 9;}
 	goto st19;
 tr45:
 #line 1 "NONE"
 	{te = p+1;}
-#line 55 "../../ragel/dr-grep/language.rl"
+#line 55 "../ragel/dr-query/language.rl"
 	{act = 8;}
 	goto st19;
 st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 379 "language_gen.cc"
+#line 380 "schwa/dr/query_gen.cc"
 	if ( (*p) == 95 )
 		goto tr29;
 	if ( (*p) < 65 ) {
@@ -611,12 +612,13 @@ case 10:
 	_out: {}
 	}
 
-#line 87 "../../ragel/dr-grep/language.rl"
+#line 88 "../ragel/dr-query/language.rl"
 
   // Did the FSA terminate on an accepting state?
   if (cs < language_first_final)
     _throw_compile_error(p, pe);
 }
 
-}  // namesapce dr_grep
+}  // namespace query
+}  // namesapce dr
 }  // namespace schwa

@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 /*
 Below is the grammar definition for the query language. This ragel machine
-defined in src/ragel/dr-grep/language.rl performs the lexing and populates
+defined in src/ragel/dr-query/language.rl performs the lexing and populates
 the `_tokens' deque. A recursive descent parse over the tokens is performed
 here, buildling up an expresssion tree as it goes along.
 
@@ -20,7 +20,7 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
        | literal_str
 
 */
-#include <dr-grep/language.h>
+#include <schwa/dr/query.h>
 
 #include <algorithm>
 #include <cassert>
@@ -45,7 +45,8 @@ namespace mp = schwa::msgpack;
 
 
 namespace schwa {
-namespace dr_grep {
+namespace dr {
+namespace query {
 
 using ValueType = uint32_t;
 static constexpr const ValueType TYPE_ANN     = 1 << 0;
@@ -878,5 +879,6 @@ Interpreter::eval(const dr::Doc &doc, const uint32_t doc_num) const {
   return v.to_bool();
 }
 
-}  // namesapce dr_grep
+}  // namespace query
+}  // namesapce dr
 }  // namespace schwa

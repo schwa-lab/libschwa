@@ -65,10 +65,11 @@
 }%%
 
 
-#include <dr-grep/language.h>
+#include <schwa/dr/query.h>
 
 namespace schwa {
-namespace dr_grep {
+namespace dr {
+namespace query {
 
 %% write data;
 
@@ -90,5 +91,6 @@ Interpreter::_tokenise(const char *const str, const size_t len) {
     _throw_compile_error(p, pe);
 }
 
-}  // namesapce dr_grep
+}  // namespace query
+}  // namesapce dr
 }  // namespace schwa

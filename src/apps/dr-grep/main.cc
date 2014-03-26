@@ -4,9 +4,9 @@
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
+#include <schwa/dr/query.h>
 #include <schwa/io/logging.h>
 
-#include <dr-grep/language.h>
 #include <dr-grep/main.h>
 
 namespace cf = schwa::config;
@@ -25,7 +25,7 @@ main(std::istream &input, std::ostream &output, const std::string &expression) {
   dr::Writer writer(output, schema);
 
   // Construct an interpreter and compile the expression.
-  schwa::dr_grep::Interpreter interpreter;
+  dr::query::Interpreter interpreter;
   interpreter.compile(expression);
 
   // Read the documents off the input stream and evaluate them against the expression.

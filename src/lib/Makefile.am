@@ -15,6 +15,9 @@ endif
 # =============================================================================
 # Ragel
 # =============================================================================
+schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
+	ragel -C -G2 -o $@ $<
+
 schwa/tokenizer/tokenizer.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
 	ragel -C -G2 -o $@ $<
 
@@ -43,6 +46,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/dr/fields.h \
 		schwa/dr/helpers.h \
 		schwa/dr/istore.h \
+		schwa/dr/query.h \
 		schwa/dr/reader.h \
 		schwa/dr/runtime.h \
 		schwa/dr/schema.h \
@@ -96,6 +100,8 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/config/serialisation.cc \
 		schwa/dr/config.cc \
 		schwa/dr/field_defs.cc \
+		schwa/dr/query.cc \
+		schwa/dr/query_gen.cc \
 		schwa/dr/reader.cc \
 		schwa/dr/runtime.cc \
 		schwa/dr/schema.cc \
