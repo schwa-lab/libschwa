@@ -2,15 +2,19 @@
 #include <dr-count/processor.h>
 
 #include <algorithm>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 
 #include <schwa/dr.h>
+#include <schwa/dr/query.h>
 
 namespace dr = schwa::dr;
+namespace dq = schwa::dr::query;
 
 
 namespace schwa {
@@ -31,20 +35,29 @@ private:
   const bool _cumulative;
   const bool _per_doc;
   const Formatting _formatting;
+  const std::string _store;
+  const std::string _doc_id;
 
   uint32_t _ndocs;
   std::unordered_map<std::string, uint64_t> _counts;
-  std::unordered_map<std::string, uint64_t> _local_counts;
+  std::unordered_map<std::string, uint32_t> _local_counts;
   std::map<std::string, size_t> _widths;
 
+  dq::Interpreter _interpreter;
+
+  std::string _get_doc_id(const dr::Doc &doc) const;
+  static std::string _int_to_str(const dq::Value &v);
+
 public:
-  Impl(std::ostream &out, bool all_stores, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting) :
+  Impl(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) :
       _out(out),
       _all_stores(all_stores),
       _count_bytes(count_bytes),
       _cumulative(cumulative),
       _per_doc(per_doc),
       _formatting(formatting),
+      _store(store),
+      _doc_id(doc_id),
       _ndocs(0)
     { }
 
@@ -54,6 +67,27 @@ public:
 
 const size_t Processor::Impl::MIN_WIDTH = 10;
 const size_t Processor::Impl::NDOCS_WIDTH = 10;
+
+
+std::string
+Processor::Impl::_int_to_str(const dq::Value &v) {
+  std::ostringstream ss;
+  ss << v.via._int;
+  return ss.str();
+}
+
+
+std::string
+Processor::Impl::_get_doc_id(const dr::Doc &doc) const {
+  std::cerr << "_get_doc_id before" << std::endl;
+  const dq::Value v = _interpreter(doc, _ndocs - 1);
+  std::cerr << "_get_doc_id after " << v.type << std::endl;
+  switch (v.type) {
+  case dq::TYPE_STRING: return v.via._str;
+  case dq::TYPE_INTEGER: return _int_to_str(v);
+  default: return std::string("<") + dq::valuetype_name(v.type) + ">";
+  }
+}
 
 
 void
@@ -69,15 +103,21 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
     // Calculate the widths per column.
     for (auto &store : schema.stores)
       _widths[store->serial] = std::max(MIN_WIDTH, store->serial.size());
+    if (!_doc_id.empty())
+      _widths["__doc_id__"] = std::max(MIN_WIDTH, _get_doc_id(doc).size());
 
     // Output the column headings.
     if (_formatting == Formatting::ALIGNED) {
+      if (!_doc_id.empty())
+        _out << std::setw(_widths["__doc_id__"]) << "doc-id ";
       _out << std::setw(NDOCS_WIDTH) << "ndocs";
       for (auto &pair : _widths)
         _out << ' ' << std::setw(pair.second) << pair.first;
       _out << std::endl;
     }
     else {
+      if (!_doc_id.empty())
+        _out << "doc-id\t";
       _out << "ndocs";
       for (auto &pair : _widths)
         _out << '\t' << pair.first;
@@ -85,7 +125,7 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
     }
   }
 
-  // Output the document count if per_doc.
+  // Output the document count/doc_id if per_doc.
   if (_per_doc && _all_stores) {
     const uint32_t count = _cumulative ? _ndocs : 1;
     if (_formatting == Formatting::ALIGNED)
@@ -97,7 +137,7 @@ Processor::Impl::process_doc(const dr::Doc &doc) {
   // For each store, add its counts to the stream counts.
   _local_counts.clear();
   for (auto &store : schema.stores) {
-    uint64_t count = _count_bytes ? store->lazy_nbytes : store->lazy_nelem;
+    const uint32_t count = _count_bytes ? store->lazy_nbytes : store->lazy_nelem;
     _counts[store->serial] += count;
     _local_counts[store->serial] = count;
   }
@@ -145,7 +185,7 @@ Processor::Impl::finalise(void) {
 // ============================================================================
 // Processor
 // ============================================================================
-Processor::Processor(std::ostream &out, bool all_stores, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting) : _impl(new Processor::Impl(out, all_stores, count_bytes, cumulative, per_doc, formatting)) { }
+Processor::Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) : _impl(new Processor::Impl(out, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id)) { }
 
 Processor::~Processor(void) {
   delete _impl;
