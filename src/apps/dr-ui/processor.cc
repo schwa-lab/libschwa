@@ -50,7 +50,7 @@ private:
 public:
   Impl(std::ostream &out) : _out(out), _doc(nullptr), _indent(0) { }
 
-  void process_doc(const dr::Doc &doc, unsigned int doc_num);
+  void process_doc(const dr::Doc &doc, uint32_t doc_num);
 };
 
 
@@ -60,7 +60,7 @@ const std::string Processor::Impl::REPR_UNKNOWN("<UNKNOWN VALUE>");
 
 
 void
-Processor::Impl::process_doc(const dr::Doc &doc, const unsigned int doc_num) {
+Processor::Impl::process_doc(const dr::Doc &doc, const uint32_t doc_num) {
   // Reset our state.
   _doc = &doc;
   _indent = 0;
@@ -324,7 +324,7 @@ Processor::~Processor(void) {
 }
 
 void
-Processor::process_doc(const dr::Doc &doc, const unsigned int doc_num) {
+Processor::process_doc(const dr::Doc &doc, const uint32_t doc_num) {
   _impl->process_doc(doc, doc_num);
 }
 

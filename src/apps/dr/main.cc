@@ -19,7 +19,9 @@
 
 #include <dr-count/main.h>
 #include <dr-dist/main.h>
+#include <dr-grep/main.h>
 #include <dr-head/main.h>
+#include <dr-sample/main.h>
 #include <dr-tail/main.h>
 #include <dr-ui/main.h>
 
@@ -37,7 +39,7 @@ class Main : public cf::Main {
 protected:
   std::vector<std::pair<const char *, const char *>> _commands;
 
-  inline void _add(const char *name, const char *desc) { _commands.push_back(std::pair<const char *, const char *>(name + 3, desc)); }
+  void _add(const char *name, const char *desc);
   virtual void _help_self(std::ostream &out, const unsigned int) const override;
 
 public:
@@ -48,25 +50,32 @@ public:
 Main::Main(const std::string &name, const std::string &desc) : cf::Main(name, desc) {
   _add(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
   _add(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
+  _add(schwa::dr_grep::PROGRAM_NAME, schwa::dr_grep::PROGRAM_DESC);
   _add(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
+  _add(schwa::dr_sample::PROGRAM_NAME, schwa::dr_sample::PROGRAM_DESC);
   _add(schwa::dr_tail::PROGRAM_NAME, schwa::dr_tail::PROGRAM_DESC);
   _add(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
 }
 
 
 void
+Main::_add(const char *const name, const char *const desc) {
+  _commands.push_back(std::pair<const char *, const char *>(name + 3, desc));
+}
+
+
+void
 Main::_help_self(std::ostream &out, const unsigned int) const {
   out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
-  //out << "  Usage: " << _full_name << " [options] (dist|head|list-stores|tail|ui) [command options]" << std::endl;
   out << "  Usage: " << _full_name << " [options] (";
   for (decltype(_commands)::size_type i = 0; i != _commands.size(); ++i) {
     if (i != 0)
       out << '|';
     out << _commands[i].first;
   }
-  out << ") [command options]" << std::endl;
+  out << ") [command options]";
   for (auto &pair : _commands)
-    out << "    " << port::BOLD << pair.first << port::OFF << ": " << pair.second << std::endl;
+    out << std::endl <<  "    " << port::BOLD << pair.first << port::OFF << ": " << pair.second;
 }
 
 

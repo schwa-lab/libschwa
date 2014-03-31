@@ -27,7 +27,7 @@ namespace schwa {
       Impl *_impl;
 
     public:
-      Processor(std::ostream &out, bool all_stores, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting);
+      Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id);
       ~Processor(void);
 
       void finalise(void);

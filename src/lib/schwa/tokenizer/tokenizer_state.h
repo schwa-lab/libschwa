@@ -2,21 +2,22 @@
 #ifndef SCHWA_TOKENIZER_TOKENIZER_STATE_H_
 #define SCHWA_TOKENIZER_TOKENIZER_STATE_H_
 
+#include <schwa/tokenizer/common.h>
 #include <schwa/tokenizer/tokenizer.h>
+
 
 namespace schwa {
   namespace tokenizer {
 
-    static const unsigned int MAX_SENTENCE = 256;
 
     struct Tokenizer::State {
     public:
-      int cs; // current state of the FSA
-      const char *ts; // beginning of the current match (first character)
-      const char *te; // end of the current match (one past last char)
-      int act; // last pattern matched (for back tracking)
+      int cs;              //!< Current state of the FSA.
+      const char *ts;      //!< Beginning of the current match (first character).
+      const char *te;      //!< End of the current match (one past last char).
+      int act;             //!< last pattern matched (for back tracking)
 
-      const char *offset; // beginning of the current buffer + bytes consumed
+      const char *offset;  //!< Beginning of the current buffer + bytes consumed.
 
       const char *n1;
       const char *n2;
@@ -33,7 +34,7 @@ namespace schwa {
       bool in_double_quotes;
       bool in_single_quotes;
 
-      unsigned int sentence_length = 0; // Need to track word count so we can split on long sentences.
+      size_t sentence_length = 0;  //!< Used to track word count so we can split on long sentences.
 
       State(void) : cs(0), ts(0), te(0), act(0), offset(0), n1(0), n2(0), suffix(0), in_document(false), in_heading(false), in_paragraph(false), in_list(false), in_item(false), in_sentence(false), seen_terminator(false), in_double_quotes(false), in_single_quotes(false) { }
 
@@ -45,15 +46,15 @@ namespace schwa {
       void
       check_sentence_length(Stream &dest) {
         sentence_length++;
-        if (sentence_length >= MAX_SENTENCE) {
+        if (sentence_length >= MAX_SENTENCE_LENGTH) {
           // Split on long sentences
           end_sentence(dest);
-	  ensure_sentence(dest);
+          ensure_sentence(dest);
         }
       }
 
       void
-      add(Type type, Stream &dest, const char *norm=0) {
+      add(Type type, Stream &dest, const char *norm=nullptr) {
         dest.add(type, ts, ts - offset, te - ts, norm ? norm : n1);
         check_sentence_length(dest);
         n1 = n2 = 0;
@@ -61,7 +62,7 @@ namespace schwa {
       }
 
       void
-      split(Type type1, Type type2, Stream &dest, const char *norm1=0, const char *norm2=0) {
+      split(Type type1, Type type2, Stream &dest, const char *norm1=nullptr, const char *norm2=nullptr) {
         const char *split = te - suffix;
         dest.add(type1, ts, ts - offset, split - ts, norm1 ? norm1 : n1);
         check_sentence_length(dest);
@@ -143,7 +144,7 @@ namespace schwa {
 
       void
       end_sentence(Stream &dest) {
-        if (!in_sentence) 
+        if (!in_sentence)
           return;
 
         dest.end_sentence();

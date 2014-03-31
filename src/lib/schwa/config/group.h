@@ -25,6 +25,8 @@ namespace schwa {
       virtual void _pre_add(ConfigNode &child);
       virtual void _post_add(ConfigNode &child);
 
+      friend class Main;  // So that Group can access _help.
+
     public:
       Group(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
       virtual ~Group(void) { }

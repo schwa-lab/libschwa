@@ -9,6 +9,10 @@
 namespace schwa {
   namespace io {
 
+    /**
+     * Concrete Source implementation which attempts to mmap a file, and then reads from the mapped
+     * region. If the file failes to be opened or mapped, the constructor throws an IOException.
+     **/
     class MMappedSource : public Source {
     private:
       class Impl;
@@ -19,10 +23,13 @@ namespace schwa {
       MMappedSource(const char *filename);
       virtual ~MMappedSource(void);
 
-      const char *data(void) const;
-      size_t size(void) const;
-
       size_t read(char *buffer, size_t nbytes) override;
+
+      /** Returns a pointer to the underlying mmapped region. */
+      const char *data(void) const;
+
+      /** Returns the size (in bytes) of the mmapped region. */
+      size_t size(void) const;
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(MMappedSource);

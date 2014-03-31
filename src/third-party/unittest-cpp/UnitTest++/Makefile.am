@@ -1,6 +1,52 @@
 check_LTLIBRARIES = libUnitTest++.la
 
-#pkgincludedir = $(includedir)/UnitTest++
-#nobase_pkginclude_HEADERS = UnitTest++.h UnitTestPP.h Config.h HelperMacros.h Test.h TestDetails.h TestList.h TestSuite.h TestResults.h TestMacros.h CheckMacros.h TestRunner.h TimeConstraint.h ExecuteTest.h AssertException.h MemoryOutStream.h CurrentTest.h Posix/SignalTranslator.h Checks.h TimeHelpers.h Posix/TimeHelpers.h ExceptionMacros.h ReportAssert.h ReportAssertImpl.h CompositeTestReporter.h
-
-libUnitTest___la_SOURCES = AssertException.cpp Test.cpp Checks.cpp TestRunner.cpp TestResults.cpp TestReporter.cpp TestReporterStdout.cpp ReportAssert.cpp TestList.cpp TimeConstraint.cpp TestDetails.cpp MemoryOutStream.cpp DeferredTestReporter.cpp DeferredTestResult.cpp XmlTestReporter.cpp CurrentTest.cpp Posix/SignalTranslator.cpp Posix/TimeHelpers.cpp CompositeTestReporter.cpp
+libUnitTest___la_SOURCES = \
+		AssertException.cpp \
+		AssertException.h \
+		CheckMacros.h \
+		Checks.cpp \
+		Checks.h \
+		CompositeTestReporter.cpp \
+		CompositeTestReporter.h \
+		Config.h \
+		CurrentTest.cpp \
+		CurrentTest.h \
+		DeferredTestReporter.cpp \
+		DeferredTestReporter.h \
+		DeferredTestResult.cpp \
+		DeferredTestResult.h \
+		ExceptionMacros.h \
+		ExecuteTest.h \
+		HelperMacros.h \
+		MemoryOutStream.cpp \
+		MemoryOutStream.h \
+		Posix/SignalTranslator.cpp \
+		Posix/SignalTranslator.h \
+		Posix/TimeHelpers.cpp \
+		Posix/TimeHelpers.h \
+		ReportAssert.cpp \
+		ReportAssert.h \
+		ReportAssertImpl.h \
+		Test.cpp \
+		Test.h \
+		TestDetails.cpp \
+		TestDetails.h \
+		TestList.cpp \
+		TestList.h \
+		TestMacros.h \
+		TestReporter.cpp \
+		TestReporter.h \
+		TestReporterStdout.cpp \
+		TestReporterStdout.h \
+		TestResults.cpp \
+		TestResults.h \
+		TestRunner.cpp \
+		TestRunner.h \
+		TestSuite.h \
+		TimeConstraint.cpp \
+		TimeConstraint.h \
+		TimeHelpers.h \
+		UnitTest++.h \
+		UnitTestPP.h \
+		XmlTestReporter.cpp \
+		XmlTestReporter.h

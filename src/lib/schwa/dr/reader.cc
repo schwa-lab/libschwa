@@ -69,7 +69,6 @@ Reader::read(Doc &doc) {
   // read the klasses header
   // <klasses> ::= [ <klass> ]
   const uint32_t nklasses = mp::read_array_size(_in);
-
   for (uint32_t k = 0; k != nklasses; ++k) {
     // <klass> ::= ( <klass_name>, <fields> )
     const uint32_t npair = mp::read_array_size(_in);
@@ -186,12 +185,12 @@ Reader::read(Doc &doc) {
 
   if (!found_klass_id_meta)
     throw ReaderException("Did not read in a __meta__ class");
-  rt.doc = rt.klasses[klass_id_meta];
+  RTSchema *const rt_doc_schema = rt.klasses[klass_id_meta];
+  rt.doc = rt_doc_schema;
 
   // read the stores header
   // <stores> ::= [ <store> ]
   const uint32_t nstores = mp::read_array_size(_in);
-
   for (uint32_t n = 0; n != nstores; ++n) {
     // <store> ::= ( <store_name>, <klass_id>, <store_nelem> )
     const uint32_t ntriple = mp::read_array_size(_in);
@@ -220,25 +219,24 @@ Reader::read(Doc &doc) {
       }
     }
 
+    RTSchema *const klass = rt.klasses[klass_id];
     RTStoreDef *rtstore;
     if (def == nullptr)
-      rtstore = new RTStoreDef(n, store_name, rt.klasses[klass_id], nullptr, 0, nelem);
+      rtstore = new RTStoreDef(n, store_name, klass, nullptr, 0, nelem);
     else
-      rtstore = new RTStoreDef(n, store_name, rt.klasses[klass_id], def);
-    rt.klasses[klass_id_meta]->stores.push_back(rtstore);
+      rtstore = new RTStoreDef(n, store_name, klass, def);
+    rt_doc_schema->stores.push_back(rtstore);
 
     // ensure that the stream store and the static store agree on the klass they're storing
     if (!rtstore->is_lazy()) {
       const TypeInfo &store_ptr_type = def->pointer_type();
-
-      if (rt.klasses[klass_id]->is_lazy()) {
+      if (klass->is_lazy()) {
         std::stringstream msg;
         msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the store on the stream points to a lazy type.";
         throw ReaderException(msg.str());
       }
 
-      const TypeInfo &klass_ptr_type = rt.klasses[klass_id]->def->type;
-
+      const TypeInfo &klass_ptr_type = klass->def->type;
       if (store_ptr_type != klass_ptr_type) {
         std::stringstream msg;
         msg << "Store '" << store_name << "' points to " << store_ptr_type << " but the stream says it points to " << klass_ptr_type;
@@ -306,8 +304,8 @@ Reader::read(Doc &doc) {
       }
 
       // Attach the lazy fields to the doc.
-      rt.klasses[klass_id_meta]->lazy_data = lazy_bytes;
-      rt.klasses[klass_id_meta]->lazy_nbytes = instances_nbytes;
+      rt_doc_schema->lazy_data = lazy_bytes;
+      rt_doc_schema->lazy_nbytes = instances_nbytes;
 
       // Keep track of this buffer so we know to dealloc it later.
       rt.lazy_buffers.push_back(lazy_bytes);
@@ -339,7 +337,7 @@ Reader::read(Doc &doc) {
     const uint32_t size = mp::read_map_size(reader);
     for (uint32_t i = 0; i != size; ++i) {
       const uint32_t key = static_cast<uint32_t>(mp::read_uint(reader));
-      RTFieldDef &field = *rt.klasses[klass_id_meta]->fields[key];
+      RTFieldDef &field = *rt_doc_schema->fields[key];
 
       // Deserialize the field value if required.
       if (field.is_lazy()) {
@@ -379,7 +377,7 @@ Reader::read(Doc &doc) {
 
   // read the store instances
   // <instances_groups> ::= <instances_group>*
-  for (auto &store : rt.klasses[klass_id_meta]->stores) {
+  for (auto &store : rt_doc_schema->stores) {
     // <instances_group>  ::= <instances_nbytes> <instances>
     const size_t instances_nbytes = mp::read_uint(_in);
 

@@ -3,7 +3,7 @@
 # =============================================================================
 lib_LTLIBRARIES = libschwa.la
 
-libschwa_la_CXXFLAGS = -W -Wall -Wextra -Werror -pedantic
+libschwa_la_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
 libschwa_la_LIBADD =
 libschwa_la_SOURCES =
 
@@ -15,8 +15,11 @@ endif
 # =============================================================================
 # Ragel
 # =============================================================================
-schwa/tokenizer/tokenizer.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
-	ragel -G2 -o $@ $<
+schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
+	ragel -C -G2 -o $@ $<
+
+schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
+	ragel -C -G2 -o $@ $<
 
 # =============================================================================
 # Scafolding
@@ -43,6 +46,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/dr/fields.h \
 		schwa/dr/helpers.h \
 		schwa/dr/istore.h \
+		schwa/dr/query.h \
 		schwa/dr/reader.h \
 		schwa/dr/runtime.h \
 		schwa/dr/schema.h \
@@ -63,6 +67,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/source.h \
 		schwa/io/traits.h \
 		schwa/io/unsafe_array_writer.h \
+		schwa/io/utils.h \
 		schwa/io/write_buffer.h \
 		schwa/macros.h \
 		schwa/mpl/if.h \
@@ -84,6 +89,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/tokenizer/tokenizer_state.h \
 		schwa/tokenizer.h \
 		schwa/utils/enums.h \
+		schwa/utils/hash.h \
 		schwa/utils/shlex.h \
 		schwa/version.h
 
@@ -95,6 +101,8 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/config/serialisation.cc \
 		schwa/dr/config.cc \
 		schwa/dr/field_defs.cc \
+		schwa/dr/query.cc \
+		schwa/dr/query_gen.cc \
 		schwa/dr/reader.cc \
 		schwa/dr/runtime.cc \
 		schwa/dr/schema.cc \
@@ -106,6 +114,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/istream_source.cc \
 		schwa/io/logging.cc \
 		schwa/io/mmapped_source.cc \
+		schwa/io/utils.cc \
 		schwa/io/write_buffer.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/enums.cc \
@@ -116,6 +125,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/docrep_stream.cc \
 		schwa/tokenizer/text_stream.cc \
 		schwa/tokenizer/tokenizer.cc \
+		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 
@@ -166,7 +176,8 @@ TESTS = unittests
 check_LIBRARIES = libschwa_unittest.a
 check_PROGRAMS = unittests
 
-unittests_CPPFLAGS = -I$(srcdir)/../third-party/unittest-cpp/UnitTest++
+unittests_CPPFLAGS = -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
+unittests_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
 unittests_LDADD = \
 		../third-party/unittest-cpp/UnitTest++/libUnitTest++.la \
 		libschwa_unittest.a \

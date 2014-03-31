@@ -10,6 +10,7 @@
 #include <schwa/dr.h>
 #include <schwa/tokenizer/stream.h>
 
+
 namespace schwa {
   namespace tokenizer {
 
@@ -124,8 +125,8 @@ namespace schwa {
       DocrepStream(std::ostream &out, Doc::Schema &dschema, bool normalise=true);
       virtual ~DocrepStream(void);
 
-      void add(Type, const char *raw, offset_type, offset_type len, const char *norm=0) override;
-      void error(const char *, offset_type, offset_type) { }
+      void add(Type, const char *raw, size_t begin, size_t len, const char *norm=nullptr) override;
+      void error(const char *raw, size_t begin, size_t len);
 
       void begin_sentence(void) override;
       void end_sentence(void) override;
@@ -133,8 +134,8 @@ namespace schwa {
       void begin_paragraph(void) override;
       void end_paragraph(void) override;
 
-      void begin_heading(int) override { }
-      void end_heading(int) override { }
+      void begin_heading(int depth) override;
+      void end_heading(int depth) override;
 
       void begin_list(void) override { }
       void end_list(void) override { }

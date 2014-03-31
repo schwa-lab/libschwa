@@ -44,6 +44,7 @@ namespace schwa {
       virtual void _help_self(std::ostream &out, unsigned int depth) const = 0;
 
       friend class Group;  // So that Group can access _help.
+      friend class Main;  // So that Group can access _help.
 
     public:
       virtual ~ConfigNode(void) { }

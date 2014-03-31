@@ -59,12 +59,16 @@ DocrepStream::~DocrepStream(void) {
 
 
 void
-DocrepStream::add(Type, const char *raw, offset_type begin, offset_type len, const char *norm) {
-  TmpToken t = {static_cast<uint64_t>(begin), static_cast<uint64_t>(begin + len), std::string(raw, len), ""};
+DocrepStream::add(Type, const char *raw, size_t begin, size_t len, const char *norm) {
+  TmpToken t = {begin, begin + len, std::string(raw, len), ""};
   if (norm)
     t.norm = norm;
   _tokens.push_back(t);
 }
+
+
+void
+DocrepStream::error(const char *, size_t, size_t) { }
 
 
 void
@@ -93,6 +97,14 @@ DocrepStream::end_paragraph(void) {
   if (_begin_par != nsents)
     _pars.push_back({_begin_par, nsents});
 }
+
+
+void
+DocrepStream::begin_heading(int) { }
+
+
+void
+DocrepStream::end_heading(int) { }
 
 
 void
