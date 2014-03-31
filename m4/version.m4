@@ -1,2 +1,2 @@
-dnl Product version for AC_INIT.  Maintained by dist/s_version
-0.2.0
+dnl Product version for AC_INIT. Maintained by dist/bump-version.sh
+0.2.1
