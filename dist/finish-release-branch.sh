@@ -36,7 +36,7 @@ fi
 echo 'Merging into master...'
 git checkout master
 git merge --no-ff ${branch}
-git tag -a ${version}
+git tag -a ${version} -m "Release ${version}."
 
 echo "Release branch ${version} has been merged into master and tagged. Please push upstream."
 echo '$ git push origin master'
