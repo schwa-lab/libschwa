@@ -26,6 +26,12 @@ else
   exit 0
 fi
 
+# Ensure Makefile exists so we can create the dist tarball.
+if ! test -f Makefile; then
+  echo 'Makefile not found. Aborting.'
+  exit 1
+fi
+
 # Merge into master and tag the release.
 echo 'Merging into master...'
 git checkout master
@@ -35,6 +41,11 @@ git tag -a ${version}
 echo "Release branch ${version} has been merged into master and tagged. Please push upstream."
 echo '$ git push origin master'
 echo '$ git push --tags'
+echo
+
+# Create the release tarball.
+make --quiet dist
+echo "Created the release tarball libschwa-${version}.tar.gz. Please create the GitHub release."
 echo
 
 # Merge back into develop.

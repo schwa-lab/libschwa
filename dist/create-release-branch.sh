@@ -5,6 +5,7 @@ set -e
 M4_VERSION_FILE='m4/version.m4'
 M4_VERSION_SET_FILE='m4/version-set.m4'
 
+
 # Relocate to the top level project directory.
 cd $(dirname ${0})/..
 
