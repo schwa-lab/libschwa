@@ -1,4 +1,5 @@
 #!/bin/bash
+# http://nvie.com/posts/a-successful-git-branching-model/
 set -e
 
 M4_VERSION_FILE='m4/version.m4'

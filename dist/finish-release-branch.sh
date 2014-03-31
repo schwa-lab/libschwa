@@ -1,4 +1,5 @@
 #!/bin/bash
+# http://nvie.com/posts/a-successful-git-branching-model/
 set -e
 
 # Relocate to the top level project directory.
