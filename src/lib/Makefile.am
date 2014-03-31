@@ -89,6 +89,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/tokenizer/tokenizer_state.h \
 		schwa/tokenizer.h \
 		schwa/utils/enums.h \
+		schwa/utils/hash.h \
 		schwa/utils/shlex.h \
 		schwa/version.h
 

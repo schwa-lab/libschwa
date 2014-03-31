@@ -8,7 +8,7 @@ SUBDIRS = src/third-party src/lib src/apps
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dist/libschwa.pc
 
-EXTRA_DIST = doc
+EXTRA_DIST = LICENCE doc src/ragel
 dist-hook: clean-docs
 
 
