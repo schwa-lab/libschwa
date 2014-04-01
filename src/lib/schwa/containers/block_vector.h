@@ -15,14 +15,14 @@ namespace schwa {
     public:
       class Block {
       public:
-        typedef const T *const_iterator;
-        typedef const T *const_pointer;
-        typedef const T &const_reference;
-        typedef T *iterator;
-        typedef T *pointer;
-        typedef T &reference;
-        typedef size_t size_type;
-        typedef T value_type;
+        using const_iterator = const T *;
+        using const_pointer = const T *;
+        using const_reference = const T &;
+        using iterator = T *;
+        using pointer = T *;
+        using reference = T &;
+        using size_type = size_t;
+        using value_type = T;
 
       private:
         const size_type _capacity;
@@ -68,11 +68,11 @@ namespace schwa {
 
       class Iterator : public std::iterator<std::forward_iterator_tag, T> {
       public:
-        typedef typename std::iterator<std::forward_iterator_tag, T>::difference_type difference_type;
-        typedef typename std::iterator<std::forward_iterator_tag, T>::iterator_category iterator_category;
-        typedef typename std::iterator<std::forward_iterator_tag, T>::pointer pointer;
-        typedef typename std::iterator<std::forward_iterator_tag, T>::reference reference;
-        typedef typename std::iterator<std::forward_iterator_tag, T>::value_type value_type;
+        using difference_type = typename std::iterator<std::forward_iterator_tag, T>::difference_type;
+        using iterator_category = typename std::iterator<std::forward_iterator_tag, T>::iterator_category;
+        using pointer = typename std::iterator<std::forward_iterator_tag, T>::pointer;
+        using reference = typename std::iterator<std::forward_iterator_tag, T>::reference;
+        using value_type = typename std::iterator<std::forward_iterator_tag, T>::value_type;
 
       private:
         Block *_block;
@@ -102,13 +102,13 @@ namespace schwa {
         friend inline std::ostream &operator <<(std::ostream &out, const Iterator &it) { return it.dump(out); }
       };
 
-      typedef const T *const_pointer;
-      typedef const T &const_reference;
-      typedef Iterator iterator;
-      typedef T *pointer;
-      typedef T &reference;
-      typedef size_t size_type;
-      typedef T value_type;
+      using const_pointer = const T *;
+      using const_reference = const T &;
+      using iterator = Iterator;
+      using pointer = T *;
+      using reference = T &;
+      using size_type = size_t;
+      using value_type = T;
 
     private:
       Block *_first;

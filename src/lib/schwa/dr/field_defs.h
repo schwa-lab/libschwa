@@ -99,8 +99,8 @@ namespace schwa {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == false, "DR_FIELD must be used with POD fields only. Use DR_POINTER for schwa::dr field types instead.");
       static_assert(FieldTraits<R>::is_pod_ptr == false, "Fields cannot be POD pointers. Use schwa::dr::Pointer<T> instead.");
-      typedef R value_type;
-      typedef T annotation_type;
+      using value_type = R;
+      using annotation_type = T;
 
       FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode) : FieldDef(schema, name, help, mode, name) { }
       FieldDef(BaseSchema &schema, const std::string &name, const std::string &help, const FieldMode mode, const std::string &serial);
@@ -128,10 +128,10 @@ namespace schwa {
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
       static_assert(std::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (Store<T>) must have the same type (T)");
       static_assert(std::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
-      typedef R value_type;
-      typedef T annotation_type;
-      typedef S store_type;
-      typedef D doc_type;
+      using value_type = R;
+      using annotation_type = T;
+      using store_type = S;
+      using doc_type = D;
 
     private:
       const TypeInfo _pointer_type;
@@ -159,10 +159,10 @@ namespace schwa {
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_POINTER must be used with schwa::dr field types only");
       static_assert(std::is_same<typename FieldTraits<R>::value_type, S>::value, "Field (type T) and storage field (BlockStore<T>) must have the same type (T)");
       static_assert(std::is_base_of<Ann, S>::value, "BlockStore<T> type T must be a subclass of Ann");
-      typedef R value_type;
-      typedef T annotation_type;
-      typedef S store_type;
-      typedef D doc_type;
+      using value_type = R;
+      using annotation_type = T;
+      using store_type = S;
+      using doc_type = D;
 
     private:
       const TypeInfo _pointer_type;
@@ -196,8 +196,8 @@ namespace schwa {
     public:
       static_assert(FieldTraits<R>::is_dr_ptr_type == true, "DR_SELF must be used with schwa::dr field types only");
       static_assert(std::is_same<typename FieldTraits<R>::value_type, T>::value, "DR_SELF must be used on recursive pointers only");
-      typedef R value_type;
-      typedef T annotation_type;
+      using value_type = R;
+      using annotation_type = T;
 
     private:
       const TypeInfo _pointer_type;
@@ -229,7 +229,7 @@ namespace schwa {
     class StoreDef<Store<S> T::*, store_ptr> : public BaseStoreDef {
     public:
       static_assert(std::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
-      typedef S store_type;
+      using store_type = S;
 
     private:
       const TypeInfo _pointer_type;
@@ -253,7 +253,7 @@ namespace schwa {
     class StoreDef<BlockStore<S> T::*, store_ptr> : public BaseStoreDef {
     public:
       static_assert(std::is_base_of<Ann, S>::value, "Store<T> type T must be a subclass of Ann");
-      typedef S store_type;
+      using store_type = S;
 
     private:
       const TypeInfo _pointer_type;

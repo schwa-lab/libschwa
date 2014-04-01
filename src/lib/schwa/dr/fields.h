@@ -45,18 +45,18 @@ namespace schwa {
     class Store : public IStore {
     public:
       static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
-      typedef std::vector<T> container_type;
-      typedef typename container_type::const_reference const_reference;
-      typedef typename container_type::const_iterator const_iterator;
-      typedef typename container_type::const_pointer const_pointer;
-      typedef typename container_type::const_reverse_iterator const_reverse_iterator;
-      typedef typename container_type::difference_type difference_type;
-      typedef typename container_type::iterator iterator;
-      typedef typename container_type::pointer pointer;
-      typedef typename container_type::reference reference;
-      typedef typename container_type::reverse_iterator reverse_iterator;
-      typedef typename container_type::size_type size_type;
-      typedef typename container_type::value_type value_type;
+      using container_type = std::vector<T>;
+      using const_reference = typename container_type::const_reference;
+      using const_iterator = typename container_type::const_iterator;
+      using const_pointer = typename container_type::const_pointer;
+      using const_reverse_iterator = typename container_type::const_reverse_iterator;
+      using difference_type = typename container_type::difference_type;
+      using iterator = typename container_type::iterator;
+      using pointer = typename container_type::pointer;
+      using reference = typename container_type::reference;
+      using reverse_iterator = typename container_type::reverse_iterator;
+      using size_type = typename container_type::size_type;
+      using value_type = typename container_type::value_type;
 
       class inner_typeless_iterator : public IStore::inner_typeless_iterator {
       private:
@@ -138,15 +138,15 @@ namespace schwa {
     class BlockStore : public IStore {
     public:
       static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
-      typedef containers::BlockVector<T> container_type;
-      typedef typename container_type::Block block;
-      typedef typename container_type::const_pointer const_pointer;
-      typedef typename container_type::const_reference const_reference;
-      typedef typename container_type::iterator iterator;
-      typedef typename container_type::pointer pointer;
-      typedef typename container_type::reference reference;
-      typedef typename container_type::size_type size_type;
-      typedef typename container_type::value_type value_type;
+      using container_type = containers::BlockVector<T>;
+      using block = typename container_type::Block;
+      using const_pointer = typename container_type::const_pointer;
+      using const_reference = typename container_type::const_reference;
+      using iterator = typename container_type::iterator;
+      using pointer = typename container_type::pointer;
+      using reference = typename container_type::reference;
+      using size_type = typename container_type::size_type;
+      using value_type = typename container_type::value_type;
 
       class inner_typeless_iterator : public IStore::inner_typeless_iterator {
       private:
@@ -225,7 +225,7 @@ namespace schwa {
     template <typename T>
     struct FieldTraits<Pointer<T>> {
       static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
-      typedef T value_type;
+      using value_type = T;
       static constexpr bool is_dr_ptr_type = true;
       static constexpr bool is_slice = false;
       static constexpr bool is_collection = false;
@@ -234,7 +234,7 @@ namespace schwa {
     template <typename T>
     struct FieldTraits<Pointers<T>> {
       static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
-      typedef T value_type;
+      using value_type = T;
       static constexpr bool is_dr_ptr_type = true;
       static constexpr bool is_slice = false;
       static constexpr bool is_collection = true;
@@ -249,8 +249,8 @@ namespace schwa {
 
     template <typename T>
     struct SliceFieldTraits<T, true> {
+      using value_type = typename std::remove_pointer<T>::type;
       static constexpr bool is_dr_ptr_type = true;
-      typedef typename std::remove_pointer<T>::type value_type;
       static constexpr bool is_collection = false;
     };
 
