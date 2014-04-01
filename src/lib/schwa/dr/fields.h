@@ -2,12 +2,14 @@
 #ifndef SCHWA_DR_FIELDS_H_
 #define SCHWA_DR_FIELDS_H_
 
+#include <memory>
 #include <type_traits>
 #include <vector>
 
 #include <schwa/_base.h>
 #include <schwa/containers/block_vector.h>
 #include <schwa/dr/istore.h>
+
 
 namespace schwa {
   namespace dr {
@@ -30,25 +32,10 @@ namespace schwa {
 
 
     template <typename T>
-    class Pointer {
-    public:
-      typedef T value_type;
-      typedef T *pointer_type;
+    using Pointer = T *;
 
-      T *ptr;
-
-      explicit Pointer(T *ptr=nullptr) : ptr(ptr) { }
-    };
-
-
-    template <typename T>
-    class Pointers {
-    public:
-      typedef T value_type;
-      typedef T *pointer_type;
-
-      std::vector<T *> items;
-    };
+    template <typename T, class Alloc=std::allocator<T *>>
+    using Pointers = std::vector<T *, Alloc>;
 
 
     // ========================================================================
@@ -237,6 +224,7 @@ namespace schwa {
 
     template <typename T>
     struct FieldTraits<Pointer<T>> {
+      static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       typedef T value_type;
       static constexpr bool is_dr_ptr_type = true;
       static constexpr bool is_slice = false;
@@ -245,6 +233,7 @@ namespace schwa {
 
     template <typename T>
     struct FieldTraits<Pointers<T>> {
+      static_assert(std::is_base_of<Ann, T>::value, "T must be a subclass of Ann");
       typedef T value_type;
       static constexpr bool is_dr_ptr_type = true;
       static constexpr bool is_slice = false;

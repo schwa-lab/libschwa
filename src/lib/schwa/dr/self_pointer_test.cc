@@ -60,15 +60,15 @@ TEST(self_pointer0) {
   doc0.xs1.create(3);
   doc0.xs2.create(2);
 
-  doc0.xs1[1].parent.ptr = &doc0.xs1[0];
-  doc0.xs1[2].parent.ptr = &doc0.xs1[1];
-  doc0.xs2[1].parent.ptr = &doc0.xs2[0];
+  doc0.xs1[1].parent = &doc0.xs1[0];
+  doc0.xs1[2].parent = &doc0.xs1[1];
+  doc0.xs2[1].parent = &doc0.xs2[0];
 
-  doc0.xs1[0].other.ptr = &doc0.xs2[0];
-  doc0.xs1[1].other.ptr = &doc0.xs2[0];
-  doc0.xs1[2].other.ptr = &doc0.xs2[0];
-  doc0.xs2[0].other.ptr = &doc0.xs2[0];
-  doc0.xs2[1].other.ptr = &doc0.xs2[0];
+  doc0.xs1[0].other = &doc0.xs2[0];
+  doc0.xs1[1].other = &doc0.xs2[0];
+  doc0.xs1[2].other = &doc0.xs2[0];
+  doc0.xs2[0].other = &doc0.xs2[0];
+  doc0.xs2[1].other = &doc0.xs2[0];
 
   std::stringstream stream, correct;
   TestDoc::Schema schema;
@@ -112,16 +112,16 @@ TEST(self_pointer0) {
 
   CHECK_EQUAL(3, doc1.xs1.size());
   CHECK_EQUAL(2, doc1.xs2.size());
-  CHECK_EQUAL((void *)nullptr, doc1.xs1[0].parent.ptr);
-  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[0].other.ptr);
-  CHECK_EQUAL(&doc1.xs1[0], doc1.xs1[1].parent.ptr);
-  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[1].other.ptr);
-  CHECK_EQUAL(&doc1.xs1[1], doc1.xs1[2].parent.ptr);
-  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[2].other.ptr);
-  CHECK_EQUAL((void *)nullptr, doc1.xs2[0].parent.ptr);
-  CHECK_EQUAL( &doc1.xs2[0], doc1.xs2[0].other.ptr);
-  CHECK_EQUAL(&doc1.xs2[0], doc1.xs2[1].parent.ptr);
-  CHECK_EQUAL( &doc1.xs2[0], doc1.xs2[1].other.ptr);
+  CHECK_EQUAL((void *)nullptr, doc1.xs1[0].parent);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[0].other);
+  CHECK_EQUAL(&doc1.xs1[0], doc1.xs1[1].parent);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[1].other);
+  CHECK_EQUAL(&doc1.xs1[1], doc1.xs1[2].parent);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs1[2].other);
+  CHECK_EQUAL((void *)nullptr, doc1.xs2[0].parent);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs2[0].other);
+  CHECK_EQUAL(&doc1.xs2[0], doc1.xs2[1].parent);
+  CHECK_EQUAL( &doc1.xs2[0], doc1.xs2[1].other);
 }
 
 }  // SUITE

@@ -88,19 +88,19 @@ TEST(self_pointer0) {
   }
 
   doc0.xs.create(5);
-  doc0.xs[0].tokens.items.push_back(&doc0.tokens[0]);
-  doc0.xs[1].tokens.items.push_back(&doc0.tokens[0]);
-  doc0.xs[1].tokens.items.push_back(&doc0.tokens[1]);
-  doc0.xs[1].tokens.items.push_back(&doc0.tokens[2]);
-  doc0.xs[2].tokens.items.push_back(&doc0.tokens[0]);
-  doc0.xs[2].tokens.items.push_back(&doc0.tokens[1]);
-  doc0.xs[2].tokens.items.push_back(&doc0.tokens[2]);
-  doc0.xs[2].tokens.items.push_back(&doc0.tokens[3]);
-  doc0.xs[2].tokens.items.push_back(&doc0.tokens[4]);
-  doc0.xs[4].tokens.items.push_back(&doc0.tokens[9]);
+  doc0.xs[0].tokens.push_back(&doc0.tokens[0]);
+  doc0.xs[1].tokens.push_back(&doc0.tokens[0]);
+  doc0.xs[1].tokens.push_back(&doc0.tokens[1]);
+  doc0.xs[1].tokens.push_back(&doc0.tokens[2]);
+  doc0.xs[2].tokens.push_back(&doc0.tokens[0]);
+  doc0.xs[2].tokens.push_back(&doc0.tokens[1]);
+  doc0.xs[2].tokens.push_back(&doc0.tokens[2]);
+  doc0.xs[2].tokens.push_back(&doc0.tokens[3]);
+  doc0.xs[2].tokens.push_back(&doc0.tokens[4]);
+  doc0.xs[4].tokens.push_back(&doc0.tokens[9]);
   for (size_t i = 0; i != 5; ++i)
     for (size_t j = 0; j <= i; ++j)
-      doc0.xs[i].prior.items.push_back(&doc0.xs[j]);
+      doc0.xs[i].prior.push_back(&doc0.xs[j]);
 
   std::stringstream stream, correct;
   TestDoc::Schema schema;
@@ -202,44 +202,44 @@ TEST(self_pointer0) {
   CHECK_EQUAL("j", doc1.tokens[9].raw);
   CHECK(Slice<uint64_t>(9, 10) == doc1.tokens[9].span);
 
-  CHECK_EQUAL(1, doc1.xs[0].tokens.items.size());
-  CHECK_EQUAL(3, doc1.xs[1].tokens.items.size());
-  CHECK_EQUAL(5, doc1.xs[2].tokens.items.size());
-  CHECK_EQUAL(0, doc1.xs[3].tokens.items.size());
-  CHECK_EQUAL(1, doc1.xs[4].tokens.items.size());
+  CHECK_EQUAL(1, doc1.xs[0].tokens.size());
+  CHECK_EQUAL(3, doc1.xs[1].tokens.size());
+  CHECK_EQUAL(5, doc1.xs[2].tokens.size());
+  CHECK_EQUAL(0, doc1.xs[3].tokens.size());
+  CHECK_EQUAL(1, doc1.xs[4].tokens.size());
 
-  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[0].tokens.items[0]);
-  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[1].tokens.items[0]);
-  CHECK_EQUAL(&doc1.tokens[1], doc1.xs[1].tokens.items[1]);
-  CHECK_EQUAL(&doc1.tokens[2], doc1.xs[1].tokens.items[2]);
-  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[2].tokens.items[0]);
-  CHECK_EQUAL(&doc1.tokens[1], doc1.xs[2].tokens.items[1]);
-  CHECK_EQUAL(&doc1.tokens[2], doc1.xs[2].tokens.items[2]);
-  CHECK_EQUAL(&doc1.tokens[3], doc1.xs[2].tokens.items[3]);
-  CHECK_EQUAL(&doc1.tokens[4], doc1.xs[2].tokens.items[4]);
-  CHECK_EQUAL(&doc1.tokens[9], doc1.xs[4].tokens.items[0]);
+  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[0].tokens[0]);
+  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[1].tokens[0]);
+  CHECK_EQUAL(&doc1.tokens[1], doc1.xs[1].tokens[1]);
+  CHECK_EQUAL(&doc1.tokens[2], doc1.xs[1].tokens[2]);
+  CHECK_EQUAL(&doc1.tokens[0], doc1.xs[2].tokens[0]);
+  CHECK_EQUAL(&doc1.tokens[1], doc1.xs[2].tokens[1]);
+  CHECK_EQUAL(&doc1.tokens[2], doc1.xs[2].tokens[2]);
+  CHECK_EQUAL(&doc1.tokens[3], doc1.xs[2].tokens[3]);
+  CHECK_EQUAL(&doc1.tokens[4], doc1.xs[2].tokens[4]);
+  CHECK_EQUAL(&doc1.tokens[9], doc1.xs[4].tokens[0]);
 
-  CHECK_EQUAL(1, doc1.xs[0].prior.items.size());
-  CHECK_EQUAL(2, doc1.xs[1].prior.items.size());
-  CHECK_EQUAL(3, doc1.xs[2].prior.items.size());
-  CHECK_EQUAL(4, doc1.xs[3].prior.items.size());
-  CHECK_EQUAL(5, doc1.xs[4].prior.items.size());
+  CHECK_EQUAL(1, doc1.xs[0].prior.size());
+  CHECK_EQUAL(2, doc1.xs[1].prior.size());
+  CHECK_EQUAL(3, doc1.xs[2].prior.size());
+  CHECK_EQUAL(4, doc1.xs[3].prior.size());
+  CHECK_EQUAL(5, doc1.xs[4].prior.size());
 
-  CHECK_EQUAL(&doc1.xs[0], doc1.xs[0].prior.items[0]);
-  CHECK_EQUAL(&doc1.xs[0], doc1.xs[1].prior.items[0]);
-  CHECK_EQUAL(&doc1.xs[1], doc1.xs[1].prior.items[1]);
-  CHECK_EQUAL(&doc1.xs[0], doc1.xs[2].prior.items[0]);
-  CHECK_EQUAL(&doc1.xs[1], doc1.xs[2].prior.items[1]);
-  CHECK_EQUAL(&doc1.xs[2], doc1.xs[2].prior.items[2]);
-  CHECK_EQUAL(&doc1.xs[0], doc1.xs[3].prior.items[0]);
-  CHECK_EQUAL(&doc1.xs[1], doc1.xs[3].prior.items[1]);
-  CHECK_EQUAL(&doc1.xs[2], doc1.xs[3].prior.items[2]);
-  CHECK_EQUAL(&doc1.xs[3], doc1.xs[3].prior.items[3]);
-  CHECK_EQUAL(&doc1.xs[0], doc1.xs[4].prior.items[0]);
-  CHECK_EQUAL(&doc1.xs[1], doc1.xs[4].prior.items[1]);
-  CHECK_EQUAL(&doc1.xs[2], doc1.xs[4].prior.items[2]);
-  CHECK_EQUAL(&doc1.xs[3], doc1.xs[4].prior.items[3]);
-  CHECK_EQUAL(&doc1.xs[4], doc1.xs[4].prior.items[4]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[0].prior[0]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[1].prior[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[1].prior[1]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[2].prior[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[2].prior[1]);
+  CHECK_EQUAL(&doc1.xs[2], doc1.xs[2].prior[2]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[3].prior[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[3].prior[1]);
+  CHECK_EQUAL(&doc1.xs[2], doc1.xs[3].prior[2]);
+  CHECK_EQUAL(&doc1.xs[3], doc1.xs[3].prior[3]);
+  CHECK_EQUAL(&doc1.xs[0], doc1.xs[4].prior[0]);
+  CHECK_EQUAL(&doc1.xs[1], doc1.xs[4].prior[1]);
+  CHECK_EQUAL(&doc1.xs[2], doc1.xs[4].prior[2]);
+  CHECK_EQUAL(&doc1.xs[3], doc1.xs[4].prior[3]);
+  CHECK_EQUAL(&doc1.xs[4], doc1.xs[4].prior[4]);
 }
 
 }  // SUITE

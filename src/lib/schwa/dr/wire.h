@@ -6,19 +6,12 @@
 #include <type_traits>
 
 #include <schwa/_base.h>
+#include <schwa/dr/fields.h>
 #include <schwa/msgpack.h>
+
 
 namespace schwa {
   namespace dr {
-
-    template <typename T> struct FieldTraits;
-    class IStore;
-    template <typename T> class Pointer;
-    template <typename T> class Pointers;
-    template <typename T> class Slice;
-    template <typename T> class Store;
-
-
     namespace wire {
       namespace mp = schwa::msgpack;
 
@@ -89,20 +82,20 @@ namespace schwa {
       struct WireTraits<Pointer<T>> {
         static inline bool
         should_write(const Pointer<T> &val) {
-          return val.ptr != nullptr;
+          return val != nullptr;
         }
 
         template <typename OUT>
         static inline void
         write(OUT &out, const Pointer<T> &val, const IStore &istore) {
-          mp::write_uint(out, istore.index_of(*val.ptr));
+          mp::write_uint(out, istore.index_of(*val));
         }
 
         template <typename IN>
         static inline void
         read(IN &in, Pointer<T> &val, IStore &istore) {
           const size_t offset = mp::read_uint(in);
-          val.ptr = &static_cast<T &>(istore.at_index(offset));
+          val = &static_cast<T &>(istore.at_index(offset));
         }
       };
 
@@ -111,14 +104,14 @@ namespace schwa {
       struct WireTraits<Pointers<T>> {
         static inline bool
         should_write(const Pointers<T> &val) {
-          return val.items.size() != 0;
+          return val.size() != 0;
         }
 
         template <typename OUT>
         static inline void
         write(OUT &out, const Pointers<T> &val, const IStore &istore) {
-          mp::write_array_size(out, val.items.size());
-          for (auto &it : val.items)
+          mp::write_array_size(out, val.size());
+          for (auto &it : val)
             mp::write_uint(out, istore.index_of(*it));
         }
 
@@ -128,7 +121,7 @@ namespace schwa {
           const uint32_t nitems = mp::read_array_size(in);
           for (uint32_t i = 0; i != nitems; ++i) {
             const size_t offset = mp::read_uint(in);
-            val.items.push_back(&static_cast<T &>(istore.at_index(offset)));
+            val.push_back(&static_cast<T &>(istore.at_index(offset)));
           }
         }
       };
