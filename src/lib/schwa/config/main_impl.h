@@ -20,6 +20,8 @@ namespace schwa {
         // Process the command line arguments.
         if (!_main())
           std::exit(1);
+        if (terminate_main())
+          std::exit(0);
 
         // Configure logging.
         io::default_logger = new LOGGER(_log->value().c_str(), _log_level->level());

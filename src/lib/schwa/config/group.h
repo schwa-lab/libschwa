@@ -44,6 +44,7 @@ namespace schwa {
       virtual void assign(const std::string &value) override;
       virtual void mention(void) override;
       virtual void serialise(std::ostream &out) const override;
+      virtual bool terminate_main(void) const override;
       virtual bool validate(const Main &main) override;
 
     private:
