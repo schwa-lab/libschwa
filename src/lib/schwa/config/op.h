@@ -20,13 +20,12 @@ namespace schwa {
     class Option : public ConfigNode {
     protected:
       const bool _has_default;  //!< Whether or not this option has a default value that can be used.
-      bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
-      bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
       Option(Group &group, const std::string &name, const std::string &desc, Flags flags, bool has_default);
       Option(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags, bool has_default);
 
       virtual void _assign(const std::string &value) = 0;
+      virtual void _mention(void) { }
       virtual bool _validate(const Main &main) = 0;
 
     public:
@@ -36,14 +35,9 @@ namespace schwa {
       virtual bool accepts_mention(void) const override;
       virtual bool requires_assignment(void) const override;
 
-      void assign(const std::string &value) override;
-      void mention(void) override;
       bool validate(const Main &main) override;
 
       virtual void set_default(void) = 0;
-
-      inline bool was_assigned(void) const { return _was_assigned; }
-      inline bool was_mentioned(void) const { return _was_mentioned; }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Option);

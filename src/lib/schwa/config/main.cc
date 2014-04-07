@@ -87,8 +87,10 @@ void
 Main::_help_self(std::ostream &out, const unsigned int) const {
   out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
   out << "  Usage: " << _full_name << " [options]";
+  for (auto &c : _positional_arg_nodes)
+    out << " [" << c->name() << "]";
   if (_allow_unclaimed_args)
-    out << " [args]";
+    out << " [args...]";
   out << std::endl;
 }
 
@@ -128,6 +130,16 @@ Main::_find(const std::string &key) {
 
 bool
 Main::_main(void) {
+  // Find the positional argument nodes.
+  std::deque<std::string> positional_args;
+  _positional_arg_nodes.clear();
+  _get_positional_arg_nodes(_positional_arg_nodes);
+  std::sort(
+      _positional_arg_nodes.begin(),
+      _positional_arg_nodes.end(),
+      [](const ConfigNode *a, const ConfigNode *b) { return a->position_arg_precedence() < b->position_arg_precedence(); }
+  );
+
   // Place the arguments into a queue for ease of processing.
   std::deque<std::string> args;
   for (decltype(_cmdline_args)::size_type i = 1; i != _cmdline_args.size(); ++i)
@@ -135,25 +147,15 @@ Main::_main(void) {
 
   // Try and assign all of the arguments to nodes.
   while (!args.empty()) {
-    const std::string &key = args.front();
+    const std::string key = args.front();
     args.pop_front();
 
     // Try and find the corresponding config node.
     ConfigNode *const node = _find(key);
 
-    // If the config node wasn't found, work out what to do.
+    // If the config node wasn't found, store the value and move to the next argument.
     if (node == nullptr) {
-      if (_allow_unclaimed_args) {
-        _unclaimed_args.push_back(key);
-        continue;
-      }
-      else
-        throw_config_exception("Unknown option", key);
-    }
-
-    // If we're allowing unclaimed args and we've already started collecting some, continue adding to its collection.
-    if (_allow_unclaimed_args && !_unclaimed_args.empty()) {
-      _unclaimed_args.push_back(key);
+      positional_args.push_back(key);
       continue;
     }
 
@@ -184,9 +186,33 @@ Main::_main(void) {
       _load_config->load_config(args);
   }
 
+  // TODO positional argument
+  if (!positional_args.empty()) {
+    for (auto &c : _positional_arg_nodes) {
+      if (positional_args.empty())
+        break;
+      if (c->accepts_mention() && c->accepts_assignment() && !c->was_mentioned()) {
+        c->mention();
+        c->assign(positional_args.front());
+        positional_args.pop_front();
+      }
+    }
+  }
+
   // Validate each of the nodes.
   if (!validate(*this))
     return false;
+
+  // If we're not allowing unclaimed args but there are still some positional arguments left, reject.
+  if (!_allow_unclaimed_args && !positional_args.empty())
+    throw_config_exception("Unknown option or value", positional_args.front());
+
+  // Copy across the remaining positional arguments to the unclaimed arguments.
+  _unclaimed_args.clear();
+  while (!positional_args.empty()) {
+    _unclaimed_args.push_back(positional_args.front());
+    positional_args.pop_front();
+  }
 
   // Perform the saving of the config, if required.
   _save_config->save_config(*this);

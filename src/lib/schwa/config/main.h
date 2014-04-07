@@ -16,6 +16,7 @@ namespace schwa {
     class Main : public Group {
     protected:
       std::vector<ConfigNode *> _owned;
+      std::vector<ConfigNode *> _positional_arg_nodes;
 
       bool _allow_unclaimed_args;
       std::vector<std::string> _cmdline_args;

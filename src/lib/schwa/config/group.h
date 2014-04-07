@@ -19,6 +19,9 @@ namespace schwa {
 
       Group(const std::string &name, const std::string &desc, Flags flags=Flags::NONE) : ConfigNode(name, desc, flags) { }
 
+      virtual void _assign(const std::string &value) override;
+      virtual void _mention(void) override;
+      virtual void _get_positional_arg_nodes(std::vector<ConfigNode *> &nodes);
       virtual void _help(std::ostream &out, unsigned int depth) const override;
       virtual void _help_self(std::ostream &out, unsigned int depth) const override;
 
@@ -41,8 +44,6 @@ namespace schwa {
       virtual bool accepts_mention(void) const override;
       virtual bool requires_assignment(void) const override;
 
-      virtual void assign(const std::string &value) override;
-      virtual void mention(void) override;
       virtual void serialise(std::ostream &out) const override;
       virtual bool terminate_main(void) const override;
       virtual bool validate(const Main &main) override;

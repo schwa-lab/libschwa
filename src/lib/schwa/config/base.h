@@ -4,9 +4,11 @@
 
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 #include <schwa/_base.h>
 #include <schwa/utils/enums.h>
+
 
 namespace schwa {
   namespace config {
@@ -31,20 +33,26 @@ namespace schwa {
       static constexpr const char *const SEPARATOR = "--";
 
     protected:
-      std::string _name;  //!< Name of the config option.
-      std::string _desc;  //!< Help text for the config option.
+      const std::string _name;  //!< Name of the config option.
+      const std::string _desc;  //!< Help text for the config option.
       std::string _full_name;  //!< The full name of the option, accounting for nesting.
-      char _short_name;  //!< The short single-letter name for the option. '\0' if not defined.
-      Flags _flags;  //!< The bitmask of the flags set for this config node.
+      const char _short_name;  //!< The short single-letter name for the option. '\0' if not defined.
+      const Flags _flags;  //!< The bitmask of the flags set for this config node.
+      int _position_arg_precedence;  //!< Precedence value for whether this option can consume unclaimed positional arguments. -1 if it cannot.
+      bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
+      bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
       ConfigNode(const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
       ConfigNode(const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
 
+      virtual void _assign(const std::string &value) = 0;
+      virtual void _mention(void) = 0;
+      virtual void _get_positional_arg_nodes(std::vector<ConfigNode *> &nodes);
       virtual void _help(std::ostream &out, unsigned int depth) const = 0;
       virtual void _help_self(std::ostream &out, unsigned int depth) const = 0;
 
       friend class Group;  // So that Group can access _help.
-      friend class Main;  // So that Group can access _help.
+      friend class Main;  // So that Main can access _help.
 
     public:
       virtual ~ConfigNode(void) { }
@@ -56,8 +64,8 @@ namespace schwa {
       virtual bool accepts_mention(void) const = 0;
       virtual bool requires_assignment(void) const = 0;
 
-      virtual void assign(const std::string &value) = 0;
-      virtual void mention(void) = 0;
+      void assign(const std::string &value);
+      void mention(void);
       virtual void serialise(std::ostream &out) const = 0;
       virtual bool terminate_main(void) const { return false; }
       virtual bool validate(const Main &main) = 0;
@@ -66,9 +74,13 @@ namespace schwa {
       inline const std::string &full_name(void) const { return _full_name; }
       inline const std::string &name(void) const { return _name; }
 
-      inline bool optional(void) const { return _flags & Flags::OPTIONAL; }
-
       void set_prefix(const std::string &prefix);
+
+      void position_arg_precedence(int precedence);
+      inline int position_arg_precedence(void) const { return _position_arg_precedence; }
+      inline bool optional(void) const { return _flags & Flags::OPTIONAL; }
+      inline bool was_assigned(void) const { return _was_assigned; }
+      inline bool was_mentioned(void) const { return _was_mentioned; }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(ConfigNode);

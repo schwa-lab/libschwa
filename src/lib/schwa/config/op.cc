@@ -18,17 +18,13 @@ namespace config {
 
 Option::Option(Group &group, const std::string &name, const std::string &desc, const Flags flags, const bool has_default) :
     ConfigNode(name, desc, flags),
-    _has_default(has_default),
-    _was_mentioned(false),
-    _was_assigned(false) {
+    _has_default(has_default) {
   group.add(*this);
 }
 
 Option::Option(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags, const bool has_default) :
     ConfigNode(name, short_name, desc, flags),
-    _has_default(has_default),
-    _was_mentioned(false),
-    _was_assigned(false) {
+    _has_default(has_default) {
   group.add(*this);
 }
 
@@ -48,19 +44,6 @@ Option::accepts_mention(void) const {
 bool
 Option::requires_assignment(void) const {
   return true;
-}
-
-
-void
-Option::assign(const std::string &value) {
-  _assign(value);
-  _was_assigned = true;
-}
-
-
-void
-Option::mention(void) {
-  _was_mentioned = true;
 }
 
 
