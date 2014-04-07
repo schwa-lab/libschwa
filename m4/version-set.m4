@@ -1,8 +1,8 @@
 dnl Product version for header files. Maintained by dist/bump-version.sh
 VERSION_MAJOR=0
 VERSION_MINOR=2
-VERSION_PATCH=1
-VERSION_STRING='"0.2.1 (2014-03-31)"'
+VERSION_PATCH=2
+VERSION_STRING='"0.2.2 (2014-04-07)"'
 
 AC_SUBST(VERSION_MAJOR)
 AC_SUBST(VERSION_MINOR)
