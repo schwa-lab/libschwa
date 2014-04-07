@@ -8,8 +8,9 @@ SUBDIRS = src/third-party src/lib src/apps
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dist/libschwa.pc
 
-EXTRA_DIST = doc
+EXTRA_DIST = LICENCE doc src/ragel
 dist-hook: clean-docs
+
 
 # =============================================================================
 # Custom targets.
@@ -26,5 +27,5 @@ clean-docs:
 
 wc:
 	for d in src/lib src/apps; do \
-		find $${d} \( -name "*.cc" -or -name "*.h" \) | grep -v '_test\.cc' | grep -v ^src/lib/schwa/tokenizer/tokenizer.cc | xargs wc -l; \
+		find $${d} \( -name "*.cc" -or -name "*.h" \) | egrep -v '_(gen|test)\.cc' | xargs wc -l; \
 	done

@@ -1,0 +1,8 @@
+0.2.2
+* Added an explicit include check in configure.ac for all used C++11 header files.
+* The special command-line flags --help and --version no longer result in a non-zero exit status.
+* Removed the need for dr::Pointer<T> and dr::Pointers<T>.
+* Added the ability for command-line options to optionally fallback to a positional argument value for filling if an explicit flag was not provided.
+
+0.2.1
+* Initial public release.

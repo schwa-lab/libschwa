@@ -26,11 +26,11 @@ namespace schwa {
 
       class typeless_iterator : public std::iterator<std::forward_iterator_tag, Ann> {
       public:
-        typedef typename std::iterator<std::forward_iterator_tag, Ann>::difference_type difference_type;
-        typedef typename std::iterator<std::forward_iterator_tag, Ann>::iterator_category iterator_category;
-        typedef typename std::iterator<std::forward_iterator_tag, Ann>::pointer pointer;
-        typedef typename std::iterator<std::forward_iterator_tag, Ann>::reference reference;
-        typedef typename std::iterator<std::forward_iterator_tag, Ann>::value_type value_type;
+        using difference_type = typename std::iterator<std::forward_iterator_tag, Ann>::difference_type;
+        using iterator_category = typename std::iterator<std::forward_iterator_tag, Ann>::iterator_category;
+        using pointer = typename std::iterator<std::forward_iterator_tag, Ann>::pointer;
+        using reference = typename std::iterator<std::forward_iterator_tag, Ann>::reference;
+        using value_type = typename std::iterator<std::forward_iterator_tag, Ann>::value_type;
 
       private:
         inner_typeless_iterator *const _it;

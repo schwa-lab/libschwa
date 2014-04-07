@@ -17,13 +17,13 @@ namespace io = schwa::io;
 namespace {
 
 static void
-main(std::istream &input, std::ostream &output, const unsigned int count) {
+main(std::istream &input, std::ostream &output, const uint32_t count) {
   // Allocate a circular array to store the last `count` docs in.
   std::unique_ptr<std::stringstream[]> bufs(new std::stringstream[count]);
   size_t bufs_upto = 0;
 
   // Read the documents off the input stream into the circular array.
-  unsigned int nread = 0;
+  uint32_t nread = 0;
   while (true) {
     // Attempt to read the next document into temp storage.
     std::stringstream tmp;
@@ -42,7 +42,7 @@ main(std::istream &input, std::ostream &output, const unsigned int count) {
   // Output the last min(`count`, `nread`) docs.
   if (nread < count)
     bufs_upto = 0;
-  for (unsigned int i = 0; i != std::min(nread, count); ++i) {
+  for (uint32_t i = 0; i != std::min(nread, count); ++i) {
     // Rewind the temp storage and write it out.
     std::stringstream &tmp = bufs[bufs_upto];
     tmp.seekp(0);
@@ -62,9 +62,10 @@ main(int argc, char **argv) {
   cf::Main cfg(schwa::dr_tail::PROGRAM_NAME, schwa::dr_tail::PROGRAM_DESC);
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
-  cf::Op<unsigned int> count(cfg, "count", 'n', "How many documents to keep", 1);
+  cf::Op<uint32_t> count(cfg, "count", 'n', "How many documents to keep", 1);
 
   // Parse argv.
+  input.position_arg_precedence(0);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Dispatch to main function.

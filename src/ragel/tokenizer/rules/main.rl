@@ -10,17 +10,18 @@
   action end { _end(PUNCTUATION, dest, s); }
   action contraction { _split(WORD, CONTRACTION, dest, s); }
   action catchall {
-    switch(errors){
-      case ERROR_SKIP:
+    switch (onerror) {
+      case OnError::SKIP:
         break;
-      case ERROR_CALL:
+      case OnError::CALL:
         _error(dest, s);
         break;
-      case ERROR_THROW:
-        _die(msg << "stuck on character " << (int)*p << " at offset " << (p - s.offset));
+      case OnError::THROW: {
+          std::ostringstream msg;
+          msg << "stuck on character " << (int)*p << " at offset " << (p - s.offset);
+          throw TokenError(msg.str());
+        }
         break;
-      default:
-        _die(msg << "illegal value " << errors << " for bad byte error handling");
     }
   }
 

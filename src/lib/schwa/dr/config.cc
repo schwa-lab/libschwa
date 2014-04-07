@@ -42,8 +42,7 @@ OpDocrepField::_validate(const cf::Main &main) {
 // ============================================================================
 DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseDocSchema &schema) :
     cf::Group(group, schema.name, schema.help),
-    _schema(schema),
-    _was_assigned(false) {
+    _schema(schema) {
   for (auto &f : schema.fields())
     new OpDocrepField(*this, *f);
   for (auto &s : schema.stores())
@@ -52,8 +51,7 @@ DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseDocSchema &schema) :
 
 DocrepClassGroup::DocrepClassGroup(DocrepGroup &group, BaseSchema &schema) :
     cf::Group(group, schema.name, schema.help),
-    _schema(schema),
-    _was_assigned(false) {
+    _schema(schema) {
   for (auto &f : schema.fields())
     new OpDocrepField(*this, *f);
 }
@@ -79,19 +77,18 @@ DocrepClassGroup::accepts_mention(void) const {
 
 
 void
-DocrepClassGroup::assign(const std::string &value) {
+DocrepClassGroup::_assign(const std::string &value) {
   if (value.empty()) {
     std::ostringstream ss;
     ss << "Error setting value for \"" << _name << "\": value is empty";
     throw cf::ConfigException(ss.str());
   }
-  _was_assigned = true;
   _schema.serial = value;
 }
 
 
 void
-DocrepClassGroup::mention(void) { }
+DocrepClassGroup::_mention(void) { }
 
 
 void

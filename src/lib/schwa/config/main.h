@@ -16,19 +16,22 @@ namespace schwa {
     class Main : public Group {
     protected:
       std::vector<ConfigNode *> _owned;
+      std::vector<ConfigNode *> _positional_arg_nodes;
 
       bool _allow_unclaimed_args;
       std::vector<std::string> _cmdline_args;
       std::vector<std::string> _unclaimed_args;
 
-      OpOStream *_log;
+      Op<std::string> *_log;
       OpLogLevel *_log_level;
       OpLoadConfig *_load_config;
       OpSaveConfig *_save_config;
 
       ConfigNode *_find(const std::string &key);
 
+      virtual void _help(std::ostream &out, unsigned int depth) const override;
       virtual void _help_self(std::ostream &out, unsigned int depth) const override;
+
       virtual void _post_add(ConfigNode &child) override;
 
       // Used to parse and accept argv. Returns whether or not to keep going.

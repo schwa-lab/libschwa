@@ -17,7 +17,10 @@ ConfigNode::ConfigNode(const std::string &name, const char short_name, const std
     _desc(desc),
     _full_name(name),
     _short_name(short_name),
-    _flags(flags) {
+    _flags(flags),
+    _position_arg_precedence(-1),
+    _was_mentioned(false),
+    _was_assigned(false) {
   // Option names cannot be empty.
   if (name.empty())
     throw ConfigException("Option names cannot be empty");
@@ -47,6 +50,28 @@ ConfigNode::ConfigNode(const std::string &name, const char short_name, const std
 }
 
 
+void
+ConfigNode::position_arg_precedence(const int precedence) {
+  if (precedence < 0)
+    throw ConfigException("precedence value must be >= 0");
+  _position_arg_precedence = precedence;
+}
+
+
+void
+ConfigNode::assign(const std::string &value) {
+  _assign(value);
+  _was_assigned = true;
+}
+
+
+void
+ConfigNode::mention(void) {
+  _mention();
+  _was_mentioned = true;
+}
+
+
 ConfigNode *
 ConfigNode::find(const char short_name) {
   return (short_name == _short_name) ? this : nullptr;
@@ -62,6 +87,13 @@ ConfigNode::find(const std::string &key) {
 void
 ConfigNode::set_prefix(const std::string &prefix) {
   _full_name = prefix + SEPARATOR + _name;
+}
+
+
+void
+ConfigNode::_get_positional_arg_nodes(std::vector<ConfigNode *> &nodes) {
+  if (_position_arg_precedence != -1)
+    nodes.push_back(this);
 }
 
 }  // namespace config

@@ -5,6 +5,7 @@
 #include <schwa/_base.h>
 #include <schwa/tokenizer/common.h>
 
+
 namespace schwa {
   namespace tokenizer {
 
@@ -15,8 +16,8 @@ namespace schwa {
     public:
       virtual ~Stream(void) { }
 
-      virtual void add(Type type, const char *raw, offset_type begin, offset_type len, const char *norm=0) = 0;
-      virtual void error(const char *raw, offset_type begin, offset_type len) = 0;
+      virtual void add(Type type, const char *raw, size_t begin, size_t len, const char *norm=nullptr) = 0;
+      virtual void error(const char *raw, size_t begin, size_t len) = 0;
 
       virtual void begin_sentence(void) { }
       virtual void end_sentence(void) { }

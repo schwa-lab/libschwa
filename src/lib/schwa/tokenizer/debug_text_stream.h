@@ -2,31 +2,32 @@
 #ifndef SCHWA_TOKENIZER_DEBUG_TEXT_STREAM_H_
 #define SCHWA_TOKENIZER_DEBUG_TEXT_STREAM_H_
 
+#include <array>
 #include <iosfwd>
 
 #include <schwa/_base.h>
 #include <schwa/tokenizer/stream.h>
+
 
 namespace schwa {
   namespace tokenizer {
 
     class DebugTextStream : public Stream {
     public:
-      static const int NCOLOURS;
-      static const char *const COLOURS[];
-      static const char *const OFF;
+      static const std::array<const char *, 7> COLOURS;
+      static const char *OFF;
 
     protected:
       std::ostream &_out;
       bool _new_sentence;
-      unsigned int _colour;
+      size_t _colour;
 
     public:
       DebugTextStream(std::ostream &out);
       virtual ~DebugTextStream(void) { }
 
-      virtual void add(Type, const char *raw, offset_type, offset_type len, const char *norm=0) override;
-      virtual void error(const char *raw, offset_type, offset_type len) override;
+      virtual void add(Type, const char *raw, size_t begin, size_t len, const char *norm=nullptr) override;
+      virtual void error(const char *raw, size_t begin, size_t len) override;
 
       virtual void begin_sentence(void) override;
       virtual void end_sentence(void) override;

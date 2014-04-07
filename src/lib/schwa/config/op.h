@@ -20,13 +20,12 @@ namespace schwa {
     class Option : public ConfigNode {
     protected:
       const bool _has_default;  //!< Whether or not this option has a default value that can be used.
-      bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
-      bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
       Option(Group &group, const std::string &name, const std::string &desc, Flags flags, bool has_default);
       Option(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags, bool has_default);
 
       virtual void _assign(const std::string &value) = 0;
+      virtual void _mention(void) { }
       virtual bool _validate(const Main &main) = 0;
 
     public:
@@ -36,14 +35,9 @@ namespace schwa {
       virtual bool accepts_mention(void) const override;
       virtual bool requires_assignment(void) const override;
 
-      void assign(const std::string &value) override;
-      void mention(void) override;
       bool validate(const Main &main) override;
 
       virtual void set_default(void) = 0;
-
-      inline bool was_assigned(void) const { return _was_assigned; }
-      inline bool was_mentioned(void) const { return _was_mentioned; }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Option);
@@ -74,6 +68,7 @@ namespace schwa {
       virtual void serialise(std::ostream &out) const override;
       virtual void set_default(void) override;
 
+      inline const T &value(void) const { return _value; }
       inline const T &operator ()(void) const { return _value; }
 
     private:
@@ -162,7 +157,7 @@ namespace schwa {
       OpLogLevel(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
       virtual ~OpLogLevel(void);
 
-      inline schwa::io::LogLevel operator ()(void) const { return _level; }
+      inline schwa::io::LogLevel level(void) const { return _level; }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpLogLevel);
@@ -195,6 +190,8 @@ namespace schwa {
       OpHelp(Group &group, const std::string &name="help", char short_name='h', const std::string &desc="Displays the help text") : CommandOption(group, name, short_name, desc) { }
       virtual ~OpHelp(void) { }
 
+      virtual bool terminate_main(void) const override;
+
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpHelp);
     };
@@ -207,6 +204,8 @@ namespace schwa {
     public:
       OpVersion(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
       virtual ~OpVersion(void) { }
+
+      virtual bool terminate_main(void) const override;
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpVersion);

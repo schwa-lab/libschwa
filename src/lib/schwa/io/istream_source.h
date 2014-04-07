@@ -10,6 +10,9 @@
 namespace schwa {
   namespace io {
 
+    /**
+     * Concrete Source implementation which wraps over a std::istream.
+     **/
     class IStreamSource : public Source {
     protected:
       std::istream &_istream;

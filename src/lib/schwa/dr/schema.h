@@ -36,7 +36,7 @@ namespace schwa {
     // ========================================================================
     class BaseSchema {
     public:
-      typedef std::vector<BaseFieldDef *> field_container;
+      using field_container = std::vector<BaseFieldDef *>;
 
       const std::string name;
       const std::string help;
@@ -141,8 +141,8 @@ namespace schwa {
 
     class BaseDocSchema : public BaseSchema {
     public:
-      typedef std::vector<BaseAnnSchema *> schema_container;
-      typedef std::vector<BaseStoreDef *> store_container;
+      using schema_container = std::vector<BaseAnnSchema *>;
+      using store_container = std::vector<BaseStoreDef *>;
 
     protected:
       schema_container _schemas;
@@ -156,7 +156,7 @@ namespace schwa {
       template <typename T, T fn>
       inline void
       add(StoreDef<T, fn> *const store) {
-        typedef typename StoreDef<T, fn>::store_type::Schema S;
+        using S = typename StoreDef<T, fn>::store_type::Schema;
         static_assert(std::is_base_of<BaseAnnSchema, S>::value, "T::Schema for the Store<T> must be a subclass of BaseAnnSchema");
 
         _stores.push_back(store);

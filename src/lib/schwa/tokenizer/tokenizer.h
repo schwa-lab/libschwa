@@ -7,6 +7,7 @@
 #include <schwa/_base.h>
 #include <schwa/tokenizer/common.h>
 
+
 namespace schwa {
   namespace io {
     class Source;
@@ -16,26 +17,21 @@ namespace schwa {
 
     class Stream;
 
-    static const int ERROR_SKIP = 0;
-    static const int ERROR_CALL = 1;
-    static const int ERROR_THROW = 2;
-
-    static const size_t BUFFER_SIZE = 20*1024;
 
     class Tokenizer {
     protected:
       struct State;
 
-      bool _tokenize(Stream &dest, State &s, const char *&n1, const char *&n2, const char *p, const char *pe, const char *eof, int errors=ERROR_SKIP) const;
+      bool _tokenize(Stream &dest, State &s, const char *&n1, const char *&n2, const char *p, const char *pe, const char *eof, OnError onerror=OnError::SKIP) const;
 
-      void _token(Type type, Stream &dest, State &state, const char *norm=0) const;
-      void _word(Type type, Stream &dest, State &state, const char *norm=0) const;
-      void _punct(Type type, Stream &dest, State &state, const char *norm=0) const;
-      void _end(Type type, Stream &dest, State &state, const char *norm=0) const;
+      void _token(Type type, Stream &dest, State &state, const char *norm=nullptr) const;
+      void _word(Type type, Stream &dest, State &state, const char *norm=nullptr) const;
+      void _punct(Type type, Stream &dest, State &state, const char *norm=nullptr) const;
+      void _end(Type type, Stream &dest, State &state, const char *norm=nullptr) const;
 
-      void _split(Type type1, Type type2, Stream &dest, State &state, const char *norm1=0, const char *norm2=0) const;
+      void _split(Type type1, Type type2, Stream &dest, State &state, const char *norm1=nullptr, const char *norm2=nullptr) const;
 
-      void _terminator(Stream &dest, State &state, const char *norm=0) const;
+      void _terminator(Stream &dest, State &state, const char *norm=nullptr) const;
 
       void _error(Stream &dest, State &state) const;
 
@@ -63,16 +59,14 @@ namespace schwa {
       void _dash_or_item(Stream &dest, State &state) const;
       void _number_or_item(Stream &dest, State &state) const;
 
-      bool _die(std::ostream &msg) const;
-
     public:
-      bool tokenize(Stream &dest, const char *data, int errors=ERROR_SKIP) const;
-      bool tokenize(Stream &dest, const char *data, offset_type len, int errors=ERROR_SKIP) const;
-      bool tokenize(Stream &dest, const std::string &data, int errors=ERROR_SKIP) const;
-      bool tokenize(Stream &dest, io::Source &src, size_t buffer_size=BUFFER_SIZE, int errors=ERROR_SKIP) const;
+      bool tokenize(Stream &dest, const char *data, OnError onerror=OnError::SKIP) const;
+      bool tokenize(Stream &dest, const char *data, size_t len, OnError onerror=OnError::SKIP) const;
+      bool tokenize(Stream &dest, const std::string &data, OnError onerror=OnError::SKIP) const;
+      bool tokenize(Stream &dest, io::Source &src, size_t buffer_size=DEFAULT_BUFFER_SIZE, OnError onerror=OnError::SKIP) const;
 
-      bool tokenize_stream(Stream &dest, std::istream &in, size_t buffer_size=BUFFER_SIZE, int errors=ERROR_SKIP) const;
-      bool tokenize_mmap(Stream &dest, const std::string &filename, int errors=ERROR_SKIP) const;
+      bool tokenize_stream(Stream &dest, std::istream &in, size_t buffer_size=DEFAULT_BUFFER_SIZE, OnError onerror=OnError::SKIP) const;
+      bool tokenize_mmap(Stream &dest, const std::string &filename, OnError onerror=OnError::SKIP) const;
     };
 
   }

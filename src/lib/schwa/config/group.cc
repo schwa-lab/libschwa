@@ -114,6 +114,15 @@ Group::_post_add(ConfigNode &child) {
 
 
 void
+Group::_get_positional_arg_nodes(std::vector<ConfigNode *> &nodes) {
+  for (auto &c : _options)
+    c->_get_positional_arg_nodes(nodes);
+  for (auto &c : _groups)
+    c->_get_positional_arg_nodes(nodes);
+}
+
+
+void
 Group::add(Group &child) {
   _pre_add(child);
   _groups.push_back(&child);
@@ -148,13 +157,13 @@ Group::requires_assignment(void) const {
 
 
 void
-Group::assign(const std::string &) {
+Group::_assign(const std::string &) {
   throw Exception("should not be called");
 }
 
 
 void
-Group::mention(void) {
+Group::_mention(void) {
   throw Exception("should not be called");
 }
 
@@ -174,6 +183,18 @@ Group::serialise(std::ostream &out) const {
 
   for (auto &c : _groups)
     c->serialise(out);
+}
+
+
+bool
+Group::terminate_main(void) const {
+  for (auto &child : _options)
+    if (child->terminate_main())
+      return true;
+  for (auto &child : _groups)
+    if (child->terminate_main())
+      return true;
+  return false;
 }
 
 

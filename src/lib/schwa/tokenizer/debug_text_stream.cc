@@ -7,14 +7,13 @@
 namespace schwa {
 namespace tokenizer {
 
-const int DebugTextStream::NCOLOURS = 7;
+const std::array<const char *, 7> DebugTextStream::COLOURS = {{
+  "\033[0;31m", "\033[0;32m", "\033[1;33m",
+  "\033[1;34m", "\033[0;35m", "\033[0;36m",
+  "\033[1;37m",
+}};
+const char *DebugTextStream::OFF = "\033[0m";
 
-const char *const DebugTextStream::COLOURS[] = {
-  "\033[0;31m", "\033[0;32m", "\033[1;33m", "\033[1;34m",
-  "\033[0;35m", "\033[0;36m", "\033[1;37m"
-};
-
-const char *const DebugTextStream::OFF = "\033[0m";
 
 DebugTextStream::DebugTextStream(std::ostream &out) :
     _out(out),
@@ -23,19 +22,20 @@ DebugTextStream::DebugTextStream(std::ostream &out) :
   { }
 
 void
-DebugTextStream::add(Type, const char *raw, offset_type, offset_type len, const char *norm) {
+DebugTextStream::add(Type, const char *raw, size_t, size_t len, const char *norm) {
   if (!_new_sentence)
     _out << ' ';
   _new_sentence = false;
 
   if (norm)
-    _out << COLOURS[_colour++ % NCOLOURS] << norm << OFF;
+    _out << COLOURS[_colour] << norm << OFF;
   else
-    (_out << COLOURS[_colour++ % NCOLOURS]).write(raw, len) << OFF;
+    (_out << COLOURS[_colour]).write(raw, len) << OFF;
+  _colour = (_colour + 1) % COLOURS.size();
 }
 
 void
-DebugTextStream::error(const char *raw, offset_type, offset_type len) {
+DebugTextStream::error(const char *raw, size_t, size_t len) {
   if (!_new_sentence)
     _out << ' ';
   (_out << "<error>").write(raw, len) << "</error>";
@@ -47,6 +47,7 @@ DebugTextStream::begin_sentence(void) {
   _new_sentence = true;
   _colour = 0;
 }
+
 void
 DebugTextStream::end_sentence(void) {
   _out << "</s>\n";

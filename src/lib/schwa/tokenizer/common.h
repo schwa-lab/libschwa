@@ -7,7 +7,14 @@
 namespace schwa {
   namespace tokenizer {
 
-    typedef int64_t offset_type;
+    static constexpr const size_t DEFAULT_BUFFER_SIZE = 4*1024;
+    static constexpr const size_t MAX_SENTENCE_LENGTH = 256;
+
+    enum class OnError : uint8_t {
+      SKIP,
+      CALL,
+      THROW,
+    };
 
     enum Type {
       WORD,
