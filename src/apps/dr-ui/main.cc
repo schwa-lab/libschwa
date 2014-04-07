@@ -48,6 +48,7 @@ main(int argc, char **argv) {
   cf::Op<uint32_t> limit(cfg, "limit", 'n', "Limit on how many documents to process", cf::Flags::OPTIONAL);
 
   // Parse argv.
+  input.position_arg_precedence(0);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Dispatch to main function.

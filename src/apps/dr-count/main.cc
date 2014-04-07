@@ -52,6 +52,7 @@ main(int argc, char **argv) {
   cf::Op<std::string> doc_id(cfg, "doc-id", 'd', "Output this expression before each document instead when outputting per-document counts", cf::Flags::OPTIONAL);
 
   // Parse argv.
+  input.position_arg_precedence(0);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Construct the formatting enum value.

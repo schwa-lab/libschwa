@@ -75,6 +75,7 @@ main(int argc, char **argv) {
   cf::Op<uint32_t> count(cfg, "count", 'n', "How many documents to keep", 1);
 
   // Parse argv.
+  input.position_arg_precedence(0);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Dispatch to main function.

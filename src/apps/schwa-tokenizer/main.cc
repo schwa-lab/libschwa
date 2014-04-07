@@ -31,6 +31,7 @@ main(int argc, char **argv) {
   dr::DocrepGroup dr(cfg, schema);
 
   // Parse argv.
+  input.position_arg_precedence(0);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Configure the tokenizer printer.

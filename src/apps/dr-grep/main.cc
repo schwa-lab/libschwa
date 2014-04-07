@@ -48,6 +48,8 @@ main(int argc, char **argv) {
   cf::Op<std::string> expression(cfg, "expression", 'e', "The expression to filter on");
 
   // Parse argv.
+  expression.position_arg_precedence(0);
+  input.position_arg_precedence(1);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Dispatch to main function.

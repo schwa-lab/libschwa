@@ -47,6 +47,7 @@ main(int argc, char **argv) {
   cf::Op<uint32_t> skip(cfg, "skip", 's', "How many documents to skip before counting", 0);
 
   // Parse argv.
+  input.position_arg_precedence(0);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Dispatch to main function.

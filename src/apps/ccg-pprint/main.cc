@@ -170,6 +170,7 @@ main(int argc, char **argv) {
   cf::Op<bool> ptb(cfg, "ptb", 'p', "Pretty-print the trees in PTB format", false);
 
   // Parse argv.
+  input.position_arg_precedence(0);
   cfg.main<io::PrettyLogger>(argc, argv);
 
   // Dispatch to main function.
