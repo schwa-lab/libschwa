@@ -2,6 +2,7 @@
 #include <schwa/io/utils.h>
 
 #include <fstream>
+#include <ios>
 
 #include <schwa/exception.h>
 
@@ -10,8 +11,8 @@ namespace schwa {
 namespace io {
 
 std::ifstream *
-safe_open_ifstream(const char *const filename) {
-  std::ifstream *const f = new std::ifstream(filename);
+safe_open_ifstream(const char *const filename, const std::ios_base::openmode mode) {
+  std::ifstream *const f = new std::ifstream(filename, mode);
   if (!*f) {
     delete f;
     throw IOException("Could not open file for reading", filename);
@@ -21,8 +22,8 @@ safe_open_ifstream(const char *const filename) {
 
 
 std::ofstream *
-safe_open_ofstream(const char *const filename) {
-  std::ofstream *const f = new std::ofstream(filename);
+safe_open_ofstream(const char *const filename, const std::ios_base::openmode mode) {
+  std::ofstream *const f = new std::ofstream(filename, mode);
   if (!*f) {
     delete f;
     throw IOException("Could not open file for writing", filename);
