@@ -131,6 +131,7 @@ LIBSCHWA_SOURCE_FILES = \
 
 LIBSCHWA_TEST_SOURCE_FILES = \
 		schwa/containers/block_vector_test.cc  \
+		schwa/dr/fields_test.cc  \
 		schwa/dr/helpers_test.cc  \
 		schwa/dr/lazy_test.cc  \
 		schwa/dr/pointers_test.cc  \
