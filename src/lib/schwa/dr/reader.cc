@@ -26,7 +26,7 @@ namespace mp = schwa::msgpack;
 namespace schwa {
 namespace dr {
 
-Reader::Reader(std::istream &in, BaseDocSchema &dschema) :
+Reader::Reader(std::istream &in, const BaseDocSchema &dschema) :
     _in(in),
     _dschema(dschema),
     _has_more(false)

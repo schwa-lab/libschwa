@@ -19,11 +19,11 @@ namespace schwa {
 
     protected:
       std::istream &_in;
-      BaseDocSchema &_dschema;
+      const BaseDocSchema &_dschema;
       bool _has_more;
 
     public:
-      Reader(std::istream &in, BaseDocSchema &dschema);
+      Reader(std::istream &in, const BaseDocSchema &dschema);
       ~Reader(void) { }
 
       Reader &read(Doc &doc);
