@@ -34,7 +34,7 @@
 namespace schwa {
 namespace tokenizer {
 
-%% write data nofinal;
+%% write data noerror nofinal;
 
 bool
 Tokenizer::_tokenize(Stream &dest, State &s, const char *&n1, const char *&n2, const char *p, const char *pe, const char *eof, OnError onerror) const {
@@ -42,7 +42,7 @@ Tokenizer::_tokenize(Stream &dest, State &s, const char *&n1, const char *&n2, c
 
   %% write exec;
 
-  if (s.cs == tokenizer_error)
+  if (s.cs == %%{ write error; }%%)
     return false;
   return true;
 }
@@ -71,6 +71,7 @@ bool
 Tokenizer::tokenize(Stream &dest, io::Source &src, const size_t buffer_size, const OnError onerror) const {
   // Code based on Ragel Guide, version 6.7, Figure 6.2.
   State s;
+  (void)tokenizer_en_main;  // Shoosh compiler warning about unused variable.
 
   %% write init;
 

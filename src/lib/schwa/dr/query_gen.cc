@@ -18,8 +18,6 @@ namespace query {
 
 #line 20 "schwa/dr/query_gen.cc"
 static const int language_start = 11;
-static const int language_first_final = 11;
-static const int language_error = 0;
 
 static const int language_en_main = 11;
 
@@ -34,10 +32,11 @@ Interpreter::_tokenise(const char *const str, const size_t len) {
   const char *p = str;
   const char *pe = p + len;
   const char *eof = pe;
+  (void)language_en_main;  // Shoosh compiler warning about unused variable.
 
   // Initialise and run the FSA.
   
-#line 41 "schwa/dr/query_gen.cc"
+#line 40 "schwa/dr/query_gen.cc"
 	{
 	cs = language_start;
 	ts = 0;
@@ -45,9 +44,9 @@ Interpreter::_tokenise(const char *const str, const size_t len) {
 	act = 0;
 	}
 
-#line 87 "../ragel/dr-query/language.rl"
+#line 88 "../ragel/dr-query/language.rl"
   
-#line 51 "schwa/dr/query_gen.cc"
+#line 50 "schwa/dr/query_gen.cc"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -157,7 +156,7 @@ st11:
 case 11:
 #line 1 "NONE"
 	{ts = p;}
-#line 161 "schwa/dr/query_gen.cc"
+#line 160 "schwa/dr/query_gen.cc"
 	switch( (*p) ) {
 		case 32: goto st12;
 		case 33: goto st1;
@@ -245,7 +244,7 @@ st13:
 	if ( ++p == pe )
 		goto _test_eof13;
 case 13:
-#line 249 "schwa/dr/query_gen.cc"
+#line 248 "schwa/dr/query_gen.cc"
 	switch( (*p) ) {
 		case 34: goto tr4;
 		case 92: goto st3;
@@ -309,7 +308,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 313 "schwa/dr/query_gen.cc"
+#line 312 "schwa/dr/query_gen.cc"
 	switch( (*p) ) {
 		case 10: goto tr40;
 		case 42: goto tr40;
@@ -376,7 +375,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 380 "schwa/dr/query_gen.cc"
+#line 379 "schwa/dr/query_gen.cc"
 	if ( (*p) == 95 )
 		goto tr29;
 	if ( (*p) < 65 ) {
@@ -612,10 +611,14 @@ case 10:
 	_out: {}
 	}
 
-#line 88 "../ragel/dr-query/language.rl"
+#line 89 "../ragel/dr-query/language.rl"
 
   // Did the FSA terminate on an accepting state?
-  if (cs < language_first_final)
+  if (cs < 
+#line 619 "schwa/dr/query_gen.cc"
+11
+#line 91 "../ragel/dr-query/language.rl"
+)
     _throw_compile_error(p, pe);
 }
 
