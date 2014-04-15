@@ -22,27 +22,34 @@ namespace schwa {
      * Template specialisation to make \ref DR_REVERSE_SLICES work in the mutually exclusive case. That
      * is, when you want to reverse your slices to a single pointer of the pointed from type.
      **/
-    template <typename A, typename D, typename B, Store<A> D::*source_store, Store<B> D::*target_store, Slice<B *> A::*slice_attr, A *B::*pointer_attr>
-    class ReverseSlices<Store<A> D::*, source_store, Store<B> D::*, target_store, Slice<B *> A::*, slice_attr, A *B::*, pointer_attr> {
+    template <typename SOURCE, typename TARGET, typename DOC,
+               Store<SOURCE> DOC::*source_store,
+               Store<TARGET> DOC::*target_store,
+               Slice<TARGET *> SOURCE::*slice_attr,
+               SOURCE *TARGET::*pointer_attr>
+    class ReverseSlices<
+        Store<SOURCE> DOC::*, source_store,
+        Store<TARGET> DOC::*, target_store,
+        Slice<TARGET *> SOURCE::*, slice_attr,
+        SOURCE *TARGET::*, pointer_attr> {
     public:
-      static_assert(std::is_base_of<Doc, D>::value, "D must be a subclass of Doc");
-      static_assert(std::is_base_of<Ann, A>::value, "Store<A> type A must be a subclass of Ann");
-      static_assert(std::is_base_of<Ann, B>::value, "Store<B> type B must be a subclass of Ann");
+      static_assert(std::is_base_of<Doc, DOC>::value, "DOC must be a subclass of Doc");
+      static_assert(std::is_base_of<Ann, SOURCE>::value, "Store<SOURCE> type SOURCE must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, TARGET>::value, "Store<TARGET> type TARGET must be a subclass of Ann");
 
       void
-      operator ()(D &doc) const {
+      operator ()(DOC &doc) const {
         // Initialise the target pointers to all be NULL.
-        for (B &target : doc.*target_store)
+        for (TARGET &target : doc.*target_store)
           target.*pointer_attr = nullptr;
 
         // For each of the source objects which have valid target slices, populate the back-pointer.
-        for (A &source : doc.*source_store) {
-          B *const start = (source.*slice_attr).start;
-          B *const stop = (source.*slice_attr).stop;
-          if (start == nullptr || stop == nullptr)
+        for (SOURCE &source : doc.*source_store) {
+          Slice<TARGET *> &slice = source.*slice_attr;
+          if (slice.start == nullptr || slice.stop == nullptr)
             continue;
-          for (B *target = start; target != stop; ++target)
-            target->*pointer_attr = &source;
+          for (TARGET &target : slice)
+            target.*pointer_attr = &source;
         }
       }
     };
@@ -52,27 +59,34 @@ namespace schwa {
      * That is, when you want to reverse your slices to a collection of pointers instead of just a
      * single pointer.
      **/
-    template <typename A, typename D, typename B, Store<A> D::*source_store, Store<B> D::*target_store, Slice<B *> A::*slice_attr, std::vector<A *> B::*pointers_attr>
-    class ReverseSlices<Store<A> D::*, source_store, Store<B> D::*, target_store, Slice<B *> A::*, slice_attr, std::vector<A *> B::*, pointers_attr> {
+    template <typename SOURCE, typename TARGET, typename DOC,
+               Store<SOURCE> DOC::*source_store,
+               Store<TARGET> DOC::*target_store,
+               Slice<TARGET *> SOURCE::*slice_attr,
+               std::vector<SOURCE *> TARGET::*pointers_attr>
+    class ReverseSlices<
+        Store<SOURCE> DOC::*, source_store,
+        Store<TARGET> DOC::*, target_store,
+        Slice<TARGET *> SOURCE::*, slice_attr,
+        std::vector<SOURCE *> TARGET::*, pointers_attr> {
     public:
-      static_assert(std::is_base_of<Doc, D>::value, "D must be a subclass of Doc");
-      static_assert(std::is_base_of<Ann, A>::value, "Store<A> type A must be a subclass of Ann");
-      static_assert(std::is_base_of<Ann, B>::value, "Store<B> type B must be a subclass of Ann");
+      static_assert(std::is_base_of<Doc, DOC>::value, "DOC must be a subclass of Doc");
+      static_assert(std::is_base_of<Ann, SOURCE>::value, "Store<SOURCE> type SOURCE must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, TARGET>::value, "Store<TARGET> type TARGET must be a subclass of Ann");
 
       void
-      operator ()(D &doc) const {
+      operator ()(DOC &doc) const {
         // Initialise the target pointers vector to be empty.
-        for (B &target : doc.*target_store)
+        for (TARGET &target : doc.*target_store)
           (target.*pointers_attr).clear();
 
         // For each of the source objects which have valid target slices, populate the back-pointers.
-        for (A &source : doc.*source_store) {
-          B *const start = (source.*slice_attr).start;
-          B *const stop = (source.*slice_attr).stop;
-          if (start == nullptr || stop == nullptr)
+        for (SOURCE &source : doc.*source_store) {
+          Slice<TARGET *> &slice = source.*slice_attr;
+          if (slice.start == nullptr || slice.stop == nullptr)
             continue;
-          for (B *target = start; target != stop; ++target)
-            (target->*pointers_attr).push_back(&source);
+          for (TARGET &target : slice)
+            (target.*pointers_attr).push_back(&source);
         }
       }
     };
