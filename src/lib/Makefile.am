@@ -69,6 +69,12 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/unsafe_array_writer.h \
 		schwa/io/utils.h \
 		schwa/io/write_buffer.h \
+		schwa/learn/enums.h \
+		schwa/learn/extract.h \
+		schwa/learn/extract_impl.h \
+		schwa/learn/feature_transformers.h \
+		schwa/learn/features.h \
+		schwa/learn/features_impl.h \
 		schwa/macros.h \
 		schwa/mpl/if.h \
 		schwa/msgpack/dynamic.h \
@@ -116,6 +122,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/mmapped_source.cc \
 		schwa/io/utils.cc \
 		schwa/io/write_buffer.cc \
+		schwa/learn/features.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/enums.cc \
 		schwa/msgpack/exception.cc \
@@ -141,6 +148,9 @@ LIBSCHWA_TEST_SOURCE_FILES = \
 		schwa/dr/writer_test.cc  \
 		schwa/io/mmapped_source_test.cc  \
 		schwa/io/write_buffer_test.cc  \
+		schwa/learn/extract_test.cc \
+		schwa/learn/feature_transformers_test.cc \
+		schwa/learn/features_test.cc \
 		schwa/mpl/if_test.cc  \
 		schwa/msgpack/wire_test.cc  \
 		schwa/pool_test.cc  \
