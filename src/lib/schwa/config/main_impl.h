@@ -24,7 +24,7 @@ namespace schwa {
           std::exit(0);
 
         // Configure logging.
-        io::default_logger = new LOGGER(_log->value().c_str(), _log_level->level());
+        io::default_logger = new LOGGER(_op_log->value().c_str(), _op_log_level->level());
       }
       catch (ConfigException &e) {
         std::cerr << print_exception("ConfigException", e) << std::endl;
