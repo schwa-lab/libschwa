@@ -7,7 +7,6 @@
 #include <string>
 
 #include <schwa/_base.h>
-#include <schwa/learn/feature_transformers.h>
 
 
 namespace schwa {
@@ -25,6 +24,15 @@ namespace schwa {
 
         out << ":" << pair.second;
       }
+    }
+
+
+    template <class TRANSFORM>
+    inline void
+    Instance<TRANSFORM>::dump_crfsuite(std::ostream &out) const {
+      out << klass;
+      features.dump_crfsuite(out);
+      out << std::endl;
     }
 
   }
