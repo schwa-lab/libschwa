@@ -8,6 +8,7 @@
 #include <schwa/config/exception.h>
 #include <schwa/config/group.h>
 #include <schwa/config/main.h>
+#include <schwa/io/utils.h>
 #include <schwa/version.h>
 
 namespace io = schwa::io;
@@ -94,9 +95,7 @@ OpIStream::_validate(const Main &) {
   }
   else {
     _is_stdin = false;
-    _in = new std::ifstream(_value);
-    if (!*_in)
-      throw IOException("Could not open file for reading", _value);
+    _in = io::safe_open_ifstream(_value);
   }
   return true;
 }
@@ -139,9 +138,7 @@ OpOStream::_validate(const Main &) {
   }
   else {
     _is_std = false;
-    _out = new std::ofstream(_value);
-    if (!*_out)
-      throw IOException("Could not open file for writing", _value);
+    _out = io::safe_open_ofstream(_value);
   }
   return true;
 }

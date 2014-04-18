@@ -3,9 +3,11 @@
 #define SCHWA_CONFIG_SERIALISATION_IMPL_H_
 
 #include <fstream>
+#include <memory>
 #include <stack>
 
-#include <schwa/exception.h>
+#include <schwa/io/utils.h>
+
 
 namespace schwa {
   namespace config {
@@ -14,15 +16,13 @@ namespace schwa {
     inline void
     OpLoadConfig::load_config(C &container) const {
       // Open the file for reading.
-      std::ifstream in(_value);
-      if (!in)
-        throw IOException("Could not open config file for reading", _value);
+      std::unique_ptr<std::ifstream> in(io::safe_open_ifstream(_value));
 
       // Keep a stack of the found values so that we can push_front onto the provided container.
       std::stack<typename C::value_type> stack;
 
       // For each line in the file...
-      for (std::string line; std::getline(in, line); ) {
+      for (std::string line; std::getline(*in, line); ) {
         // Skip comments and blank lines.
         if (line.empty() || line[0] == '#')
           continue;

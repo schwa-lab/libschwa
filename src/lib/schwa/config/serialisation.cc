@@ -2,9 +2,13 @@
 #include <schwa/config/serialisation.h>
 
 #include <fstream>
+#include <memory>
 #include <iostream>
 
 #include <schwa/config/main.h>
+#include <schwa/io/utils.h>
+
+namespace io = schwa::io;
 
 
 namespace schwa {
@@ -32,10 +36,8 @@ OpSaveConfig::save_config(const Main &main) const {
     return;
 
   // Open the file for writing.
-  std::ofstream out(_value);
-  if (!out)
-    throw IOException("Could not open config file for writing", _value);
-  main.serialise(out);
+  std::unique_ptr<std::ofstream> out(io::safe_open_ofstream(_value));
+  main.serialise(*out);
 }
 
 }  // namespace config
