@@ -116,7 +116,13 @@ namespace schwa {
      *   x(doc);
      * \endcode
      **/
-    #define DR_REVERSE_SLICES(source_store, target_store, slice_attr, pointer_attr) schwa::dr::ReverseSlices<decltype(source_store), source_store, decltype(target_store), target_store, decltype(slice_attr), slice_attr, decltype(pointer_attr), pointer_attr>()
+    #define DR_REVERSE_SLICES(source_store, target_store, slice_attr, pointer_attr) \
+      ::schwa::dr::ReverseSlices<\
+        decltype(source_store), source_store, \
+        decltype(target_store), target_store, \
+        decltype(slice_attr), slice_attr, \
+        decltype(pointer_attr), pointer_attr \
+      >()
 
 
     template <typename T1, T1 fn1, typename T2, T2 fn2, typename T3, T3 fn3, typename T4, T4 fn4, typename T5, T5 fn5, typename T6, T6 fn6, typename T7, T7 fn7, typename T8, T8 fn8>
@@ -234,7 +240,7 @@ namespace schwa {
     };
 
     #define DR_SEQUENCE_TAGGER(span_store, sentence_store, target_store, span_slice_attr, sentence_slice_attr, pointer_attr, klass_attr, tag_attr) \
-      SequenceTagger< \
+      ::schwa::dr::SequenceTagger< \
         decltype(span_store), span_store, \
         decltype(sentence_store), sentence_store, \
         decltype(target_store), target_store, \
