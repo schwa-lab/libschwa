@@ -134,12 +134,22 @@ main(int argc, char **argv) {
   // Construct an option parser.
   Main cfg("dr", "A dispatcher to other docrep processing tools.");
 
-  // Parse argv.
-  cfg.allow_unclaimed_args(true);
-  cfg.main<io::PrettyLogger>(argc, argv);
-
-  // Dispatch to main function.
   try {
+    // Parse argv.
+    if (argc > 1) {
+      if (std::strcmp(argv[1], "--help") == 0) {
+        cfg.op_help()->mention();
+        cfg.op_help()->validate(cfg);
+        return 0;
+      }
+      else if (std::strcmp(argv[1], "--version") == 0) {
+        cfg.op_version()->mention();
+        cfg.op_version()->validate(cfg);
+        return 0;
+      }
+    }
+
+    // Dispatch to main function.
     _main(argc, argv);
   }
   catch (cf::ConfigException &e) {
