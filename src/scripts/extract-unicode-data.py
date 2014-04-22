@@ -447,8 +447,6 @@ namespace schwa {{
 // ============================================================================
 #include <schwa/unicode.h>
 
-#include <cstring>
-
 #include <schwa/utils/enums.h>
 
 
@@ -580,10 +578,12 @@ get_numeric(const unicode_t code_point) {
 }
 ''', file=file_cc)
 
-  nspecial_casings = sum(len(k) for k in special_casings)
-  print('static constexpr const unicode_t SPECIAL_CASING_DATA[{0}] = {{'.format(nspecial_casings), file=file_cc)
+  print('static constexpr const unicode_t SPECIAL_CASING_DATA[{0}][3] = {{'.format(len(special_casings)), file=file_cc)
   for _, values in sorted((v, k) for k, v in special_casings.items()):
-    print('    {0},'.format(', '.join('0x{0:X}'.format(v) for v in values)), file=file_cc)
+    padded = list(values)
+    while len(padded) != 3:
+      padded.append(0)
+    print('    {{{0}}},'.format(', '.join('0x{0:X}'.format(v) for v in padded)), file=file_cc)
   print(r'''};
 ''', file=file_cc)
 
@@ -604,7 +604,8 @@ to_{case}(const unicode_t code_point, unicode_t code_points[3]) {{
     const auto &data = get_unicode_data(code_point);
     const size_t index = ((data.special_casing >> {index_shift}) & 0xFF);
     n = ((data.special_casing >> {length_shift}) & 0x03);
-    std::memcpy(code_points, &SPECIAL_CASING_DATA[index], n * sizeof(unicode_t));
+    for (size_t i = 0; i != n; ++i)
+      code_points[i] = SPECIAL_CASING_DATA[index][i];
   }}
   return n;
 }}
