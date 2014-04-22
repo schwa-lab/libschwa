@@ -64,7 +64,7 @@ TEST(test_read_utf8_bounds) {
   const char *start, *end, *upto;
   unicode_t cp;
 
-  start = u8"\U00000000";
+  start = "\0";
   upto = start;
   end = start + 1;
   cp = read_utf8(&upto, end);

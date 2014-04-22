@@ -2,6 +2,8 @@
 #include <schwa/unittest.h>
 
 #include <algorithm>
+#include <functional>
+#include <set>
 #include <sstream>
 #include <string>
 
@@ -43,7 +45,14 @@ TEST(hasher_transform_default_hash) {
   f.dump_crfsuite(ss);
   ss.seekg(0);
   const std::string s = ss.str();
-  CHECK_EQUAL(4, std::count(s.begin(), s.end(), '\t'));
+
+  std::hash<std::string> h;
+  std::set<std::hash<std::string>::result_type> unique;
+  unique.insert(h("a") % (1 << 4));
+  unique.insert(h("b") % (1 << 4));
+  unique.insert(h("c") % (1 << 4));
+  unique.insert(h("d") % (1 << 4));
+  CHECK_EQUAL(unique.size(), std::count(s.begin(), s.end(), '\t'));
 }
 
 

@@ -33,7 +33,6 @@ TEST(hasher_transform_default_hash) {
     std::stringstream ss;
     ss << i;
     const auto v = t(ss.str());
-    CHECK(0 <= v);
     CHECK(v < t.modulus());
   }
 }
