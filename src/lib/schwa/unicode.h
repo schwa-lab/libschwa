@@ -2,6 +2,7 @@
 #ifndef SCHWA_UNICODE_H_
 #define SCHWA_UNICODE_H_
 
+#include <iostream>
 #include <iterator>
 #include <string>
 
@@ -36,6 +37,9 @@ namespace schwa {
 
 
   unicode_t read_utf8(const char **data, const char *end);
+  size_t write_utf8(unicode_t code_point, char utf8[4]);
+  size_t write_utf8(unicode_t code_point, std::ostream &out);
+  size_t write_utf8(const UnicodeString &s, std::ostream &out);
 
 
   class UTF8Decoder {
@@ -88,6 +92,15 @@ namespace schwa {
   };
 
 }  // namespace schwa
+
+
+//<! Add support for writing UTF-8.
+inline std::ostream &
+operator <<(std::ostream &out, const schwa::UnicodeString &s) {
+  for (const auto c : s)
+    schwa::write_utf8(c, out);
+  return out;
+}
 
 #include <schwa/unicode_gen.h>
 

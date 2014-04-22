@@ -1,10 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/unittest.h>
-
 #include <cstring>
 #include <vector>
 
 #include <schwa/unicode.h>
+#include <schwa/unittest.h>
 
 
 namespace schwa {
@@ -12,57 +11,85 @@ namespace unicode {
 
 SUITE(schwa__unicode) {
 
-TEST(test_read_utf8_single_cp_1byte) {
-  const char *const start = u8"$";
-  const char *const end = start + std::strlen(start);
-  CHECK_EQUAL(1, end - start);
-  const char *upto = start;
+TEST(test_read_write_utf8_single_cp_1byte) {
+  const char *const utf8 = u8"$";
+  const char *const end = utf8 + std::strlen(utf8);
+  CHECK_EQUAL(1, end - utf8);
+  const char *upto = utf8;
   unicode_t cp;
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x0024, cp);
   CHECK_EQUAL(end, upto);
+
+  char encoded[4];
+  const size_t n = write_utf8(cp, encoded);
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(utf8[0], encoded[0]);
 }
 
 
-TEST(test_read_utf8_single_cp_2bytes) {
-  const char *const start = u8"¢";
-  const char *const end = start + std::strlen(start);
-  CHECK_EQUAL(2, end - start);
-  const char *upto = start;
+TEST(test_read_write_utf8_single_cp_2bytes) {
+  const char *const utf8 = u8"¢";
+  const char *const end = utf8 + std::strlen(utf8);
+  CHECK_EQUAL(2, end - utf8);
+  const char *upto = utf8;
   unicode_t cp;
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x00A2, cp);
   CHECK_EQUAL(end, upto);
+
+  char encoded[4];
+  const size_t n = write_utf8(cp, encoded);
+  CHECK_EQUAL(2, n);
+  CHECK_EQUAL(utf8[0], encoded[0]);
+  CHECK_EQUAL(utf8[1], encoded[1]);
 }
 
 
-TEST(test_read_utf8_single_cp_3bytes) {
-  const char *const start = u8"€";
-  const char *const end = start + std::strlen(start);
-  CHECK_EQUAL(3, end - start);
-  const char *upto = start;
+TEST(test_read_write_utf8_single_cp_3bytes) {
+  const char *const utf8 = u8"€";
+  const char *const end = utf8 + std::strlen(utf8);
+  CHECK_EQUAL(3, end - utf8);
+  const char *upto = utf8;
   unicode_t cp;
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x20AC, cp);
   CHECK_EQUAL(end, upto);
+
+  char encoded[4];
+  const size_t n = write_utf8(cp, encoded);
+  CHECK_EQUAL(3, n);
+  CHECK_EQUAL(utf8[0], encoded[0]);
+  CHECK_EQUAL(utf8[1], encoded[1]);
+  CHECK_EQUAL(utf8[2], encoded[2]);
 }
 
 
-TEST(test_read_utf8_single_cp_4bytes) {
-  const char *const start = u8"𤭢";
-  const char *const end = start + std::strlen(start);
-  CHECK_EQUAL(4, end - start);
-  const char *upto = start;
+TEST(test_read_write_utf8_single_cp_4bytes) {
+  const char *const utf8 = u8"𤭢";
+  const char *const end = utf8 + std::strlen(utf8);
+  CHECK_EQUAL(4, end - utf8);
+  const char *upto = utf8;
   unicode_t cp;
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x24B62, cp);
   CHECK_EQUAL(end, upto);
+
+  char encoded[4];
+  const size_t n = write_utf8(cp, encoded);
+  CHECK_EQUAL(4, n);
+  CHECK_EQUAL(utf8[0], encoded[0]);
+  CHECK_EQUAL(utf8[1], encoded[1]);
+  CHECK_EQUAL(utf8[2], encoded[2]);
+  CHECK_EQUAL(utf8[3], encoded[3]);
 }
 
 
-TEST(test_read_utf8_bounds) {
+TEST(test_read_write_utf8_bounds) {
   const char *start, *end, *upto;
+  char utf8[4];
   unicode_t cp;
+  size_t n;
 
   start = "\0";
   upto = start;
@@ -70,6 +97,9 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x00000000, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(start[0], utf8[0]);
 
   start = u8"\U0000007F";
   upto = start;
@@ -77,6 +107,9 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x0000007F, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(start[0], utf8[0]);
 
   start = u8"\U00000080";
   upto = start;
@@ -84,6 +117,10 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x00000080, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(2, n);
+  CHECK_EQUAL(start[0], utf8[0]);
+  CHECK_EQUAL(start[1], utf8[1]);
 
   start = u8"\U000007FF";
   upto = start;
@@ -91,6 +128,10 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x000007FF, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(2, n);
+  CHECK_EQUAL(start[0], utf8[0]);
+  CHECK_EQUAL(start[1], utf8[1]);
 
   start = u8"\U00000800";
   upto = start;
@@ -98,6 +139,11 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x00000800, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(3, n);
+  CHECK_EQUAL(start[0], utf8[0]);
+  CHECK_EQUAL(start[1], utf8[1]);
+  CHECK_EQUAL(start[2], utf8[2]);
 
   start = u8"\U0000FFFF";
   upto = start;
@@ -105,6 +151,11 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x0000FFFF, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(3, n);
+  CHECK_EQUAL(start[0], utf8[0]);
+  CHECK_EQUAL(start[1], utf8[1]);
+  CHECK_EQUAL(start[2], utf8[2]);
 
   start = u8"\U00010000";
   upto = start;
@@ -112,6 +163,12 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x00010000, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(4, n);
+  CHECK_EQUAL(start[0], utf8[0]);
+  CHECK_EQUAL(start[1], utf8[1]);
+  CHECK_EQUAL(start[2], utf8[2]);
+  CHECK_EQUAL(start[3], utf8[3]);
 
   start = u8"\U0010FFFF";
   upto = start;
@@ -119,6 +176,12 @@ TEST(test_read_utf8_bounds) {
   cp = read_utf8(&upto, end);
   CHECK_EQUAL(0x0010FFFF, cp);
   CHECK_EQUAL(end, upto);
+  n = write_utf8(cp, utf8);
+  CHECK_EQUAL(4, n);
+  CHECK_EQUAL(start[0], utf8[0]);
+  CHECK_EQUAL(start[1], utf8[1]);
+  CHECK_EQUAL(start[2], utf8[2]);
+  CHECK_EQUAL(start[3], utf8[3]);
 }
 
 
@@ -135,6 +198,12 @@ TEST(test_read_utf8_multiple) {
   CHECK_EQUAL(0x3C3, code_points[2]);
   CHECK_EQUAL(0x3BC, code_points[3]);
   CHECK_EQUAL(0x3B5, code_points[4]);
+
+  std::ostringstream ss;
+  write_utf8(UnicodeString(code_points.begin(), code_points.end()), ss);
+  const std::string utf8 = ss.str();
+  CHECK_EQUAL(std::strlen(start), utf8.size());
+  CHECK_EQUAL(start, utf8.c_str());
 }
 
 
@@ -174,7 +243,7 @@ TEST(test_utf8_decoder) {
   CHECK_EQUAL(0x3B5, us0[4]);
 
   const UnicodeString us1 = UTF8Decoder::to_string(s);
-  CHECK(us0 == us1);
+  CHECK_EQUAL(us0, us1);
 
   std::vector<unicode_t> code_points;
   for (auto cp : UTF8Decoder(s))

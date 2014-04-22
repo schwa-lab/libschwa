@@ -78,4 +78,58 @@ read_utf8(const char **ptr, const char *const end) {
   return code_point;
 }
 
+
+// ============================================================================
+// write_utf8
+// ============================================================================
+size_t
+write_utf8(const unicode_t code_point, std::ostream &out) {
+  char utf8[4];
+  const size_t n = write_utf8(code_point, utf8);
+  out.write(utf8, n);
+  return n;
+}
+
+
+size_t
+write_utf8(const UnicodeString &s, std::ostream &out) {
+  char utf8[4];
+  size_t nbytes = 0;
+  for (const auto c : s) {
+    const size_t n = write_utf8(c, utf8);
+    out.write(utf8, n);
+    nbytes += n;
+  }
+  return nbytes;
+}
+
+
+size_t
+write_utf8(const unicode_t code_point, char utf8[4]) {
+  if (code_point <= 0x007F) {
+    utf8[0] = (code_point & 0x7F);
+    return 1;
+  }
+  else if (code_point <= 0x07FF) {
+    utf8[0] = (0xC0 | ((code_point >>  6) & 0x1F));
+    utf8[1] = (0x80 | ((code_point >>  0) & 0x3F));
+    return 2;
+  }
+  else if (code_point <= 0xFFFF) {
+    utf8[0] = (0xE0 | ((code_point >> 12) & 0x0F));
+    utf8[1] = (0x80 | ((code_point >>  6) & 0x3F));
+    utf8[2] = (0x80 | ((code_point >>  0) & 0x3F));
+    return 3;
+  }
+  else if (code_point <= 0x1FFFFF) {
+    utf8[0] = (0xF0 | ((code_point >> 18) & 0x07));
+    utf8[1] = (0x80 | ((code_point >> 12) & 0x3F));
+    utf8[2] = (0x80 | ((code_point >>  6) & 0x3F));
+    utf8[3] = (0x80 | ((code_point >>  0) & 0x3F));
+    return 4;
+  }
+  else
+    throw UnicodeException("Could not encode UTF-8 sequence", code_point);
+}
+
 }  // namespace schwa
