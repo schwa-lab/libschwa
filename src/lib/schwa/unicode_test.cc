@@ -532,6 +532,196 @@ TEST(test_is_upper) {
 }
 
 
+TEST(test_to_lower_single_cp) {
+  unicode_t code_points[3];
+  size_t n;
+
+  n = to_lower(0x0028, code_points);  // (Ps) LEFT PARENTHESIS
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0028, code_points[0]);
+
+  n = to_lower(0x002E, code_points);  // (Po) FULL STOP
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x002E, code_points[0]);
+
+  n = to_lower(0x0031, code_points);  // (Nd) DIGIT ONE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0031, code_points[0]);
+
+  n = to_lower(0x0041, code_points);  // (Lu) LATIN CAPITAL LETTER A
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0061, code_points[0]);
+
+  n = to_lower(0x0068, code_points);  // (Ll) LATIN SMALL LETTER H
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0068, code_points[0]);
+
+  n = to_lower(0x00A0, code_points);  // (Zs) NO-BREAK SPACE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x00A0, code_points[0]);
+
+  n = to_lower(0x00B9, code_points);  // (No) SUPERSCRIPT ONE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x00B9, code_points[0]);
+
+  n = to_lower(0x00DF, code_points);  // (Ll) LATIN SMALL LETTER SHARP S
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x00DF, code_points[0]);
+
+  n = to_lower(0x0E55, code_points);  // (Nd) THAI DIGIT FIVE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0E55, code_points[0]);
+
+  n = to_lower(0x1F88, code_points);  // (Lt) GREEK CAPITAL LETTER ALPHA WITH PSILI AND PROSGEGRAMMENI
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x1F80, code_points[0]);
+
+  n = to_lower(0x1F8A, code_points);  // (Lt) GREEK CAPITAL LETTER ALPHA WITH PSILI AND VARIA AND PROSGEGRAMMENI
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x1F82, code_points[0]);
+
+  n = to_lower(0x12462, code_points); // (Nl) CUNEIFORM NUMERIC SIGN OLD ASSYRIAN ONE QUARTER
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x12462, code_points[0]);
+
+  n = to_lower(0x16962, code_points); // (Lo) BAMUM LETTER PHASE-D NTUU
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x16962, code_points[0]);
+
+  n = to_lower(0x16F94, code_points); // (Lm) MIAO LETTER TONE-3
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x16F94, code_points[0]);
+}
+
+
+TEST(test_to_title_single_cp) {
+  unicode_t code_points[3];
+  size_t n;
+
+  n = to_title(0x0028, code_points);  // (Ps) LEFT PARENTHESIS
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0028, code_points[0]);
+
+  n = to_title(0x002E, code_points);  // (Po) FULL STOP
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x002E, code_points[0]);
+
+  n = to_title(0x0031, code_points);  // (Nd) DIGIT ONE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0031, code_points[0]);
+
+  n = to_title(0x0041, code_points);  // (Lu) LATIN CAPITAL LETTER A
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0041, code_points[0]);
+
+  n = to_title(0x0068, code_points);  // (Ll) LATIN SMALL LETTER H
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0048, code_points[0]);
+
+  n = to_title(0x00A0, code_points);  // (Zs) NO-BREAK SPACE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x00A0, code_points[0]);
+
+  n = to_title(0x00B9, code_points);  // (No) SUPERSCRIPT ONE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x00B9, code_points[0]);
+
+  n = to_title(0x00DF, code_points);  // (Ll) LATIN SMALL LETTER SHARP S
+  CHECK_EQUAL(2, n);
+  CHECK_EQUAL(0x0053, code_points[0]);
+  CHECK_EQUAL(0x0073, code_points[1]);
+
+  n = to_title(0x0E55, code_points);  // (Nd) THAI DIGIT FIVE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0E55, code_points[0]);
+
+  n = to_title(0x1F88, code_points);  // (Lt) GREEK CAPITAL LETTER ALPHA WITH PSILI AND PROSGEGRAMMENI
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x1F88, code_points[0]);
+
+  n = to_title(0x1F8A, code_points);  // (Lt) GREEK CAPITAL LETTER ALPHA WITH PSILI AND VARIA AND PROSGEGRAMMENI
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x1F8A, code_points[0]);
+
+  n = to_title(0x12462, code_points); // (Nl) CUNEIFORM NUMERIC SIGN OLD ASSYRIAN ONE QUARTER
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x12462, code_points[0]);
+
+  n = to_title(0x16962, code_points); // (Lo) BAMUM LETTER PHASE-D NTUU
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x16962, code_points[0]);
+
+  n = to_title(0x16F94, code_points); // (Lm) MIAO LETTER TONE-3
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x16F94, code_points[0]);
+}
+
+
+TEST(test_to_upper_single_cp) {
+  unicode_t code_points[3];
+  size_t n;
+
+  n = to_upper(0x0028, code_points);  // (Ps) LEFT PARENTHESIS
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0028, code_points[0]);
+
+  n = to_upper(0x002E, code_points);  // (Po) FULL STOP
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x002E, code_points[0]);
+
+  n = to_upper(0x0031, code_points);  // (Nd) DIGIT ONE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0031, code_points[0]);
+
+  n = to_upper(0x0041, code_points);  // (Lu) LATIN CAPITAL LETTER A
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0041, code_points[0]);
+
+  n = to_upper(0x0068, code_points);  // (Ll) LATIN SMALL LETTER H
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0048, code_points[0]);
+
+  n = to_upper(0x00A0, code_points);  // (Zs) NO-BREAK SPACE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x00A0, code_points[0]);
+
+  n = to_upper(0x00B9, code_points);  // (No) SUPERSCRIPT ONE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x00B9, code_points[0]);
+
+  n = to_upper(0x00DF, code_points);  // (Ll) LATIN SMALL LETTER SHARP S
+  CHECK_EQUAL(2, n);
+  CHECK_EQUAL(0x0053, code_points[0]);
+  CHECK_EQUAL(0x0053, code_points[1]);
+
+  n = to_upper(0x0E55, code_points);  // (Nd) THAI DIGIT FIVE
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x0E55, code_points[0]);
+
+  n = to_upper(0x1F88, code_points);  // (Lt) GREEK CAPITAL LETTER ALPHA WITH PSILI AND PROSGEGRAMMENI
+  CHECK_EQUAL(2, n);
+  CHECK_EQUAL(0x1F08, code_points[0]);
+  CHECK_EQUAL(0x0399, code_points[1]);
+
+  n = to_upper(0x1F8A, code_points);  // (Lt) GREEK CAPITAL LETTER ALPHA WITH PSILI AND VARIA AND PROSGEGRAMMENI
+  CHECK_EQUAL(2, n);
+  CHECK_EQUAL(0x1F0A, code_points[0]);
+  CHECK_EQUAL(0x0399, code_points[1]);
+
+  n = to_upper(0x12462, code_points); // (Nl) CUNEIFORM NUMERIC SIGN OLD ASSYRIAN ONE QUARTER
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x12462, code_points[0]);
+
+  n = to_upper(0x16962, code_points); // (Lo) BAMUM LETTER PHASE-D NTUU
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x16962, code_points[0]);
+
+  n = to_upper(0x16F94, code_points); // (Lm) MIAO LETTER TONE-3
+  CHECK_EQUAL(1, n);
+  CHECK_EQUAL(0x16F94, code_points[0]);
+}
+
+
 TEST(test_ctype_invalid_code_point) {
   CHECK_THROW(is_upper(MAX_CODE_POINT), UnicodeException);
 }
@@ -669,6 +859,23 @@ TEST(test_get_east_asian_width) {
 TEST(test_is_mirrored) {
   CHECK_EQUAL(false, is_mirrored(0xFFFFD));
   CHECK_EQUAL(true,  is_mirrored(0xFF63));
+}
+
+
+TEST(test_to_lower_title_upper) {
+  std::string s;
+  UnicodeString expected, actual;
+
+  s        = u8"ßüß Well-then 你好 Σ Σe eΣ oς σe σ";
+  expected =  U"ßüß well-then 你好 σ σe eσ oς σe σ";  // FIXME this is incorrect as Final_Sigma isn't implemented. "ßüß well-then 你好 σ σe eς oς σe σ"
+  actual = to_lower(UTF8Decoder::to_string(s));
+  CHECK_EQUAL(expected, actual);
+  expected =  U"Ssüß Well-Then 你好 Σ Σe Eσ Oς Σe Σ";
+  actual = to_title(UTF8Decoder::to_string(s));
+  CHECK_EQUAL(expected, actual);
+  expected =  U"SSÜSS WELL-THEN 你好 Σ ΣE EΣ OΣ ΣE Σ";
+  actual = to_upper(UTF8Decoder::to_string(s));
+  CHECK_EQUAL(expected, actual);
 }
 
 }  // SUITE
