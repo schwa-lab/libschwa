@@ -94,6 +94,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/tokenizer/tokenizer.h \
 		schwa/tokenizer/tokenizer_state.h \
 		schwa/tokenizer.h \
+		schwa/unicode.h \
 		schwa/utils/enums.h \
 		schwa/utils/hash.h \
 		schwa/utils/shlex.h \
@@ -133,6 +134,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/text_stream.cc \
 		schwa/tokenizer/tokenizer.cc \
 		schwa/tokenizer/tokenizer_gen.cc \
+		schwa/unicode.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 
@@ -155,6 +157,7 @@ LIBSCHWA_TEST_SOURCE_FILES = \
 		schwa/msgpack/wire_test.cc  \
 		schwa/pool_test.cc  \
 		schwa/port_test.cc  \
+		schwa/unicode_test.cc \
 		schwa/utils/shlex_test.cc
 
 LIBSCHWA_TEST_COMMON_HEADER_FILES = schwa/unittest.h
