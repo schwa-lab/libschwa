@@ -95,6 +95,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/tokenizer/tokenizer_state.h \
 		schwa/tokenizer.h \
 		schwa/unicode.h \
+		schwa/unicode_gen.h \
 		schwa/utils/enums.h \
 		schwa/utils/hash.h \
 		schwa/utils/shlex.h \
@@ -135,6 +136,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/tokenizer.cc \
 		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/unicode.cc \
+		schwa/unicode_gen.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 

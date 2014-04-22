@@ -89,4 +89,6 @@ namespace schwa {
 
 }  // namespace schwa
 
+#include <schwa/unicode_gen.h>
+
 #endif  // SCHWA_UNICODE_H_
