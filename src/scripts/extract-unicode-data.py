@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-The contents of UnicodeData.txt is described in http://www.unicode.org/reports/tr44/tr44-6.html#UnicodeData.txt
+This script creates the following files:
+* src/lib/schwa/unicode_gen.h
+* src/lib/schwa/unicode_gen.cc
 """
 import collections
 import math
@@ -9,8 +11,8 @@ import re
 import sys
 import urllib.request
 
-
 BASE_URL = 'http://www.unicode.org/Public/6.3.0/ucd/'
+SCRIPT_PATH = None
 TMP_DIR = '/tmp'
 
 MAX_CODE_POINT = 0x110000
@@ -29,6 +31,15 @@ FLAG_IS_UPPER          = 1 << 10
 FLAG_IS_XID_CONTINUE   = 1 << 11
 FLAG_IS_XID_START      = 1 << 12
 FLAG_SPECIAL_CASING    = 1 << 13
+
+CASES = ('lower', 'title', 'upper')
+
+SC_SHIFT_TITLE_INDEX = 0
+SC_SHIFT_LOWER_INDEX = 8
+SC_SHIFT_UPPER_INDEX = 16
+SC_SHIFT_TITLE_LENGTH = 24
+SC_SHIFT_LOWER_LENGTH = 26
+SC_SHIFT_UPPER_LENGTH = 28
 
 RE_REMOVE_COMMENTS = re.compile(r'#.*$')
 
@@ -70,12 +81,12 @@ class CodePoint(object):
     mirrored = 1 if self.mirrored else 0
     sc = 0
     if self._has_special_casing:
-      sc = (sc << 2) | self._sc_upper[1]
-      sc = (sc << 2) | self._sc_lower[1]
-      sc = (sc << 2) | self._sc_title[1]
-      sc = (sc << 8) | self._sc_upper[0]
-      sc = (sc << 8) | self._sc_lower[0]
-      sc = (sc << 8) | self._sc_title[0]
+      sc |= self._sc_upper[1] << SC_SHIFT_UPPER_LENGTH
+      sc |= self._sc_lower[1] << SC_SHIFT_LOWER_LENGTH
+      sc |= self._sc_title[1] << SC_SHIFT_TITLE_LENGTH
+      sc |= self._sc_upper[0] << SC_SHIFT_UPPER_INDEX
+      sc |= self._sc_lower[0] << SC_SHIFT_LOWER_INDEX
+      sc |= self._sc_title[0] << SC_SHIFT_TITLE_INDEX
     return (mirrored, self.bidi_class, self.ccc, self.east_asian_width, sc)
 
   def set_special_casing(self, attr, values, special_casings):
@@ -86,7 +97,7 @@ class CodePoint(object):
       special_casings[values] = index
     assert 0 <= index < (1 << 8)
     length = len(values)
-    assert 0 < length < (1 << 8)
+    assert 0 < length <= 3
     setattr(self, attr, (index, length))
 
   def set_special_casings(self, lowers, titles, uppers, special_casings):
@@ -324,23 +335,35 @@ def load_special_casing(code_points, special_casings):
       code_points[code_point].set_special_casings(lowers, titles, uppers, special_casings)
 
 
-def output_names_and_enum(name, inv_mapping, comment):
+def output_names_and_enum(file_h, file_cc, name, inv_mapping, comment):
   assert 0 < len(inv_mapping) < (1 << 8)
+  enum_name = name.title().replace(' ', '') + 'Name'
+  function_name = name.lower().replace(' ', '_') + '_name'
+  print(r'''
+    enum class {0} : uint8_t {{'''.format(enum_name), file=file_h)
+  for c, i in sorted((v, k) for k, v in inv_mapping.items()):
+    print('        {0} = {1},'.format(c, i), file=file_h)
+  print(r'''    }};
+    const char *get_{0}({1} v);'''.format(function_name, enum_name), file=file_h)
+
+  data_name = name.upper().replace(' ', '_')
+  data_name += 'ES' if data_name.endswith('S') else 'S'
   print(r'''
 // {0}
-static constexpr const char *{1}_NAMES[{2}] = {{'''.format(comment, name.upper().replace(' ', '_'), len(inv_mapping)))
+static constexpr const char *{1}_NAMES[{2}] = {{'''.format(comment, data_name, len(inv_mapping)), file=file_cc)
   for i, c in sorted(inv_mapping.items()):
-    print('    "{0}",'.format(c))
+    print('    "{0}",'.format(c), file=file_cc)
   print(r'''}};
 
-enum class Unicode{0}Names : uint8_t {{'''.format(name.title().replace(' ', '')))
-  for c, i in sorted((v, k) for k, v in inv_mapping.items()):
-    print('    {0} = {1},'.format(c, i))
-  print(r'''};
-''')
+
+const char *
+get_{0}(const {1} v) {{
+  return {2}_NAMES[to_underlying(v)];
+}}
+'''.format(function_name, enum_name, data_name), file=file_cc)
 
 
-def output_table(code_points, cc_type, cc_prefix, nil_obj, obj_gettr):
+def output_table(file_cc, code_points, cc_type, cc_prefix, nil_obj, obj_gettr):
   objs = {}  # { obj : index }
   objs[nil_obj] = 0
   indices = []  # [ index ]
@@ -352,23 +375,23 @@ def output_table(code_points, cc_type, cc_prefix, nil_obj, obj_gettr):
       objs[obj] = len(objs)
     indices.append(objs[obj])
 
-  print(r'static constexpr const {0} {1}_DATA[{2}] = {{'.format(cc_type, cc_prefix, len(objs)))
+  print(r'static constexpr const {0} {1}_DATA[{2}] = {{'.format(cc_type, cc_prefix, len(objs)), file=file_cc)
   for i, obj in sorted((v, k) for k, v in objs.items()):
-    print('    {{{0}}},'.format(', '.join(map(str, obj))))
+    print('    {{{0}}},'.format(', '.join(map(str, obj))), file=file_cc)
   print(r'''}};
 static_assert(sizeof({0}_DATA) <= 4096, "{1}_DATA should fit inside a page.");
-'''.format(cc_prefix, cc_prefix))
+'''.format(cc_prefix, cc_prefix), file=file_cc)
 
   t1, t2, shift = split_bins(indices)
-  print(r'static constexpr const size_t {0}_INDEX_SHIFT = {1};'.format(cc_prefix, shift))
-  print(r'static constexpr const uint8_t {0}_INDEX1[{1}] = {{'.format(cc_prefix, len(t1)))
+  print(r'static constexpr const size_t {0}_INDEX_SHIFT = {1};'.format(cc_prefix, shift), file=file_cc)
+  print(r'static constexpr const uint8_t {0}_INDEX1[{1}] = {{'.format(cc_prefix, len(t1)), file=file_cc)
   for i in range(0, len(t1), 32):
-    print('    {0},'.format(', '.join(map(str, t1[i:i + 32]))))
+    print('    {0},'.format(', '.join(map(str, t1[i:i + 32]))), file=file_cc)
   print(r'''}};
 
-static constexpr const uint8_t {0}_INDEX2[{1}] = {{'''.format(cc_prefix, len(t2)))
+static constexpr const uint8_t {0}_INDEX2[{1}] = {{'''.format(cc_prefix, len(t2)), file=file_cc)
   for i in range(0, len(t2), 32):
-    print('    {0},'.format(', '.join(map(str, t2[i:i + 32]))))
+    print('    {0},'.format(', '.join(map(str, t2[i:i + 32]))), file=file_cc)
   print(r'''}};
 
 static const {cc_type} &
@@ -379,10 +402,10 @@ get_{cc_type}(const unicode_t code_point) {{
   index = {cc_prefix}_INDEX2[(index << {cc_prefix}_INDEX_SHIFT) + (code_point & ((1 << {cc_prefix}_INDEX_SHIFT) - 1))];
   return {cc_prefix}_DATA[index];
 }}
-'''.format(cc_prefix=cc_prefix, cc_type=cc_type))
+'''.format(cc_prefix=cc_prefix, cc_type=cc_type), file=file_cc)
 
 
-def main():
+def main(file_h, file_cc):
   code_points = {}  # { code_point : CodePoint }
   bidi_classes = {}  # { str : index }
   categories = {'Cn': 0}  # { str : index }
@@ -407,43 +430,30 @@ def main():
     cp.update_flags(inv_categories)
 
   print(r'''
-//#include <schwa/_base.h>  // FIXME swap these back
-#include <cstdint>
-#include <cstdlib>
-#include <exception>
-#include <iomanip>
-#include <sstream>
-#include <string>
+// ============================================================================
+// This file was automatically generated by {SCRIPT_PATH}.
+// Do not modify it directly.
+// ============================================================================
+#ifndef SCHWA_UNICODE_GEN_H
+#define SCHWA_UNICODE_GEN_H
+
+namespace schwa {{
+  namespace unicode {{'''.format(SCRIPT_PATH=SCRIPT_PATH).lstrip(), file=file_h)
+
+  print(r'''
+// ============================================================================
+// This file was automatically generated by {SCRIPT_PATH}.
+// Do not modify it directly.
+// ============================================================================
+#include <schwa/unicode.h>
+
+#include <cstring>
+
+#include <schwa/utils/enums.h>
 
 
 namespace schwa {{
-
-// FIXME remove these once the header is included.
-using unicode_t = uint32_t;
-class UnicodeException : std::exception {{
-private:
-  std::string _msg;
-  unicode_t _code_point;
-
-public:
-  UnicodeException(const std::string &msg, const unicode_t code_point) noexcept : _code_point(code_point) {{
-    std::ostringstream ss;
-    ss << msg << "(0x" << std::hex << code_point << ")";
-    _msg = ss.str();
-  }}
-  virtual ~UnicodeException(void) noexcept {{ }}
-
-  inline unicode_t code_point(void) const {{ return _code_point; }}
-  virtual const char *what(void) const noexcept {{ return _msg.c_str(); }}
-
-  static void
-  throw_invalid_code_point(const unicode_t code_point) {{
-    throw UnicodeException("Invalid code point", code_point);
-  }}
-}};
-
-
-static constexpr const unicode_t MAX_CODE_POINT = 0x{0:X};
+namespace unicode {{
 
 struct unicode_ctype {{
   int32_t upper;
@@ -465,46 +475,185 @@ struct unicode_data {{
   uint32_t special_casing;
 }};
 static_assert(sizeof(unicode_data) == 8, "Unexpected struct size.");
-'''.format(MAX_CODE_POINT))
+'''.format(SCRIPT_PATH=SCRIPT_PATH).lstrip(), file=file_cc)
 
-  output_names_and_enum('Category', inv_categories, 'Category names: http://www.unicode.org/reports/tr44/tr44-6.html#General_Category_Values')
-  output_names_and_enum('Bidi Class', inv_bidi_classes, 'Bidi class names: http://www.unicode.org/reports/tr44/tr44-6.html#Bidi_Class_Values')
-  output_names_and_enum('East Asian Width', inv_east_asian_widths, 'East asian widths: http://www.unicode.org/reports/tr11/')
+  output_names_and_enum(file_h, file_cc, 'Category', inv_categories, 'Category names: http://www.unicode.org/reports/tr44/tr44-6.html#General_Category_Values')
+  output_names_and_enum(file_h, file_cc, 'Bidi Class', inv_bidi_classes, 'Bidi class names: http://www.unicode.org/reports/tr44/tr44-6.html#Bidi_Class_Values')
+  output_names_and_enum(file_h, file_cc, 'East Asian Width', inv_east_asian_widths, 'East asian widths: http://www.unicode.org/reports/tr11/')
+  print(file=file_h)
+
+  output_table(file_cc, code_points, 'unicode_ctype', 'UNICODE_CTYPE', NIL_CTYPE, CodePoint.get_ctype)
+  output_table(file_cc, code_points, 'unicode_data', 'UNICODE_DATA', NIL_DATA, CodePoint.get_data)
 
   for flag_name, flag in sorted(globals().items()):
     if flag_name.startswith('FLAG_'):
       shift = int(math.log(flag, 2))
-      print('static constexpr const uint16_t UNICODE_CTYPE_{0} = 1u << {1};'.format(flag_name, shift))
-
-  output_table(code_points, 'unicode_ctype', 'UNICODE_CTYPE', NIL_CTYPE, CodePoint.get_ctype)
-  output_table(code_points, 'unicode_data', 'UNICODE_DATA', NIL_DATA, CodePoint.get_data)
+      print('static constexpr const uint16_t UNICODE_CTYPE_{0} = 1u << {1};'.format(flag_name, shift), file=file_cc)
+  print(file=file_cc)
+  for flag_name, flag in sorted(globals().items()):
+    if flag_name.startswith('FLAG_IS_'):
+      function_name = flag_name.lower().replace('flag_', '')
+      print('    bool {0}(unicode_t code_point);'.format(function_name), file=file_h)
+      print(r'''
+bool
+{0}(const unicode_t code_point) {{
+  return (get_unicode_ctype(code_point).flags & UNICODE_CTYPE_{1}) != 0;
+}}
+'''.format(function_name, flag_name), file=file_cc)
+  print('    inline bool is_alnum(const unicode_t c) { return is_alpha(c) || is_decimal(c) || is_digit(c) || is_numeric(c); }', file=file_h)
 
   numerics = collections.defaultdict(list)  # { (int, int) : [CodePoint] }
   for cp in code_points.values():
     if cp.numeric is not None:
       numerics[cp.numeric].append(cp)
   assert len(numerics) != 0
+
   print(r'''
+    BidiClassName get_bidi_class(unicode_t code_point);
+    CategoryName get_category(unicode_t code_point);
+    uint8_t get_combining(unicode_t code_point);
+    EastAsianWidthName get_east_asian_width(unicode_t code_point);
+    bool is_mirrored(unicode_t code_point);
+
+    uint8_t get_decimal(unicode_t code_point);
+    uint8_t get_digit(unicode_t code_point);
+    double get_numeric(unicode_t code_point);
+''', file=file_h)
+  print(r'''
+BidiClassName
+get_bidi_class(const unicode_t code_point) {
+  return from_underlying<BidiClassName>(get_unicode_data(code_point).bidi_class);
+}
+
+
+CategoryName
+get_category(const unicode_t code_point) {
+  return from_underlying<CategoryName>(get_unicode_ctype(code_point).category);
+}
+
+
+uint8_t
+get_combining(const unicode_t code_point) {
+  return get_unicode_data(code_point).combining;
+}
+
+
+EastAsianWidthName
+get_east_asian_width(const unicode_t code_point) {
+  return from_underlying<EastAsianWidthName>(get_unicode_data(code_point).east_asian_width);
+}
+
+
+bool
+is_mirrored(const unicode_t code_point) {
+  return get_unicode_data(code_point).mirrored == 1;
+}
+
+
+uint8_t
+get_decimal(const unicode_t code_point) {
+  return get_unicode_ctype(code_point).decimal;
+}
+
+
+uint8_t
+get_digit(const unicode_t code_point) {
+  return get_unicode_ctype(code_point).digit;
+}
+
+
 double
-code_point_to_numeric(const unicode_t code_point) {
-  switch (code_point) {''')
+get_numeric(const unicode_t code_point) {
+  switch (code_point) {''', file=file_cc)
   for key, cps in sorted(numerics.items()):
     for cp in cps:
-      print('  case 0x{0:X}:'.format(cp.code_point))
+      print('  case 0x{0:X}:'.format(cp.code_point), file=file_cc)
     numerator, denominator = key
     numerator = float(numerator)
     if denominator == 1:
-      print('    return {0};'.format(numerator))
+      print('    return {0};'.format(numerator), file=file_cc)
     else:
-      print('    return {0}/{1};'.format(numerator, denominator))
+      print('    return {0}/{1};'.format(numerator, denominator), file=file_cc)
   print(r'''  default:
-    throw UnicodeException("Code point is not numeric", code_point);
+    return 0;
   }
 }
-''')
+''', file=file_cc)
 
-  print('}  // namespace schwa')
+  nspecial_casings = sum(len(k) for k in special_casings)
+  print('static constexpr const unicode_t SPECIAL_CASING_DATA[{0}] = {{'.format(nspecial_casings), file=file_cc)
+  for _, values in sorted((v, k) for k, v in special_casings.items()):
+    print('    {0},'.format(', '.join('0x{0:X}'.format(v) for v in values)), file=file_cc)
+  print(r'''};
+''', file=file_cc)
+
+  for case in CASES:
+    index_shift = globals()['SC_SHIFT_{0}_INDEX'.format(case.upper())]
+    length_shift = globals()['SC_SHIFT_{0}_LENGTH'.format(case.upper())]
+    print(r'    size_t to_{0}(unicode_t code_point, unicode_t code_points[3]);'.format(case), file=file_h)
+    print(r'''
+size_t
+to_{case}(const unicode_t code_point, unicode_t code_points[3]) {{
+  const auto &ctype = get_unicode_ctype(code_point);
+  size_t n;
+  if ((ctype.flags & UNICODE_CTYPE_FLAG_SPECIAL_CASING) == 0) {{
+    n = 1;
+    code_points[0] = code_point + ctype.{case};
+  }}
+  else {{
+    const auto &data = get_unicode_data(code_point);
+    const size_t index = ((data.special_casing >> {index_shift}) & 0xFF);
+    n = ((data.special_casing >> {length_shift}) & 0x03);
+    std::memcpy(code_points, &SPECIAL_CASING_DATA[index], n * sizeof(unicode_t));
+  }}
+  return n;
+}}
+
+
+UnicodeString
+to_{case}(const unicode_t code_point) {{
+  unicode_t code_points[3];
+  const size_t n = to_{case}(code_point, code_points);
+  return UnicodeString(code_points, n);
+}}
+
+
+UnicodeString
+to_{case}(const UnicodeString &orig) {{
+  UnicodeString ret;
+  unicode_t code_points[3];
+  size_t n, i;
+  ret.reserve(orig.size());
+  for (const auto c : orig) {{
+    n = to_{case}(c, code_points);
+    for (i = 0; i != n; ++i)
+      ret.push_back(code_points[i]);
+  }}
+  return ret;
+}}
+'''.format(case=case, index_shift=index_shift, length_shift=length_shift), file=file_cc)
+  for case in CASES:
+    print(r'    UnicodeString to_{0}(unicode_t code_point);'.format(case), file=file_h)
+  for case in CASES:
+    print(r'    UnicodeString to_{0}(const UnicodeString &orig);'.format(case), file=file_h)
+
+  print(r'''
+  }
+}
+
+#endif  // SCHWA_UNICODE_GEN_H''', file=file_h)
+
+  print(r'''
+}  // namespace unicode
+}  // namespace schwa''', file=file_cc)
 
 
 if __name__ == '__main__':
-  main()
+  path = os.path.normpath(os.path.dirname(__file__))
+  if path != 'src/scripts':
+    print('Error: This script must be run from the top-level directory of libschwa.', file=sys.stderr)
+    sys.exit(1)
+
+  SCRIPT_PATH = os.path.join(path, os.path.basename(__file__))
+  with open('src/lib/schwa/unicode_gen.h', 'w') as file_h, open('src/lib/schwa/unicode_gen.cc', 'w') as file_cc:
+    main(file_h, file_cc)
