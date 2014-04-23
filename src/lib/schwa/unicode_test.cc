@@ -210,29 +210,58 @@ TEST(test_read_utf8_multiple) {
 TEST(test_utf8_decoder) {
   const std::string s(u8"κόσμε");
   UTF8Decoder d(s);
-  UTF8Decoder::const_iterator it = d.cbegin();
-  UTF8Decoder::const_iterator end = d.cend();
-  CHECK(it == it);
-  CHECK(end == end);
 
-  CHECK(it != end);
-  CHECK_EQUAL(0x3BA, *it);
-  ++it;
-  CHECK(it != end);
-  CHECK_EQUAL(0x1F79, *it);
-  ++it;
-  CHECK(it != end);
-  CHECK_EQUAL(0x3C3, *it);
-  ++it;
-  CHECK(it != end);
-  CHECK_EQUAL(0x3BC, *it);
-  ++it;
-  CHECK(it != end);
-  CHECK_EQUAL(0x3B5, *it);
-  ++it;
-  CHECK(it == end);
-  ++it;
-  CHECK(it == end);
+  {
+    auto it = d.cbegin();
+    auto end = d.cend();
+    CHECK(it == it);
+    CHECK(end == end);
+
+    CHECK(it != end);
+    CHECK_EQUAL(0x3BA, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x1F79, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x3C3, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x3BC, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x3B5, *it);
+    ++it;
+    CHECK(it == end);
+    ++it;
+    CHECK(it == end);
+  }
+
+  {
+    auto it = d.crbegin();
+    auto end = d.crend();
+    CHECK(it == it);
+    CHECK(end == end);
+
+    CHECK(it != end);
+    CHECK_EQUAL(0x3B5, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x3BC, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x3C3, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x1F79, *it);
+    ++it;
+    CHECK(it != end);
+    CHECK_EQUAL(0x3BA, *it);
+    ++it;
+    CHECK(it == end);
+    ++it;
+    CHECK(it == end);
+  }
 
   const UnicodeString us0(d.cbegin(), d.cend());
   CHECK_EQUAL(5, us0.size());
@@ -242,7 +271,7 @@ TEST(test_utf8_decoder) {
   CHECK_EQUAL(0x3BC, us0[3]);
   CHECK_EQUAL(0x3B5, us0[4]);
 
-  const UnicodeString us1 = UTF8Decoder::to_string(s);
+  const UnicodeString us1 = UnicodeString::from_utf8(s);
   CHECK_EQUAL(us0, us1);
 
   std::vector<unicode_t> code_points;
@@ -868,13 +897,13 @@ TEST(test_to_lower_title_upper) {
 
   s        = u8"ßüß Well-then 你好 Σ Σe eΣ oς σe σ";
   expected =  U"ßüß well-then 你好 σ σe eσ oς σe σ";  // FIXME this is incorrect as Final_Sigma isn't implemented. "ßüß well-then 你好 σ σe eς oς σe σ"
-  actual = to_lower(UTF8Decoder::to_string(s));
+  actual = UnicodeString::from_utf8(s).to_lower();
   CHECK_EQUAL(expected, actual);
   expected =  U"Ssüß Well-Then 你好 Σ Σe Eσ Oς Σe Σ";
-  actual = to_title(UTF8Decoder::to_string(s));
+  actual = UnicodeString::from_utf8(s).to_title();
   CHECK_EQUAL(expected, actual);
   expected =  U"SSÜSS WELL-THEN 你好 Σ ΣE EΣ OΣ ΣE Σ";
-  actual = to_upper(UTF8Decoder::to_string(s));
+  actual = UnicodeString::from_utf8(s).to_upper();
   CHECK_EQUAL(expected, actual);
 }
 
