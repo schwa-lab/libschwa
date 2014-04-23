@@ -107,12 +107,6 @@ namespace schwa {
     size_t to_lower(unicode_t code_point, unicode_t code_points[3]);
     size_t to_title(unicode_t code_point, unicode_t code_points[3]);
     size_t to_upper(unicode_t code_point, unicode_t code_points[3]);
-    UnicodeString to_lower(unicode_t code_point);
-    UnicodeString to_title(unicode_t code_point);
-    UnicodeString to_upper(unicode_t code_point);
-    UnicodeString to_lower(const UnicodeString &orig);
-    UnicodeString to_title(const UnicodeString &orig);
-    UnicodeString to_upper(const UnicodeString &orig);
 
   }
 }

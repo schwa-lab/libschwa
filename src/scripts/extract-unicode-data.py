@@ -611,61 +611,7 @@ to_{case}(const unicode_t code_point, unicode_t code_points[3]) {{
 }}
 
 
-UnicodeString
-to_{case}(const unicode_t code_point) {{
-  unicode_t code_points[3];
-  const size_t n = to_{case}(code_point, code_points);
-  return UnicodeString(code_points, n);
-}}
-
 '''.format(case=case, index_shift=index_shift, length_shift=length_shift), file=file_cc)
-
-  print(r'''
-UnicodeString
-to_lower(const UnicodeString &orig) {
-  unicode_t code_points[3];
-  UnicodeString ret;
-  ret.reserve(orig.size());
-  for (const auto c : orig) {
-    const size_t n = to_lower(c, code_points);  // TODO account for Final_Sigma.
-    ret.append(code_points, n);
-  }
-  return ret;
-}
-
-
-UnicodeString
-to_title(const UnicodeString &orig) {
-  unicode_t code_points[3];
-  UnicodeString ret;
-  ret.reserve(orig.size());
-
-  bool prev_is_cased = false;
-  for (const auto c : orig) {
-    const size_t n = prev_is_cased ? to_lower(c, code_points) : to_title(c, code_points);
-    ret.append(code_points, n);
-    prev_is_cased = is_cased(c);
-  }
-  return ret;
-}
-
-
-UnicodeString
-to_upper(const UnicodeString &orig) {
-  unicode_t code_points[3];
-  UnicodeString ret;
-  ret.reserve(orig.size());
-  for (const auto c : orig) {
-    const size_t n = to_upper(c, code_points);
-    ret.append(code_points, n);
-  }
-  return ret;
-}
-''', file=file_cc)
-  for case in CASES:
-    print(r'    UnicodeString to_{0}(unicode_t code_point);'.format(case), file=file_h)
-  for case in CASES:
-    print(r'    UnicodeString to_{0}(const UnicodeString &orig);'.format(case), file=file_h)
 
   print(r'''
   }
