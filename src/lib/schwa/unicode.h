@@ -153,10 +153,10 @@ namespace schwa {
   public:
     explicit UnicodeString(const allocator_type &alloc=allocator_type()) : _str(alloc) { }
     UnicodeString(const UnicodeString &o) : _str(o._str) { }
-    UnicodeString(const UnicodeString &o, const allocator_type &alloc) : _str(o._str, alloc) { }
+    //UnicodeString(const UnicodeString &o, const allocator_type &alloc) : _str(o._str, alloc) { }
     UnicodeString(const UnicodeString &o, size_type pos, size_type len=npos, const allocator_type &alloc=allocator_type()) : _str(o._str, pos, len, alloc) { }
     UnicodeString(const underlying_type &s) : _str(s) { }
-    UnicodeString(const underlying_type &s, const allocator_type &alloc) : _str(s, alloc) { }
+    //UnicodeString(const underlying_type &s, const allocator_type &alloc) : _str(s, alloc) { }
     UnicodeString(const underlying_type &s, size_type pos, size_type len=npos, const allocator_type &alloc=allocator_type()) : _str(s, pos, len, alloc) { }
     UnicodeString(const traits_type::char_type *s, const allocator_type &alloc=allocator_type()) : _str(s, alloc) { }
     UnicodeString(const traits_type::char_type *s, size_type n, const allocator_type &alloc=allocator_type()) : _str(s, n, alloc) { }
@@ -165,7 +165,7 @@ namespace schwa {
       UnicodeString(InputIterator first, InputIterator last, const allocator_type &alloc=allocator_type()) : _str(first, last, alloc) { }
     UnicodeString(std::initializer_list<traits_type::char_type> il, const allocator_type &alloc=allocator_type()) : _str(il, alloc) { }
     UnicodeString(const UnicodeString &&o) noexcept : _str(o._str) { }
-    UnicodeString(const UnicodeString &&o, const allocator_type &alloc) : _str(o._str, alloc) { }
+    //UnicodeString(const UnicodeString &&o, const allocator_type &alloc) : _str(o._str, alloc) { }
 
     inline UnicodeString &operator =(const UnicodeString &o) { _str = o._str; return *this; }
     inline UnicodeString &operator =(const underlying_type &s) { _str = s; return *this; }
@@ -238,29 +238,29 @@ namespace schwa {
     inline void push_back(traits_type::char_type c) { _str.push_back(c); }
     UnicodeString &insert(size_type pos, const UnicodeString &str) { _str.insert(pos, str._str); return *this; }
     UnicodeString &insert(size_type pos, const UnicodeString &str, size_type subpos, size_type sublen) { _str.insert(pos, str._str, subpos, sublen); return *this; }
-    UnicodeString &insert(size_type pos, const traits_type::char_type *s) { _str.insert(pos, s); return *this; }
-    UnicodeString &insert(size_type pos, const traits_type::char_type *s, size_type n) { _str.insert(pos, s, n); return *this; }
+    //UnicodeString &insert(size_type pos, const traits_type::char_type *s) { _str.insert(pos, s); return *this; }
+    //UnicodeString &insert(size_type pos, const traits_type::char_type *s, size_type n) { _str.insert(pos, s, n); return *this; }
     UnicodeString &insert(size_type pos, size_type n, traits_type::char_type c) { _str.insert(pos, n, c); return *this; }
-    iterator insert(const_iterator p, size_type n, traits_type::char_type c) { return _str.insert(p, n, c); }
-    iterator insert(const_iterator p, traits_type::char_type c) { return _str.insert(p, c); }
+    //iterator insert(const_iterator p, size_type n, traits_type::char_type c) { return _str.insert(p, n, c); }
+    //iterator insert(const_iterator p, traits_type::char_type c) { return _str.insert(p, c); }
     template <class InputIterator>
       iterator insert(iterator p, InputIterator first, InputIterator last) { return _str.insert(p, first, last); }
-    UnicodeString &insert(const_iterator p, std::initializer_list<traits_type::char_type> il) { _str.insert(p, il); return *this; }
+    //UnicodeString &insert(const_iterator p, std::initializer_list<traits_type::char_type> il) { _str.insert(p, il); return *this; }
     inline UnicodeString &erase(size_type pos=0, size_type len=npos) { _str.erase(pos, len); return *this; }
-    inline iterator erase(const_iterator p) { return _str.erase(p); }
-    inline iterator erase(const_iterator first, const_iterator last) { return _str.erase(first, last); }
+    //inline iterator erase(const_iterator p) { return _str.erase(p); }
+    //inline iterator erase(const_iterator first, const_iterator last) { return _str.erase(first, last); }
     UnicodeString &replace(size_type pos, size_type len, const UnicodeString &str) { _str.replace(pos, len, str._str); return *this; }
-    UnicodeString &replace(const_iterator i1, const_iterator i2, const UnicodeString &str) { _str.replace(i1, i2, str._str); return *this; }
+    //UnicodeString &replace(const_iterator i1, const_iterator i2, const UnicodeString &str) { _str.replace(i1, i2, str._str); return *this; }
     UnicodeString &replace(size_type pos, size_type len, const UnicodeString &str, size_type subpos, size_type sublen) { _str.replace(pos, len, str._str, subpos, sublen); return *this; }
     UnicodeString &replace(size_type pos, size_type len, const traits_type::char_type *s) { _str.replace(pos, len, s); return *this; }
-    UnicodeString &replace(const_iterator i1, const_iterator i2, const traits_type::char_type *s) { _str.replace(i1, i2, s); return *this; }
+    //UnicodeString &replace(const_iterator i1, const_iterator i2, const traits_type::char_type *s) { _str.replace(i1, i2, s); return *this; }
     UnicodeString &replace(size_type pos, size_type len, const traits_type::char_type *s, size_type n) { _str.replace(pos, len, s, n); return *this; }
-    UnicodeString &replace(const_iterator i1, const_iterator i2, const traits_type::char_type *s, size_type n) { _str.replace(i1, i2, s, n); return *this; }
+    //UnicodeString &replace(const_iterator i1, const_iterator i2, const traits_type::char_type *s, size_type n) { _str.replace(i1, i2, s, n); return *this; }
     UnicodeString &replace(size_type pos, size_type len, size_type n, traits_type::char_type c) { _str.replace(pos, len, n, c); return *this; }
-    UnicodeString &replace(const_iterator i1, const_iterator i2, size_type n, traits_type::char_type c) { _str.replace(i1, i2, n, c); return *this; }
+    //UnicodeString &replace(const_iterator i1, const_iterator i2, size_type n, traits_type::char_type c) { _str.replace(i1, i2, n, c); return *this; }
     template <class InputIterator>
       UnicodeString &replace(const_iterator i1, const_iterator i2, InputIterator first, InputIterator last) { _str.replace(i1, i2, first, last); return *this; }
-    UnicodeString &replace(const_iterator i1, const_iterator i2, std::initializer_list<traits_type::char_type> il) { _str.replace(i1, i2, il); return *this; }
+    //UnicodeString &replace(const_iterator i1, const_iterator i2, std::initializer_list<traits_type::char_type> il) { _str.replace(i1, i2, il); return *this; }
     inline void swap(UnicodeString &o) { _str.swap(o._str); }
     inline void swap(underlying_type &s) { _str.swap(s); }
     inline void pop_back(void) { _str.pop_back(); }
