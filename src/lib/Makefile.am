@@ -124,6 +124,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/mmapped_source.cc \
 		schwa/io/utils.cc \
 		schwa/io/write_buffer.cc \
+		schwa/learn/extract.cc \
 		schwa/learn/features.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/enums.cc \

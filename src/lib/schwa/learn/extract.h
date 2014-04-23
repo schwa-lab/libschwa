@@ -47,6 +47,9 @@ namespace schwa {
     void
     window(const std::string &name, size_t i, ptrdiff_t dl, ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, std::function<R(const SentinelOffsets<T> &, size_t, ptrdiff_t)> callback);
 
+    std::string word_form(const std::string &utf8);
+    std::string word_form(const UnicodeString &s);
+
   }
 }
 
