@@ -11,6 +11,9 @@
 
 
 namespace schwa {
+
+  class UnicodeString;
+
   namespace learn {
 
     const std::string SENTINEL = "__SENTINEL__";
@@ -43,9 +46,16 @@ namespace schwa {
     };
 
 
+    template <typename T, typename R=std::string>
+    using contextual_callback = std::function<R(const SentinelOffsets<T> &, size_t, ptrdiff_t)>;
+
+    template <typename T> inline contextual_callback<T> create_unigram_callback(void);
+    template <typename T> inline contextual_callback<T> create_bigram_callback(void);
+    template <typename T> inline contextual_callback<T> create_trigram_callback(void);
+
     template <typename T, typename R, class TRANSFORM=NoTransform>
     void
-    window(const std::string &name, size_t i, ptrdiff_t dl, ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, std::function<R(const SentinelOffsets<T> &, size_t, ptrdiff_t)> callback);
+    window(const std::string &name, size_t i, ptrdiff_t dl, ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, contextual_callback<T, R> callback);
 
     std::string word_form(const std::string &utf8);
     std::string word_form(const UnicodeString &s);

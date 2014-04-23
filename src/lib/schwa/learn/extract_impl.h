@@ -14,9 +14,39 @@
 namespace schwa {
   namespace learn {
 
+    template <typename T>
+    inline contextual_callback<T>
+    create_unigram_callback(void) {
+      const auto fn = [](const learn::SentinelOffsets<T> &offsets, size_t i, ptrdiff_t delta) {
+        return offsets(i, delta);
+      };
+      return contextual_callback<T>(fn);
+    }
+
+
+    template <typename T>
+    inline contextual_callback<T>
+    create_bigram_callback(void) {
+      const auto fn = [](const learn::SentinelOffsets<T> &offsets, size_t i, ptrdiff_t delta) {
+        return offsets(i, delta) + " " + offsets(i, delta + 1);
+      };
+      return contextual_callback<T>(fn);
+    }
+
+
+    template <typename T>
+    inline contextual_callback<T>
+    create_trigram_callback(void) {
+      const auto fn = [](const learn::SentinelOffsets<T> &offsets, size_t i, ptrdiff_t delta) {
+        return offsets(i, delta) + " " + offsets(i, delta + 1) + " " + offsets(i, delta + 2);
+      };
+      return contextual_callback<T>(fn);
+    }
+
+
     template <typename T, typename R, class TRANSFORM>
     void
-    window(const std::string &name, const size_t i, const ptrdiff_t dl, const ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, std::function<R(const SentinelOffsets<T> &, size_t, ptrdiff_t)> callback) {
+    window(const std::string &name, const size_t i, const ptrdiff_t dl, const ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, contextual_callback<T, R> callback) {
       std::stringstream key;
       for (ptrdiff_t delta = dl; delta <= dr; ++delta) {
         key << name << "[i";

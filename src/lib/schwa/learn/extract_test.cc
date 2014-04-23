@@ -59,9 +59,7 @@ TEST(window) {
       ss << x->value;
       return ss.str();
   });
-  const std::function<std::string(const SentinelOffsets<X> &, size_t, ptrdiff_t)> unigram = [](const SentinelOffsets<X> &o, size_t i, ptrdiff_t delta) {
-    return o(i, delta);
-  };
+  const contextual_callback<X> unigram = create_unigram_callback<X>();
 
   Features<> f;
   window("n", 0, -2, 3, o, f, unigram);
