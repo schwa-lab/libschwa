@@ -5,9 +5,11 @@
 #include <string>
 
 #include <schwa/_base.h>
-#include <schwa/pool.h>
 #include <schwa/msgpack/dynamic.h>
 #include <schwa/msgpack/enums.h>
+#include <schwa/pool.h>
+#include <schwa/unicode.h>
+
 
 namespace schwa {
   namespace msgpack {
@@ -55,7 +57,8 @@ namespace schwa {
     template <typename IN> inline uint32_t read_array_size(IN &in);
     template <typename IN> inline uint32_t read_map_size(IN &in);
 
-    template <typename IN> inline std::string read_raw(IN &in);
+    template <typename IN> inline std::string   read_raw(IN &in);
+    template <typename IN> inline UnicodeString read_utf8(IN &in);
 
     inline int8_t                          read_val_int_fixed(const int h);
     template <typename IN> inline int8_t   read_val_int8(IN &in);
@@ -109,6 +112,7 @@ namespace schwa {
 
     template <typename OUT> inline void write_raw(OUT &out, const std::string &data);
     template <typename OUT> inline void write_raw(OUT &out, const char *const data, const size_t size);
+    template <typename OUT> inline void write_utf8(OUT &out, const UnicodeString &s);
 
     template <typename OUT> inline void write_int_fixed(OUT &out, const int8_t x);
     template <typename OUT> inline void write_int8(OUT &out, const int8_t x);
