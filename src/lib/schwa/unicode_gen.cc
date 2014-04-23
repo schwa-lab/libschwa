@@ -1372,7 +1372,7 @@ static constexpr const uint8_t UNICODE_CTYPE_INDEX2[23936] = {
 static const unicode_ctype &
 get_unicode_ctype(const unicode_t code_point) {
   if (code_point >= MAX_CODE_POINT)
-    UnicodeException::throw_invalid_code_point(code_point);
+    throw UnicodeException("Invalid code point", code_point);
   size_t index = UNICODE_CTYPE_INDEX1[(code_point >> UNICODE_CTYPE_INDEX_SHIFT)];
   index = UNICODE_CTYPE_INDEX2[(index << UNICODE_CTYPE_INDEX_SHIFT) + (code_point & ((1 << UNICODE_CTYPE_INDEX_SHIFT) - 1))];
   return UNICODE_CTYPE_DATA[index];
@@ -2603,7 +2603,7 @@ static constexpr const uint8_t UNICODE_DATA_INDEX2[23680] = {
 static const unicode_data &
 get_unicode_data(const unicode_t code_point) {
   if (code_point >= MAX_CODE_POINT)
-    UnicodeException::throw_invalid_code_point(code_point);
+    throw UnicodeException("Invalid code point", code_point);
   size_t index = UNICODE_DATA_INDEX1[(code_point >> UNICODE_DATA_INDEX_SHIFT)];
   index = UNICODE_DATA_INDEX2[(index << UNICODE_DATA_INDEX_SHIFT) + (code_point & ((1 << UNICODE_DATA_INDEX_SHIFT) - 1))];
   return UNICODE_DATA_DATA[index];

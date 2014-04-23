@@ -43,8 +43,6 @@ namespace schwa {
     virtual ~UnicodeException(void) throw() { }
 
     inline unicode_t code_point(void) const { return _code_point; }
-
-    static void throw_invalid_code_point(unicode_t code_point);
   };
 
 

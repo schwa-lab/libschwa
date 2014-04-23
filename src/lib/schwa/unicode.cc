@@ -16,11 +16,6 @@ UnicodeException::UnicodeException(const std::string &msg, const unicode_t code_
   _msg = ss.str();
 }
 
-void
-UnicodeException::throw_invalid_code_point(const unicode_t code_point) {
-  throw UnicodeException("Invalid code point", code_point);
-}
-
 
 // ============================================================================
 // UnicodeString

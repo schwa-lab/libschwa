@@ -397,7 +397,7 @@ static constexpr const uint8_t {0}_INDEX2[{1}] = {{'''.format(cc_prefix, len(t2)
 static const {cc_type} &
 get_{cc_type}(const unicode_t code_point) {{
   if (code_point >= MAX_CODE_POINT)
-    UnicodeException::throw_invalid_code_point(code_point);
+    throw UnicodeException("Invalid code point", code_point);
   size_t index = {cc_prefix}_INDEX1[(code_point >> {cc_prefix}_INDEX_SHIFT)];
   index = {cc_prefix}_INDEX2[(index << {cc_prefix}_INDEX_SHIFT) + (code_point & ((1 << {cc_prefix}_INDEX_SHIFT) - 1))];
   return {cc_prefix}_DATA[index];
