@@ -7,8 +7,6 @@
 #include <schwa/dr/query.h>
 #include <schwa/io/logging.h>
 
-#include <dr-grep/main.h>
-
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
 namespace io = schwa::io;
@@ -42,7 +40,7 @@ main(std::istream &input, std::ostream &output, const std::string &expression) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg(schwa::dr_grep::PROGRAM_NAME, schwa::dr_grep::PROGRAM_DESC);
+  cf::Main cfg("dr-grep", "Filter documents in a docrep stream.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<std::string> expression(cfg, "expression", 'e', "The expression to filter on");

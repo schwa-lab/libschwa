@@ -9,8 +9,6 @@
 #include <schwa/dr-dist/server.h>
 #include <schwa/io/logging.h>
 
-#include <dr-dist/main.h>
-
 namespace cf = schwa::config;
 namespace io = schwa::io;
 
@@ -18,7 +16,7 @@ namespace io = schwa::io;
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
+  cf::Main cfg("dr-dist", "A docrep stream parallelisation source and sink.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<std::string> bind_host(cfg, "bind-host", "The network hostname to bind to", "*");

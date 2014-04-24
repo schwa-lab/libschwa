@@ -9,8 +9,6 @@
 #include <schwa/dr/reader.h>
 #include <schwa/io/logging.h>
 
-#include <dr-sample/main.h>
-
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
 namespace io = schwa::io;
@@ -69,7 +67,7 @@ main(std::istream &input, std::ostream &output, const uint32_t count) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg(schwa::dr_sample::PROGRAM_NAME, schwa::dr_sample::PROGRAM_DESC);
+  cf::Main cfg("dr-sample", "Randomly samples n documents from a stream.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<uint32_t> count(cfg, "count", 'n', "How many documents to keep", 1);

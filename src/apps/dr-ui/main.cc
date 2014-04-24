@@ -7,8 +7,7 @@
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 
-#include <dr-ui/main.h>
-#include <dr-ui/processor.h>
+#include "processor.h"
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -42,7 +41,7 @@ main(std::istream &input, std::ostream &output, const cf::Op<uint32_t> &limit) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
+  cf::Main cfg("dr-ui", "A visualiser for docrep streams.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<uint32_t> limit(cfg, "limit", 'n', "Limit on how many documents to process", cf::Flags::OPTIONAL);

@@ -1,5 +1,5 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <dr-count/processor.h>
+#include "processor.h"
 
 #include <algorithm>
 #include <cstring>

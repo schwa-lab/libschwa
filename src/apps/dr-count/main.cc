@@ -6,8 +6,7 @@
 #include <schwa/dr.h>
 #include <schwa/io/logging.h>
 
-#include <dr-count/main.h>
-#include <dr-count/processor.h>
+#include "processor.h"
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -40,7 +39,7 @@ main(std::istream &input, std::ostream &output, bool all_stores, const std::stri
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
+  cf::Main cfg("dr-count", "Count the number of documents or annotations in stores on a docrep stream.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<bool> all_stores(cfg, "all", 'a', "Count docs and elements in all stores found on the first doc", false);

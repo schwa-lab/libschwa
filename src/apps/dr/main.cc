@@ -19,14 +19,6 @@
 #include <schwa/port.h>
 #include <schwa/version.h>
 
-#include <dr-count/main.h>
-#include <dr-dist/main.h>
-#include <dr-grep/main.h>
-#include <dr-head/main.h>
-#include <dr-sample/main.h>
-#include <dr-tail/main.h>
-#include <dr-ui/main.h>
-
 namespace port = schwa::port;
 
 static const std::string TOOL_PREFIX = "dr-";
