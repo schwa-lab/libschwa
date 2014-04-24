@@ -3,6 +3,7 @@
 #include <schwa/io/paths.h>
 
 #include <cerrno>
+#include <memory>
 #include <sstream>
 
 #ifdef HAVE_LIBGEN_H
