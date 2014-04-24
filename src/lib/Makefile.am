@@ -64,6 +64,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/logging.h \
 		schwa/io/logging_enums.h \
 		schwa/io/mmapped_source.h \
+		schwa/io/paths.h \
 		schwa/io/source.h \
 		schwa/io/traits.h \
 		schwa/io/unsafe_array_writer.h \
@@ -122,6 +123,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/istream_source.cc \
 		schwa/io/logging.cc \
 		schwa/io/mmapped_source.cc \
+		schwa/io/paths.cc \
 		schwa/io/utils.cc \
 		schwa/io/write_buffer.cc \
 		schwa/learn/extract.cc \
@@ -152,6 +154,7 @@ LIBSCHWA_TEST_SOURCE_FILES = \
 		schwa/dr/slices_test.cc  \
 		schwa/dr/writer_test.cc  \
 		schwa/io/mmapped_source_test.cc  \
+		schwa/io/paths_test.cc  \
 		schwa/io/write_buffer_test.cc  \
 		schwa/learn/extract_test.cc \
 		schwa/learn/feature_transformers_test.cc \

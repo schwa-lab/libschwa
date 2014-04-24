@@ -16,9 +16,11 @@
 #include <unistd.h>
 
 #include <schwa/exception.h>
+#include <schwa/io/paths.h>
 #include <schwa/port.h>
 #include <schwa/version.h>
 
+namespace io = schwa::io;
 namespace port = schwa::port;
 
 static const std::string TOOL_PREFIX = "dr-";
@@ -48,7 +50,7 @@ find_tools_in_dir(const std::string dir_path, std::map<std::string, std::string>
       continue;
 
     // Is the file a regular file and executable?
-    const std::string path = port::path_join(dir_path, de->d_name);
+    const std::string path = io::path_join(dir_path, de->d_name);
     if (::stat(path.c_str(), &st) != 0 || !S_ISREG(st.st_mode) || (st.st_mode & S_IXUSR) == 0)
       continue;
 
@@ -66,7 +68,7 @@ show_tools_help(std::ostream &out=std::cerr) {
   std::map<std::string, std::string> tools;
 
   // Search `dirname ${0}`.
-  std::string path = port::path_dirname(port::abspath_to_argv0());
+  std::string path = io::path_dirname(io::abspath_to_argv0());
   find_tools_in_dir(path, tools);
   if (!tools.empty()) {
     out << "  Core tools:" << std::endl;
@@ -77,7 +79,7 @@ show_tools_help(std::ostream &out=std::cerr) {
 
   // Search each of the paths in ${PATH}.
   std::vector<std::string> paths;
-  port::get_env_paths(paths, "PATH");
+  io::get_env_paths(paths, "PATH");
   for (auto path : paths)
     find_tools_in_dir(path, tools);
   if (!tools.empty()) {
@@ -122,9 +124,9 @@ do_main(int argc, char **argv) {
   std::memcpy(app.get() + TOOL_PREFIX.size(), argv[1], len + 1);
 
   // First, try looking in the the directory of argv[0].
-  std::string path = port::abspath_to_argv0();
-  path = port::path_dirname(path);
-  path = port::path_join(path, app.get());
+  std::string path = io::abspath_to_argv0();
+  path = io::path_dirname(path);
+  path = io::path_join(path, app.get());
   std::unique_ptr<char[]> abspath_app(new char[path.size() + 1]);
   args[0] = abspath_app.get();
   std::strcpy(args[0], path.c_str());

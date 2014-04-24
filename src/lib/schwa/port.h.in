@@ -23,28 +23,6 @@ namespace schwa {
     std::string demangle_typeid(const char *typeid_name);
 
     /**
-     * Returns the absolute path to the currently running executable.
-     * See http://stackoverflow.com/a/1024937 for the system-dependant ways to obtain this.
-     **/
-    std::string abspath_to_argv0(void);
-
-    /**
-     * Populates \p paths with the set of paths found in the environment variable
-     * named \p env_var. Paths are assumed to be separated by ":".
-     **/
-    void get_env_paths(std::vector<std::string> &paths, const char *env_var="PATH");
-
-    /**
-     * Returns the directory of the provided \p path.
-     **/
-    std::string path_dirname(const std::string &path);
-
-    /**
-     * Returns paths \p a and \p b joined together.
-     **/
-    std::string path_join(const std::string &a, const std::string &b);
-
-    /**
      * If the functionality is available, and the provided ostream is stdout, fork and exec to make
      * the stdout a pager. Returns whether or not this occurred.
      *

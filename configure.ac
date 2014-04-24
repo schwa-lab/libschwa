@@ -100,10 +100,12 @@ AC_CHECK_HEADERS([cxxabi.h endian.h libgen.h libproc.h limits.h machine/byte_ord
 
 dnl Check for C functions.
 AC_CHECK_FUNC([close], , AC_MSG_ERROR([C close function not found]))
+AC_CHECK_FUNC([dup2], , AC_MSG_ERROR([C dup2 function not found]))
 AC_CHECK_FUNC([fork], , AC_MSG_ERROR([C fork function not found]))
 AC_CHECK_FUNC([fstat], , AC_MSG_ERROR([C fstat function not found]))
 AC_CHECK_FUNC([mmap], , AC_MSG_ERROR([C mmap function not found]))
 AC_CHECK_FUNC([open], , AC_MSG_ERROR([C open function not found]))
+AC_CHECK_FUNC([pipe], , AC_MSG_ERROR([C pipe function not found]))
 AC_CHECK_FUNC([stat], , AC_MSG_ERROR([C stat function not found]))
 AC_CHECK_FUNC([strsep], , AC_MSG_ERROR([C strsep function not found]))
 AC_CHECK_FUNC([munmap], , AC_MSG_ERROR([C munmap function not found]))
