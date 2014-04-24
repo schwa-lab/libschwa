@@ -1,7 +1,8 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/unittest.h>
+#include <stdlib.h>
 
 #include <schwa/port.h>
+#include <schwa/unittest.h>
 
 
 namespace schwa {
@@ -38,6 +39,35 @@ TEST(path_join) {
   CHECK_EQUAL("two", path);
   path = path_join("one", "/two");
   CHECK_EQUAL("/two", path);
+}
+
+
+TEST(get_env_paths) {
+  std::vector<std::string> paths;
+  int ret;
+
+  paths.clear();
+  ret = ::setenv("TEST_GET_ENV_PATH", "/foo/bar:baz:.:/usr:/bin", 1);
+  CHECK_EQUAL(0, ret);
+  get_env_paths(paths, "TEST_GET_ENV_PATH");
+  CHECK_EQUAL(5, paths.size());
+  CHECK_EQUAL("/foo/bar", paths[0]);
+  CHECK_EQUAL("baz", paths[1]);
+  CHECK_EQUAL(".", paths[2]);
+  CHECK_EQUAL("/usr", paths[3]);
+  CHECK_EQUAL("/bin", paths[4]);
+
+  paths.clear();
+  ret = ::unsetenv("TEST_GET_ENV_PATH");
+  CHECK_EQUAL(0, ret);
+  get_env_paths(paths, "TEST_GET_ENV_PATH");
+  CHECK_EQUAL(0, paths.size());
+
+  paths.clear();
+  ret = ::setenv("TEST_GET_ENV_PATH", "", 1);
+  CHECK_EQUAL(0, ret);
+
+  ::unsetenv("TEST_GET_ENV_PATH");
 }
 
 }  // SUITE

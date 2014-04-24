@@ -14,9 +14,9 @@
 #ifdef HAVE_LIBPROC_H
   #include <libproc.h>
 #endif
-#ifdef HAVE_UNISTD_H
-  #include <unistd.h>
-#endif
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <cerrno>
 #include <cstring>
@@ -98,6 +98,22 @@ abspath_to_argv0(void) {
 #else
   #error Do not know how to find the absolute path to argv[0] on your platform.
 #endif
+
+
+void
+get_env_paths(std::vector<std::string> &paths, const char *const env_var) {
+  const char *const orig_env_path = ::getenv(env_var);
+  if (orig_env_path == nullptr)
+    return;
+
+  const size_t orig_env_path_len = std::strlen(orig_env_path);
+  std::unique_ptr<char[]> env_path(new char[orig_env_path_len + 1]);
+  std::memcpy(env_path.get(), orig_env_path, orig_env_path_len + 1);
+  for (char *ep = env_path.get(), *path = nullptr; (path = ::strsep(&ep, ":")) != nullptr; ) {
+    if (*path != '\0')
+      paths.push_back(path);
+  }
+}
 
 
 std::string

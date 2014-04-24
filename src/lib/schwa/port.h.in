@@ -4,6 +4,7 @@
 #include <schwa/_base.h>
 
 #include <string>
+#include <vector>
 
 #include <@ENDIAN_CONVERSION_HEADER@>
 
@@ -26,6 +27,12 @@ namespace schwa {
      * See http://stackoverflow.com/a/1024937 for the system-dependant ways to obtain this.
      **/
     std::string abspath_to_argv0(void);
+
+    /**
+     * Populates \p paths with the set of paths found in the environment variable
+     * named \p env_var. Paths are assumed to be separated by ":".
+     **/
+    void get_env_paths(std::vector<std::string> &paths, const char *env_var="PATH");
 
     /**
      * Returns the directory of the provided \p path.
