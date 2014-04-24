@@ -93,9 +93,20 @@ AC_CHECK_HEADER([thread], , AC_MSG_ERROR([C++11 thread header not found]))
 AC_CHECK_HEADER([typeinfo], , AC_MSG_ERROR([C++11 typeinfo header not found]))
 AC_CHECK_HEADER([utility], , AC_MSG_ERROR([C++11 utility header not found]))
 AC_CHECK_HEADER([vector], , AC_MSG_ERROR([C++11 vector header not found]))
+AC_CHECK_HEADER([dirent.h], , AC_MSG_ERROR([POSIX dirent.h header not found]))
 AC_CHECK_HEADER([fcntl.h], , AC_MSG_ERROR([POSIX fcntl.h header not found]))
 AC_CHECK_HEADER([unistd.h], , AC_MSG_ERROR([POSIX unistd.h header not found]))
 AC_CHECK_HEADERS([cxxabi.h endian.h libgen.h libproc.h limits.h machine/byte_order.h])  dnl <schwa/port.{h,cc}>
+
+dnl Check for C functions.
+AC_CHECK_FUNC([close], , AC_MSG_ERROR([C close function not found]))
+AC_CHECK_FUNC([fork], , AC_MSG_ERROR([C fork function not found]))
+AC_CHECK_FUNC([fstat], , AC_MSG_ERROR([C fstat function not found]))
+AC_CHECK_FUNC([mmap], , AC_MSG_ERROR([C mmap function not found]))
+AC_CHECK_FUNC([open], , AC_MSG_ERROR([C open function not found]))
+AC_CHECK_FUNC([stat], , AC_MSG_ERROR([C stat function not found]))
+AC_CHECK_FUNC([strsep], , AC_MSG_ERROR([C strsep function not found]))
+AC_CHECK_FUNC([munmap], , AC_MSG_ERROR([C munmap function not found]))
 
 dnl Work out how to inline the "host to big endian" functions for various based on what headers we found.
 if test "$ac_cv_header_endian_h" = "yes"; then
