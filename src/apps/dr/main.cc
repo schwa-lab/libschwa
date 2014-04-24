@@ -1,21 +1,23 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <config.h>
-
 #include <cerrno>
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <sstream>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-#include <schwa/config.h>
 #include <schwa/exception.h>
-#include <schwa/io/logging.h>
 #include <schwa/port.h>
+#include <schwa/version.h>
 
 #include <dr-count/main.h>
 #include <dr-dist/main.h>
@@ -25,69 +27,96 @@
 #include <dr-tail/main.h>
 #include <dr-ui/main.h>
 
-
-namespace cf = schwa::config;
-namespace io = schwa::io;
 namespace port = schwa::port;
+
+static const std::string TOOL_PREFIX = "dr-";
+
 
 namespace {
 
-// ============================================================================
-// Config option parser
-// ============================================================================
-class Main : public cf::Main {
-protected:
-  std::vector<std::pair<const char *, const char *>> _commands;
-
-  void _add(const char *name, const char *desc);
-  virtual void _help_self(std::ostream &out, const unsigned int) const override;
-
-public:
-  Main(const std::string &name, const std::string &desc);
+// Smart pointer deleter for DIR structs.
+struct closedir_delete {
+  inline void operator ()(DIR *d) { if (d != nullptr) { ::closedir(d); } }
 };
 
 
-Main::Main(const std::string &name, const std::string &desc) : cf::Main(name, desc) {
-  _add(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
-  _add(schwa::dr_dist::PROGRAM_NAME, schwa::dr_dist::PROGRAM_DESC);
-  _add(schwa::dr_grep::PROGRAM_NAME, schwa::dr_grep::PROGRAM_DESC);
-  _add(schwa::dr_head::PROGRAM_NAME, schwa::dr_head::PROGRAM_DESC);
-  _add(schwa::dr_sample::PROGRAM_NAME, schwa::dr_sample::PROGRAM_DESC);
-  _add(schwa::dr_tail::PROGRAM_NAME, schwa::dr_tail::PROGRAM_DESC);
-  _add(schwa::dr_ui::PROGRAM_NAME, schwa::dr_ui::PROGRAM_DESC);
-}
-
-
-void
-Main::_add(const char *const name, const char *const desc) {
-  _commands.push_back(std::pair<const char *, const char *>(name + 3, desc));
-}
-
-
-void
-Main::_help_self(std::ostream &out, const unsigned int) const {
-  out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
-  out << "  Usage: " << _full_name << " [options] (";
-  for (decltype(_commands)::size_type i = 0; i != _commands.size(); ++i) {
-    if (i != 0)
-      out << '|';
-    out << _commands[i].first;
-  }
-  out << ") [command options]";
-  for (auto &pair : _commands)
-    out << std::endl <<  "    " << port::BOLD << pair.first << port::OFF << ": " << pair.second;
-}
-
-
-// ============================================================================
-// main
-// ============================================================================
 static void
-_main(int argc, char **argv) {
-  // The first unclaimed argument has to be the name of the app to call.
-  if (argc == 1)
-    throw cf::ConfigException("Positional argument {command} is missing.");
+find_tools_in_dir(const std::string dir_path, std::map<std::string, std::string> &tools) {
+  struct stat st;
 
+  // Open the directory.
+  std::unique_ptr<DIR, closedir_delete> dir(::opendir(dir_path.c_str()));
+  if (dir.get() == nullptr)
+    return;
+
+  // For each file in the directory.
+  for (struct dirent *de; (de = ::readdir(dir.get())) != nullptr; ) {
+    // Does the file start with the tool prefix?
+    if (::strncmp(de->d_name, TOOL_PREFIX.c_str(), TOOL_PREFIX.size()) != 0)
+      continue;
+
+    // Is the file a regular file and executable?
+    const std::string path = port::path_join(dir_path, de->d_name);
+    if (::stat(path.c_str(), &st) != 0 || !S_ISREG(st.st_mode) || (st.st_mode & S_IXUSR) == 0)
+      continue;
+
+    // Insert it into the map of known tools if we have not already found a tool with this name.
+    const char *tool_name = de->d_name + TOOL_PREFIX.size();
+    auto it = tools.find(tool_name);
+    if (it == tools.end())
+      tools.emplace(tool_name, dir_path);
+  }
+}
+
+
+static void
+show_tools_help(std::ostream &out=std::cerr) {
+  std::map<std::string, std::string> tools;
+
+  // Search `dirname ${0}`.
+  std::string path = port::path_dirname(port::abspath_to_argv0());
+  find_tools_in_dir(path, tools);
+  if (!tools.empty()) {
+    out << "  Core tools:" << std::endl;
+    for (const auto &pair : tools)
+      out << "    " << port::BOLD << pair.first << port::OFF << std::endl;
+  }
+  tools.clear();
+
+  // Search each of the paths in ${PATH}.
+  std::vector<std::string> paths;
+  port::get_env_paths(paths, "PATH");
+  for (auto path : paths)
+    find_tools_in_dir(path, tools);
+  if (!tools.empty()) {
+    out << "  Additional tools found:" << std::endl;
+    for (const auto &pair : tools) {
+      out << "    " << port::BOLD << pair.first << port::OFF;
+      out << " (" << port::DARK_GREY << pair.second << port::OFF << ")" << std::endl;
+    }
+  }
+}
+
+
+static void
+show_help(std::ostream &out=std::cerr) {
+  out << port::BOLD << "dr" << port::OFF << ": " << "A dispatcher to other docrep processing tools." << std::endl;
+  out << "  Usage: dr tool [tool-options]" << std::endl;
+  show_tools_help(out);
+  out << std::endl;
+  out << "  " << port::BOLD << "-h, --help" << port::OFF << ": Displays the help text" << std::endl;
+  out << "  " << port::BOLD << "--version" << port::OFF << ": Displays the version" << std::endl;
+}
+
+
+static void
+show_version(std::ostream &out=std::cout) {
+  out << port::BOLD << "dr" << port::OFF << ": " << schwa::VERSION << std::endl;
+}
+
+
+static void
+do_main(int argc, char **argv) {
   // Construct the array to pass to execvp.
   // dr ui --help (argc == 3)
   std::unique_ptr<char *[]> args(new char*[argc]);
@@ -96,9 +125,9 @@ _main(int argc, char **argv) {
 
   // Construct the name of the binary to exec.
   const size_t len = std::strlen(argv[1]);
-  std::unique_ptr<char[]> app(new char[3 + len + 1]);
-  std::memcpy(app.get() + 0, "dr-", 3);
-  std::memcpy(app.get() + 3, argv[1], len + 1);
+  std::unique_ptr<char[]> app(new char[TOOL_PREFIX.size() + len + 1]);
+  std::memcpy(app.get(), TOOL_PREFIX.c_str(), TOOL_PREFIX.size());
+  std::memcpy(app.get() + TOOL_PREFIX.size(), argv[1], len + 1);
 
   // First, try looking in the the directory of argv[0].
   std::string path = port::abspath_to_argv0();
@@ -116,14 +145,11 @@ _main(int argc, char **argv) {
   // If we still failed to find the executable, fail.
   const int errnum = errno;
   std::ostringstream ss;
-  if (errnum == ENOENT) {
+  if (errnum == ENOENT)
     ss << "Command '" << argv[1] << "' not found.";
-    throw cf::ConfigException(ss.str());
-  }
-  else {
+  else
     ss << "Failed to exec dr-" << argv[1] << ": " << std::strerror(errnum) << ".";
-    throw schwa::Exception(ss.str());
-  }
+  throw schwa::Exception(ss.str());
 }
 
 }
@@ -131,34 +157,29 @@ _main(int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
-  // Construct an option parser.
-  Main cfg("dr", "A dispatcher to other docrep processing tools.");
-
-  try {
-    // Parse argv.
-    if (argc > 1) {
-      if (std::strcmp(argv[1], "--help") == 0) {
-        cfg.op_help()->mention();
-        cfg.op_help()->validate(cfg);
-        return 0;
-      }
-      else if (std::strcmp(argv[1], "--version") == 0) {
-        cfg.op_version()->mention();
-        cfg.op_version()->validate(cfg);
-        return 0;
-      }
-    }
-
-    // Dispatch to main function.
-    _main(argc, argv);
-  }
-  catch (cf::ConfigException &e) {
-    std::cerr << schwa::print_exception("ConfigException", e) << std::endl;
-    cfg.help(std::cerr);
+  // Parse argv.
+  if (argc == 1) {
+    show_help();
     return 1;
+  }
+  else if (argc > 1) {
+    if (std::strcmp(argv[1], "-h") == 0 || std::strcmp(argv[1], "--help") == 0) {
+      show_help();
+      return 0;
+    }
+    else if (std::strcmp(argv[1], "--version") == 0) {
+      show_version();
+      return 0;
+    }
+  }
+
+  // Dispatch to main function.
+  try {
+    do_main(argc, argv);
   }
   catch (schwa::Exception &e) {
     std::cerr << schwa::print_exception(e) << std::endl;
+    show_help();
     return 1;
   }
   return 0;
