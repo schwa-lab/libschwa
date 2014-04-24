@@ -246,7 +246,7 @@ OpHelp::terminate_main(void) const {
 bool
 OpVersion::_validate(const Main &main) {
   if (_was_mentioned)
-    std::cerr << port::BOLD << main.name() << port::OFF << ": " << VERSION << std::endl;
+    std::cout << port::BOLD << main.name() << port::OFF << ": " << VERSION << std::endl;
   return true;
 }
 
