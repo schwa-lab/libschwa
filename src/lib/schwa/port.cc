@@ -67,7 +67,7 @@ make_stdout_pager(std::ostream &out) {
     return false;
   const size_t orig_pager_len = std::strlen(orig_pager);
   std::unique_ptr<char[]> pager(new char[orig_pager_len + 1]);
-  std::memcpy(pager.get(), orig_pager, orig_pager_len);
+  std::memcpy(pager.get(), orig_pager, orig_pager_len + 1);
 
   // Setup pipes.
   int parent_to_child[2], child_to_parent[2];  // [read, write]
