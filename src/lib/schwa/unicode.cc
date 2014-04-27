@@ -26,8 +26,8 @@ UnicodeString::UnicodeString(const std::string &utf8, const allocator_type &allo
 }
 
 
-UnicodeString::UnicodeString(const char *const utf8, const allocator_type &alloc) {
-  UTF8Decoder d(utf8, std::strlen(utf8));
+UnicodeString::UnicodeString(const uint8_t *const utf8, const allocator_type &alloc) {
+  UTF8Decoder d(utf8, std::strlen(reinterpret_cast<const char *>(utf8)));
   _str = underlying_type(d.begin(), d.end(), alloc);
 }
 
@@ -42,7 +42,23 @@ UnicodeString::operator +=(const char *const utf8) {
 
 
 UnicodeString &
+UnicodeString::operator +=(const uint8_t *const utf8) {
+  UTF8Decoder d(utf8, std::strlen(reinterpret_cast<const char *>(utf8)));
+  for (const auto c : d)
+    push_back(c);
+  return *this;
+}
+
+
+UnicodeString &
 UnicodeString::operator +=(const char c) {
+  push_back(c);
+  return *this;
+}
+
+
+UnicodeString &
+UnicodeString::operator +=(const uint8_t c) {
   push_back(c);
   return *this;
 }
@@ -50,12 +66,12 @@ UnicodeString::operator +=(const char c) {
 
 std::string
 UnicodeString::to_utf8(void) const {
-  char utf8[4];
+  uint8_t utf8[4];
   std::string out;
   out.reserve(size());
   for (const auto c : *this) {
     const size_t n = write_utf8(c, utf8);
-    out.append(utf8, n);
+    out.append(reinterpret_cast<char *>(utf8), n);
   }
   return out;
 }
@@ -129,8 +145,8 @@ bool UnicodeString::is_upper(void) const { return unicodestring_ctype(*this, uni
 // read_utf8
 // ============================================================================
 unicode_t
-read_utf8(const char **ptr, const char *const end) {
-  const char *const data = *ptr;
+read_utf8(const uint8_t **ptr, const uint8_t *const end) {
+  const uint8_t *const data = *ptr;
   const size_t remaining = end - data;
   if (remaining == 0)
     throw ValueException("No data left to read.");
@@ -165,33 +181,33 @@ read_utf8(const char **ptr, const char *const end) {
 
 
 unicode_t
-read_utf8_backwards(const char **ptr, const char *const end) {
-  const char *const data = *ptr;
+read_utf8_backwards(const uint8_t **ptr, const uint8_t *const end) {
+  const uint8_t *const data = *ptr;
   const size_t remaining = data - end;
   if (remaining == 0)
     throw ValueException("No data left to read.");
 
   unicode_t code_point;
-  if (remaining >= 1 && ((data[0] & 0x80) == 0)) {
-    code_point = (data[0] & 0x7F);
+  if (remaining >= 1 && ((data[-1] & 0x80) == 0)) {
+    code_point = (data[-1] & 0x7F);
     *ptr -= 1;
   }
-  else if (remaining >= 2 && ((data[-1] & 0xE0) == 0xC0) && ((data[0] & 0xC0) == 0x80)) {
-    code_point =  ((data[-1] & 0x1F) << 6);
-    code_point |= ((data[ 0] & 0x3F) << 0);
+  else if (remaining >= 2 && ((data[-2] & 0xE0) == 0xC0) && ((data[-1] & 0xC0) == 0x80)) {
+    code_point =  ((data[-2] & 0x1F) << 6);
+    code_point |= ((data[-1] & 0x3F) << 0);
     *ptr -= 2;
   }
-  else if (remaining >= 3 && ((data[-2] & 0xF0) == 0xE0) && ((data[-1] & 0xC0) == 0x80) && ((data[0] & 0xC0) == 0x80)) {
-    code_point =  ((data[-2] & 0x0F) << 12);
-    code_point |= ((data[-1] & 0x3F) <<  6);
-    code_point |= ((data[ 0] & 0x3F) <<  0);
+  else if (remaining >= 3 && ((data[-3] & 0xF0) == 0xE0) && ((data[-2] & 0xC0) == 0x80) && ((data[-1] & 0xC0) == 0x80)) {
+    code_point =  ((data[-3] & 0x0F) << 12);
+    code_point |= ((data[-2] & 0x3F) <<  6);
+    code_point |= ((data[-1] & 0x3F) <<  0);
     *ptr -= 3;
   }
-  else if (remaining >= 4 && ((data[-3] & 0xF8) == 0xF0) && ((data[-2] & 0xC0) == 0x80) && ((data[-1] & 0xC0) == 0x80) && ((data[0] & 0xC0) == 0x80)) {
-    code_point =  ((data[-3] & 0x07) << 18);
-    code_point |= ((data[-2] & 0x3F) << 12);
-    code_point |= ((data[-1] & 0x3F) <<  6);
-    code_point |= ((data[ 0] & 0x3F) <<  0);
+  else if (remaining >= 4 && ((data[-4] & 0xF8) == 0xF0) && ((data[-3] & 0xC0) == 0x80) && ((data[-2] & 0xC0) == 0x80) && ((data[-1] & 0xC0) == 0x80)) {
+    code_point =  ((data[-4] & 0x07) << 18);
+    code_point |= ((data[-3] & 0x3F) << 12);
+    code_point |= ((data[-2] & 0x3F) <<  6);
+    code_point |= ((data[-1] & 0x3F) <<  0);
     *ptr -= 4;
   }
   else
@@ -205,20 +221,20 @@ read_utf8_backwards(const char **ptr, const char *const end) {
 // ============================================================================
 size_t
 write_utf8(const unicode_t code_point, std::ostream &out) {
-  char utf8[4];
+  uint8_t utf8[4];
   const size_t n = write_utf8(code_point, utf8);
-  out.write(utf8, n);
+  out.write(reinterpret_cast<char *>(utf8), n);
   return n;
 }
 
 
 size_t
 write_utf8(const UnicodeString &s, std::ostream &out) {
-  char utf8[4];
+  uint8_t utf8[4];
   size_t nbytes = 0;
   for (const auto c : s) {
     const size_t n = write_utf8(c, utf8);
-    out.write(utf8, n);
+    out.write(reinterpret_cast<char *>(utf8), n);
     nbytes += n;
   }
   return nbytes;
@@ -226,7 +242,7 @@ write_utf8(const UnicodeString &s, std::ostream &out) {
 
 
 size_t
-write_utf8(const unicode_t code_point, char utf8[4]) {
+write_utf8(const unicode_t code_point, uint8_t utf8[4]) {
   if (code_point <= 0x007F) {
     utf8[0] = (code_point & 0x7F);
     return 1;

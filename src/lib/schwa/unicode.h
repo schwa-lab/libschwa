@@ -2,6 +2,7 @@
 #ifndef SCHWA_UNICODE_H_
 #define SCHWA_UNICODE_H_
 
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <initializer_list>
@@ -22,9 +23,9 @@ namespace schwa {
   constexpr const unicode_t MAX_CODE_POINT = 0x110000;
 
 
-  unicode_t read_utf8(const char **data, const char *end);
-  unicode_t read_utf8_backwards(const char **data, const char *end);
-  size_t write_utf8(unicode_t code_point, char utf8[4]);
+  unicode_t read_utf8(const uint8_t **data, const uint8_t *end);
+  unicode_t read_utf8_backwards(const uint8_t **data, const uint8_t *end);
+  size_t write_utf8(unicode_t code_point, uint8_t utf8[4]);
   size_t write_utf8(unicode_t code_point, std::ostream &out);
   size_t write_utf8(const UnicodeString &s, std::ostream &out);
 
@@ -48,56 +49,102 @@ namespace schwa {
 
   class UTF8Decoder {
   public:
-    template <class F>
-    class Iterator : public std::iterator<std::input_iterator_tag, unicode_t> {
+    template <class FORWARD, class BACKWARD>
+    class Iterator : public std::iterator<std::bidirectional_iterator_tag, unicode_t> {
     private:
-      const char *_upto;
-      const char *_end;
+      const uint8_t *const _start;
+      const uint8_t *const _end;
+      const uint8_t *_cp_start;
+      const uint8_t *_cp_end;
       unicode_t _code_point;
-      F _functor;
+      bool _read;
+      FORWARD _forward;
+      BACKWARD _backward;
 
       void
-      _read(void) {
-        if (_upto == nullptr)  // Are we already at the end?
-          return;
-        else if (_upto == _end) {  // Have we just consumed the last character?
-          _upto = _end = nullptr;
+      _read_backward(void) {
+        _cp_end = _cp_start;
+        if (_cp_end != _start)
+          _code_point = _backward(&_cp_start, _start);
+      }
+
+      void
+      _read_forward(void) {
+        _cp_start = _cp_end;
+        if (_cp_start == _end)
           _code_point = MAX_CODE_POINT;
-          return;
-        }
-        _code_point = _functor(&_upto, _end);
+        else
+          _code_point = _forward(&_cp_end, _end);
       }
 
     public:
-      Iterator(void) : _upto(nullptr), _end(nullptr), _code_point(MAX_CODE_POINT) { _read(); }
-      explicit Iterator(const char *start, const char *end) : _upto(start), _end(end), _code_point(MAX_CODE_POINT) { _read(); }
-      Iterator(const Iterator &o) : _upto(o._upto), _end(o._end), _code_point(o._code_point) { }
-      Iterator(const Iterator &&o) : _upto(o._upto), _end(o._end), _code_point(o._code_point) { }
+      Iterator(const uint8_t *start, const uint8_t *end, const uint8_t *initial) : _start(start), _end(end), _cp_start(initial), _cp_end(initial), _code_point(MAX_CODE_POINT), _read(false) { }
+      Iterator(const Iterator &o) : _start(o._start), _end(o._end), _cp_start(o._cp_start), _cp_end(o._cp_end), _code_point(o._code_point), _read(o._read) { }
+      Iterator(const Iterator &&o) : _start(o._start), _end(o._end), _cp_start(o._cp_start), _cp_end(o._cp_end), _code_point(o._code_point), _read(o._read) { }
 
-      inline Iterator &operator++(void) { _read(); return *this; }
-      inline bool operator ==(const Iterator &o) const { return _upto == o._upto && _end == o._end; }
-      inline bool operator !=(const Iterator &o) const { return _upto != o._upto || _end != o._end; }
-      value_type operator *(void) const { return _code_point; }
+      Iterator &
+      operator++(void) {
+        if (!_read) {
+          _read_forward();
+          _read = true;
+        }
+        _read_forward();
+        return *this;
+      }
+
+      Iterator &
+      operator--(void) {
+        _read_backward();
+        return *this;
+      }
+
+      bool
+      operator ==(const Iterator &o) const {
+        return _start == o._start && _end == o._end && _cp_start == o._cp_start && _cp_end == o._cp_end;
+      }
+      inline bool operator !=(const Iterator &o) const { return !(*this == o); }
+
+      value_type
+      operator *(void) {
+        if (!_read) {
+          _read_forward();
+          _read = true;
+        }
+        return _code_point;
+      }
 
       Iterator &
       operator =(const Iterator &o) {
-        _upto = o._upto;
+        _start = o._start;
         _end = o._end;
+        _cp_start = o._cp_start;
+        _cp_end = o._cp_end;
         _code_point = o._code_point;
+        _read = o._read;
         return *this;
+      }
+
+      std::ostream &
+      debug(std::ostream &out) const {
+        out << "[start=" << static_cast<const void *>(_start);
+        out << " end=" << static_cast<const void *>(_end);
+        out << " cp_start=" << static_cast<const void *>(_cp_start);
+        out << " cp_end=" << static_cast<const void *>(_cp_end);
+        out << " code_point=" << _code_point << "]";
+        return out;
       }
     };
 
     struct ReadUTF8Forwards {
-      inline unicode_t operator ()(const char **ptr, const char *end) const { return schwa::read_utf8(ptr, end); }
+      inline unicode_t operator ()(const uint8_t **ptr, const uint8_t *end) const { return schwa::read_utf8(ptr, end); }
     };
 
     struct ReadUTF8Backwards {
-      inline unicode_t operator ()(const char **ptr, const char *end) const { return schwa::read_utf8_backwards(ptr, end); }
+      inline unicode_t operator ()(const uint8_t **ptr, const uint8_t *end) const { return schwa::read_utf8_backwards(ptr, end); }
     };
 
-    using ForwardIterator = Iterator<ReadUTF8Forwards>;
-    using BackwardIterator = Iterator<ReadUTF8Backwards>;
+    using ForwardIterator = Iterator<ReadUTF8Forwards, ReadUTF8Backwards>;
+    using BackwardIterator = Iterator<ReadUTF8Backwards, ReadUTF8Forwards>;
 
     using iterator = ForwardIterator;
     using const_iterator = ForwardIterator;
@@ -105,23 +152,24 @@ namespace schwa {
     using const_reverse_iterator = BackwardIterator;
 
   private:
-    const char *const _data;
-    const size_t _size;
+    const uint8_t *const _start;
+    const uint8_t *const _end;
 
   public:
-    explicit UTF8Decoder(const std::string &s) : _data(s.c_str()), _size(s.size()) { }
-    UTF8Decoder(const char *data, size_t size) : _data(data), _size(size) { }
-    UTF8Decoder(const UTF8Decoder &o) : _data(o._data), _size(o._size) { }
-    UTF8Decoder(const UTF8Decoder &&o) : _data(o._data), _size(o._size) { }
+    explicit UTF8Decoder(const std::string &s) : _start(reinterpret_cast<const uint8_t *>(s.c_str())), _end(_start + s.size()) { }
+    UTF8Decoder(const char *data, size_t size) : _start(reinterpret_cast<const uint8_t *>(data)), _end(_start + size) { }
+    UTF8Decoder(const uint8_t *data, size_t size) : _start(data), _end(_start + size) { }
+    UTF8Decoder(const UTF8Decoder &o) : _start(o._start), _end(o._end) { }
+    UTF8Decoder(const UTF8Decoder &&o) : _start(o._start), _end(o._end) { }
 
-    inline iterator begin(void) const { return iterator(_data, _data + _size); }
-    inline iterator end(void) const { return iterator(); }
-    inline const_iterator cbegin(void) const { return const_iterator(_data, _data + _size); }
-    inline const_iterator cend(void) const { return const_iterator(); }
-    inline reverse_iterator rbegin(void) const { return reverse_iterator(_data + _size - 1, _data - 1); }
-    inline reverse_iterator rend(void) const { return reverse_iterator(); }
-    inline const_reverse_iterator crbegin(void) const { return const_reverse_iterator(_data + _size - 1, _data - 1); }
-    inline const_reverse_iterator crend(void) const { return const_reverse_iterator(); }
+    inline iterator begin(void) const { return iterator(_start, _end, _start); }
+    inline iterator end(void) const { return iterator(_start, _end, _end); }
+    inline const_iterator cbegin(void) const { return const_iterator(_start, _end, _start); }
+    inline const_iterator cend(void) const { return const_iterator(_start, _end, _end); }
+    inline reverse_iterator rbegin(void) const { return reverse_iterator(_end, _start, _end); }
+    inline reverse_iterator rend(void) const { return reverse_iterator(_end, _start, _start); }
+    inline const_reverse_iterator crbegin(void) const { return const_reverse_iterator(_end, _start, _end); }
+    inline const_reverse_iterator crend(void) const { return const_reverse_iterator(_end, _start, _start); }
   };
 
 
@@ -343,9 +391,11 @@ namespace schwa {
 
     // UTF-8 encoding and decoding.
     explicit UnicodeString(const std::string &utf8, const allocator_type &alloc=allocator_type());
-    explicit UnicodeString(const char *utf8, const allocator_type &alloc=allocator_type());
+    explicit UnicodeString(const uint8_t *utf8, const allocator_type &alloc=allocator_type());
     UnicodeString &operator +=(const char *utf8);
-    UnicodeString &operator +=(const char c);
+    UnicodeString &operator +=(const uint8_t *utf8);
+    UnicodeString &operator +=(char c);
+    UnicodeString &operator +=(uint8_t c);
 
     std::string to_utf8(void) const;
 
