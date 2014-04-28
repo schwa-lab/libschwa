@@ -36,6 +36,7 @@ namespace schwa {
         return _values[_transformer(key)] += delta;
       }
 
+      inline void clear(void) { _values.clear(); }
       void dump_crfsuite(std::ostream &out) const;
 
     private:

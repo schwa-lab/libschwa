@@ -2,6 +2,7 @@
 #ifndef SCHWA_LEARN_EXTRACT_IMPL_H_
 #define SCHWA_LEARN_EXTRACT_IMPL_H_
 
+#include <algorithm>
 #include <functional>
 #include <sstream>
 #include <string>
@@ -45,7 +46,7 @@ namespace schwa {
 
 
     template <typename T, typename R, class TRANSFORM>
-    void
+    inline void
     window(const std::string &name, const size_t i, const ptrdiff_t dl, const ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, contextual_callback<T, R> callback) {
       std::stringstream key;
       for (ptrdiff_t delta = dl; delta <= dr; ++delta) {
@@ -59,6 +60,52 @@ namespace schwa {
         features(key.str());
         key.str("");
       }
+    }
+
+
+    template <class TRANSFORM, typename T>
+    inline void
+    _add_affix_features(Features<TRANSFORM> &features, const size_t nprefix, const size_t nsuffix, const T &string) {
+      std::stringstream key;
+      UnicodeString affix;
+      affix.reserve(std::max(nprefix, nsuffix));
+
+      auto fit = string.cbegin();
+      const auto fend = string.cend();
+      for (size_t i = 0; i != nprefix; ++i, ++fit) {
+        if (fit == fend)
+          break;
+        affix += *fit;
+
+        key << "prefix=" << affix;
+        features(key.str());
+        key.str("");
+      }
+      affix.clear();
+
+      auto rit = string.crbegin();
+      const auto rend = string.crend();
+      for (size_t i = 0; i != nsuffix; ++i, ++rit) {
+        if (rit == rend)
+          break;
+        affix += *rit;
+
+        key << "suffix=" << affix;
+        features(key.str());
+        key.str("");
+      }
+    }
+
+    template <class TRANSFORM>
+    inline void
+    add_affix_features(Features<TRANSFORM> &features, const size_t nprefix, const size_t nsuffix, const std::string &s) {
+      return _add_affix_features(features, nprefix, nsuffix, UTF8Decoder(s));
+    }
+
+    template <class TRANSFORM>
+    inline void
+    add_affix_features(Features<TRANSFORM> &features, const size_t nprefix, const size_t nsuffix, const UnicodeString &s) {
+      return _add_affix_features(features, nprefix, nsuffix, s);
     }
 
   }

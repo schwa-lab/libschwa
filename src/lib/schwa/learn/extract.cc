@@ -4,8 +4,6 @@
 #include <iostream>
 #include <string>
 
-#include <schwa/unicode.h>
-
 namespace u = schwa::unicode;
 
 

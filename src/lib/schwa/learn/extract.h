@@ -8,12 +8,10 @@
 #include <schwa/_base.h>
 #include <schwa/dr/fields.h>
 #include <schwa/learn/features.h>
+#include <schwa/unicode.h>
 
 
 namespace schwa {
-
-  class UnicodeString;
-
   namespace learn {
 
     const std::string SENTINEL = "__SENTINEL__";
@@ -60,6 +58,13 @@ namespace schwa {
     std::string word_form(const std::string &utf8);
     std::string word_form(const UnicodeString &s);
 
+    template <class TRANSFORM>
+    void
+    add_affix_features(Features<TRANSFORM> &features, size_t nprefix, size_t nsuffix, const std::string &utf8);
+
+    template <class TRANSFORM>
+    void
+    add_affix_features(Features<TRANSFORM> &features, size_t nprefix, size_t nsuffix, const UnicodeString &s);
   }
 }
 
