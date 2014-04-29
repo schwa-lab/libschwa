@@ -3,7 +3,6 @@
 #define SCHWA_DRCOUNT_PROCESSOR_H_
 
 #include <iosfwd>
-#include <vector>
 
 #include <schwa/_base.h>
 
