@@ -399,14 +399,19 @@ auto
 BrownClusterer::Impl::_compute_P_c1_c2(const uint8_t *cluster1, const uint8_t *const cluster2) const -> float_type {
   count_type numerator = 0;
   for (unsigned int i1 = 0; i1 != _membership_nbytes; ++i1, ++cluster1) {
+    if (*cluster1 == 0)
+      continue;
     for (unsigned int b1 = 0; b1 != 8; ++b1) {
       if ((*cluster1 & (1 << b1)) == 0)
         continue;
       const uint8_t *cluster2_copy = cluster2;
-      for (unsigned int i2 = 0; i2 != _membership_nbytes; ++i2, ++cluster2_copy)
+      for (unsigned int i2 = 0; i2 != _membership_nbytes; ++i2, ++cluster2_copy) {
+        if (*cluster2_copy == 0)
+          continue;
         for (unsigned int b2 = 0; b2 != 8; ++b2)
           if ((*cluster2_copy & (1 << b2)) != 0)
             numerator += _bigram_counts(i1*8 + b1, i2*8 + b2);
+      }
     }
   }
   return static_cast<float_type>(numerator) / _ntokens;
