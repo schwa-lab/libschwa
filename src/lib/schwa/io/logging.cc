@@ -113,7 +113,7 @@ BasicLogger::Streambuf::~Streambuf(void) {
 int
 BasicLogger::Streambuf::sync(void) {
   if (_level >= _threshold)
-    (*_out) << str();
+    (*_out) << str() << std::flush;
   str("");
   return 0;
 }
