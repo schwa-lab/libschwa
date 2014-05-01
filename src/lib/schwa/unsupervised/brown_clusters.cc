@@ -8,11 +8,14 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
+#include <schwa/exception.h>
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 #include <schwa/utils/counter.h>
@@ -33,6 +36,7 @@ public:
 
 private:
   unsigned int _nclusters;
+  unsigned int _nthreads;
   count_type _ntokens;
   std::unordered_map<std::string, id_type> _tokens;
   UnigramCounter<id_type, count_type> _unigram_counts;
@@ -47,7 +51,7 @@ private:
   inline uint8_t *_get_cluster(const unsigned int c) { return &_clusters[c*_membership_nbytes]; }
   inline const uint8_t *_get_cluster(const unsigned int c) const { return &_clusters[c*_membership_nbytes]; }
 
-  void _initialise(unsigned int nclusters);
+  void _initialise(unsigned int nclusters, unsigned int nthreads);
   bool _keep_token(const std::string &token) const;
   void _read_input(std::istream &input);
   void _run_fixed_window(void);
@@ -74,7 +78,7 @@ public:
   Impl(void);
   ~Impl(void);
 
-  void run(unsigned int nclusters, std::istream &input, std::ostream &output);
+  void run(unsigned int nclusters, unsigned int nthreads, std::istream &input, std::ostream &output);
 
 private:
   SCHWA_DISALLOW_COPY_AND_ASSIGN(Impl);
@@ -91,7 +95,15 @@ BrownClusterer::Impl::~Impl(void) {
 
 
 void
-BrownClusterer::Impl::_initialise(const unsigned int nclusters) {
+BrownClusterer::Impl::_initialise(const unsigned int nclusters, const unsigned int nthreads) {
+  if (nclusters == 0)
+    throw ValueException("nclusters cannot be 0");
+  else if (nthreads == 0)
+    throw ValueException("nthreads cannot be 0");
+
+  // Number of threads used to compute the tables in parallel.
+  _nthreads = nthreads;
+
   // Don't try and form more clusters than there are unique tokens.
   _nclusters = std::min(nclusters, static_cast<decltype(nclusters)>(_tokens.size()));
   _array_dim = _nclusters + 1;
@@ -116,6 +128,7 @@ BrownClusterer::Impl::_initialise(const unsigned int nclusters) {
   LOG(INFO) << "Distinct bigrams: " << _bigram_counts.size() << std::endl;
   LOG(INFO) << "Clusters to form: " << _nclusters << std::endl;
   LOG(INFO) << "Membership bytes per cluster: " << _membership_nbytes << std::endl;
+  LOG(INFO) << "Threads to use: " << _nthreads << std::endl;
 }
 
 
@@ -237,10 +250,6 @@ BrownClusterer::Impl::_run_fixed_window(void) {
     _merge_cluster_members(max_c1, max_c2, _get_cluster(max_c1));
 
     // Move across the cluster membership values.
-    //for (unsigned int c = max_c2 + 1; c != _nclusters + 1; ++c)
-      //std::memcpy(_get_cluster(c - 1), _get_cluster(c), _membership_nbytes);
-    //std::memset(_get_cluster(_nclusters), 0, _membership_nbytes);
-    assert((_nclusters + 1 - (max_c2 + 1))*_membership_nbytes >= 0);
     std::memmove(_get_cluster(max_c2), _get_cluster(max_c2 + 1), (_nclusters + 1 - (max_c2 + 1))*_membership_nbytes);
 
     // Move the values in w that do not need to be recomputed but have changed position after the cluster merge.
@@ -321,10 +330,41 @@ BrownClusterer::Impl::_merge_cluster_members(const unsigned int c1, const unsign
 void
 BrownClusterer::Impl::_initialise_w(void) {
   LOG(INFO) << "Initialising w ..." << std::endl;
-  for (unsigned int c1 = 0; c1 != _nclusters; ++c1) {
-    for (unsigned int c2 = c1; c2 != _nclusters; ++c2)
-      _w[c1*_array_dim + c2] = _w[c2*_array_dim + c1] = _compute_w(c1, c2);
-    _w[c1*_array_dim + _nclusters] = _w[_nclusters*_array_dim + c1] = 0;
+  if (_nthreads == 1) {
+    for (unsigned int c1 = 0; c1 != _nclusters; ++c1)
+      for (unsigned int c2 = c1; c2 != _nclusters; ++c2)
+        _w[c1*_array_dim + c2] = _w[c2*_array_dim + c1] = _compute_w(c1, c2);
+  }
+  else {
+    std::vector<std::pair<unsigned int, unsigned int>> indices;
+    indices.reserve((_nclusters*(_nclusters + 1))/2);
+    for (unsigned int c1 = 0; c1 != _nclusters; ++c1)
+      for (unsigned int c2 = c1; c2 != _nclusters; ++c2)
+        indices.emplace_back(c1, c2);
+
+    volatile size_t upto = 0;
+    std::mutex upto_mutex;
+    const auto fn = [&](void) {
+      while (true) {
+        upto_mutex.lock();
+        if (upto == indices.size()) {
+          upto_mutex.unlock();
+          break;
+        }
+        const unsigned int c1 = indices[upto].first;
+        const unsigned int c2 = indices[upto].second;
+        ++upto;
+        upto_mutex.unlock();
+
+        _w[c1*_array_dim + c2] = _w[c2*_array_dim + c1] = _compute_w(c1, c2);
+      }
+    };
+
+    std::vector<std::thread> threads;
+    for (unsigned int i = 0; i != _nthreads; ++i)
+      threads.push_back(std::thread(fn));
+    for (auto &thread : threads)
+      thread.join();
   }
   LOG(INFO) << "Initialising w ... Done" << std::endl;
 }
@@ -333,10 +373,44 @@ BrownClusterer::Impl::_initialise_w(void) {
 void
 BrownClusterer::Impl::_initialise_L(void) {
   LOG(INFO) << "Initialising L ..." << std::endl;
-  std::unique_ptr<uint8_t> merged(new uint8_t[_membership_nbytes]);
-  for (unsigned int c1 = 0; c1 != _nclusters; ++c1)
-    for (unsigned int c2 = c1 + 1; c2 != _nclusters; ++c2)
-      _L[c1*_array_dim + c2] = _compute_L(c1, c2, merged.get());
+  if (_nthreads == 1) {
+    std::unique_ptr<uint8_t> merged(new uint8_t[_membership_nbytes]);
+    for (unsigned int c1 = 0; c1 != _nclusters; ++c1)
+      for (unsigned int c2 = c1 + 1; c2 != _nclusters; ++c2)
+        _L[c1*_array_dim + c2] = _compute_L(c1, c2, merged.get());
+  }
+  else {
+    std::vector<std::pair<unsigned int, unsigned int>> indices;
+    indices.reserve((_nclusters*(_nclusters + 1))/2);
+    for (unsigned int c1 = 0; c1 != _nclusters; ++c1)
+      for (unsigned int c2 = c1 + 1; c2 != _nclusters; ++c2)
+        indices.emplace_back(c1, c2);
+
+    volatile size_t upto = 0;
+    std::mutex upto_mutex;
+    const auto fn = [&](void) {
+      std::unique_ptr<uint8_t> merged(new uint8_t[_membership_nbytes]);
+      while (true) {
+        upto_mutex.lock();
+        if (upto == indices.size()) {
+          upto_mutex.unlock();
+          break;
+        }
+        const unsigned int c1 = indices[upto].first;
+        const unsigned int c2 = indices[upto].second;
+        ++upto;
+        upto_mutex.unlock();
+
+        _L[c1*_array_dim + c2] = _compute_L(c1, c2, merged.get());
+      }
+    };
+
+    std::vector<std::thread> threads;
+    for (unsigned int i = 0; i != _nthreads; ++i)
+      threads.push_back(std::thread(fn));
+    for (auto &thread : threads)
+      thread.join();
+  }
   LOG(INFO) << "Initialising L ... Done" << std::endl;
 }
 
@@ -440,9 +514,9 @@ BrownClusterer::Impl::_write_clusters(std::ostream &output) const {
 
 
 void
-BrownClusterer::Impl::run(const unsigned int nclusters, std::istream &input, std::ostream &output) {
+BrownClusterer::Impl::run(const unsigned int nclusters, const unsigned int nthreads, std::istream &input, std::ostream &output) {
   _read_input(input);
-  _initialise(nclusters);
+  _initialise(nclusters, nthreads);
   _run_fixed_window();
   _run_hierarchical();
   _write_clusters(output);
@@ -459,8 +533,8 @@ BrownClusterer::~BrownClusterer(void) {
 }
 
 void
-BrownClusterer::run(unsigned int nclusters, std::istream &input, std::ostream &output) {
-  _impl->run(nclusters, input, output);
+BrownClusterer::run(unsigned int nclusters, unsigned int nthreads, std::istream &input, std::ostream &output) {
+  _impl->run(nclusters, nthreads, input, output);
 }
 
 }  // namespace unsupervised

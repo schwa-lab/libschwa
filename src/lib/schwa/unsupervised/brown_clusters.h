@@ -19,7 +19,7 @@ namespace schwa {
       BrownClusterer(void);
       ~BrownClusterer(void);
 
-      void run(unsigned int nclusters, std::istream &input, std::ostream &output);
+      void run(unsigned int nclusters, unsigned int nthreads, std::istream &input, std::ostream &output);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(BrownClusterer);

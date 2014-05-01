@@ -12,9 +12,9 @@ namespace io = schwa::io;
 namespace {
 
 void
-main(std::istream &in, std::ostream &out, const unsigned int nclusters) {
+main(std::istream &in, std::ostream &out, unsigned int nclusters, unsigned int nthreads) {
   schwa::unsupervised::BrownClusterer clusterer;
-  clusterer.run(nclusters, in, out);
+  clusterer.run(nclusters, nthreads, in, out);
 }
 
 }  // namespace
@@ -27,6 +27,7 @@ main(int argc, char **argv) {
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<unsigned int> nclusters(cfg, "nclusters", 'c', "The number of clusters to create", 1000);
+  cf::Op<unsigned int> nthreads(cfg, "nthreads", 'n', "The number of threads to use", 1);
 
   // Parse argv.
   input.position_arg_precedence(0);
@@ -34,7 +35,7 @@ main(int argc, char **argv) {
 
   // Dispatch to main function.
   try {
-    main(input.file(), output.file(), nclusters());
+    main(input.file(), output.file(), nclusters(), nthreads());
   }
   catch (schwa::Exception &e) {
     std::cerr << schwa::print_exception(e) << std::endl;
