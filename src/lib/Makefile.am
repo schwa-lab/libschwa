@@ -4,12 +4,8 @@
 lib_LTLIBRARIES = libschwa.la
 
 libschwa_la_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
-libschwa_la_LIBADD =
+libschwa_la_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB)
 libschwa_la_SOURCES =
-
-if ENABLE_DEBUG
-libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB)
-endif
 
 
 # =============================================================================
