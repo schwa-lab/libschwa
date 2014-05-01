@@ -98,6 +98,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/unicode.h \
 		schwa/unicode_gen.h \
 		schwa/unsupervised/brown_clusters.h \
+		schwa/utils/counter.h \
 		schwa/utils/enums.h \
 		schwa/utils/hash.h \
 		schwa/utils/shlex.h \
