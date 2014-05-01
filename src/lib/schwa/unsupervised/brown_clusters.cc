@@ -259,7 +259,7 @@ BrownClusterer::Impl::_run_fixed_window(void) {
     for (unsigned int j = 0; j != _nclusters; ++j)
       _L[j*_array_dim + max_c1] = _compute_L(j, max_c1, merged.get());
 
-    _write_clusters(std::cerr);
+    //_write_clusters(std::cerr);
   }
 }
 
@@ -320,24 +320,24 @@ BrownClusterer::Impl::_merge_cluster_members(const unsigned int c1, const unsign
 
 void
 BrownClusterer::Impl::_initialise_w(void) {
-  LOG(DEBUG) << "Initialising w ..." << std::endl;
+  LOG(INFO) << "Initialising w ..." << std::endl;
   for (unsigned int c1 = 0; c1 != _nclusters; ++c1) {
     for (unsigned int c2 = c1; c2 != _nclusters; ++c2)
       _w[c1*_array_dim + c2] = _w[c2*_array_dim + c1] = _compute_w(c1, c2);
     _w[c1*_array_dim + _nclusters] = _w[_nclusters*_array_dim + c1] = 0;
   }
-  LOG(DEBUG) << "Done" << std::endl;
+  LOG(INFO) << "Initialising w ... Done" << std::endl;
 }
 
 
 void
 BrownClusterer::Impl::_initialise_L(void) {
-  LOG(DEBUG) << "Initialising L ..." << std::endl;
+  LOG(INFO) << "Initialising L ..." << std::endl;
   std::unique_ptr<uint8_t> merged(new uint8_t[_membership_nbytes]);
   for (unsigned int c1 = 0; c1 != _nclusters; ++c1)
     for (unsigned int c2 = c1 + 1; c2 != _nclusters; ++c2)
       _L[c1*_array_dim + c2] = _compute_L(c1, c2, merged.get());
-  LOG(DEBUG) << "Done" << std::endl;
+  LOG(INFO) << "Initialising L ... Done" << std::endl;
 }
 
 
