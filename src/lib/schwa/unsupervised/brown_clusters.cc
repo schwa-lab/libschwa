@@ -18,12 +18,21 @@
 #include <schwa/exception.h>
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
-#include <schwa/utils/counter.h>
 #include <schwa/unicode.h>
 
 
 namespace schwa {
 namespace unsupervised {
+
+struct BigramCount {
+  uint16_t index;
+  uint8_t shift;
+  uint32_t count;
+  BigramCount *next;
+
+  BigramCount(uint16_t index, uint8_t shift, uint32_t count, BigramCount *next=nullptr) : index(index), shift(shift), count(count), next(next) { }
+};
+
 
 // ============================================================================
 // BrownClusterer::Impl
@@ -38,9 +47,10 @@ private:
   unsigned int _nclusters;
   unsigned int _nthreads;
   count_type _ntokens;
-  std::unordered_map<std::string, id_type> _tokens;
-  UnigramCounter<id_type, count_type> _unigram_counts;
-  BigramCounter<id_type, id_type, count_type> _bigram_counts;
+  std::unordered_map<std::string, id_type> _distinct_unigrams;
+  std::vector<BigramCount *> _distinct_bigrams;
+  count_type *_unigram_counts;   // 1D. Size |_distinct_unigrams|
+  BigramCount **_bigram_counts;  // 1D. Size |_distinct_unigrams|
 
   unsigned int _membership_nbytes;
   unsigned int _array_dim;  // _nclusters + 1
@@ -85,9 +95,11 @@ private:
 };
 
 
-BrownClusterer::Impl::Impl(void) : _clusters(nullptr), _w(nullptr), _L(nullptr) { }
+BrownClusterer::Impl::Impl(void) : _unigram_counts(nullptr), _bigram_counts(nullptr), _clusters(nullptr), _w(nullptr), _L(nullptr) { }
 
 BrownClusterer::Impl::~Impl(void) {
+  delete [] _unigram_counts;
+  delete [] _bigram_counts;
   delete [] _clusters;
   delete [] _w;
   delete [] _L;
@@ -105,11 +117,11 @@ BrownClusterer::Impl::_initialise(const unsigned int nclusters, const unsigned i
   _nthreads = nthreads;
 
   // Don't try and form more clusters than there are unique tokens.
-  _nclusters = std::min(nclusters, static_cast<decltype(nclusters)>(_tokens.size()));
+  _nclusters = std::min(nclusters, static_cast<decltype(nclusters)>(_distinct_unigrams.size()));
   _array_dim = _nclusters + 1;
 
   // Work out the number of bytes needed in out membership bitmask.
-  const auto result = std::div(_tokens.size(), 8);
+  const auto result = std::div(_distinct_unigrams.size(), 8);
   _membership_nbytes = result.quot + (result.rem == 0 ? 0 : 1);
 
   // Allocate memory for the cluster membership information.
@@ -124,8 +136,8 @@ BrownClusterer::Impl::_initialise(const unsigned int nclusters, const unsigned i
   _L = new float_type[_array_dim*_array_dim];
 
   LOG(INFO) << "Tokens read: " << _ntokens << std::endl;
-  LOG(INFO) << "Distinct unigrams: " << _unigram_counts.size() << std::endl;
-  LOG(INFO) << "Distinct bigrams: " << _bigram_counts.size() << std::endl;
+  LOG(INFO) << "Distinct unigrams: " << _distinct_unigrams.size() << std::endl;
+  LOG(INFO) << "Distinct bigrams: " << _distinct_bigrams.size() << std::endl;
   LOG(INFO) << "Clusters to form: " << _nclusters << std::endl;
   LOG(INFO) << "Membership bytes per cluster: " << _membership_nbytes << std::endl;
   LOG(INFO) << "Threads to use: " << _nthreads << std::endl;
@@ -148,9 +160,15 @@ void
 BrownClusterer::Impl::_read_input(std::istream &input) {
   LOG(DEBUG) << "Reading input ..." << std::endl;
   // Reset state.
-  _tokens.clear();
-  _unigram_counts.clear();
-  _bigram_counts.clear();
+  _distinct_unigrams.clear();
+  delete [] _unigram_counts;
+  delete [] _bigram_counts;
+  for (auto &b : _distinct_bigrams)
+    delete b;
+  _distinct_bigrams.clear();
+
+  std::unordered_map<id_type, count_type> tmp_unigram_counts;
+  std::vector<std::pair<id_type, id_type>> tmp_bigram_counts;
 
   // Read each sentence from the istream.
   id_type tid, prev_tid = 0;
@@ -171,22 +189,64 @@ BrownClusterer::Impl::_read_input(std::istream &input) {
       }
 
       // Convert the token into a unique token identifier.
-      const auto it = _tokens.find(token);
-      if (it == _tokens.end()) {
-        tid = _tokens.size();
-        _tokens.emplace(token, tid);
+      const auto it = _distinct_unigrams.find(token);
+      if (it == _distinct_unigrams.end()) {
+        tid = _distinct_unigrams.size();
+        _distinct_unigrams.emplace(token, tid);
       }
       else
         tid = it->second;
 
       // Update the unigram and bigram counts.
-      ++_unigram_counts(tid);
+      ++tmp_unigram_counts[tid];
       if (prev_tid_valid)
-        ++_bigram_counts(prev_tid, tid);
+        tmp_bigram_counts.emplace_back(prev_tid, tid);
       prev_tid = tid;
       prev_tid_valid = true;
     }
   }
+
+  // Allocate an array for the unigram counts.
+  _unigram_counts = new count_type[_distinct_unigrams.size()];
+  for (id_type t = 0; t != _distinct_unigrams.size(); ++t)
+    _unigram_counts[t] = tmp_unigram_counts[tid];
+
+  // Allocate an array for the linked lists of bigram counts.
+  _bigram_counts = new BigramCount *[_distinct_unigrams.size()];
+  std::memset(_bigram_counts, 0, _distinct_unigrams.size()*sizeof(BigramCount *));
+  for (const auto &pair : tmp_bigram_counts) {
+    const auto d = std::div(pair.second, 8);
+    assert(d.quot < std::numeric_limits<uint16_t>::max());
+
+    BigramCount *first = _bigram_counts[pair.first], *found = nullptr;
+    for (BigramCount *b = first; b != nullptr; b = b->next) {
+      if (b->index == d.quot && b->shift == d.rem) {
+        found = b;
+        break;
+      }
+    }
+    if (found != nullptr)
+      ++found->count;
+    else {
+      _distinct_bigrams.push_back(new BigramCount(d.quot, d.rem, 1, first));
+      _bigram_counts[pair.first] = _distinct_bigrams.back();
+    }
+  }
+
+  unsigned int longest = 0, length;
+  for (id_type t = 0; t != _distinct_unigrams.size(); ++t) {
+    const BigramCount *b = _bigram_counts[t];
+    if (b != nullptr) {
+      std::cout << "bigram(" << t << ") =>";
+      for (length = 1; b != nullptr; b = b->next, ++length)
+        std::cout << " [" << b->index << "," << static_cast<unsigned int>(b->shift) << "," << b->count << "]";
+      std::cout << std::endl;
+      if (length > longest)
+        longest = length;
+    }
+  }
+  std::cout << "Longest bigram: " << longest << std::endl;
+
   LOG(DEBUG) << "Done" << std::endl;
 }
 
@@ -195,7 +255,10 @@ void
 BrownClusterer::Impl::_run_fixed_window(void) {
   // Order the tokens in descending order by frequency.
   using pair_type = std::pair<id_type, count_type>;
-  std::vector<pair_type> ordered_tokens(_unigram_counts.begin(), _unigram_counts.end());
+  std::vector<pair_type> ordered_tokens;
+  ordered_tokens.reserve(_distinct_unigrams.size());
+  for (id_type t = 0; t != _distinct_unigrams.size(); ++t)
+    ordered_tokens.emplace_back(t, _unigram_counts[t]);
   std::sort(ordered_tokens.begin(), ordered_tokens.end(), [](const pair_type &a, const pair_type &b) { return a.second > b.second; });
 
   // Place the first `_nclusters` most frequent tokens into their own clusters.
@@ -207,13 +270,13 @@ BrownClusterer::Impl::_run_fixed_window(void) {
   _initialise_L();
 
   // Bail early if we don't need to do any clustering.
-  if (_nclusters == _tokens.size())
+  if (_nclusters == _distinct_unigrams.size())
     return;
 
   // Place the remaining `_ntokens - _nclusters` tokens into a new cluster, and merge it.
   std::unique_ptr<uint8_t> merged(new uint8_t[_membership_nbytes]);
-  for (unsigned int i = _nclusters; i != _tokens.size(); ++i) {
-    LOG(INFO) << "Inserting token " << i << "/" << _tokens.size() << " into the fixed window" << std::endl;
+  for (unsigned int i = _nclusters; i != _distinct_unigrams.size(); ++i) {
+    LOG(INFO) << "Inserting token " << i << "/" << _distinct_unigrams.size() << " into the fixed window" << std::endl;
     // Set the current token as the only member of the last cluster.
     std::memset(_get_cluster(_nclusters), 0, _membership_nbytes);
     _add_member_to_cluster(_nclusters, ordered_tokens[i].first);
@@ -464,7 +527,7 @@ BrownClusterer::Impl::_compute_P_c(const uint8_t *cluster) const -> float_type {
   for (unsigned int i = 0; i != _membership_nbytes; ++i, ++cluster)
     for (unsigned int b = 0; b != 8; ++b)
       if ((*cluster & (1 << b)) != 0)
-        numerator += _unigram_counts(i*8 + b);
+        numerator += _unigram_counts[i*8 + b];
   return static_cast<float_type>(numerator) / _ntokens;
 }
 
@@ -478,13 +541,9 @@ BrownClusterer::Impl::_compute_P_c1_c2(const uint8_t *cluster1, const uint8_t *c
     for (unsigned int b1 = 0; b1 != 8; ++b1) {
       if ((*cluster1 & (1 << b1)) == 0)
         continue;
-      const uint8_t *cluster2_copy = cluster2;
-      for (unsigned int i2 = 0; i2 != _membership_nbytes; ++i2, ++cluster2_copy) {
-        if (*cluster2_copy == 0)
-          continue;
-        for (unsigned int b2 = 0; b2 != 8; ++b2)
-          if ((*cluster2_copy & (1 << b2)) != 0)
-            numerator += _bigram_counts(i1*8 + b1, i2*8 + b2);
+      for (const BigramCount *b = _bigram_counts[i1*8 + b1]; b != nullptr; b = b->next) {
+        if ((cluster2[b->index] & (1 << b->shift)) != 0)
+          numerator += b->count;
       }
     }
   }
@@ -495,9 +554,9 @@ BrownClusterer::Impl::_compute_P_c1_c2(const uint8_t *cluster1, const uint8_t *c
 void
 BrownClusterer::Impl::_write_clusters(std::ostream &output) const {
   // Construct the inverse mapping of token id to token string.
-  std::vector<std::string> inv_tokens(_tokens.size());
-  for (const auto &pair : _tokens)
-    inv_tokens[pair.second] = pair.first;
+  std::vector<std::string> inv_unigrams(_distinct_unigrams.size());
+  for (const auto &pair : _distinct_unigrams)
+    inv_unigrams[pair.second] = pair.first;
 
   // For each cluster...
   for (unsigned int c = 0; c != _nclusters; ++c) {
@@ -507,7 +566,7 @@ BrownClusterer::Impl::_write_clusters(std::ostream &output) const {
     for (unsigned int i = 0; i != _membership_nbytes; ++i, ++cluster)
       for (unsigned int b = 0; b != 8; ++b)
         if ((*cluster & (1 << b)) != 0)
-          output << " " << inv_tokens[i*8 + b] << "(" << (i*8 + b) << ")";
+          output << " " << inv_unigrams[i*8 + b] << "(" << (i*8 + b) << ")";
     output << std::endl;
   }
 }
