@@ -16,6 +16,7 @@
 #include <schwa/io/logging.h>
 #include <schwa/port.h>
 #include <schwa/utils/counter.h>
+#include <schwa/unicode.h>
 
 
 namespace schwa {
@@ -43,13 +44,17 @@ private:
   float_type *_w;      // 1D. Size _array_dim * _array_dim
   float_type *_L;      // 1D. Size _array_dim * _array_dim
 
+  inline uint8_t *_get_cluster(const unsigned int c) { return &_clusters[c*_membership_nbytes]; }
+  inline const uint8_t *_get_cluster(const unsigned int c) const { return &_clusters[c*_membership_nbytes]; }
+
   void _initialise(unsigned int nclusters);
+  bool _keep_token(const std::string &token) const;
   void _read_input(std::istream &input);
-  void _run(void);
+  void _run_fixed_window(void);
+  void _run_hierarchical(void);
   void _write_clusters(std::ostream &out) const;
 
   void _add_member_to_cluster(unsigned int c, id_type token);
-  void _clear_cluster_members(unsigned int c);
   void _merge_cluster_members(unsigned int c1, unsigned int c2, uint8_t *result) const;
 
   void _initialise_w(void);
@@ -58,24 +63,12 @@ private:
   float_type _compute_L(unsigned int c1, unsigned int c2, uint8_t *merged_cluster) const;
   float_type _compute_P_c(const uint8_t *cluster) const;
   float_type _compute_P_c1_c2(const uint8_t *cluster1, const uint8_t *cluster2) const;
-
-  inline float_type
-  _compute_w(unsigned int c1, unsigned int c2) const {
-    return _compute_w(&_clusters[c1*_array_dim], &_clusters[c2*_array_dim]);
-  }
-
-  inline float_type
-  _compute_P_c(unsigned int c) const {
-    return _compute_P_c(&_clusters[c*_array_dim]);
-  }
-
-  inline float_type
-  _compute_P_c1_c2(unsigned int c1, unsigned int c2) const {
-    return _compute_P_c1_c2(&_clusters[c1*_array_dim], &_clusters[c2*_array_dim]);
-  }
+  inline float_type _compute_w(unsigned int c1, unsigned int c2) const { return _compute_w(_get_cluster(c1), _get_cluster(c2)); }
+  inline float_type _compute_P_c(unsigned int c) const { return _compute_P_c(_get_cluster(c)); }
+  inline float_type _compute_P_c1_c2(unsigned int c1, unsigned int c2) const { return _compute_P_c1_c2(_get_cluster(c1), _get_cluster(c2)); }
 
   void _dump_w(void) const;
-  void _dump_w(unsigned int c1, unsigned int c2) const;
+  void _dump_w(unsigned int hl1, unsigned int hl2) const;
 
 public:
   Impl(void);
@@ -126,6 +119,18 @@ BrownClusterer::Impl::_initialise(const unsigned int nclusters) {
 }
 
 
+bool
+BrownClusterer::Impl::_keep_token(const std::string &token) const {
+  UTF8Decoder d(token);
+  if (unicode::is_upper(*d.begin()))
+    return true;
+  else if (token == "and" || token == "of" || token == "'")
+    return true;
+  else
+    return false;
+}
+
+
 void
 BrownClusterer::Impl::_read_input(std::istream &input) {
   LOG(DEBUG) << "Reading input ..." << std::endl;
@@ -144,8 +149,14 @@ BrownClusterer::Impl::_read_input(std::istream &input) {
     buffer.clear();
 
     // Read each token in the line.
+    bool prev_tid_valid = false;
     buffer << line;
     for (unsigned int i = 0; buffer >> token; ++i, ++_ntokens) {
+      if (!_keep_token(token)) {
+        prev_tid_valid = false;
+        continue;
+      }
+
       // Convert the token into a unique token identifier.
       const auto it = _tokens.find(token);
       if (it == _tokens.end()) {
@@ -157,9 +168,10 @@ BrownClusterer::Impl::_read_input(std::istream &input) {
 
       // Update the unigram and bigram counts.
       ++_unigram_counts(tid);
-      if (i != 0)
+      if (prev_tid_valid)
         ++_bigram_counts(prev_tid, tid);
       prev_tid = tid;
+      prev_tid_valid = true;
     }
   }
   LOG(DEBUG) << "Done" << std::endl;
@@ -167,7 +179,7 @@ BrownClusterer::Impl::_read_input(std::istream &input) {
 
 
 void
-BrownClusterer::Impl::_run(void) {
+BrownClusterer::Impl::_run_fixed_window(void) {
   // Order the tokens in descending order by frequency.
   using pair_type = std::pair<id_type, count_type>;
   std::vector<pair_type> ordered_tokens(_unigram_counts.begin(), _unigram_counts.end());
@@ -177,27 +189,26 @@ BrownClusterer::Impl::_run(void) {
   for (unsigned int i = 0; i != _nclusters; ++i)
     _add_member_to_cluster(i, ordered_tokens[i].first);
 
+  // Initialise the w and L tables.
+  _initialise_w();
+  _initialise_L();
+
   // Bail early if we don't need to do any clustering.
   if (_nclusters == _tokens.size())
     return;
 
-  // Initialise the w and L tables.
-  _initialise_w();
-  std::printf("initial w\n"); _dump_w();
-  _initialise_L();
-
   // Place the remaining `_ntokens - _nclusters` tokens into a new cluster, and merge it.
   std::unique_ptr<uint8_t> merged(new uint8_t[_membership_nbytes]);
   for (unsigned int i = _nclusters; i != _tokens.size(); ++i) {
-    LOG(DEBUG) << "Inserting token " << i << "/" << _tokens.size() << std::endl;
+    LOG(INFO) << "Inserting token " << i << "/" << _tokens.size() << " into the fixed window" << std::endl;
     // Set the current token as the only member of the last cluster.
-    _clear_cluster_members(_nclusters);
+    std::memset(_get_cluster(_nclusters), 0, _membership_nbytes);
     _add_member_to_cluster(_nclusters, ordered_tokens[i].first);
 
     // Update the row and column of w to do with this cluster.
     for (unsigned int j = 0; j != _nclusters + 1; ++j) {
-      const uint8_t *cluster1 = &_clusters[j*_array_dim];
-      const uint8_t *cluster2 = &_clusters[_nclusters*_array_dim];
+      const uint8_t *cluster1 = _get_cluster(j);
+      const uint8_t *cluster2 = _get_cluster(_nclusters);
       _w[j*_array_dim + _nclusters] = _w[_nclusters*_array_dim + j] = _compute_w(cluster1, cluster2);
     }
 
@@ -219,14 +230,20 @@ BrownClusterer::Impl::_run(void) {
       }
     }
 
-    LOG(DEBUG) << "maximum value of " << max_value << " occurs by merging " << max_c1 << " and " << max_c2 << std::endl;
+    LOG(DEBUG) << "Maximum value " << max_value << " occurs by merging " << max_c1 << " and " << max_c2 << std::endl;
     assert(!(max_c1 == 0 && max_c2 == 0));
 
     // Merge the members of clusters max_c1 and max_c2 into max_c1.
-    _merge_cluster_members(max_c1, max_c2, &_clusters[max_c1*_array_dim]);
+    _merge_cluster_members(max_c1, max_c2, _get_cluster(max_c1));
+
+    // Move across the cluster membership values.
+    //for (unsigned int c = max_c2 + 1; c != _nclusters + 1; ++c)
+      //std::memcpy(_get_cluster(c - 1), _get_cluster(c), _membership_nbytes);
+    //std::memset(_get_cluster(_nclusters), 0, _membership_nbytes);
+    assert((_nclusters + 1 - (max_c2 + 1))*_membership_nbytes >= 0);
+    std::memmove(_get_cluster(max_c2), _get_cluster(max_c2 + 1), (_nclusters + 1 - (max_c2 + 1))*_membership_nbytes);
 
     // Move the values in w that do not need to be recomputed but have changed position after the cluster merge.
-    //std::printf("w before merge of %u and %u:\n", max_c1, max_c2); _dump_w(max_c1, max_c2);
     for (unsigned int row = max_c2 + 1; row != _nclusters + 1; ++row)
       for (unsigned int col = 0; col != _nclusters + 1; ++col)
         _w[(row - 1)*_array_dim + col] = _w[row*_array_dim + col];
@@ -237,13 +254,19 @@ BrownClusterer::Impl::_run(void) {
     // Recompute the merged entries in w.
     for (unsigned int c = 0; c != _nclusters; ++c)
       _w[c*_array_dim + max_c1] = _w[max_c1*_array_dim + c] = _compute_w(c, max_c1);
-    //std::printf("w after merge of %u and %u:\n", max_c1, max_c2); _dump_w(max_c1, max_c2);
-    //std::printf("=================\n");
 
     // Update the column of L to do with the merged cluster.
     for (unsigned int j = 0; j != _nclusters; ++j)
       _L[j*_array_dim + max_c1] = _compute_L(j, max_c1, merged.get());
+
+    _write_clusters(std::cerr);
   }
+}
+
+
+void
+BrownClusterer::Impl::_run_hierarchical(void) {
+  // TODO
 }
 
 
@@ -282,24 +305,16 @@ BrownClusterer::Impl::_dump_w(const unsigned int hl1, const unsigned int hl2) co
 inline void
 BrownClusterer::Impl::_add_member_to_cluster(const unsigned int c, const id_type token) {
   const auto d = std::div(token, 8);
-  const size_t index = c*_array_dim + d.quot;
-  _clusters[index] |= 1 << d.rem;
-}
-
-
-inline void
-BrownClusterer::Impl::_clear_cluster_members(const unsigned int c) {
-  size_t index = c*_array_dim;
-  std::memset(&_clusters[index], 0, _membership_nbytes);
+  _get_cluster(c)[d.quot] |= 1 << d.rem;
 }
 
 
 inline void
 BrownClusterer::Impl::_merge_cluster_members(const unsigned int c1, const unsigned int c2, uint8_t *result) const {
-  size_t index1 = c1*_array_dim;
-  size_t index2 = c2*_array_dim;
+  const uint8_t *cluster1 = _get_cluster(c1);
+  const uint8_t *cluster2 = _get_cluster(c2);
   for (unsigned int i = 0; i != _membership_nbytes; ++i)
-    *result++ = _clusters[index1++] | _clusters[index2++];
+    *result++ = *cluster1++ | *cluster2++;
 }
 
 
@@ -359,7 +374,7 @@ BrownClusterer::Impl::_compute_L(const unsigned int c1, const unsigned int c2, u
   float_type first = _compute_w(merged_cluster, merged_cluster);
   for (unsigned int d = 0; d != _nclusters + 1; ++d)
     if (d != c1 && d != c2)
-      first += _compute_w(merged_cluster, &_clusters[d*_array_dim]);
+      first += _compute_w(merged_cluster, _get_cluster(d));
 
   float_type second = 0;
   for (unsigned int d = 0; d != _nclusters + 1; ++d)
@@ -409,11 +424,11 @@ BrownClusterer::Impl::_write_clusters(std::ostream &output) const {
   for (unsigned int c = 0; c != _nclusters; ++c) {
     output << c;
     // For each member in the cluster, output its string representation.
-    const uint8_t *cluster = &_clusters[c*_array_dim];
+    const uint8_t *cluster = _get_cluster(c);
     for (unsigned int i = 0; i != _membership_nbytes; ++i, ++cluster)
       for (unsigned int b = 0; b != 8; ++b)
         if ((*cluster & (1 << b)) != 0)
-          output << " " << inv_tokens[i*8 + b];
+          output << " " << inv_tokens[i*8 + b] << "(" << (i*8 + b) << ")";
     output << std::endl;
   }
 }
@@ -423,7 +438,8 @@ void
 BrownClusterer::Impl::run(const unsigned int nclusters, std::istream &input, std::ostream &output) {
   _read_input(input);
   _initialise(nclusters);
-  _run();
+  _run_fixed_window();
+  _run_hierarchical();
   _write_clusters(output);
 }
 
