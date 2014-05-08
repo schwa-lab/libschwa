@@ -24,14 +24,22 @@ namespace schwa {
       using key_type = typename TRANSFORM::value_type;
       using value_type = VALUE;
 
+      using underlying_type = std::unordered_map<key_type, value_type>;
+      using const_iterator = typename underlying_type::const_iterator;
+
     protected:
       const transform_type &_transformer;
-      std::unordered_map<key_type, value_type> _values;
+      underlying_type _values;
 
     public:
       explicit Features(const transform_type &transformer=transform_type()) : _transformer(transformer) { }
       Features(const Features &o) : _transformer(o._transformer), _values(o._values) { }
       Features(const Features &&o) : _transformer(o._transformer), _values(o._values) { }
+
+      const_iterator begin(void) const { return _values.begin(); }
+      const_iterator end(void) const { return _values.end(); }
+      const_iterator cbegin(void) const { return _values.cbegin(); }
+      const_iterator cend(void) const { return _values.cend(); }
 
       inline value_type
       operator ()(const std::string &key, const value_type delta=1.0f) {
