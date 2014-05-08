@@ -30,6 +30,8 @@ namespace schwa {
 
     public:
       explicit Features(const transform_type &transformer=transform_type()) : _transformer(transformer) { }
+      Features(const Features &o) : _transformer(o._transformer), _values(o._values) { }
+      Features(const Features &&o) : _transformer(o._transformer), _values(o._values) { }
 
       inline value_type
       operator ()(const std::string &key, const value_type delta=1.0f) {
@@ -38,9 +40,6 @@ namespace schwa {
 
       inline void clear(void) { _values.clear(); }
       void dump_crfsuite(std::ostream &out) const;
-
-    private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(Features);
     };
 
 
@@ -51,11 +50,10 @@ namespace schwa {
       std::string klass;
 
       explicit Instance(const TRANSFORM &transformer) : features(transformer) { }
+      Instance(const Instance &o) : features(o.features), klass(o.klass) { }
+      Instance(const Instance &&o) : features(o.features), klass(o.klass) { }
 
       void dump_crfsuite(std::ostream &out) const;
-
-    private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(Instance);
     };
 
   }
