@@ -5,7 +5,7 @@
 
 namespace schwa {
 
-  enum class TagFormat {
+  enum class SequenceTagFormat {
     IOB1,
     IOB2,
     BMEWO,
