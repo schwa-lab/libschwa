@@ -53,6 +53,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/dr-dist/helpers.h \
 		schwa/dr-dist/server.h \
 		schwa/dr-dist/worker_main.h \
+		schwa/enums.h \
 		schwa/exception.h \
 		schwa/io/array_reader.h \
 		schwa/io/file_source.h \
@@ -66,7 +67,6 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/unsafe_array_writer.h \
 		schwa/io/utils.h \
 		schwa/io/write_buffer.h \
-		schwa/learn/enums.h \
 		schwa/learn/extract.h \
 		schwa/learn/extract_impl.h \
 		schwa/learn/feature_transformers.h \

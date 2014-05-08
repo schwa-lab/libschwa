@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include <schwa/enums.h>
 #include <schwa/macros.h>
 
 #endif  // SCHWA__BASE_H_

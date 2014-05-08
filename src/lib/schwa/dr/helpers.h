@@ -6,7 +6,6 @@
 #include <vector>
 
 #include <schwa/_base.h>
-#include <schwa/learn/enums.h>
 
 
 namespace schwa {
@@ -230,11 +229,11 @@ namespace schwa {
       }
 
       void
-      operator ()(DOC &doc, const learn::TagFormat format) const {
+      operator ()(DOC &doc, const TagFormat format) const {
         switch (format) {
-        case learn::TagFormat::IOB1: do_iob1(doc); break;
-        case learn::TagFormat::IOB2: do_iob2(doc); break;
-        case learn::TagFormat::BMEWO: do_bmewo(doc); break;
+        case TagFormat::IOB1: do_iob1(doc); break;
+        case TagFormat::IOB2: do_iob2(doc); break;
+        case TagFormat::BMEWO: do_bmewo(doc); break;
         }
       }
     };

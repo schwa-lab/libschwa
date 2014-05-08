@@ -5,7 +5,6 @@
 #include <vector>
 
 #include <schwa/dr.h>
-#include <schwa/learn/enums.h>
 
 
 namespace schwa {
@@ -281,7 +280,7 @@ TEST(test_sequence_tagging) {
 
     reverse_sents(d);
     reverse_chunks(d);
-    tagger(d, learn::TagFormat::IOB1);
+    tagger(d, TagFormat::IOB1);
 
     CHECK_EQUAL("I-X", d.tokens[0].chunk_tag);
     CHECK_EQUAL("I-X", d.tokens[1].chunk_tag);
@@ -307,7 +306,7 @@ TEST(test_sequence_tagging) {
 
     reverse_sents(d);
     reverse_chunks(d);
-    tagger(d, learn::TagFormat::IOB2);
+    tagger(d, TagFormat::IOB2);
 
     CHECK_EQUAL("B-X", d.tokens[0].chunk_tag);
     CHECK_EQUAL("I-X", d.tokens[1].chunk_tag);
@@ -333,7 +332,7 @@ TEST(test_sequence_tagging) {
 
     reverse_sents(d);
     reverse_chunks(d);
-    tagger(d, learn::TagFormat::BMEWO);
+    tagger(d, TagFormat::BMEWO);
 
     CHECK_EQUAL("B-X", d.tokens[0].chunk_tag);
     CHECK_EQUAL("M-X", d.tokens[1].chunk_tag);
