@@ -27,7 +27,7 @@ dnl If CXXFLAGS was not set on entry and we are not debugging, default to -O4.
 libschwa_test_CXXFLAGS="${CXXFLAGS+set}"
 if test "$libschwa_test_CXXFLAGS" = "set"; then
   if test "$libschwa_cv_enable_debug" != "yes"; then
-    CXXFLAGS='-O4'
+    CXXFLAGS='-O3'
   else
     CXXFLAGS='-O0'
   fi
