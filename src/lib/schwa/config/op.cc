@@ -181,6 +181,38 @@ OpLogLevel::_validate(const Main &main) {
 
 
 // ============================================================================
+// OpSequenceTagFormat
+// ============================================================================
+OpSequenceTagFormat::OpSequenceTagFormat(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
+    OpChoices<std::string>(group, name, desc, {"iob1", "iob2", "bmewo"}, default_),
+    _format(SequenceTagFormat::IOB2)
+  { }
+
+OpSequenceTagFormat::OpSequenceTagFormat(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_) :
+    OpChoices<std::string>(group, name, short_name, desc, {"iob1", "iob2", "bmewo"}, default_),
+    _format(SequenceTagFormat::IOB2)
+  { }
+
+OpSequenceTagFormat::~OpSequenceTagFormat(void) { }
+
+
+bool
+OpSequenceTagFormat::_validate(const Main &main) {
+  if (!OpChoices<std::string>::_validate(main))
+    return false;
+  if (_value == "iob1")
+    _format = SequenceTagFormat::IOB1;
+  else if (_value == "iob2")
+    _format = SequenceTagFormat::IOB2;
+  else if (_value == "bmewo")
+    _format = SequenceTagFormat::BMEWO;
+  else
+    return false;
+  return true;
+}
+
+
+// ============================================================================
 // CommandOption
 // ============================================================================
 void

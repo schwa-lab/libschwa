@@ -164,6 +164,24 @@ namespace schwa {
     };
 
 
+    class OpSequenceTagFormat : public OpChoices<std::string> {
+    protected:
+      SequenceTagFormat _format;
+
+      virtual bool _validate(const Main &main) override;
+
+    public:
+      OpSequenceTagFormat(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      OpSequenceTagFormat(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
+      virtual ~OpSequenceTagFormat(void);
+
+      inline SequenceTagFormat level(void) const { return _format; }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpSequenceTagFormat);
+    };
+
+
     class CommandOption : public Option {
     protected:
       virtual void _assign(const std::string &value) override;
