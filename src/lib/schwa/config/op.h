@@ -175,7 +175,7 @@ namespace schwa {
       OpSequenceTagFormat(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
       virtual ~OpSequenceTagFormat(void);
 
-      inline SequenceTagFormat level(void) const { return _format; }
+      inline SequenceTagFormat format(void) const { return _format; }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpSequenceTagFormat);
