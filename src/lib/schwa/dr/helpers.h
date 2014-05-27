@@ -252,25 +252,21 @@ namespace schwa {
       >()
 
 
-    template <typename T1, T1 fn1, typename T2, T2 fn2, typename T3, T3 fn3, typename T4, T4 fn4, typename T5, T5 fn5, typename T6, T6 fn6, typename T7, T7 fn7, typename T8, T8 fn8>
+    template <typename T1, T1 fn1, typename T2, T2 fn2, typename T3, T3 fn3, typename T4, T4 fn4, typename T5, T5 fn5, typename T6, T6 fn6>
     class SequenceUntagger;
 
     template <typename SPAN, typename TARGET, typename SENTENCE, typename DOC,
                Store<SPAN> DOC::*span_store,
                Store<SENTENCE> DOC::*sentence_store,
-               Store<TARGET> DOC::*target_store,
                Slice<TARGET *> SPAN::*span_slice_attr,
                Slice<TARGET *> SENTENCE::*sentence_slice_attr,
-               SPAN *TARGET::*pointer_attr,
                std::string SPAN::*klass_attr,
                std::string TARGET::*tag_attr>
     class SequenceUntagger<
         Store<SPAN> DOC::*, span_store,
         Store<SENTENCE> DOC::*, sentence_store,
-        Store<TARGET> DOC::*, target_store,
         Slice<TARGET *> SPAN::*, span_slice_attr,
         Slice<TARGET *> SENTENCE::*, sentence_slice_attr,
-        SPAN *TARGET::*, pointer_attr,
         std::string SPAN::*, klass_attr,
         std::string TARGET::*, tag_attr> {
     public:
@@ -320,14 +316,12 @@ namespace schwa {
       inline void operator ()(DOC &doc) const { return untag(doc); }
     };
 
-    #define DR_SEQUENCE_UNTAGGER(span_store, sentence_store, target_store, span_slice_attr, sentence_slice_attr, pointer_attr, klass_attr, tag_attr) \
+    #define DR_SEQUENCE_UNTAGGER(span_store, sentence_store, span_slice_attr, sentence_slice_attr, klass_attr, tag_attr) \
       ::schwa::dr::SequenceUntagger< \
         decltype(span_store), span_store, \
         decltype(sentence_store), sentence_store, \
-        decltype(target_store), target_store, \
         decltype(span_slice_attr), span_slice_attr, \
         decltype(sentence_slice_attr), sentence_slice_attr, \
-        decltype(pointer_attr), pointer_attr, \
         decltype(klass_attr), klass_attr, \
         decltype(tag_attr), tag_attr \
       >()

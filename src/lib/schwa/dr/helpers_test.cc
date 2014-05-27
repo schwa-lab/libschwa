@@ -273,7 +273,7 @@ TEST(test_sequence_tagging) {
   const auto reverse_chunks = DR_REVERSE_SLICES(&TestDoc::chunks, &TestDoc::tokens, &Chunk::span, &Token::chunk);
   const auto reverse_sents = DR_REVERSE_SLICES(&TestDoc::sents, &TestDoc::tokens, &Sent::span, &Token::sents);
   const auto tagger = DR_SEQUENCE_TAGGER(&TestDoc::chunks, &TestDoc::sents, &TestDoc::tokens, &Chunk::span, &Sent::span, &Token::chunk, &Chunk::type, &Token::chunk_tag);
-  const auto untagger = DR_SEQUENCE_UNTAGGER(&TestDoc::untagged_chunks, &TestDoc::sents, &TestDoc::tokens, &Chunk::span, &Sent::span, &Token::chunk, &Chunk::type, &Token::chunk_tag);
+  const auto untagger = DR_SEQUENCE_UNTAGGER(&TestDoc::untagged_chunks, &TestDoc::sents, &Chunk::span, &Sent::span, &Chunk::type, &Token::chunk_tag);
 
   {
     TestDoc d;
