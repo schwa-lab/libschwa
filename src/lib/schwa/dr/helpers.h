@@ -2,6 +2,7 @@
 #ifndef SCHWA_DR_HELPERS_H_
 #define SCHWA_DR_HELPERS_H_
 
+#include <cassert>
 #include <string>
 #include <vector>
 
@@ -250,6 +251,86 @@ namespace schwa {
         decltype(tag_attr), tag_attr \
       >()
 
+
+    template <typename T1, T1 fn1, typename T2, T2 fn2, typename T3, T3 fn3, typename T4, T4 fn4, typename T5, T5 fn5, typename T6, T6 fn6, typename T7, T7 fn7, typename T8, T8 fn8>
+    class SequenceUntagger;
+
+    template <typename SPAN, typename TARGET, typename SENTENCE, typename DOC,
+               Store<SPAN> DOC::*span_store,
+               Store<SENTENCE> DOC::*sentence_store,
+               Store<TARGET> DOC::*target_store,
+               Slice<TARGET *> SPAN::*span_slice_attr,
+               Slice<TARGET *> SENTENCE::*sentence_slice_attr,
+               SPAN *TARGET::*pointer_attr,
+               std::string SPAN::*klass_attr,
+               std::string TARGET::*tag_attr>
+    class SequenceUntagger<
+        Store<SPAN> DOC::*, span_store,
+        Store<SENTENCE> DOC::*, sentence_store,
+        Store<TARGET> DOC::*, target_store,
+        Slice<TARGET *> SPAN::*, span_slice_attr,
+        Slice<TARGET *> SENTENCE::*, sentence_slice_attr,
+        SPAN *TARGET::*, pointer_attr,
+        std::string SPAN::*, klass_attr,
+        std::string TARGET::*, tag_attr> {
+    public:
+      static_assert(std::is_base_of<Doc, DOC>::value, "DOC must be a subclass of Doc");
+      static_assert(std::is_base_of<Ann, SENTENCE>::value, "Store<SENTENCE> type SENTENCE must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, SPAN>::value, "Store<SPAN> type SPAN must be a subclass of Ann");
+      static_assert(std::is_base_of<Ann, TARGET>::value, "Store<TARGET> type TARGET must be a subclass of Ann");
+
+      void
+      untag(DOC &doc) const {
+        // For each valid sentence...
+        for (SENTENCE &sentence : doc.*sentence_store) {
+          Slice<TARGET *> &slice = sentence.*sentence_slice_attr;
+          if (slice.start == nullptr || slice.stop == nullptr)
+            continue;
+
+          // For each TARGET covered by the sentence...
+          for (TARGET *start = slice.start; start != slice.stop; ++start) {
+            std::string klass = start->*tag_attr;
+            if (klass.empty() || klass == "O")
+              continue;
+
+            klass = klass.substr(2);
+            char prev_prefix = klass[0];
+
+            TARGET *stop;
+            for (stop = start + 1; stop != slice.stop; ++stop) {
+              if (prev_prefix == 'W' || prev_prefix == 'E')
+                break;
+              const std::string &klass2 = stop->*tag_attr;
+              if (klass2.empty() || klass2 == "O" || klass2[0] == 'B' || klass2[0] == 'W' || klass2.substr(2) != klass)
+                break;
+              prev_prefix = klass2[0];
+            }
+
+            (doc.*span_store).create(1);
+            SPAN &span = (doc.*span_store).back();
+            (span.*span_slice_attr).start = start;
+            (span.*span_slice_attr).stop = stop;
+            span.*klass_attr = klass;
+
+            start = stop - 1;
+          }  // for each target
+        }  // for each sentence
+      }
+
+      inline void operator ()(DOC &doc) const { return untag(doc); }
+    };
+
+    #define DR_SEQUENCE_UNTAGGER(span_store, sentence_store, target_store, span_slice_attr, sentence_slice_attr, pointer_attr, klass_attr, tag_attr) \
+      ::schwa::dr::SequenceUntagger< \
+        decltype(span_store), span_store, \
+        decltype(sentence_store), sentence_store, \
+        decltype(target_store), target_store, \
+        decltype(span_slice_attr), span_slice_attr, \
+        decltype(sentence_slice_attr), sentence_slice_attr, \
+        decltype(pointer_attr), pointer_attr, \
+        decltype(klass_attr), klass_attr, \
+        decltype(tag_attr), tag_attr \
+      >()
   }
 }
 

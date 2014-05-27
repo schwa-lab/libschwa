@@ -61,6 +61,8 @@ public:
   Store<Sent> sents;
   Store<Chunk> chunks;
 
+  Store<Chunk> untagged_chunks;
+
   class Schema;
 };
 
@@ -271,6 +273,7 @@ TEST(test_sequence_tagging) {
   const auto reverse_chunks = DR_REVERSE_SLICES(&TestDoc::chunks, &TestDoc::tokens, &Chunk::span, &Token::chunk);
   const auto reverse_sents = DR_REVERSE_SLICES(&TestDoc::sents, &TestDoc::tokens, &Sent::span, &Token::sents);
   const auto tagger = DR_SEQUENCE_TAGGER(&TestDoc::chunks, &TestDoc::sents, &TestDoc::tokens, &Chunk::span, &Sent::span, &Token::chunk, &Chunk::type, &Token::chunk_tag);
+  const auto untagger = DR_SEQUENCE_UNTAGGER(&TestDoc::untagged_chunks, &TestDoc::sents, &TestDoc::tokens, &Chunk::span, &Sent::span, &Token::chunk, &Chunk::type, &Token::chunk_tag);
 
   {
     TestDoc d;
@@ -296,6 +299,15 @@ TEST(test_sequence_tagging) {
     CHECK_EQUAL("I-Z", d.tokens[11].chunk_tag);
     CHECK_EQUAL("I-Z", d.tokens[12].chunk_tag);
     CHECK_EQUAL("O", d.tokens[13].chunk_tag);
+
+    CHECK_EQUAL(0, d.untagged_chunks.size());
+    untagger(d);
+    CHECK_EQUAL(7, d.untagged_chunks.size());
+    for (size_t i = 0; i != d.untagged_chunks.size(); ++i) {
+      CHECK_EQUAL(d.chunks[i].type, d.untagged_chunks[i].type);
+      CHECK_EQUAL(d.chunks[i].span.start, d.untagged_chunks[i].span.start);
+      CHECK_EQUAL(d.chunks[i].span.stop, d.untagged_chunks[i].span.stop);
+    }
   }
 
   {
@@ -322,6 +334,15 @@ TEST(test_sequence_tagging) {
     CHECK_EQUAL("B-Z", d.tokens[11].chunk_tag);
     CHECK_EQUAL("B-Z", d.tokens[12].chunk_tag);
     CHECK_EQUAL("O", d.tokens[13].chunk_tag);
+
+    CHECK_EQUAL(0, d.untagged_chunks.size());
+    untagger(d);
+    CHECK_EQUAL(7, d.untagged_chunks.size());
+    for (size_t i = 0; i != d.untagged_chunks.size(); ++i) {
+      CHECK_EQUAL(d.chunks[i].type, d.untagged_chunks[i].type);
+      CHECK_EQUAL(d.chunks[i].span.start, d.untagged_chunks[i].span.start);
+      CHECK_EQUAL(d.chunks[i].span.stop, d.untagged_chunks[i].span.stop);
+    }
   }
 
   {
@@ -348,6 +369,35 @@ TEST(test_sequence_tagging) {
     CHECK_EQUAL("W-Z", d.tokens[11].chunk_tag);
     CHECK_EQUAL("W-Z", d.tokens[12].chunk_tag);
     CHECK_EQUAL("O", d.tokens[13].chunk_tag);
+
+    CHECK_EQUAL(0, d.untagged_chunks.size());
+    untagger(d);
+    CHECK_EQUAL(7, d.untagged_chunks.size());
+    for (size_t i = 0; i != d.untagged_chunks.size(); ++i) {
+      CHECK_EQUAL(d.chunks[i].type, d.untagged_chunks[i].type);
+      CHECK_EQUAL(d.chunks[i].span.start, d.untagged_chunks[i].span.start);
+      CHECK_EQUAL(d.chunks[i].span.stop, d.untagged_chunks[i].span.stop);
+    }
+
+    d.untagged_chunks.clear();
+    d.tokens[1].chunk_tag = "W-Q";
+    CHECK_EQUAL(0, d.untagged_chunks.size());
+    untagger(d);
+    CHECK_EQUAL(9, d.untagged_chunks.size());
+    CHECK_EQUAL("X", d.untagged_chunks[0].type);
+    CHECK_EQUAL("Q", d.untagged_chunks[1].type);
+    CHECK_EQUAL("X", d.untagged_chunks[2].type);
+    CHECK_EQUAL(&d.tokens[0], d.untagged_chunks[0].span.start);
+    CHECK_EQUAL(&d.tokens[1], d.untagged_chunks[0].span.stop);
+    CHECK_EQUAL(&d.tokens[1], d.untagged_chunks[1].span.start);
+    CHECK_EQUAL(&d.tokens[2], d.untagged_chunks[1].span.stop);
+    CHECK_EQUAL(&d.tokens[2], d.untagged_chunks[2].span.start);
+    CHECK_EQUAL(&d.tokens[3], d.untagged_chunks[2].span.stop);
+    for (size_t i = 1; i != d.chunks.size(); ++i) {
+      CHECK_EQUAL(d.chunks[i].type, d.untagged_chunks[i + 2].type);
+      CHECK_EQUAL(d.chunks[i].span.start, d.untagged_chunks[i + 2].span.start);
+      CHECK_EQUAL(d.chunks[i].span.stop, d.untagged_chunks[i + 2].span.stop);
+    }
   }
 }
 
