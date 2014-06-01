@@ -93,7 +93,6 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/tokenizer.h \
 		schwa/unicode.h \
 		schwa/unicode_gen.h \
-		schwa/unsupervised/brown_clusters.h \
 		schwa/utils/counter.h \
 		schwa/utils/enums.h \
 		schwa/utils/hash.h \
@@ -138,7 +137,6 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/unicode.cc \
 		schwa/unicode_gen.cc \
-		schwa/unsupervised/brown_clusters.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 

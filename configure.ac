@@ -158,7 +158,6 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
   src/apps/Makefile
-  src/apps/brown-clusterer/Makefile
   src/apps/ccg-pprint/Makefile
   src/apps/dr/Makefile
   src/apps/dr-count/Makefile
