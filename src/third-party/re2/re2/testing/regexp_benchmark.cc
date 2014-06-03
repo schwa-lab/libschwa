@@ -183,7 +183,7 @@ void Search_Easy0_CachedRE2(int i, int n)     { Search(i, n, EASY0, SearchCached
 
 BENCHMARK_RANGE(Search_Easy0_CachedDFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
 BENCHMARK_RANGE(Search_Easy0_CachedNFA,     8, 256<<10)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Easy0_CachedPCRE,    8, 16<<20)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Easy0_CachedRE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -195,7 +195,7 @@ void Search_Easy1_CachedRE2(int i, int n)     { Search(i, n, EASY1, SearchCached
 
 BENCHMARK_RANGE(Search_Easy1_CachedDFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
 BENCHMARK_RANGE(Search_Easy1_CachedNFA,     8, 256<<10)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Easy1_CachedPCRE,    8, 16<<20)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Easy1_CachedRE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -207,7 +207,7 @@ void Search_Medium_CachedRE2(int i, int n)     { Search(i, n, MEDIUM, SearchCach
 
 BENCHMARK_RANGE(Search_Medium_CachedDFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
 BENCHMARK_RANGE(Search_Medium_CachedNFA,     8, 256<<10)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Medium_CachedPCRE,    8, 256<<10)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Medium_CachedRE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -219,7 +219,7 @@ void Search_Hard_CachedRE2(int i, int n)     { Search(i, n, HARD, SearchCachedRE
 
 BENCHMARK_RANGE(Search_Hard_CachedDFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
 BENCHMARK_RANGE(Search_Hard_CachedNFA,     8, 256<<10)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Hard_CachedPCRE,    8, 4<<10)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Hard_CachedRE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -231,7 +231,7 @@ void Search_Parens_CachedRE2(int i, int n)     { Search(i, n, PARENS, SearchCach
 
 BENCHMARK_RANGE(Search_Parens_CachedDFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
 BENCHMARK_RANGE(Search_Parens_CachedNFA,     8, 256<<10)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Parens_CachedPCRE,    8, 8)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Parens_CachedRE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -257,7 +257,7 @@ void Search_BigFixed_CachedRE2(int i, int n)     { SearchBigFixed(i, n, SearchCa
 
 BENCHMARK_RANGE(Search_BigFixed_CachedDFA,     8, 1<<20)->ThreadRange(1, NumCPUs());
 BENCHMARK_RANGE(Search_BigFixed_CachedNFA,     8, 32<<10)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_BigFixed_CachedPCRE,    8, 32<<10)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_BigFixed_CachedRE2,     8, 1<<20)->ThreadRange(1, NumCPUs());
@@ -299,7 +299,7 @@ void Search_Success_PCRE(int i, int n)    { SearchSuccess(i, n, ".*$", SearchPCR
 void Search_Success_RE2(int i, int n)     { SearchSuccess(i, n, ".*$", SearchRE2); }
 
 BENCHMARK_RANGE(Search_Success_DFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Success_PCRE,    8, 16<<20)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Success_RE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -311,7 +311,7 @@ void Search_Success_CachedPCRE(int i, int n)    { SearchSuccess(i, n, ".*$", Sea
 void Search_Success_CachedRE2(int i, int n)     { SearchSuccess(i, n, ".*$", SearchCachedRE2); }
 
 BENCHMARK_RANGE(Search_Success_CachedDFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Success_CachedPCRE,    8, 16<<20)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Success_CachedRE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -325,7 +325,7 @@ void Search_Success1_RE2(int i, int n)     { SearchSuccess(i, n, ".*.$", SearchR
 void Search_Success1_BitState(int i, int n)     { SearchSuccess(i, n, ".*.$", SearchBitState); }
 
 BENCHMARK_RANGE(Search_Success1_DFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Success1_PCRE,    8, 16<<20)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Success1_RE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -336,7 +336,7 @@ void Search_Success1_Cached_PCRE(int i, int n)    { SearchSuccess(i, n, ".*.$", 
 void Search_Success1_Cached_RE2(int i, int n)     { SearchSuccess(i, n, ".*.$", SearchCachedRE2); }
 
 BENCHMARK_RANGE(Search_Success1_Cached_DFA,     8, 16<<20)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(Search_Success1_Cached_PCRE,    8, 16<<20)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(Search_Success1_Cached_RE2,     8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -362,7 +362,7 @@ void Search_Digits_BitState(int i)         { SearchDigits(i, SearchBitState); }
 BENCHMARK(Search_Digits_DFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Search_Digits_NFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Search_Digits_OnePass)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Search_Digits_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Search_Digits_RE2)->ThreadRange(1, NumCPUs());
@@ -386,7 +386,7 @@ void Parse_Digits_BitState(int i)   { Parse3Digits(i, Parse3BitState); }
 
 BENCHMARK(Parse_Digits_NFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Parse_Digits_OnePass)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_Digits_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_Digits_RE2)->ThreadRange(1, NumCPUs());
@@ -402,7 +402,7 @@ void Parse_CachedDigits_BitState(int i)   { Parse3Digits(i, Parse3CachedBitState
 
 BENCHMARK(Parse_CachedDigits_NFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Parse_CachedDigits_OnePass)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_CachedDigits_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_CachedDigits_Backtrack)->ThreadRange(1, NumCPUs());
@@ -425,7 +425,7 @@ void Parse_DigitDs_BitState(int i)   { Parse3DigitDs(i, Parse3CachedBitState); }
 
 BENCHMARK(Parse_DigitDs_NFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Parse_DigitDs_OnePass)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_DigitDs_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_DigitDs_RE2)->ThreadRange(1, NumCPUs());
@@ -441,7 +441,7 @@ void Parse_CachedDigitDs_BitState(int i)   { Parse3DigitDs(i, Parse3CachedBitSta
 
 BENCHMARK(Parse_CachedDigitDs_NFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Parse_CachedDigitDs_OnePass)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_CachedDigitDs_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_CachedDigitDs_Backtrack)->ThreadRange(1, NumCPUs());
@@ -465,7 +465,7 @@ void Parse_Split_BitState(int i)         { Parse1Split(i, Parse1BitState); }
 
 BENCHMARK(Parse_Split_NFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Parse_Split_OnePass)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_Split_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_Split_RE2)->ThreadRange(1, NumCPUs());
@@ -479,7 +479,7 @@ void Parse_CachedSplit_BitState(int i)         { Parse1Split(i, Parse1CachedBitS
 
 BENCHMARK(Parse_CachedSplit_NFA)->ThreadRange(1, NumCPUs());
 BENCHMARK(Parse_CachedSplit_OnePass)->ThreadRange(1, NumCPUs());
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_CachedSplit_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_CachedSplit_RE2)->ThreadRange(1, NumCPUs());
@@ -499,7 +499,7 @@ void Parse_SplitHard_PCRE(int i)        { Parse1SplitHard(i, Parse1PCRE); }
 void Parse_SplitHard_RE2(int i)         { Parse1SplitHard(i, Parse1RE2); }
 void Parse_SplitHard_BitState(int i)         { Parse1SplitHard(i, Parse1BitState); }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_SplitHard_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_SplitHard_RE2)->ThreadRange(1, NumCPUs());
@@ -512,7 +512,7 @@ void Parse_CachedSplitHard_RE2(int i)       { Parse1SplitHard(i, Parse1CachedRE2
 void Parse_CachedSplitHard_BitState(int i)       { Parse1SplitHard(i, Parse1CachedBitState); }
 void Parse_CachedSplitHard_Backtrack(int i)       { Parse1SplitHard(i, Parse1CachedBacktrack); }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_CachedSplitHard_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_CachedSplitHard_RE2)->ThreadRange(1, NumCPUs());
@@ -535,7 +535,7 @@ void Parse1SplitBig1(int iters,
 void Parse_CachedSplitBig1_PCRE(int i)      { Parse1SplitBig1(i, SearchParse1CachedPCRE); }
 void Parse_CachedSplitBig1_RE2(int i)       { Parse1SplitBig1(i, SearchParse1CachedRE2); }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_CachedSplitBig1_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_CachedSplitBig1_RE2)->ThreadRange(1, NumCPUs());
@@ -555,7 +555,7 @@ void Parse1SplitBig2(int iters,
 void Parse_CachedSplitBig2_PCRE(int i)      { Parse1SplitBig2(i, SearchParse1CachedPCRE); }
 void Parse_CachedSplitBig2_RE2(int i)       { Parse1SplitBig2(i, SearchParse1CachedRE2); }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(Parse_CachedSplitBig2_PCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(Parse_CachedSplitBig2_RE2)->ThreadRange(1, NumCPUs());
@@ -674,7 +674,7 @@ void BM_Regexp_SimplifyCompile(int i)   { RunBuild(i, FLAGS_compile_regexp, Simp
 void BM_Regexp_NullWalk(int i)   { RunBuild(i, FLAGS_compile_regexp, NullWalkRegexp); }
 void BM_RE2_Compile(int i)       { RunBuild(i, FLAGS_compile_regexp, CompileRE2); }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(BM_PCRE_Compile)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(BM_Regexp_Parse)->ThreadRange(1, NumCPUs());
@@ -707,7 +707,7 @@ void SearchPhone_CachedRE2(int i, int n) {
   SearchPhone(i, n, SearchParse2CachedRE2);
 }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(SearchPhone_CachedPCRE, 8, 16<<20)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK_RANGE(SearchPhone_CachedRE2, 8, 16<<20)->ThreadRange(1, NumCPUs());
@@ -1294,7 +1294,7 @@ void EmptyPartialMatchRE2(int n) {
     RE2::PartialMatch("", re);
   }
 }
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(EmptyPartialMatchPCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(EmptyPartialMatchRE2)->ThreadRange(1, NumCPUs());
@@ -1312,7 +1312,7 @@ void SimplePartialMatchRE2(int n) {
     RE2::PartialMatch("abcdefg", re);
   }
 }
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(SimplePartialMatchPCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(SimplePartialMatchRE2)->ThreadRange(1, NumCPUs());
@@ -1337,7 +1337,7 @@ void HTTPPartialMatchRE2(int n) {
   }
 }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(HTTPPartialMatchPCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(HTTPPartialMatchRE2)->ThreadRange(1, NumCPUs());
@@ -1361,7 +1361,7 @@ void SmallHTTPPartialMatchRE2(int n) {
   }
 }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(SmallHTTPPartialMatchPCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(SmallHTTPPartialMatchRE2)->ThreadRange(1, NumCPUs());
@@ -1382,7 +1382,7 @@ void DotMatchRE2(int n) {
   }
 }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(DotMatchPCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(DotMatchRE2)->ThreadRange(1, NumCPUs());
@@ -1403,7 +1403,7 @@ void ASCIIMatchRE2(int n) {
   }
 }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK(ASCIIMatchPCRE)->ThreadRange(1, NumCPUs());
 #endif
 BENCHMARK(ASCIIMatchRE2)->ThreadRange(1, NumCPUs());
@@ -1443,17 +1443,17 @@ void FullMatch_DotStarDollar_CachedRE2(int i, int n)  { FullMatchRE2(i, n, "(?s)
 void FullMatch_DotStarCapture_CachedPCRE(int i, int n) { FullMatchPCRE(i, n, "(?s)((.*)()()($))"); }
 void FullMatch_DotStarCapture_CachedRE2(int i, int n)  { FullMatchRE2(i, n, "(?s)((.*)()()($))"); }
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(FullMatch_DotStar_CachedPCRE, 8, 2<<20);
 #endif
 BENCHMARK_RANGE(FullMatch_DotStar_CachedRE2,  8, 2<<20);
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(FullMatch_DotStarDollar_CachedPCRE, 8, 2<<20);
 #endif
 BENCHMARK_RANGE(FullMatch_DotStarDollar_CachedRE2,  8, 2<<20);
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 BENCHMARK_RANGE(FullMatch_DotStarCapture_CachedPCRE, 8, 2<<20);
 #endif
 BENCHMARK_RANGE(FullMatch_DotStarCapture_CachedRE2,  8, 2<<20);

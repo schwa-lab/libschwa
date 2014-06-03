@@ -1,6 +1,9 @@
+ACLOCAL_AMFLAGS = -I m4
+
 noinst_LIBRARIES = libre2.a
 
-libre2_a_CXXFLAGS = -pthread -Wno-sign-compare
+libre2_a_CXXFLAGS = -Wno-sign-compare $(PTHREAD_CFLAGS)
+libre2_a_LIBADD = $(PTHREAD_LIBS)
 libre2_a_SOURCES = \
 		re2/bitstate.cc \
 		re2/compile.cc \

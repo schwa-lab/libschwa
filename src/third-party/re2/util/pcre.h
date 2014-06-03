@@ -161,7 +161,7 @@
 #include "util/util.h"
 #include "re2/stringpiece.h"
 
-#ifdef USEPCRE
+#ifdef HAVE_PCRE_H
 #include <pcre.h>
 namespace re2 {
 const bool UsingPCRE = true;
