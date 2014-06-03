@@ -4,7 +4,7 @@
 lib_LTLIBRARIES = libschwa.la
 
 libschwa_la_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
-libschwa_la_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB)
+libschwa_la_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB) $(srcdir)/../third-party/re2/libre2.a
 libschwa_la_SOURCES =
 
 

@@ -174,6 +174,7 @@ AC_CONFIG_FILES([
   src/lib/schwa/_base.h:src/lib/schwa/_base.h.in
   src/lib/schwa/port.h:src/lib/schwa/port.h.in
   src/third-party/Makefile
+  src/third-party/re2/Makefile
   dist/libschwa.pc:dist/libschwa.pc.in
 ])
 

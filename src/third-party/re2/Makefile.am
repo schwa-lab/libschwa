@@ -1,7 +1,6 @@
 noinst_LIBRARIES = libre2.a
 
-libre2_a_CXXFLAGS = -Wall -O3 -pthread -Wno-sign-compare
-libre2_a_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB)
+libre2_a_CXXFLAGS = -pthread -Wno-sign-compare
 libre2_a_SOURCES = \
 		re2/bitstate.cc \
 		re2/compile.cc \
@@ -69,26 +68,60 @@ libre2_a_SOURCES = \
 # =============================================================================
 # Unittests
 # =============================================================================
-TESTS += charclass_test compile_test
-#check_LIBRARIES += libre2_unittest.a
-check_PROGRAMS += charclass_test compile_test
+TESTS = charclass_test compile_test filtered_re2_test mimics_pcre_test parse_test possible_match_test re2_test re2_arg_test regexp_test required_prefix_test search_test set_test simplify_test string_generator_test
+check_LIBRARIES = libre2_unittest.a
+check_PROGRAMS = charclass_test compile_test filtered_re2_test mimics_pcre_test parse_test possible_match_test re2_test re2_arg_test regexp_test required_prefix_test search_test set_test simplify_test string_generator_test
 
-libre2_unittest_LDADD = libre2.a
-libre2_unittest_SOURCES = \
+libre2_unittest_a_SOURCES = \
 		re2/testing/backtrack.cc \
 		re2/testing/dump.cc \
 		re2/testing/exhaustive_tester.cc \
 		re2/testing/null_walker.cc \
 		re2/testing/regexp_generator.cc \
 		re2/testing/string_generator.cc \
-		re2/testing/tester.cc
+		re2/testing/tester.cc \
 		util/pcre.cc \
 		util/random.cc \
-		util/test.cc \
-		util/thread.cc \
+		util/thread.cc
 
-charclass_test_LDADD = libre2_unittest.a
-charclass_test_SOURCES = re2/testing/charclass_test.cc
+charclass_test_LDADD = libre2.a libre2_unittest.a
+charclass_test_SOURCES = re2/testing/charclass_test.cc util/test.cc
 
-compile_test_LDADD = libre2_unittest.a
-compile_test_SOURCES = re2/testing/compile_test.cc
+compile_test_LDADD = libre2.a libre2_unittest.a
+compile_test_SOURCES = re2/testing/compile_test.cc util/test.cc
+
+filtered_re2_test_LDADD = libre2.a libre2_unittest.a
+filtered_re2_test_SOURCES = re2/testing/filtered_re2_test.cc util/test.cc
+
+mimics_pcre_test_LDADD = libre2.a libre2_unittest.a
+mimics_pcre_test_SOURCES = re2/testing/mimics_pcre_test.cc util/test.cc
+
+parse_test_LDADD = libre2.a libre2_unittest.a
+parse_test_SOURCES = re2/testing/parse_test.cc util/test.cc
+
+possible_match_test_LDADD = libre2.a libre2_unittest.a
+possible_match_test_SOURCES = re2/testing/possible_match_test.cc util/test.cc
+
+re2_test_LDADD = libre2.a libre2_unittest.a
+re2_test_SOURCES = re2/testing/re2_test.cc util/test.cc
+
+re2_arg_test_LDADD = libre2.a libre2_unittest.a
+re2_arg_test_SOURCES = re2/testing/re2_arg_test.cc util/test.cc
+
+regexp_test_LDADD = libre2.a libre2_unittest.a
+regexp_test_SOURCES = re2/testing/regexp_test.cc util/test.cc
+
+required_prefix_test_LDADD = libre2.a libre2_unittest.a
+required_prefix_test_SOURCES = re2/testing/required_prefix_test.cc util/test.cc
+
+search_test_LDADD = libre2.a libre2_unittest.a
+search_test_SOURCES = re2/testing/search_test.cc util/test.cc
+
+set_test_LDADD = libre2.a libre2_unittest.a
+set_test_SOURCES = re2/testing/set_test.cc util/test.cc
+
+simplify_test_LDADD = libre2.a libre2_unittest.a
+simplify_test_SOURCES = re2/testing/simplify_test.cc util/test.cc
+
+string_generator_test_LDADD = libre2.a libre2_unittest.a
+string_generator_test_SOURCES = re2/testing/string_generator_test.cc util/test.cc
