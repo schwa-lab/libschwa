@@ -19,18 +19,15 @@ AC_CONFIG_FILES([Makefile
 AC_CONFIG_SRCDIR([src/city.h])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_ARG_ENABLE([sse4.2],
-              AS_HELP_STRING("Build CityHash variants that depend on the _mm_crc32_u64 intrinsic."),
-	      [ cityhash_sse42=true ],
-	      [])
-AM_CONDITIONAL([SSE42], [test x$cityhash_sse42 = xtrue ])
-
 # Checks for programs.
 AC_PROG_CXX
 AC_LANG([C++])
 AC_C_BIGENDIAN
 
-# Checks for libraries.
+dnl Check for SIMD extensions.
+dnl Defines: HAVE_MMX, HAVE_SSE, HAVE_SSE2, HAVE_SSE3, HAVE_SSSE3, HAVE_SSE4.1, HAVE_SSE4.2, HAVE_AVX, SIMD_FLAGS
+AX_EXT
+AM_CONDITIONAL(HAVE_SSE4_2, test "x$HAVE_SSE4_2" = "x1")
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h])
@@ -59,19 +56,3 @@ if test x$cityhash_have_builtin_expect = xyes ; then
 fi
 
 AC_OUTPUT
-
-echo \
-"-------------------------------------------------
-
-${PACKAGE_NAME} Version ${PACKAGE_VERSION}
-
-Prefix: '${prefix}'.
-Compiler: '${CXX} ${CXXFLAGS}'
-
-Now type 'make @<:@<target>@:>@'
-  where the optional <target> is:
-    all                - build everything
-    check              - build and run tests
-    install            - install everything
-
---------------------------------------------------"

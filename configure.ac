@@ -110,6 +110,14 @@ AC_CHECK_FUNC([stat], , AC_MSG_ERROR([C stat function not found]))
 AC_CHECK_FUNC([strsep], , AC_MSG_ERROR([C strsep function not found]))
 AC_CHECK_FUNC([munmap], , AC_MSG_ERROR([C munmap function not found]))
 
+dnl Check for pthread.
+dnl Defines: PTHREAD_CC, PTHREAD_CFLAGS, PTHREAD_LIBS, HAVE_PTHREAD
+AX_PTHREAD
+
+dnl Check for SIMD extensions.
+dnl Defines: HAVE_MMX, HAVE_SSE, HAVE_SSE2, HAVE_SSE3, HAVE_SSSE3, HAVE_SSE4.1, HAVE_SSE4.2, HAVE_AVX, SIMD_FLAGS
+AX_EXT
+
 dnl Work out how to inline the "host to big endian" functions for various based on what headers we found.
 if test "$ac_cv_header_endian_h" = "yes"; then
   AC_SUBST([ENDIAN_CONVERSION_HEADER], [endian.h])
@@ -179,6 +187,7 @@ AC_CONFIG_FILES([
 
 dnl Configure third party modules
 AC_CONFIG_SUBDIRS([
+  src/third-party/cityhash
   src/third-party/re2
   src/third-party/unittest-cpp
 ])

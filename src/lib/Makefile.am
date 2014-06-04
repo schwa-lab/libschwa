@@ -1,10 +1,12 @@
 # =============================================================================
 # Automake
 # =============================================================================
+AM_CPPFLAGS = $(SIMD_FLAGS)
+AM_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
+
 lib_LTLIBRARIES = libschwa.la
 
-libschwa_la_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
-libschwa_la_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB) $(srcdir)/../third-party/re2/libre2.a
+libschwa_la_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB) $(srcdir)/../third-party/re2/libre2.a $(srcdir)/../third-party/cityhash/src/libcityhash.a
 libschwa_la_SOURCES =
 
 
@@ -168,7 +170,6 @@ check_LIBRARIES = libschwa_unittest.a
 check_PROGRAMS = schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
 
 LIBSCHWA_TEST_CPPFLAGS = -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
-LIBSCHWA_TEST_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
 LIBSCHWA_TEST_LDADD = ../third-party/unittest-cpp/UnitTest++/libUnitTest++.la libschwa_unittest.a libschwa.la
 
 libschwa_unittest_a_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)

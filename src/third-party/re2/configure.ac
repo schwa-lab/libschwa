@@ -1,7 +1,6 @@
 AC_PREREQ([2.63])
 AC_INIT([libre2], [2014-03-04])
 
-m4_include([m4/ax_pthread.m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -50,6 +49,7 @@ dnl Check for optional headers.
 AC_CHECK_HEADERS([pcre.h])
 
 dnl Check for pthread.
+dnl Defines: PTHREAD_CC, PTHREAD_CFLAGS, PTHREAD_LIBS, HAVE_PTHREAD
 AX_PTHREAD
 
 AC_CONFIG_FILES([Makefile])

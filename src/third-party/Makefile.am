@@ -1,1 +1,1 @@
-SUBDIRS = re2 unittest-cpp
+SUBDIRS = cityhash re2 unittest-cpp
