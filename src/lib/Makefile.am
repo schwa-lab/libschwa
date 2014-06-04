@@ -140,32 +140,6 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 
-LIBSCHWA_TEST_SOURCE_FILES = \
-		schwa/containers/block_vector_test.cc  \
-		schwa/dr/fields_test.cc  \
-		schwa/dr/helpers_test.cc  \
-		schwa/dr/lazy_test.cc  \
-		schwa/dr/pointers_test.cc  \
-		schwa/dr/reader_test.cc  \
-		schwa/dr/self_pointer_test.cc  \
-		schwa/dr/slices_test.cc  \
-		schwa/dr/writer_test.cc  \
-		schwa/io/mmapped_source_test.cc  \
-		schwa/io/paths_test.cc  \
-		schwa/io/write_buffer_test.cc  \
-		schwa/learn/extract_test.cc \
-		schwa/learn/feature_transformers_test.cc \
-		schwa/learn/features_test.cc \
-		schwa/mpl/if_test.cc  \
-		schwa/msgpack/wire_test.cc  \
-		schwa/pool_test.cc  \
-		schwa/port_test.cc  \
-		schwa/unicode_test.cc \
-		schwa/utils/shlex_test.cc
-
-LIBSCHWA_TEST_COMMON_HEADER_FILES = schwa/unittest.h
-LIBSCHWA_TEST_COMMON_SOURCE_FILES = schwa/unittest.cc
-
 
 if HAVE_LIBZMQ
 noinst_LTLIBRARIES = libschwa_drdist.la
@@ -189,17 +163,84 @@ libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 library_includedir = $(includedir)
 nobase_library_include_HEADERS = $(LIBSCHWA_HEADER_FILES)
 
-TESTS = unittests
+TESTS = schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
 check_LIBRARIES = libschwa_unittest.a
-check_PROGRAMS = unittests
+check_PROGRAMS = schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
 
-unittests_CPPFLAGS = -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
-unittests_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
-unittests_LDADD = \
-		../third-party/unittest-cpp/UnitTest++/libUnitTest++.la \
-		libschwa_unittest.a \
-		libschwa.la
-unittests_SOURCES = schwa/unittest_main.cc $(LIBSCHWA_TEST_SOURCE_FILES)
+LIBSCHWA_TEST_CPPFLAGS = -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
+LIBSCHWA_TEST_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
+LIBSCHWA_TEST_LDADD = ../third-party/unittest-cpp/UnitTest++/libUnitTest++.la libschwa_unittest.a libschwa.la
 
-libschwa_unittest_a_SOURCES = $(LIBSCHWA_TEST_COMMON_HEADER_FILES) $(LIBSCHWA_TEST_COMMON_SOURCE_FILES)
-libschwa_unittest_a_CPPFLAGS = -I$(srcdir)/../third-party/unittest-cpp/UnitTest++
+libschwa_unittest_a_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+libschwa_unittest_a_SOURCES = \
+		schwa/unittest.h \
+		schwa/unittest.cc
+
+schwa_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/pool_test.cc  \
+		schwa/port_test.cc  \
+		schwa/unicode_test.cc
+
+schwa_containers_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_containers_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_containers_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_containers_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/containers/block_vector_test.cc
+
+schwa_dr_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_dr_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_dr_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_dr_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/dr/fields_test.cc  \
+		schwa/dr/helpers_test.cc  \
+		schwa/dr/lazy_test.cc  \
+		schwa/dr/pointers_test.cc  \
+		schwa/dr/reader_test.cc  \
+		schwa/dr/self_pointer_test.cc  \
+		schwa/dr/slices_test.cc  \
+		schwa/dr/writer_test.cc
+
+schwa_io_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_io_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_io_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_io_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/io/mmapped_source_test.cc  \
+		schwa/io/paths_test.cc  \
+		schwa/io/write_buffer_test.cc
+
+schwa_learn_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_learn_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_learn_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_learn_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/learn/extract_test.cc \
+		schwa/learn/feature_transformers_test.cc \
+		schwa/learn/features_test.cc
+
+schwa_mpl_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_mpl_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_mpl_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_mpl_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/mpl/if_test.cc
+
+schwa_msgpack_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_msgpack_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_msgpack_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_msgpack_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/msgpack/wire_test.cc
+
+schwa_utils_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_utils_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
+schwa_utils_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_utils_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/utils/shlex_test.cc
