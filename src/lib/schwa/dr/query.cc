@@ -28,7 +28,6 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
 #include <cstring>
 #include <cstdio>
 #include <iterator>
-#include <regex>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -39,9 +38,12 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
 #include <schwa/utils/enums.h>
 #include <schwa/utils/hash.h>
 
+#include <re2/re2.h>
+
 namespace dr = schwa::dr;
 namespace io = schwa::io;
 namespace mp = schwa::msgpack;
+using namespace re2;
 
 
 namespace schwa {
@@ -443,14 +445,12 @@ public:
     else if (std::strcmp(_token, "~=") == 0) {
       check_accepts("left side of ~=", v1.type, TYPE_STRING);
       check_accepts("right side of ~=", v2.type, TYPE_REGEX);
-      std::cmatch m;
-      const bool found = std::regex_search(v1.via._str, m, *v2.via._re);
-      return Value::as_int(found && static_cast<size_t>(m.length()) == std::strlen(v1.via._str));
+      return Value::as_int(RE2::FullMatch(v1.via._str, *v2.via._re));
     }
     else if (std::strcmp(_token, "~") == 0) {
       check_accepts("left side of ~", v1.type, TYPE_STRING);
       check_accepts("right side of ~", v2.type, TYPE_REGEX);
-      return Value::as_int(std::regex_search(v1.via._str, *v2.via._re));
+      return Value::as_int(RE2::PartialMatch(v1.via._str, *v2.via._re));
     }
     else if (std::strcmp(_token, "+") == 0) {
       check_same_accepts(_token, v1.type, v2.type, TYPE_INTEGER | TYPE_STRING);
@@ -580,16 +580,12 @@ public:
 
 class LiteralRegexExpr : public Expr {
 protected:
-  std::regex _re;
+  RE2 _re;
 
 public:
-  explicit LiteralRegexExpr(const char *token) : Expr(token) {
-    try {
-      _re = std::regex(_token, std::regex::nosubs | std::regex::ECMAScript);
-    }
-    catch (std::regex_error &e) {
-      throw CompileError(e.what());
-    }
+  explicit LiteralRegexExpr(const char *token) : Expr(token), _re(token) {
+    if (!_re.ok())
+      throw CompileError(_re.error());
   }
   virtual ~LiteralRegexExpr(void) { }
 
