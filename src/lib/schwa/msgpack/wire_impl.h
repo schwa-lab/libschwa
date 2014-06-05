@@ -669,6 +669,7 @@ namespace schwa {
         is_map = true;
         break;
       case WireType::MAP_16:
+        in.get();
         _read_be16(in, &s16);
         s32 = s16;
         is_map = true;
