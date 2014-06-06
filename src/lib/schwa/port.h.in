@@ -1,12 +1,13 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #ifndef SCHWA_PORT_H_
 #define SCHWA_PORT_H_
-#include <schwa/_base.h>
 
 #include <string>
 #include <vector>
 
 #include <@ENDIAN_CONVERSION_HEADER@>
+
+#include <schwa/_base.h>
 
 
 namespace schwa {

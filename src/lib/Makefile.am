@@ -1,14 +1,13 @@
 # =============================================================================
 # Automake
 # =============================================================================
+ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(SIMD_FLAGS)
 AM_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
 
-lib_LTLIBRARIES = libschwa.la
-
-libschwa_la_LIBADD = $(PROFILERLIB) $(TCMALLOCLIB) $(srcdir)/../third-party/re2/libre2.a $(srcdir)/../third-party/cityhash/src/libcityhash.a
-libschwa_la_SOURCES =
-
+lib_LTLIBRARIES = libschwa.la libschwa_thirdparty_cityhash.la
+check_LIBRARIES =
+check_PROGRAMS =
 
 # =============================================================================
 # Ragel
@@ -22,6 +21,9 @@ schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(sr
 # =============================================================================
 # Scafolding
 # =============================================================================
+libschwa_la_LIBADD =
+libschwa_la_SOURCES =
+
 LIBSCHWA_HEADER_FILES = \
 		schwa/_base.h \
 		schwa/config/base.h \
@@ -158,16 +160,17 @@ endif
 
 
 # =============================================================================
-# Automake
+# libschwa Automake
 # =============================================================================
+libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) $(srcdir)/../third-party/re2/libre2.a libschwa_thirdparty_cityhash.la
 libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
 nobase_library_include_HEADERS = $(LIBSCHWA_HEADER_FILES)
 
-TESTS = schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
-check_LIBRARIES = libschwa_unittest.a
-check_PROGRAMS = schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
+#TESTS = schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
+check_LIBRARIES += libschwa_unittest.a
+check_PROGRAMS += schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
 
 LIBSCHWA_TEST_CPPFLAGS = -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
 LIBSCHWA_TEST_LDADD = ../third-party/unittest-cpp/UnitTest++/libUnitTest++.la libschwa_unittest.a libschwa.la
@@ -245,3 +248,15 @@ schwa_utils_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_utils_tests_SOURCES = \
 		schwa/unittest_main.cc \
 		schwa/utils/shlex_test.cc
+
+
+# =============================================================================
+# libschwa_thirdparty_cityhash Automake
+# =============================================================================
+libschwa_thirdparty_cityhash_la_SOURCES = \
+		schwa/third-party/cityhash/city.h \
+		schwa/third-party/cityhash/city.cc
+
+check_PROGRAMS += cityhash_tests
+
+cityhash_tests_SOURCES = schwa/third-party/cityhash/city_test.cc

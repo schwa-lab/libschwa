@@ -66,7 +66,12 @@
 #include <stdint.h>
 #include <utility>
 
-namespace city {
+#include <schwa/_base.h>
+
+
+namespace schwa {
+namespace third_party {
+namespace cityhash {
 
 typedef uint8_t uint8;
 typedef uint32_t uint32;
@@ -111,6 +116,23 @@ inline uint64 Hash128to64(const uint128& x) {
   return b;
 }
 
-}
+
+#if HAVE_SSE4_2
+
+// Hash function for a byte array.
+uint128 CityHashCrc128(const char *s, size_t len);
+
+// Hash function for a byte array.  For convenience, a 128-bit seed is also
+// hashed into the result.
+uint128 CityHashCrc128WithSeed(const char *s, size_t len, uint128 seed);
+
+// Hash function for a byte array.  Sets result[0] ... result[3].
+void CityHashCrc256(const char *s, size_t len, uint64 *result);
+
+#endif
+
+}  // namesapce cityhash
+}  // namespace third_party
+}  // namespace schwa
 
 #endif  // CITY_HASH_H_

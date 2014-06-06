@@ -27,15 +27,16 @@
 // possible hash functions, by using SIMD instructions, or by
 // compromising on hash quality.
 
-#include "config.h"
-#include <city.h>
+#include <schwa/third-party/cityhash/city.h>
 
 #include <algorithm>
 #include <string.h>  // for memcpy and memset
 
 using namespace std;
 
-namespace city {
+namespace schwa {
+namespace third_party {
+namespace cityhash {
 
 static uint64 UNALIGNED_LOAD64(const char *p) {
   uint64 result;
@@ -154,7 +155,7 @@ static uint32 Hash32Len13to24(const char *s, size_t len) {
 static uint32 Hash32Len0to4(const char *s, size_t len) {
   uint32 b = 0;
   uint32 c = 9;
-  for (int i = 0; i < len; i++) {
+  for (size_t i = 0; i < len; i++) {
     signed char v = s[i];
     b = b * c1 + v;
     c ^= b;
@@ -497,7 +498,6 @@ uint128 CityHash128(const char *s, size_t len) {
 }
 
 #if HAVE_SSE4_2
-#include <citycrc.h>
 #include <nmmintrin.h>
 
 // Requires len >= 240.
@@ -629,4 +629,6 @@ uint128 CityHashCrc128(const char *s, size_t len) {
 
 #endif
 
-}
+}  // namesapce cityhash
+}  // namespace third_party
+}  // namespace schwa

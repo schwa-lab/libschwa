@@ -21,16 +21,17 @@
 #include <cstdio>
 #include <iostream>
 #include <string.h>
-#include "city.h"
-#ifdef __SSE4_2__
-#include "citycrc.h"
-#endif
+
+#include <schwa/third-party/cityhash/city.h>
 
 using std::cout;
 using std::cerr;
 using std::hex;
 
-namespace city {
+
+namespace schwa {
+namespace third_party {
+namespace cityhash {
 
 static const uint64 k0 = 0xc3a5c85c97cb3127ULL;
 static const uint64 kSeed0 = 1234567;
@@ -1326,7 +1327,7 @@ void Dump(int offset, int len) {
 
 #endif
 
-static int main(int argc, char** argv) {
+static int main(void) {
   setup();
   int i = 0;
   for ( ; i < kTestSize - 1; i++) {
@@ -1336,8 +1337,11 @@ static int main(int argc, char** argv) {
   return errors > 0;
 }
 
-}
+}  // namesapce cityhash
+}  // namespace third_party
+}  // namespace schwa
 
-int main(int argc, char** argv) {
-  return city::main(argc, argv);
+
+int main(void) {
+  return schwa::third_party::cityhash::main();
 }

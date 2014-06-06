@@ -1,4 +1,4 @@
-AC_PREREQ(2.63)
+AC_PREREQ([2.65])
 AC_INIT([libschwa], m4_normalize(m4_include([m4/version.m4])), [schwa-lab@it.usyd.edu.au], [], [https://github.com/schwa-lab/libschwa])
 : ${CXXFLAGS=""}
 
@@ -9,7 +9,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([README])
 
 dnl Initialise automake.
-AM_INIT_AUTOMAKE([1.11 foreign -Wall -Werror parallel-tests subdir-objects])
+AM_INIT_AUTOMAKE([1.11 foreign -Wall -Werror parallel-tests no-define subdir-objects])
 AM_OPTIONS
 AM_PROG_AR
 
@@ -51,6 +51,7 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+AC_C_BIGENDIAN
 
 dnl Initialise pkg-config.
 PKG_PROG_PKG_CONFIG
@@ -117,6 +118,23 @@ dnl Check for SIMD extensions.
 dnl Defines: HAVE_MMX, HAVE_SSE, HAVE_SSE2, HAVE_SSE3, HAVE_SSSE3, HAVE_SSE4.1, HAVE_SSE4.2, HAVE_AVX, SIMD_FLAGS
 AX_EXT
 
+dnl Check for __builtin_expect.
+AC_MSG_CHECKING([if the compiler supports __builtin_expect])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(, [[return __builtin_expect(1, 1) ? 1 : 0;]])],
+  [
+    libschwa_have_builtin_expect=yes
+    AC_MSG_RESULT([yes])
+  ],
+  [
+    libschwa_have_builtin_expect=no
+    AC_MSG_RESULT([no])
+  ]
+)
+if test x$libschwa_have_builtin_expect = xyes ; then
+  AC_DEFINE([HAVE_BUILTIN_EXPECT], [1], [Define to 1 if the compiler supports __builtin_expect.])
+fi
+
 dnl Work out how to inline the "host to big endian" functions for various based on what headers we found.
 if test "$ac_cv_header_endian_h" = "yes"; then
   AC_SUBST([ENDIAN_CONVERSION_HEADER], [endian.h])
@@ -161,7 +179,7 @@ fi
 AC_SUBST([LIBSCHWA_BASE_CXXFLAGS])
 
 dnl Configure autoconf inputs and outputs.
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([src/lib/schwa/_config.h])
 AC_CONFIG_FILES([
   Makefile
   src/apps/Makefile
@@ -186,7 +204,6 @@ AC_CONFIG_FILES([
 
 dnl Configure third party modules
 AC_CONFIG_SUBDIRS([
-  src/third-party/cityhash
   src/third-party/re2
   src/third-party/unittest-cpp
 ])

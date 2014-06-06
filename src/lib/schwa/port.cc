@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <config.h>
 #include <schwa/port.h>
 
 #ifdef HAVE_CXXABI_H
