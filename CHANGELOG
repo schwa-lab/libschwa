@@ -1,3 +1,16 @@
+0.2.3
+* Corrected a missing byte consume when reading msgpack data into a dynamic runtime structure (#9).
+* Packaged re2 and cityhash into libschwa. re2 was added as full regular expression support wasn't added to gcc until 4.9, which hasn't become mainstream yet.
+* Corrected bug where Ann subclasses were not destructed and re-constructed when stores were reused between reads.
+* Added `dr-offsets` to output the byte offset of each document in a stream. Useful for debugging.
+* Corrected `--help` to dispatch to each tool instead of being consumed by `dr` (#2).
+* `dr` now lists the available tools it can to dispatch to (#1).
+* Added UnicodeString support for docrep fields.
+* Added schwa::unicode namespace for all Unicode related things, including UnicodeString and Unicode-equivalent ctype functions.
+* Added docrep sequence tag denormalisaing and renormalising functors.
+* Allow dr::Slice<T> to be iterated through using a C++11 foreach loop.
+* Added homebrew formula for easy installation on OS X.
+
 0.2.2
 * Added an explicit include check in configure.ac for all used C++11 header files.
 * The special command-line flags --help and --version no longer result in a non-zero exit status.
