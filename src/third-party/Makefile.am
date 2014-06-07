@@ -1,1 +1,1 @@
-SUBDIRS = re2 unittest-cpp
+SUBDIRS = unittest-cpp

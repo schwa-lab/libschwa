@@ -11,10 +11,12 @@
 #include <schwa/msgpack.h>
 #include <schwa/pool.h>
 
-#include <re2/re2.h>
-
 
 namespace schwa {
+  namespace third_party { namespace re2 {
+    class RE2;
+  } }
+
   namespace dr {
     class Doc;
 
@@ -67,7 +69,7 @@ namespace schwa {
         union {
           int64_t _int;
           const char *_str;
-          const re2::RE2 *_re;
+          const schwa::third_party::re2::RE2 *_re;
           const VariableExpr *_variable;
           const Doc *_doc;
           const msgpack::Map *_map;
@@ -79,7 +81,7 @@ namespace schwa {
         Value(ValueType type, const VariableExpr *value) : type(type) { via._variable = value; }
         Value(ValueType type, const Doc *value) : type(type) { via._doc = value; }
         Value(ValueType type, const msgpack::Map *value) : type(type) { via._map = value; }
-        Value(ValueType type, const re2::RE2 *value) : type(type) { via._re = value; }
+        Value(ValueType type, const schwa::third_party::re2::RE2 *value) : type(type) { via._re = value; }
 
       public:
         Value(const Value &o) : type(o.type), via(o.via) { }
@@ -92,7 +94,7 @@ namespace schwa {
         static inline Value as_doc(const Doc *value) { return Value(TYPE_DOC, value); }
         static inline Value as_int(int64_t value) { return Value(TYPE_INTEGER, value); }
         static inline Value as_missing(const VariableExpr *value) { return Value(TYPE_MISSING, value); }
-        static inline Value as_re(const re2::RE2 *value) { return Value(TYPE_REGEX, value); }
+        static inline Value as_re(const schwa::third_party::re2::RE2 *value) { return Value(TYPE_REGEX, value); }
         static inline Value as_store(const VariableExpr *value) { return Value(TYPE_STORE, value); }
         static inline Value as_str(const char *value) { return Value(TYPE_STRING, value); }
       };

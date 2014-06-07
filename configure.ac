@@ -91,12 +91,34 @@ AC_CHECK_HEADER([stack], , AC_MSG_ERROR([C++11 stack header not found]))
 AC_CHECK_HEADER([string], , AC_MSG_ERROR([C++11 string header not found]))
 AC_CHECK_HEADER([thread], , AC_MSG_ERROR([C++11 thread header not found]))
 AC_CHECK_HEADER([typeinfo], , AC_MSG_ERROR([C++11 typeinfo header not found]))
+AC_CHECK_HEADER([unordered_set], , AC_MSG_ERROR([C++11 unordered_set header not found]))
 AC_CHECK_HEADER([utility], , AC_MSG_ERROR([C++11 utility header not found]))
 AC_CHECK_HEADER([vector], , AC_MSG_ERROR([C++11 vector header not found]))
 AC_CHECK_HEADER([dirent.h], , AC_MSG_ERROR([POSIX dirent.h header not found]))
 AC_CHECK_HEADER([fcntl.h], , AC_MSG_ERROR([POSIX fcntl.h header not found]))
 AC_CHECK_HEADER([unistd.h], , AC_MSG_ERROR([POSIX unistd.h header not found]))
 AC_CHECK_HEADERS([cxxabi.h endian.h libgen.h libproc.h limits.h machine/byte_order.h])  dnl <schwa/port.{h,cc}>
+
+dnl Check for C headers.
+AC_CHECK_HEADER([assert.h], , AC_MSG_ERROR([C assert.h header not found]))
+AC_CHECK_HEADER([ctype.h], , AC_MSG_ERROR([C ctype.h header not found]))
+AC_CHECK_HEADER([errno.h], , AC_MSG_ERROR([C errno.h header not found]))
+AC_CHECK_HEADER([stdarg.h], , AC_MSG_ERROR([C stdarg.h header not found]))
+AC_CHECK_HEADER([stddef.h], , AC_MSG_ERROR([C stddef.h header not found]))
+AC_CHECK_HEADER([stdint.h], , AC_MSG_ERROR([C stdint.h header not found]))
+AC_CHECK_HEADER([stdio.h], , AC_MSG_ERROR([C stdio.h header not found]))
+AC_CHECK_HEADER([stdlib.h], , AC_MSG_ERROR([C stdlib.h header not found]))
+AC_CHECK_HEADER([string.h], , AC_MSG_ERROR([C string.h header not found]))
+AC_CHECK_HEADER([sys/mman.h], , AC_MSG_ERROR([C sys/mman.h header not found]))
+AC_CHECK_HEADER([sys/resource.h], , AC_MSG_ERROR([C sys/resource.h header not found]))
+AC_CHECK_HEADER([sys/stat.h], , AC_MSG_ERROR([C sys/stat.h header not found]))
+AC_CHECK_HEADER([sys/time.h], , AC_MSG_ERROR([C sys/time.h header not found]))
+AC_CHECK_HEADER([sys/types.h], , AC_MSG_ERROR([C sys/types.h header not found]))
+AC_CHECK_HEADER([time.h], , AC_MSG_ERROR([C time.h header not found]))
+AC_CHECK_HEADER([unistd.h], , AC_MSG_ERROR([C unistd.h header not found]))
+
+dnl Check for optional headers.
+AC_CHECK_HEADERS([pcre.h])
 
 dnl Check for C functions.
 AC_CHECK_FUNC([close], , AC_MSG_ERROR([C close function not found]))
@@ -166,17 +188,17 @@ dnl Check if we have ØMQ >= 3.
 PKG_CHECK_MODULES([ZMQLIB], [libzmq >= 3], [have_libzmq=yes], [have_libzmq=no])
 AM_CONDITIONAL([HAVE_LIBZMQ],  [test "$have_libzmq" = "yes" && test "$libschwa_cv_enable_libzmq" = "yes"])
 
-dnl Construct our base set of CXXFLAGS, depending on the compiler.
-LIBSCHWA_BASE_CXXFLAGS='-Wall -Wextra -Werror -pedantic -Wformat-security -Wpointer-arith -Wformat-nonliteral -Winit-self -Wfloat-equal -ffast-math -fstack-protector'
+dnl Construct our base set of CPPFLAGS, depending on the compiler.
+LIBSCHWA_BASE_CPPFLAGS='-Wall -Wextra -Werror -pedantic -Wformat-security -Wpointer-arith -Wformat-nonliteral -Winit-self -Wfloat-equal -ffast-math -fstack-protector'
 if test "x$GXX" = xyes; then
   dnl Add compiler specific flags.
   if test "x$CLANG" = xyes; then
-    LIBSCHWA_BASE_CXXFLAGS="$LIBSCHWA_BASE_CXXFLAGS -fdiagnostics-show-option -fdiagnostics-show-template-tree -pedantic-errors"
+    LIBSCHWA_BASE_CPPFLAGS="$LIBSCHWA_BASE_CPPFLAGS -fdiagnostics-show-option -fdiagnostics-show-template-tree -pedantic-errors"
   else
-    LIBSCHWA_BASE_CXXFLAGS="$LIBSCHWA_BASE_CXXFLAGS -Wdouble-promotion"
+    LIBSCHWA_BASE_CPPFLAGS="$LIBSCHWA_BASE_CPPFLAGS -Wdouble-promotion"
   fi
 fi
-AC_SUBST([LIBSCHWA_BASE_CXXFLAGS])
+AC_SUBST([LIBSCHWA_BASE_CPPFLAGS])
 
 dnl Configure autoconf inputs and outputs.
 AC_CONFIG_HEADERS([src/lib/schwa/_config.h])
@@ -204,7 +226,6 @@ AC_CONFIG_FILES([
 
 dnl Configure third party modules
 AC_CONFIG_SUBDIRS([
-  src/third-party/re2
   src/third-party/unittest-cpp
 ])
 

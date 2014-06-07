@@ -3,9 +3,10 @@
 # =============================================================================
 ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(SIMD_FLAGS)
-AM_CXXFLAGS = $(LIBSCHWA_BASE_CXXFLAGS)
 
-lib_LTLIBRARIES = libschwa.la libschwa_thirdparty_cityhash.la
+lib_LTLIBRARIES = libschwa.la
+noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+
 check_LIBRARIES =
 check_PROGRAMS =
 
@@ -146,14 +147,14 @@ LIBSCHWA_SOURCE_FILES = \
 
 
 if HAVE_LIBZMQ
-noinst_LTLIBRARIES = libschwa_drdist.la
+noinst_LTLIBRARIES += libschwa_drdist.la
+libschwa_drdist_la_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS) $(ZMQLIB_CFLAGS)
+libschwa_drdist_la_LIBADD = $(ZMQLIB_LIBS)
 libschwa_drdist_la_SOURCES = \
 		schwa/dr-dist/helpers.cc \
 		schwa/dr-dist/helpers.h \
 		schwa/dr-dist/server.cc \
 		schwa/dr-dist/server.h
-libschwa_drdist_la_CXXFLAGS = $(libschwa_la_CXXFLAGS) $(ZMQLIB_CFLAGS)
-libschwa_drdist_la_LIBADD = $(ZMQLIB_LIBS)
 
 libschwa_la_LIBADD += libschwa_drdist.la
 endif
@@ -162,17 +163,17 @@ endif
 # =============================================================================
 # libschwa Automake
 # =============================================================================
-libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) $(srcdir)/../third-party/re2/libre2.a libschwa_thirdparty_cityhash.la
+libschwa_la_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS)
+libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
 libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
 nobase_library_include_HEADERS = $(LIBSCHWA_HEADER_FILES)
 
-#TESTS = schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
 check_LIBRARIES += libschwa_unittest.a
 check_PROGRAMS += schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
 
-LIBSCHWA_TEST_CPPFLAGS = -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
+LIBSCHWA_TEST_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS) -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
 LIBSCHWA_TEST_LDADD = ../third-party/unittest-cpp/UnitTest++/libUnitTest++.la libschwa_unittest.a libschwa.la
 
 libschwa_unittest_a_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
@@ -181,7 +182,6 @@ libschwa_unittest_a_SOURCES = \
 		schwa/unittest.cc
 
 schwa_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_tests_SOURCES = \
 		schwa/unittest_main.cc \
@@ -190,14 +190,12 @@ schwa_tests_SOURCES = \
 		schwa/unicode_test.cc
 
 schwa_containers_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_containers_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_containers_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_containers_tests_SOURCES = \
 		schwa/unittest_main.cc \
 		schwa/containers/block_vector_test.cc
 
 schwa_dr_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_dr_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_dr_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_dr_tests_SOURCES = \
 		schwa/unittest_main.cc \
@@ -211,7 +209,6 @@ schwa_dr_tests_SOURCES = \
 		schwa/dr/writer_test.cc
 
 schwa_io_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_io_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_io_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_io_tests_SOURCES = \
 		schwa/unittest_main.cc \
@@ -220,7 +217,6 @@ schwa_io_tests_SOURCES = \
 		schwa/io/write_buffer_test.cc
 
 schwa_learn_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_learn_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_learn_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_learn_tests_SOURCES = \
 		schwa/unittest_main.cc \
@@ -229,21 +225,18 @@ schwa_learn_tests_SOURCES = \
 		schwa/learn/features_test.cc
 
 schwa_mpl_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_mpl_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_mpl_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_mpl_tests_SOURCES = \
 		schwa/unittest_main.cc \
 		schwa/mpl/if_test.cc
 
 schwa_msgpack_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_msgpack_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_msgpack_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_msgpack_tests_SOURCES = \
 		schwa/unittest_main.cc \
 		schwa/msgpack/wire_test.cc
 
 schwa_utils_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
-schwa_utils_tests_CXXFLAGS = $(LIBSCHWA_TEST_CXXFLAGS)
 schwa_utils_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_utils_tests_SOURCES = \
 		schwa/unittest_main.cc \
@@ -259,4 +252,149 @@ libschwa_thirdparty_cityhash_la_SOURCES = \
 
 check_PROGRAMS += cityhash_tests
 
+cityhash_tests_LDADD = libschwa_thirdparty_cityhash.la
 cityhash_tests_SOURCES = schwa/third-party/cityhash/city_test.cc
+
+# =============================================================================
+# libschwa_thirdparty_re2 Automake
+# =============================================================================
+libschwa_thirdparty_re2_la_CPPFLAGS = $(PTHREAD_CFLAGS)
+libschwa_thirdparty_re2_la_LIBADD = $(PTHREAD_LIBS)
+libschwa_thirdparty_re2_la_SOURCES = \
+		schwa/third-party/re2/bitstate.cc \
+		schwa/third-party/re2/compile.cc \
+		schwa/third-party/re2/dfa.cc \
+		schwa/third-party/re2/filtered_re2.cc \
+		schwa/third-party/re2/filtered_re2.h \
+		schwa/third-party/re2/mimics_pcre.cc \
+		schwa/third-party/re2/nfa.cc \
+		schwa/third-party/re2/onepass.cc \
+		schwa/third-party/re2/parse.cc \
+		schwa/third-party/re2/perl_groups.cc \
+		schwa/third-party/re2/prefilter.cc \
+		schwa/third-party/re2/prefilter.h \
+		schwa/third-party/re2/prefilter_tree.cc \
+		schwa/third-party/re2/prefilter_tree.h \
+		schwa/third-party/re2/prog.cc \
+		schwa/third-party/re2/prog.h \
+		schwa/third-party/re2/re2.cc \
+		schwa/third-party/re2/re2.h \
+		schwa/third-party/re2/re2.h \
+		schwa/third-party/re2/regexp.cc \
+		schwa/third-party/re2/regexp.h \
+		schwa/third-party/re2/set.cc \
+		schwa/third-party/re2/set.h \
+		schwa/third-party/re2/set.h \
+		schwa/third-party/re2/simplify.cc \
+		schwa/third-party/re2/stringpiece.h \
+		schwa/third-party/re2/stringpiece.h \
+		schwa/third-party/re2/testing/exhaustive_tester.h \
+		schwa/third-party/re2/testing/regexp_generator.h \
+		schwa/third-party/re2/testing/string_generator.h \
+		schwa/third-party/re2/testing/tester.h \
+		schwa/third-party/re2/tostring.cc \
+		schwa/third-party/re2/unicode_casefold.cc \
+		schwa/third-party/re2/unicode_casefold.h \
+		schwa/third-party/re2/unicode_groups.cc \
+		schwa/third-party/re2/unicode_groups.h \
+		schwa/third-party/re2/variadic_function.h \
+		schwa/third-party/re2/variadic_function.h \
+		schwa/third-party/re2/walker-inl.h \
+		schwa/third-party/re2/util/arena.cc \
+		schwa/third-party/re2/util/arena.h \
+		schwa/third-party/re2/util/atomicops.h \
+		schwa/third-party/re2/util/benchmark.h \
+		schwa/third-party/re2/util/flags.h \
+		schwa/third-party/re2/util/hash.cc \
+		schwa/third-party/re2/util/logging.h \
+		schwa/third-party/re2/util/mutex.h \
+		schwa/third-party/re2/util/pcre.h \
+		schwa/third-party/re2/util/random.h \
+		schwa/third-party/re2/util/rune.cc \
+		schwa/third-party/re2/util/sparse_array.h \
+		schwa/third-party/re2/util/sparse_set.h \
+		schwa/third-party/re2/util/stringpiece.cc \
+		schwa/third-party/re2/util/stringprintf.cc \
+		schwa/third-party/re2/util/strutil.cc \
+		schwa/third-party/re2/util/test.h \
+		schwa/third-party/re2/util/utf.h \
+		schwa/third-party/re2/util/util.h \
+		schwa/third-party/re2/util/valgrind.cc \
+		schwa/third-party/re2/util/valgrind.h
+
+LIBRE2_TEST_CPPFLAGS = $(PTHREAD_CFLAGS)
+LIBRE2_TEST_LDADD = $(PTHREAD_LIBS) libschwa_thirdparty_re2.la libschwa_thirdparty_re2_unittest.a
+
+check_LIBRARIES += libschwa_thirdparty_re2_unittest.a
+check_PROGRAMS += libre2_charclass_test libre2_compile_test libre2_filtered_re2_test libre2_mimics_pcre_test libre2_parse_test libre2_possible_match_test libre2_re2_test libre2_re2_arg_test libre2_regexp_test libre2_required_prefix_test libre2_search_test libre2_set_test libre2_simplify_test libre2_string_generator_test
+
+libschwa_thirdparty_re2_unittest_a_SOURCES = \
+		schwa/third-party/re2/testing/backtrack.cc \
+		schwa/third-party/re2/testing/dump.cc \
+		schwa/third-party/re2/testing/exhaustive_tester.cc \
+		schwa/third-party/re2/testing/null_walker.cc \
+		schwa/third-party/re2/testing/regexp_generator.cc \
+		schwa/third-party/re2/testing/string_generator.cc \
+		schwa/third-party/re2/testing/tester.cc \
+		schwa/third-party/re2/util/pcre.cc \
+		schwa/third-party/re2/util/random.cc \
+		schwa/third-party/re2/util/thread.cc
+
+libre2_charclass_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_charclass_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_charclass_test_SOURCES = schwa/third-party/re2/testing/charclass_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_compile_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_compile_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_compile_test_SOURCES = schwa/third-party/re2/testing/compile_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_filtered_re2_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_filtered_re2_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_filtered_re2_test_SOURCES = schwa/third-party/re2/testing/filtered_re2_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_mimics_pcre_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_mimics_pcre_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_mimics_pcre_test_SOURCES = schwa/third-party/re2/testing/mimics_pcre_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_parse_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_parse_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_parse_test_SOURCES = schwa/third-party/re2/testing/parse_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_possible_match_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_possible_match_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_possible_match_test_SOURCES = schwa/third-party/re2/testing/possible_match_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_re2_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_re2_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_re2_test_SOURCES = schwa/third-party/re2/testing/re2_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_re2_arg_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_re2_arg_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_re2_arg_test_SOURCES = schwa/third-party/re2/testing/re2_arg_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_regexp_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_regexp_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_regexp_test_SOURCES = schwa/third-party/re2/testing/regexp_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_required_prefix_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_required_prefix_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_required_prefix_test_SOURCES = schwa/third-party/re2/testing/required_prefix_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_search_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_search_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_search_test_SOURCES = schwa/third-party/re2/testing/search_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_set_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_set_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_set_test_SOURCES = schwa/third-party/re2/testing/set_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_simplify_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_simplify_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_simplify_test_SOURCES = schwa/third-party/re2/testing/simplify_test.cc schwa/third-party/re2/util/test.cc
+
+libre2_string_generator_test_CPPFLAGS = $(LIBRE2_TEST_CPPFLAGS)
+libre2_string_generator_test_LDADD = $(LIBRE2_TEST_LDADD)
+libre2_string_generator_test_SOURCES = schwa/third-party/re2/testing/string_generator_test.cc schwa/third-party/re2/util/test.cc
+
+
+TESTS = $(check_PROGRAMS)

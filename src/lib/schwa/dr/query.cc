@@ -38,12 +38,12 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
 #include <schwa/utils/enums.h>
 #include <schwa/utils/hash.h>
 
-#include <re2/re2.h>
+#include <schwa/third-party/re2/re2.h>
 
 namespace dr = schwa::dr;
 namespace io = schwa::io;
 namespace mp = schwa::msgpack;
-using namespace re2;
+using schwa::third_party::re2::RE2;
 
 
 namespace schwa {

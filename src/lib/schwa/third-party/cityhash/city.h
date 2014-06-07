@@ -59,8 +59,8 @@
 // of a+b is easily derived from the hashes of a and b.  This property
 // doesn't hold for any hash functions in this file.
 
-#ifndef CITY_HASH_H_
-#define CITY_HASH_H_
+#ifndef SCHWA_THIRD_PARTY_CITYHASH_CITY_H_
+#define SCHWA_THIRD_PARTY_CITYHASH_CITY_H_
 
 #include <stdlib.h>  // for size_t.
 #include <stdint.h>
@@ -135,4 +135,4 @@ void CityHashCrc256(const char *s, size_t len, uint64 *result);
 }  // namespace third_party
 }  // namespace schwa
 
-#endif  // CITY_HASH_H_
+#endif  // SCHWA_THIRD_PARTY_CITYHASH_CITY_H_
