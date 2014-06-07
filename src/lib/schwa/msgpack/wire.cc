@@ -10,7 +10,7 @@ static const constexpr WireType FP = WireType::FIXNUM_POSITIVE;
 static const constexpr WireType AF = WireType::ARRAY_FIXED;
 static const constexpr WireType MF = WireType::MAP_FIXED;
 static const constexpr WireType RF = WireType::RAW_FIXED;
-const constexpr WireType TABLE[256] = {
+const WireType TABLE[256] = {
   FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP,
   FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP,
   FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP, FP,
@@ -28,7 +28,6 @@ const constexpr WireType TABLE[256] = {
   FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN,
   FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN, FN
 };
-
 
 }  // namespace msgpack
 }  // namespace schwa

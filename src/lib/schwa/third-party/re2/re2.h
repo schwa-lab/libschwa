@@ -296,7 +296,7 @@ class RE2 {
   // Returns the underlying Regexp; not for general use.
   // Returns entire_regexp_ so that callers don't need
   // to know about prefix_ and prefix_foldcase_.
-  Regexp* Regexp() const { return entire_regexp_; }
+  re2::Regexp* Regexp() const { return entire_regexp_; }
 
   /***** The useful part: the matching interface *****/
 

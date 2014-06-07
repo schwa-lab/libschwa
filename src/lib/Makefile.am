@@ -259,7 +259,7 @@ cityhash_tests_SOURCES = schwa/third-party/cityhash/city_test.cc
 # libschwa_thirdparty_re2 Automake
 # =============================================================================
 libschwa_thirdparty_re2_la_CPPFLAGS = $(PTHREAD_CFLAGS)
-libschwa_thirdparty_re2_la_LIBADD = $(PTHREAD_LIBS)
+libschwa_thirdparty_re2_la_LIBADD = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS)
 libschwa_thirdparty_re2_la_SOURCES = \
 		schwa/third-party/re2/bitstate.cc \
 		schwa/third-party/re2/compile.cc \
@@ -323,7 +323,7 @@ libschwa_thirdparty_re2_la_SOURCES = \
 		schwa/third-party/re2/util/valgrind.h
 
 LIBRE2_TEST_CPPFLAGS = $(PTHREAD_CFLAGS)
-LIBRE2_TEST_LDADD = $(PTHREAD_LIBS) libschwa_thirdparty_re2.la libschwa_thirdparty_re2_unittest.a
+LIBRE2_TEST_LDADD = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) libschwa_thirdparty_re2_unittest.a libschwa_thirdparty_re2.la
 
 check_LIBRARIES += libschwa_thirdparty_re2_unittest.a
 check_PROGRAMS += libre2_charclass_test libre2_compile_test libre2_filtered_re2_test libre2_mimics_pcre_test libre2_parse_test libre2_possible_match_test libre2_re2_test libre2_re2_arg_test libre2_regexp_test libre2_required_prefix_test libre2_search_test libre2_set_test libre2_simplify_test libre2_string_generator_test
