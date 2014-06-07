@@ -22,19 +22,22 @@ if [[ "$(uname)" != "Linux" ]]; then
   exit 1
 fi
 
+# Work out absolute path to tarball.
+TARBALL="$(cd $(dirname ${1}) && pwd)/$(basename ${1})"
+
 # Create the working directory.
-WORKING_DIR=(mktemp -d -t $(basename ${0}))
-trap "rm -rf ${WORKING_DIR}" EXIT
+WORKING_DIR=$(mktemp -d)
+trap 'rm -rf "${WORKING_DIR}"' EXIT
 
 # Check required dependencies for building a deb file.
 sudo apt-get install build-essential autoconf automake autotools-dev dh-make debhelper devscripts fakeroot xutils lintian pbuilder
 
 # Extract the tarball and go into the extracted folder.
-tar xzf ${1} -C ${WORKING_DIR}
+tar xzf "${TARBALL}" -C ${WORKING_DIR}
 cd ${WORKING_DIR}/libschwa-*
 
 # Start the debianisation.
-dh_make --email "${MAINTAINER_EMAIL}" --multi --file ../libschwa-*.tar.gz
+dh_make --email "${MAINTAINER_EMAIL}" --multi --file "${TARBALL}"
 
 # Update the generated debian files.
 cat > debian/control <<EOF
@@ -52,7 +55,6 @@ Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: Schwa Lab core NLP tools.
  Schwa Lab core NLP tools.
 EOF
-#cp CHANGELOG debian/changelog  FIXME this needs to be in a specific format
 cp LICENCE debian/copyright
 
 # Build the source as a debian package.
@@ -65,3 +67,4 @@ if [[ ${response} =~ ^([yY][eE][sS]|[yY])$ ]]; then
   scp ../libschwa*.deb setup@ch2:/var/www/sites/packages/ubuntu/pool/main/${LSB_RELEASE}
   ssh setup@ch2 "/var/www/sites/packages/ubuntu/update.sh"
 fi
+cp ../libschwa*.deb /tmp
