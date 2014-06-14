@@ -211,10 +211,10 @@ AC_CONFIG_FILES([
   src/apps/dr-dist/Makefile
   src/apps/dr-grep/Makefile
   src/apps/dr-head/Makefile
+  src/apps/dr-less/Makefile
   src/apps/dr-offsets/Makefile
   src/apps/dr-sample/Makefile
   src/apps/dr-tail/Makefile
-  src/apps/dr-ui/Makefile
   src/apps/dr-worker-example/Makefile
   src/apps/schwa-tokenizer/Makefile
   src/lib/Makefile

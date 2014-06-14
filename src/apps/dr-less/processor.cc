@@ -20,7 +20,7 @@ namespace mp = schwa::msgpack;
 
 
 namespace schwa {
-namespace dr_ui {
+namespace dr_less {
 
 // ============================================================================
 // Processor::Impl
@@ -126,14 +126,14 @@ Processor::Impl::_process_store(const dr::RTStoreDef &store) {
   assert(store.is_lazy());
   const dr::RTSchema &klass = *store.klass;
 
-  // iterate through each field name to find the largest name so we can align
+  // Iterate through each field name to find the largest name so we can align
   // all of the values when printing out.
   unsigned int max_length = 0;
   for (const auto& field : klass.fields)
     if (field->serial.size() > max_length)
       max_length = field->serial.size();
 
-  // decode the lazy store values into dynamic msgpack objects
+  // Decode the lazy store values into dynamic msgpack objects.
   Pool pool(4096);
   io::ArrayReader reader(store.lazy_data, store.lazy_nbytes);
   mp::Value *value = mp::read_dynamic(reader, pool);
@@ -142,7 +142,7 @@ Processor::Impl::_process_store(const dr::RTStoreDef &store) {
   assert(is_array(value->type));
   const mp::Array &array = *value->via._array;
 
-  // write header
+  // Write header.
   _write_indent() << port::BOLD << store.serial << ":" << port::OFF << " {";
   _out << SEP << klass.serial;
   _out << " (" << array.size() << ")"<< port::OFF << "\n";

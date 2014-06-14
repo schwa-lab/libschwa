@@ -25,7 +25,7 @@ main(std::istream &input, std::ostream &output, const cf::Op<uint32_t> &limit) {
   dr::Reader reader(input, schema);
 
   // Construct the processor functor to produce the pretty output.
-  schwa::dr_ui::Processor processor(output);
+  schwa::dr_less::Processor processor(output);
 
   // Read the documents off the input stream.
   for (uint32_t i = 0; reader >> doc; ++i) {
@@ -41,7 +41,7 @@ main(std::istream &input, std::ostream &output, const cf::Op<uint32_t> &limit) {
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg("dr-ui", "A visualiser for docrep streams.");
+  cf::Main cfg("dr-less", "A visualiser for docrep streams.");
   cf::OpIStream input(cfg, "input", 'i', "The input file");
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<uint32_t> limit(cfg, "limit", 'n', "Limit on how many documents to process", cf::Flags::OPTIONAL);

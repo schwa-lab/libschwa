@@ -1,4 +1,5 @@
 0.2.3
+* Renamed `dr-ui` to `dr-less`.
 * Corrected a missing byte consume when reading msgpack data into a dynamic runtime structure (#9).
 * Packaged re2 and cityhash into libschwa. re2 was added as full regular expression support wasn't added to gcc until 4.9, which hasn't become mainstream yet.
 * Corrected bug where Ann subclasses were not destructed and re-constructed when stores were reused between reads.

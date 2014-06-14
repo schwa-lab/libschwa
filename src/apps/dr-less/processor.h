@@ -13,7 +13,7 @@ namespace schwa {
     class Doc;
   }
 
-  namespace dr_ui {
+  namespace dr_less {
 
     class Processor {
     private:
