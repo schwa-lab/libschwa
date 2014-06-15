@@ -72,6 +72,7 @@ namespace schwa {
       inline const std::string &desc(void) const { return _desc; }
       std::string full_name(void) const;
       inline const std::string &name(void) const { return _name; }
+      inline char short_name(void) const { return _short_name; }
 
       inline void set_parent(ConfigNode *parent) { _parent = parent; }
 

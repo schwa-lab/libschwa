@@ -225,9 +225,9 @@ void
 CommandOption::_help_self(std::ostream &out, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
-  if (_short_name)
-    out << port::BOLD << '-' << _short_name << port::OFF << ", ";
-  out << port::BOLD << SEPARATOR << full_name() << port::OFF << ": " << _desc;
+  if (short_name())
+    out << port::BOLD << '-' << short_name() << port::OFF << ", ";
+  out << port::BOLD << SEPARATOR << full_name() << port::OFF << ": " << desc();
 }
 
 

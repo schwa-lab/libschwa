@@ -17,17 +17,17 @@ Group::Group(Group &group, const std::string &name, const std::string &desc, con
 
 
 ConfigNode *
-Group::find(const char short_name) {
-  if (_short_name == short_name)
+Group::find(const char name) {
+  if (short_name() == name)
     return this;
 
   for (auto &child : _options) {
-    ConfigNode *const p = child->find(short_name);
+    ConfigNode *const p = child->find(name);
     if (p != nullptr)
       return p;
   }
   for (auto &child : _groups) {
-    ConfigNode *const p = child->find(short_name);
+    ConfigNode *const p = child->find(name);
     if (p != nullptr)
       return p;
   }
@@ -69,7 +69,7 @@ Group::_help_self(std::ostream &out, const unsigned int depth) const {
   out << port::BOLD;
   if (accepts_mention())
     out << SEPARATOR;
-  out << full_name() << port::OFF << ": " << _desc;
+  out << full_name() << port::OFF << ": " << desc();
 }
 
 

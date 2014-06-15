@@ -83,7 +83,7 @@ Main::_help(std::ostream &out, const unsigned int depth) const {
 
 void
 Main::_help_self(std::ostream &out, const unsigned int) const {
-  out << port::BOLD << full_name() << port::OFF << ": " << _desc << std::endl;
+  out << port::BOLD << full_name() << port::OFF << ": " << desc() << std::endl;
   out << "  Usage: " << full_name() << " [options]";
   for (auto &c : _positional_arg_nodes)
     out << " [" << c->name() << "]";
