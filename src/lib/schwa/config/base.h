@@ -38,7 +38,7 @@ namespace schwa {
       std::string _full_name;  //!< The full name of the option, accounting for nesting.
       const char _short_name;  //!< The short single-letter name for the option. '\0' if not defined.
       const Flags _flags;  //!< The bitmask of the flags set for this config node.
-      int _position_arg_precedence;  //!< Precedence value for whether this option can consume unclaimed positional arguments. -1 if it cannot.
+      int _positional_precedence;  //!< Precedence value for whether this option can consume unclaimed positional arguments. -1 if it cannot.
       bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
       bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
@@ -75,8 +75,9 @@ namespace schwa {
 
       void set_prefix(const std::string &prefix);
 
-      void position_arg_precedence(int precedence);
-      inline int position_arg_precedence(void) const { return _position_arg_precedence; }
+      inline int positional_precedence(void) const { return _positional_precedence; }
+      void set_positional_precedence(int precedence);
+
       inline bool optional(void) const { return _flags & Flags::OPTIONAL; }
       inline bool was_assigned(void) const { return _was_assigned; }
       inline bool was_mentioned(void) const { return _was_mentioned; }

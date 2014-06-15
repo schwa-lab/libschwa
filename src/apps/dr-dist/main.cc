@@ -26,27 +26,28 @@ main(int argc, char **argv) {
   cf::Op<bool> preserve_order(cfg, "preserve-order", "Whether or not the order of documents written out should be preserved", true);
   cf::Op<bool> kill_clients(cfg, "kill-clients", "Whether or not to instruct the clients to terminate once all of the documents have been processed", true);
 
-  // Parse argv.
-  cfg.main<io::ThreadsafePrettyLogger>(argc, argv);
-
-  // Construct the network address strings.
-  const std::string source_addr = schwa::dr_dist::build_socket_addr(bind_host(), source_port());
-  const std::string sink_addr = schwa::dr_dist::build_socket_addr(bind_host(), sink_port());
-  const std::string control_addr = schwa::dr_dist::build_socket_addr(bind_host(), control_port());
-  const std::string direct_sink_addr = schwa::dr_dist::build_socket_addr(bind_host() == "*" ? "127.0.0.1" : bind_host(), sink_port());
-
-  // Run the source and sink threads.
   bool success_source, success_sink;
-  auto wrap_source = [&](std::istream &input) {
-    success_source = schwa::dr_dist::source(source_addr, direct_sink_addr, input);
-  };
-  auto wrap_sink = [&](std::ostream &output) {
-    success_sink = schwa::dr_dist::sink(sink_addr, control_addr, preserve_order(), kill_clients(), output);
-  };
-  std::thread source_thread(wrap_source, std::ref(input.file()));
-  std::thread sink_thread(wrap_sink, std::ref(output.file()));
-  source_thread.join();
-  sink_thread.join();
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::ThreadsafePrettyLogger>(argc, argv);
 
-  return success_source && success_sink ? 0 : 1;
+    // Construct the network address strings.
+    const std::string source_addr = schwa::dr_dist::build_socket_addr(bind_host(), source_port());
+    const std::string sink_addr = schwa::dr_dist::build_socket_addr(bind_host(), sink_port());
+    const std::string control_addr = schwa::dr_dist::build_socket_addr(bind_host(), control_port());
+    const std::string direct_sink_addr = schwa::dr_dist::build_socket_addr(bind_host() == "*" ? "127.0.0.1" : bind_host(), sink_port());
+
+    // Run the source and sink threads.
+    auto wrap_source = [&](std::istream &input) {
+      success_source = schwa::dr_dist::source(source_addr, direct_sink_addr, input);
+    };
+    auto wrap_sink = [&](std::ostream &output) {
+      success_sink = schwa::dr_dist::sink(sink_addr, control_addr, preserve_order(), kill_clients(), output);
+    };
+    std::thread source_thread(wrap_source, std::ref(input.file()));
+    std::thread sink_thread(wrap_sink, std::ref(output.file()));
+    source_thread.join();
+    sink_thread.join();
+  })
+  return (success_source && success_sink) ? 0 : 1;
 }

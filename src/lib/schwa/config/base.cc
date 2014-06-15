@@ -18,7 +18,7 @@ ConfigNode::ConfigNode(const std::string &name, const char short_name, const std
     _full_name(name),
     _short_name(short_name),
     _flags(flags),
-    _position_arg_precedence(-1),
+    _positional_precedence(-1),
     _was_mentioned(false),
     _was_assigned(false) {
   // Option names cannot be empty.
@@ -51,10 +51,10 @@ ConfigNode::ConfigNode(const std::string &name, const char short_name, const std
 
 
 void
-ConfigNode::position_arg_precedence(const int precedence) {
+ConfigNode::set_positional_precedence(const int precedence) {
   if (precedence < 0)
     throw ConfigException("precedence value must be >= 0");
-  _position_arg_precedence = precedence;
+  _positional_precedence = precedence;
 }
 
 
@@ -92,7 +92,7 @@ ConfigNode::set_prefix(const std::string &prefix) {
 
 void
 ConfigNode::_get_positional_arg_nodes(std::vector<ConfigNode *> &nodes) {
-  if (_position_arg_precedence != -1)
+  if (_positional_precedence != -1)
     nodes.push_back(this);
 }
 

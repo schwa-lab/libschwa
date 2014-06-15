@@ -12,7 +12,8 @@ namespace dr = schwa::dr;
 namespace io = schwa::io;
 
 
-namespace {
+namespace schwa {
+namespace dr_tail {
 
 static void
 main(std::istream &input, std::ostream &output, const uint32_t count) {
@@ -29,8 +30,6 @@ main(std::istream &input, std::ostream &output, const uint32_t count) {
       break;
 
     // Move the read in data into the next buffer element, and increment the counts.
-    // XXX Annoyingly, libstdc++ (gcc) hasn't implemented move semantics for iostreams yet.
-    // XXX bufs[bufs_upto].swap(tmp);
     bufs[bufs_upto].str(tmp.str());
     bufs[bufs_upto].clear();
     bufs_upto = (bufs_upto + 1) % count;
@@ -51,7 +50,8 @@ main(std::istream &input, std::ostream &output, const uint32_t count) {
   }
 }
 
-}  // namespace
+}  // namespace dr_tail
+}  // namespace schwa
 
 
 int
@@ -62,17 +62,14 @@ main(int argc, char **argv) {
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<uint32_t> count(cfg, "count", 'n', "How many documents to keep", 1);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  input.set_positional_precedence(0);
 
-  // Dispatch to main function.
-  try {
-    main(input.file(), output.file(), count());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
+
+    // Dispatch to main function.
+    schwa::dr_tail::main(input.file(), output.file(), count());
+  })
   return 0;
 }

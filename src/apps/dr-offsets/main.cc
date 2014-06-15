@@ -11,7 +11,8 @@ namespace dr = schwa::dr;
 namespace io = schwa::io;
 
 
-namespace {
+namespace schwa {
+namespace dr_offsets {
 
 static void
 main(std::istream &input, std::ostream &output, const bool include_bytes) {
@@ -36,7 +37,8 @@ main(std::istream &input, std::ostream &output, const bool include_bytes) {
   }
 }
 
-}  // namespace
+}  // namespace dr_offsets
+}  // namespace schwa
 
 
 int
@@ -47,17 +49,14 @@ main(int argc, char **argv) {
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<bool> nbytes(cfg, "nbytes", 'n', "Output the number of bytes of each document as well as its byte offset.", false);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  input.set_positional_precedence(0);
 
-  // Dispatch to main function.
-  try {
-    main(input.file(), output.file(), nbytes());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
+
+    // Dispatch to main function.
+    schwa::dr_offsets::main(input.file(), output.file(), nbytes());
+  })
   return 0;
 }

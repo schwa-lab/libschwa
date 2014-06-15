@@ -30,28 +30,26 @@ main(int argc, char **argv) {
   cf::Op<size_t> input_buffer(cfg, "input-buffer", "Tokenizer input buffer size (bytes)", tok::DEFAULT_BUFFER_SIZE);
   dr::DocrepGroup dr(cfg, schema);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  input.set_positional_precedence(0);
+  output.set_positional_precedence(1);
 
-  // Configure the tokenizer printer.
-  std::unique_ptr<tok::Stream> stream;
-  if (printer() == "text")
-    stream.reset(new tok::TextStream(output.file()));
-  else if (printer() == "debug")
-    stream.reset(new tok::DebugTextStream(output.file()));
-  else if (printer() == "docrep")
-    stream.reset(new tok::DocrepStream(output.file(), schema));
-
-  // Construct the tokenizer and tokenize the input.
   bool success;
-  try {
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
+
+    // Configure the tokenizer printer.
+    std::unique_ptr<tok::Stream> stream;
+    if (printer() == "text")
+      stream.reset(new tok::TextStream(output.file()));
+    else if (printer() == "debug")
+      stream.reset(new tok::DebugTextStream(output.file()));
+    else if (printer() == "docrep")
+      stream.reset(new tok::DocrepStream(output.file(), schema));
+
+    // Construct the tokenizer and tokenize the input.
     tok::Tokenizer t;
     success = t.tokenize_stream(*stream, input.file(), input_buffer());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+  })
   return success ? 0 : 1;
 }

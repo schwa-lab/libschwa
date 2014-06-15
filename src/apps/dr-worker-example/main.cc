@@ -25,5 +25,10 @@ main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("dr-worker-example", "An example docrep parallelisation worker");
 
-  return schwa::dr_dist::worker_main<dr::FauxDoc, io::PrettyLogger>(argc, argv, cfg, process_doc);
+  int ret;
+  const auto fn = [&] {
+    ret = schwa::dr_dist::worker_main<dr::FauxDoc, io::PrettyLogger>(argc, argv, cfg, process_doc);
+  };
+  SCHWA_MAIN(cfg, fn);
+  return ret;
 }

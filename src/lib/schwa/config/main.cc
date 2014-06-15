@@ -135,7 +135,7 @@ Main::_main(void) {
   std::sort(
       _positional_arg_nodes.begin(),
       _positional_arg_nodes.end(),
-      [](const ConfigNode *a, const ConfigNode *b) { return a->position_arg_precedence() < b->position_arg_precedence(); }
+      [](const ConfigNode *a, const ConfigNode *b) { return a->positional_precedence() < b->positional_precedence(); }
   );
 
   // Place the arguments into a queue for ease of processing.

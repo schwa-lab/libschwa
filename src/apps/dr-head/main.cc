@@ -11,7 +11,8 @@ namespace dr = schwa::dr;
 namespace io = schwa::io;
 
 
-namespace {
+namespace schwa {
+namespace dr_head {
 
 static void
 main(std::istream &input, std::ostream &output, const uint32_t count, const uint32_t skip) {
@@ -32,7 +33,8 @@ main(std::istream &input, std::ostream &output, const uint32_t count, const uint
   }
 }
 
-}  // namespace
+}  // namespace dr_head
+}  // namespace schwa
 
 
 int
@@ -44,17 +46,14 @@ main(int argc, char **argv) {
   cf::Op<uint32_t> count(cfg, "count", 'n', "How many documents to keep", 1);
   cf::Op<uint32_t> skip(cfg, "skip", 's', "How many documents to skip before counting", 0);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  input.set_positional_precedence(0);
 
-  // Dispatch to main function.
-  try {
-    main(input.file(), output.file(), count(), skip());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
+
+    // Dispatch to main function.
+    schwa::dr_head::main(input.file(), output.file(), count(), skip());
+  })
   return 0;
 }

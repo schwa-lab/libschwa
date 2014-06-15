@@ -12,7 +12,8 @@ namespace dr = schwa::dr;
 namespace io = schwa::io;
 
 
-namespace {
+namespace schwa {
+namespace dr_grep {
 
 void
 main(std::istream &input, std::ostream &output, const std::string &expression) {
@@ -34,7 +35,8 @@ main(std::istream &input, std::ostream &output, const std::string &expression) {
   }
 }
 
-}  // namespace
+}  // namespace dr_grep
+}  // namespace schwa
 
 
 int
@@ -45,18 +47,15 @@ main(int argc, char **argv) {
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<std::string> expression(cfg, "expression", 'e', "The expression to filter on");
 
-  // Parse argv.
-  expression.position_arg_precedence(0);
-  input.position_arg_precedence(1);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  expression.set_positional_precedence(0);
+  input.set_positional_precedence(1);
 
-  // Dispatch to main function.
-  try {
-    main(input.file(), output.file(), expression());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
+
+    // Dispatch to main function.
+    schwa::dr_grep::main(input.file(), output.file(), expression());
+  })
   return 0;
 }

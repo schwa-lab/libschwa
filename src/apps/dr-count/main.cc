@@ -15,7 +15,8 @@ namespace io = schwa::io;
 using Formatting = schwa::dr_count::Processor::Formatting;
 
 
-namespace {
+namespace schwa {
+namespace dr_count {
 
 static void
 main(std::istream &input, std::ostream &output, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) {
@@ -25,7 +26,7 @@ main(std::istream &input, std::ostream &output, bool all_stores, const std::stri
   dr::Reader reader(input, schema);
 
   // Construct the document processor.
-  schwa::dr_count::Processor processor(output, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id);
+  Processor processor(output, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id);
 
   // Read the documents off the input stream.
   while (reader >> doc)
@@ -33,7 +34,8 @@ main(std::istream &input, std::ostream &output, bool all_stores, const std::stri
   processor.finalise();
 }
 
-}
+}  // namespace dr_count
+}  // namespace schwa
 
 
 int
@@ -50,24 +52,21 @@ main(int argc, char **argv) {
   cf::OpChoices<std::string> format(cfg, "format", 'f', "How to format the output data", {"aligned", "tabs"}, "aligned");
   cf::Op<std::string> doc_id(cfg, "doc-id", 'd', "Output this expression before each document instead when outputting per-document counts", cf::Flags::OPTIONAL);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  input.set_positional_precedence(0);
 
-  // Construct the formatting enum value.
-  Formatting formatting = Formatting::ALIGNED;
-  if (format() == "aligned")
-    formatting = Formatting::ALIGNED;
-  else if (format() == "tabs")
-    formatting = Formatting::TABS;
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
 
-  // Dispatch to main function.
-  try {
-    main(input.file(), output.file(), all_stores(), store(), count_bytes(), cumulative(), per_doc(), formatting, doc_id());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+    // Construct the formatting enum value.
+    Formatting formatting = Formatting::ALIGNED;
+    if (format() == "aligned")
+      formatting = Formatting::ALIGNED;
+    else if (format() == "tabs")
+      formatting = Formatting::TABS;
+
+    // Dispatch to main function.
+    schwa::dr_count::main(input.file(), output.file(), all_stores(), store(), count_bytes(), cumulative(), per_doc(), formatting, doc_id());
+  })
   return 0;
 }

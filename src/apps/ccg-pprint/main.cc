@@ -161,6 +161,8 @@ main(std::istream &input, std::ostream &output, const bool ptb) {
 }  // namespace schwa
 
 
+
+
 int
 main(int argc, char **argv) {
   // Construct an option parser.
@@ -169,17 +171,14 @@ main(int argc, char **argv) {
   cf::OpOStream output(cfg, "output", 'o', "The output file");
   cf::Op<bool> ptb(cfg, "ptb", 'p', "Pretty-print the trees in PTB format", false);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  input.set_positional_precedence(0);
 
-  // Dispatch to main function.
-  try {
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
+
+    // Dispatch main.
     schwa::ccg_pprint::main(input.file(), output.file(), ptb());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+  })
   return 0;
 }
