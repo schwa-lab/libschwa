@@ -186,18 +186,6 @@ Group::serialise(std::ostream &out) const {
 
 
 bool
-Group::terminate_main(void) const {
-  for (auto &child : _options)
-    if (child->terminate_main())
-      return true;
-  for (auto &child : _groups)
-    if (child->terminate_main())
-      return true;
-  return false;
-}
-
-
-bool
 Group::validate(const Main &main) {
   for (auto &child : _options)
     if (!child->validate(main))

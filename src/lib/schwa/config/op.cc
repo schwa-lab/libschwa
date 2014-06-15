@@ -261,14 +261,11 @@ CommandOption::set_default(void) {
 // ============================================================================
 bool
 OpHelp::_validate(const Main &main) {
-  if (_was_mentioned)
+  if (_was_mentioned) {
     main.help(std::cerr);
+    throw SystemExit(0);
+  }
   return true;
-}
-
-bool
-OpHelp::terminate_main(void) const {
-  return _was_mentioned;
 }
 
 
@@ -277,14 +274,11 @@ OpHelp::terminate_main(void) const {
 // ============================================================================
 bool
 OpVersion::_validate(const Main &main) {
-  if (_was_mentioned)
+  if (_was_mentioned) {
     std::cout << port::BOLD << main.name() << port::OFF << ": " << VERSION << std::endl;
+    throw SystemExit(0);
+  }
   return true;
-}
-
-bool
-OpVersion::terminate_main(void) const {
-  return _was_mentioned;
 }
 
 }  // namespace config

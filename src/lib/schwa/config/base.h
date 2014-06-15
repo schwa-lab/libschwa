@@ -67,7 +67,6 @@ namespace schwa {
       void assign(const std::string &value);
       void mention(void);
       virtual void serialise(std::ostream &out) const = 0;
-      virtual bool terminate_main(void) const { return false; }
       virtual bool validate(const Main &main) = 0;
 
       inline const std::string &desc(void) const { return _desc; }

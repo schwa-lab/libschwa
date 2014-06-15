@@ -34,6 +34,16 @@ IOException::IOException(const IOException &o) : Exception(o), _uri(o._uri), _li
 
 
 // ============================================================================
+// SystemExit
+// ============================================================================
+SystemExit::SystemExit(const int exit_code) : _exit_code(exit_code) {
+  std::ostringstream ss;
+  ss << "System exit (status=" << _exit_code << ")";
+  _msg = ss.str();
+}
+
+
+// ============================================================================
 // print_exception
 // ============================================================================
 print_exception::print_exception(const Exception &e) : print_exception(port::demangle_typeid(typeid(e).name()), e) { }

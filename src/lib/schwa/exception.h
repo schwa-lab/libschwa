@@ -59,8 +59,8 @@ namespace schwa {
     IOException(const IOException &other);
     virtual ~IOException(void) throw() { }
 
-    inline const std::string &uri(void) const { return _uri; }
     inline int linenum(void) const { return _linenum; }
+    inline const std::string &uri(void) const { return _uri; }
   };
 
 
@@ -73,6 +73,27 @@ namespace schwa {
     ValueException(const ValueException &o) : Exception(o) { }
     virtual ~ValueException(void) throw() { }
   };
+
+
+  /**
+   * Exception used to quick escape to terminate ::main.
+   **/
+  class SystemExit : std::exception {
+  protected:
+    std::string _msg;
+    int _exit_code;
+
+  public:
+    explicit SystemExit(int exit_code);
+    SystemExit(const SystemExit &o) : std::exception(o), _exit_code(o._exit_code) { }
+    virtual ~SystemExit(void) throw() { }
+
+    inline int exit_code(void) const { return _exit_code; }
+    inline const std::string &msg(void) const { return _msg; }
+    virtual const char* what(void) const throw() override { return _msg.c_str(); }
+  };
+
+
 
 
   /**

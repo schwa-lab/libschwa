@@ -16,26 +16,12 @@ namespace schwa {
       for (int i = 0; i != argc; ++i)
         _cmdline_args.push_back(argv[i]);
 
-      try {
-        // Process the command line arguments.
-        if (!_main())
-          std::exit(1);
-        if (terminate_main())
-          std::exit(0);
+      // Process the command line arguments.
+      if (!_main())
+        throw SystemExit(1);
 
-        // Configure logging.
-        io::default_logger = new LOGGER(_op_log->value().c_str(), _op_log_level->level());
-      }
-      catch (ConfigException &e) {
-        std::cerr << print_exception("ConfigException", e) << std::endl;
-        help(std::cerr);
-        std::exit(1);
-      }
-      catch (IOException &e) {
-        std::cerr << print_exception("IOException", e) << std::endl;
-        help(std::cerr);
-        std::exit(1);
-      }
+      // Configure logging.
+      io::default_logger = new LOGGER(_op_log->value().c_str(), _op_log_level->level());
     }
 
   }

@@ -208,8 +208,6 @@ namespace schwa {
       OpHelp(Group &group, const std::string &name="help", char short_name='h', const std::string &desc="Displays the help text") : CommandOption(group, name, short_name, desc) { }
       virtual ~OpHelp(void) { }
 
-      virtual bool terminate_main(void) const override;
-
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpHelp);
     };
@@ -222,8 +220,6 @@ namespace schwa {
     public:
       OpVersion(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
       virtual ~OpVersion(void) { }
-
-      virtual bool terminate_main(void) const override;
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpVersion);
