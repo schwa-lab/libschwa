@@ -69,7 +69,7 @@ Group::_help_self(std::ostream &out, const unsigned int depth) const {
   out << port::BOLD;
   if (accepts_mention())
     out << "--";
-  out << _full_name << port::OFF << ": " << _desc;
+  out << full_name() << port::OFF << ": " << _desc;
 }
 
 
@@ -108,7 +108,7 @@ Group::_pre_add(ConfigNode &child) {
 
 void
 Group::_post_add(ConfigNode &child) {
-  child.set_prefix(_name);
+  child.set_parent(this);
 }
 
 

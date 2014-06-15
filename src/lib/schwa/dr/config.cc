@@ -94,7 +94,7 @@ DocrepClassGroup::_mention(void) { }
 void
 DocrepClassGroup::serialise(std::ostream &out) const {
   if (_was_assigned)
-    out << _full_name << '=' << _schema.serial << '\n';
+    out << full_name() << '=' << _schema.serial << '\n';
   Group::serialise(out);
 }
 

@@ -36,7 +36,7 @@ namespace schwa {
           const std::string value = line.substr(pos + 1);
 
           // Don't put ourself back in for processing.
-          if (key != _full_name) {
+          if (key != full_name()) {
             stack.push("--" + key);
             stack.push(value);
           }

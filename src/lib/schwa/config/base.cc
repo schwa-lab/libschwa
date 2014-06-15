@@ -15,9 +15,9 @@ ConfigNode::ConfigNode(const std::string &name, const std::string &desc, const F
 ConfigNode::ConfigNode(const std::string &name, const char short_name, const std::string &desc, const Flags flags) :
     _name(name),
     _desc(desc),
-    _full_name(name),
     _short_name(short_name),
     _flags(flags),
+    _parent(nullptr),
     _positional_precedence(-1),
     _was_mentioned(false),
     _was_assigned(false) {
@@ -84,9 +84,13 @@ ConfigNode::find(const std::string &key) {
 }
 
 
-void
-ConfigNode::set_prefix(const std::string &prefix) {
-  _full_name = prefix + SEPARATOR + _name;
+std::string
+ConfigNode::full_name(void) const {
+  std::ostringstream ss;
+  if (_parent != nullptr)
+    ss << _parent->full_name() << SEPARATOR;
+  ss << _name;
+  return ss.str();
 }
 
 
