@@ -24,9 +24,21 @@ namespace schwa {
     Exception(const Exception &o) : std::exception(o), _msg(o._msg) { }
     virtual ~Exception(void) throw() { }
 
-    virtual const char* what(void) const throw() override { return _msg.c_str(); }
-
     inline const std::string &msg(void) const { return _msg; }
+    virtual const char* what(void) const throw() override { return _msg.c_str(); }
+  };
+
+
+  /**
+   * Exception subclass to indicate an error in the configuration framework. This includes both
+   * the invalid setting up of the configuration framework itself and the invalid parsing of
+   * configuration values.
+   **/
+  class ConfigException : public Exception {
+  public:
+    explicit ConfigException(const std::string &msg) : Exception(msg) { }
+    ConfigException(const ConfigException &other) : Exception(other) { }
+    virtual ~ConfigException(void) throw() { }
   };
 
 

@@ -4,7 +4,7 @@
 #include <cctype>
 #include <sstream>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 
 
 namespace schwa {

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/config/op.h>
 #include <schwa/port.h>
 

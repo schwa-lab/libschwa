@@ -28,7 +28,6 @@ libschwa_la_SOURCES =
 LIBSCHWA_HEADER_FILES = \
 		schwa/_base.h \
 		schwa/config/base.h \
-		schwa/config/exception.h \
 		schwa/config/group.h \
 		schwa/config/main.h \
 		schwa/config/main_impl.h \

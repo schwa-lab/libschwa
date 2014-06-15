@@ -2,7 +2,7 @@
 #ifndef SCHWA_CONFIG_MAIN_IMPL_H_
 #define SCHWA_CONFIG_MAIN_IMPL_H_
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/io/logging.h>
 
 namespace schwa {

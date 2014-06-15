@@ -5,7 +5,6 @@
 #include <sstream>
 
 #include <schwa/exception.h>
-#include <schwa/config/exception.h>
 #include <schwa/port.h>
 
 

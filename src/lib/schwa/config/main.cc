@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/port.h>
 #include <schwa/utils/shlex.h>
 #include <schwa/version.h>

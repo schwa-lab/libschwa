@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/config/group.h>
 #include <schwa/config/main.h>
 #include <schwa/io/utils.h>
