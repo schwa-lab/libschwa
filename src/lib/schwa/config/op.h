@@ -9,7 +9,7 @@
 
 #include <schwa/_base.h>
 #include <schwa/config/base.h>
-#include <schwa/io/logging_enums.h>
+#include <schwa/io/enums.h>
 
 namespace schwa {
   namespace config {
@@ -98,9 +98,6 @@ namespace schwa {
 
 
     class OpIStream : public Op<std::string> {
-    public:
-      static constexpr const char *const STDIN_STRING = "<stdin>";
-
     protected:
       std::istream *_in;
       bool _is_stdin;
@@ -122,10 +119,6 @@ namespace schwa {
 
 
     class OpOStream : public Op<std::string> {
-    public:
-      static constexpr const char *const STDOUT_STRING = "<stdout>";
-      static constexpr const char *const STDERR_STRING = "<stderr>";
-
     protected:
       std::ostream *_out;
       bool _is_std;

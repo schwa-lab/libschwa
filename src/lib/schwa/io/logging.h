@@ -7,7 +7,7 @@
 #include <sstream>
 
 #include <schwa/_base.h>
-#include <schwa/io/logging_enums.h>
+#include <schwa/io/enums.h>
 
 namespace schwa {
   namespace io {

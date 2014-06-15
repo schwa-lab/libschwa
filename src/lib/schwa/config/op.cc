@@ -65,9 +65,9 @@ Option::validate(const Main &main) {
 // ============================================================================
 // OpIStream
 // ============================================================================
-OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpIStream(group, name, desc, STDIN_STRING, flags) { }
+OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpIStream(group, name, desc, io::STDIN_STRING, flags) { }
 
-OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpIStream(group, name, short_name, desc, STDIN_STRING, flags) { }
+OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpIStream(group, name, short_name, desc, io::STDIN_STRING, flags) { }
 
 OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
     Op<std::string>(group, name, desc, default_, flags),
@@ -89,7 +89,7 @@ OpIStream::~OpIStream(void) {
 
 bool
 OpIStream::_validate(const Main &) {
-  if (_value == STDIN_STRING) {
+  if (_value == io::STDIN_STRING) {
     _is_stdin = true;
     _in = &std::cin;
   }
@@ -104,9 +104,9 @@ OpIStream::_validate(const Main &) {
 // ============================================================================
 // OpOStream
 // ============================================================================
-OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpOStream(group, name, desc, STDOUT_STRING, flags) { }
+OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpOStream(group, name, desc, io::STDOUT_STRING, flags) { }
 
-OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpOStream(group, name, short_name, desc, STDOUT_STRING, flags) { }
+OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpOStream(group, name, short_name, desc, io::STDOUT_STRING, flags) { }
 
 OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
     Op<std::string>(group, name, desc, default_, flags),
@@ -128,11 +128,11 @@ OpOStream::~OpOStream(void) {
 
 bool
 OpOStream::_validate(const Main &) {
-  if (_value == STDOUT_STRING) {
+  if (_value == io::STDOUT_STRING) {
     _is_std = true;
     _out = &std::cout;
   }
-  else if (_value == STDERR_STRING) {
+  else if (_value == io::STDERR_STRING) {
     _is_std = true;
     _out = &std::cerr;
   }

@@ -1,11 +1,15 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_IO_LOGGING_ENUMS_H_
-#define SCHWA_IO_LOGGING_ENUMS_H_
+#ifndef SCHWA_IO_ENUMS_H_
+#define SCHWA_IO_ENUMS_H_
 
 #include <iosfwd>
 
 namespace schwa {
   namespace io {
+
+    extern const char *const STDIN_STRING;   //!< String that represents stdin in a human-friendly format.
+    extern const char *const STDOUT_STRING;  //!< String that represents stdout in a human-friendly format.
+    extern const char *const STDERR_STRING;  //!< String that represents stderr in a human-friendly format.
 
     /**
      * Log levels and values copied from the Python logging library.
@@ -44,4 +48,4 @@ namespace schwa {
   }
 }
 
-#endif  // SCHWA_IO_LOGGING_ENUMS_H_
+#endif  // SCHWA_IO_ENUMS_H_

@@ -60,10 +60,10 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/enums.h \
 		schwa/exception.h \
 		schwa/io/array_reader.h \
+		schwa/io/enums.h \
 		schwa/io/file_source.h \
 		schwa/io/istream_source.h \
 		schwa/io/logging.h \
-		schwa/io/logging_enums.h \
 		schwa/io/mmapped_source.h \
 		schwa/io/paths.h \
 		schwa/io/source.h \
@@ -120,6 +120,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/dr/writer.cc \
 		schwa/exception.cc \
 		schwa/io/array_reader.cc \
+		schwa/io/enums.cc \
 		schwa/io/file_source.cc \
 		schwa/io/istream_source.cc \
 		schwa/io/logging.cc \
