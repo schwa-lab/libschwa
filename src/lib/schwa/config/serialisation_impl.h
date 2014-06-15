@@ -30,14 +30,14 @@ namespace schwa {
         // Split the line into key and optional value.
         const size_t pos = line.find('=');
         if (pos == std::string::npos)
-          stack.push("--" + line);
+          stack.push(SEPARATOR + line);
         else {
           const std::string key = line.substr(0, pos);
           const std::string value = line.substr(pos + 1);
 
           // Don't put ourself back in for processing.
           if (key != full_name()) {
-            stack.push("--" + key);
+            stack.push(SEPARATOR + key);
             stack.push(value);
           }
         }

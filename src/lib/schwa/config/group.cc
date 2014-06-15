@@ -68,7 +68,7 @@ Group::_help_self(std::ostream &out, const unsigned int depth) const {
     out << "  ";
   out << port::BOLD;
   if (accepts_mention())
-    out << "--";
+    out << SEPARATOR;
   out << full_name() << port::OFF << ": " << _desc;
 }
 

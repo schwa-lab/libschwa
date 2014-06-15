@@ -99,7 +99,7 @@ namespace schwa {
       out << port::BOLD;
       if (_short_name)
         out << port::BOLD << '-' << _short_name << port::OFF << ", ";
-      out << port::BOLD << "--" << full_name() << port::OFF << ": " << _desc;
+      out << port::BOLD << Op<T>::SEPARATOR << full_name() << port::OFF << ": " << _desc;
     }
 
 
@@ -157,9 +157,9 @@ namespace schwa {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
       out << port::BOLD;
-      if (Op<T>::_short_name)
-        out << port::BOLD << '-' << Op<T>::_short_name << port::OFF << ", ";
-      out << port::BOLD << "--" << Op<T>::full_name() << port::OFF << ": " << Op<T>::_desc;
+      if (OpChoices<T>::_short_name)
+        out << port::BOLD << '-' << OpChoices<T>::_short_name << port::OFF << ", ";
+      out << port::BOLD << OpChoices<T>::SEPARATOR << OpChoices<T>::full_name() << port::OFF << ": " << OpChoices<T>::_desc;
       out << " {";
       bool first = true;
       for (const auto &it : _options) {
