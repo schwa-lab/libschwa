@@ -76,6 +76,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/traits.h \
 		schwa/io/unsafe_array_writer.h \
 		schwa/io/write_buffer.h \
+		schwa/learn.h \
 		schwa/learn/extract.h \
 		schwa/learn/extract_impl.h \
 		schwa/learn/feature_transformers.h \
@@ -294,6 +295,7 @@ RE2_HEADER_FILES = \
 		schwa/third-party/re2/util/sparse_array.h \
 		schwa/third-party/re2/util/sparse_set.h \
 		schwa/third-party/re2/util/test.h \
+		schwa/third-party/re2/util/thread.h \
 		schwa/third-party/re2/util/utf.h \
 		schwa/third-party/re2/util/util.h \
 		schwa/third-party/re2/util/valgrind.h \
