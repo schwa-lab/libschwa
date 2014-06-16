@@ -296,7 +296,7 @@ RE2_HEADER_FILES = \
 		schwa/third-party/re2/util/test.h \
 		schwa/third-party/re2/util/utf.h \
 		schwa/third-party/re2/util/util.h \
-		schwa/third-party/re2/util/valgrind.h
+		schwa/third-party/re2/util/valgrind.h \
 		schwa/third-party/re2/variadic_function.h \
 		schwa/third-party/re2/walker-inl.h
 
