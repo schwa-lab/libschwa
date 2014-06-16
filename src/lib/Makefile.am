@@ -4,11 +4,16 @@
 ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(SIMD_FLAGS)
 
-lib_LTLIBRARIES = libschwa.la
-noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+lib_LTLIBRARIES = libschwa.la libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+noinst_LTLIBRARIES =
+nobase_library_include_HEADERS =
 
 check_LIBRARIES =
 check_PROGRAMS =
+
+libschwa_la_LDFLAGS = -no-undefined -version-info $(libschwa_la_version_info)
+libschwa_thirdparty_cityhash_la_LDFLAGS = -no-undefined -version-info 4:0:0
+libschwa_thirdparty_re2_la_LDFLAGS = -no-undefined -version-info 1:0:0
 
 # =============================================================================
 # Ragel
@@ -168,7 +173,7 @@ libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_cityhash
 libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
-nobase_library_include_HEADERS = $(LIBSCHWA_HEADER_FILES)
+nobase_library_include_HEADERS += $(LIBSCHWA_HEADER_FILES)
 
 check_LIBRARIES += libschwa_unittest.a
 check_PROGRAMS += schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
@@ -246,9 +251,14 @@ schwa_utils_tests_SOURCES = \
 # =============================================================================
 # libschwa_thirdparty_cityhash Automake
 # =============================================================================
-libschwa_thirdparty_cityhash_la_SOURCES = \
-		schwa/third-party/cityhash/city.h \
+CITYHASH_HEADER_FILES = \
+		schwa/third-party/cityhash/city.h
+
+CITYHASH_SOURCE_FILES = \
 		schwa/third-party/cityhash/city.cc
+
+libschwa_thirdparty_cityhash_la_SOURCES = $(CITYHASH_HEADER_FILES) $(CITYHASH_SOURCE_FILES)
+nobase_library_include_HEADERS += $(CITYHASH_HEADER_FILES)
 
 check_PROGRAMS += cityhash_tests
 
@@ -258,69 +268,71 @@ cityhash_tests_SOURCES = schwa/third-party/cityhash/city_test.cc
 # =============================================================================
 # libschwa_thirdparty_re2 Automake
 # =============================================================================
-libschwa_thirdparty_re2_la_CPPFLAGS = $(PTHREAD_CFLAGS)
-libschwa_thirdparty_re2_la_LIBADD = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS)
-libschwa_thirdparty_re2_la_SOURCES = \
+RE2_HEADER_FILES = \
+		schwa/third-party/re2/filtered_re2.h \
+		schwa/third-party/re2/prefilter.h \
+		schwa/third-party/re2/prefilter_tree.h \
+		schwa/third-party/re2/prog.h \
+		schwa/third-party/re2/re2.h \
+		schwa/third-party/re2/regexp.h \
+		schwa/third-party/re2/set.h \
+		schwa/third-party/re2/stringpiece.h \
+		schwa/third-party/re2/testing/exhaustive_tester.h \
+		schwa/third-party/re2/testing/regexp_generator.h \
+		schwa/third-party/re2/testing/string_generator.h \
+		schwa/third-party/re2/testing/tester.h \
+		schwa/third-party/re2/unicode_casefold.h \
+		schwa/third-party/re2/unicode_groups.h \
+		schwa/third-party/re2/variadic_function.h \
+		schwa/third-party/re2/variadic_function.h \
+		schwa/third-party/re2/walker-inl.h \
+		schwa/third-party/re2/util/arena.h \
+		schwa/third-party/re2/util/atomicops.h \
+		schwa/third-party/re2/util/benchmark.h \
+		schwa/third-party/re2/util/flags.h \
+		schwa/third-party/re2/util/logging.h \
+		schwa/third-party/re2/util/mutex.h \
+		schwa/third-party/re2/util/pcre.h \
+		schwa/third-party/re2/util/random.h \
+		schwa/third-party/re2/util/sparse_array.h \
+		schwa/third-party/re2/util/sparse_set.h \
+		schwa/third-party/re2/util/test.h \
+		schwa/third-party/re2/util/utf.h \
+		schwa/third-party/re2/util/util.h \
+		schwa/third-party/re2/util/valgrind.h
+
+RE2_SOURCE_FILES = \
 		schwa/third-party/re2/bitstate.cc \
 		schwa/third-party/re2/compile.cc \
 		schwa/third-party/re2/dfa.cc \
 		schwa/third-party/re2/filtered_re2.cc \
-		schwa/third-party/re2/filtered_re2.h \
 		schwa/third-party/re2/mimics_pcre.cc \
 		schwa/third-party/re2/nfa.cc \
 		schwa/third-party/re2/onepass.cc \
 		schwa/third-party/re2/parse.cc \
 		schwa/third-party/re2/perl_groups.cc \
 		schwa/third-party/re2/prefilter.cc \
-		schwa/third-party/re2/prefilter.h \
 		schwa/third-party/re2/prefilter_tree.cc \
-		schwa/third-party/re2/prefilter_tree.h \
 		schwa/third-party/re2/prog.cc \
-		schwa/third-party/re2/prog.h \
 		schwa/third-party/re2/re2.cc \
-		schwa/third-party/re2/re2.h \
-		schwa/third-party/re2/re2.h \
 		schwa/third-party/re2/regexp.cc \
-		schwa/third-party/re2/regexp.h \
 		schwa/third-party/re2/set.cc \
-		schwa/third-party/re2/set.h \
-		schwa/third-party/re2/set.h \
 		schwa/third-party/re2/simplify.cc \
-		schwa/third-party/re2/stringpiece.h \
-		schwa/third-party/re2/stringpiece.h \
-		schwa/third-party/re2/testing/exhaustive_tester.h \
-		schwa/third-party/re2/testing/regexp_generator.h \
-		schwa/third-party/re2/testing/string_generator.h \
-		schwa/third-party/re2/testing/tester.h \
 		schwa/third-party/re2/tostring.cc \
 		schwa/third-party/re2/unicode_casefold.cc \
-		schwa/third-party/re2/unicode_casefold.h \
 		schwa/third-party/re2/unicode_groups.cc \
-		schwa/third-party/re2/unicode_groups.h \
-		schwa/third-party/re2/variadic_function.h \
-		schwa/third-party/re2/variadic_function.h \
-		schwa/third-party/re2/walker-inl.h \
 		schwa/third-party/re2/util/arena.cc \
-		schwa/third-party/re2/util/arena.h \
-		schwa/third-party/re2/util/atomicops.h \
-		schwa/third-party/re2/util/benchmark.h \
-		schwa/third-party/re2/util/flags.h \
 		schwa/third-party/re2/util/hash.cc \
-		schwa/third-party/re2/util/logging.h \
-		schwa/third-party/re2/util/mutex.h \
-		schwa/third-party/re2/util/pcre.h \
-		schwa/third-party/re2/util/random.h \
 		schwa/third-party/re2/util/rune.cc \
-		schwa/third-party/re2/util/sparse_array.h \
-		schwa/third-party/re2/util/sparse_set.h \
 		schwa/third-party/re2/util/stringpiece.cc \
 		schwa/third-party/re2/util/stringprintf.cc \
 		schwa/third-party/re2/util/strutil.cc \
-		schwa/third-party/re2/util/test.h \
-		schwa/third-party/re2/util/utf.h \
-		schwa/third-party/re2/util/util.h \
-		schwa/third-party/re2/util/valgrind.cc \
-		schwa/third-party/re2/util/valgrind.h
+		schwa/third-party/re2/util/valgrind.cc
+
+libschwa_thirdparty_re2_la_CPPFLAGS = $(PTHREAD_CFLAGS)
+libschwa_thirdparty_re2_la_LIBADD = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS)
+libschwa_thirdparty_re2_la_SOURCES = $(RE2_HEADER_FILES) $(RE2_SOURCE_FILES)
+nobase_library_include_HEADERS += $(RE2_HEADER_FILES)
 
 LIBRE2_TEST_CPPFLAGS = $(PTHREAD_CFLAGS)
 LIBRE2_TEST_LDADD = $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) libschwa_thirdparty_re2_unittest.a libschwa_thirdparty_re2.la
