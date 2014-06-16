@@ -16,6 +16,7 @@
 #include <sstream>
 
 #include <schwa/io/logging.h>
+#include <schwa/io/streams.h>
 
 
 namespace schwa {
@@ -51,13 +52,9 @@ demangle_typeid(const char *const typeid_name) {
 
 
 bool
-make_stdout_pager(std::ostream &out) {
-  // If the provided ostream is not stdout, bail.
-  if (out.rdbuf() != std::cout.rdbuf())
-    return false;
-
-  // If stdout is not a tty, bail.
-  if (!::isatty(STDOUT_FILENO))
+make_stdout_pager(io::OutputStream &out) {
+  /// If the provided ostream is not stdout and not a tty, bail.
+  if (!(out.is_stdout() && out.is_tty()))
     return false;
 
   // Ensure we actually have a pager.

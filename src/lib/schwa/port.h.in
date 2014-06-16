@@ -11,6 +11,10 @@
 
 
 namespace schwa {
+  namespace io {
+    class OutputStream;
+  }
+
   namespace port {
 
     extern const char *BOLD;
@@ -29,7 +33,7 @@ namespace schwa {
      *
      * Warning: if successful, this function most likely forks.
      **/
-    bool make_stdout_pager(std::ostream &out);
+    bool make_stdout_pager(io::OutputStream &out);
 
     inline uint16_t h_to_be16(const uint16_t x) { return @ENDIAN_CONVERSION_H_TO_BE16@(x); }
     inline uint32_t h_to_be32(const uint32_t x) { return @ENDIAN_CONVERSION_H_TO_BE32@(x); }
