@@ -27,5 +27,5 @@ clean-docs:
 
 wc:
 	for d in src/lib src/apps; do \
-		find $${d} \( -name "*.cc" -or -name "*.h" \) | egrep -v '_(gen|test)\.cc' | xargs wc -l; \
+		find $${d} \( -name "*.cc" -or -name "*.h" \) | egrep -v '_(gen|test)\.cc' | grep -vF /third-party/ | xargs wc -l; \
 	done
