@@ -4,8 +4,8 @@
 ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(SIMD_FLAGS)
 
-lib_LTLIBRARIES = libschwa.la libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
-noinst_LTLIBRARIES =
+lib_LTLIBRARIES = libschwa.la
+noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
 nobase_library_include_HEADERS =
 
 check_LIBRARIES =
@@ -283,9 +283,6 @@ RE2_HEADER_FILES = \
 		schwa/third-party/re2/testing/tester.h \
 		schwa/third-party/re2/unicode_casefold.h \
 		schwa/third-party/re2/unicode_groups.h \
-		schwa/third-party/re2/variadic_function.h \
-		schwa/third-party/re2/variadic_function.h \
-		schwa/third-party/re2/walker-inl.h \
 		schwa/third-party/re2/util/arena.h \
 		schwa/third-party/re2/util/atomicops.h \
 		schwa/third-party/re2/util/benchmark.h \
@@ -300,6 +297,8 @@ RE2_HEADER_FILES = \
 		schwa/third-party/re2/util/utf.h \
 		schwa/third-party/re2/util/util.h \
 		schwa/third-party/re2/util/valgrind.h
+		schwa/third-party/re2/variadic_function.h \
+		schwa/third-party/re2/walker-inl.h
 
 RE2_SOURCE_FILES = \
 		schwa/third-party/re2/bitstate.cc \
