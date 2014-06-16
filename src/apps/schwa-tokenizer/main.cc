@@ -34,7 +34,7 @@ main(int argc, char **argv) {
 
   cfg.allow_unclaimed_args("[input-path...]");
 
-  bool success;
+  bool success = true;
   SCHWA_MAIN(cfg, [&] {
     // Parse argv.
     cfg.main<io::PrettyLogger>(argc, argv);

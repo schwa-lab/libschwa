@@ -26,7 +26,7 @@ main(int argc, char **argv) {
   cf::Op<bool> preserve_order(cfg, "preserve-order", "Whether or not the order of documents written out should be preserved", true);
   cf::Op<bool> kill_clients(cfg, "kill-clients", "Whether or not to instruct the clients to terminate once all of the documents have been processed", true);
 
-  bool success_source, success_sink;
+  bool success_source = true, success_sink = true;
   SCHWA_MAIN(cfg, [&] {
     // Parse argv.
     cfg.main<io::ThreadsafePrettyLogger>(argc, argv);
