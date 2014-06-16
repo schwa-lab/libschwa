@@ -19,7 +19,7 @@ namespace schwa {
       std::vector<ConfigNode *> _owned;
       std::vector<ConfigNode *> _positional_arg_nodes;
 
-      bool _allow_unclaimed_args;
+      std::string _unclaimed_args_desc;
       std::vector<std::string> _cmdline_args;
       std::vector<std::string> _unclaimed_args;
 
@@ -52,8 +52,8 @@ namespace schwa {
 
       void help(std::ostream &out) const;
 
-      inline void allow_unclaimed_args(const bool allow_unclaimed_args) { _allow_unclaimed_args = allow_unclaimed_args; }
-      inline bool allow_unclaimed_args(void) const { return _allow_unclaimed_args; }
+      inline void allow_unclaimed_args(const std::string &desc) { _unclaimed_args_desc = desc; }
+      inline bool allow_unclaimed_args(void) const { return !_unclaimed_args_desc.empty(); }
       inline const std::vector<std::string> &unclaimed_args(void) const { return _unclaimed_args; }
 
       inline OpHelp *op_help(void) { return _op_help; }

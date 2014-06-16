@@ -26,7 +26,7 @@ throw_config_exception(const std::string &msg, const std::string &key) {
 }
 
 
-Main::Main(const std::string &name, const std::string &desc) : Group(name, desc), _allow_unclaimed_args(false) {
+Main::Main(const std::string &name, const std::string &desc) : Group(name, desc) {
   _owned.push_back(_op_help = new OpHelp(*this));
   _owned.push_back(_op_version = new OpVersion(*this));
   _owned.push_back(_op_log = new Op<std::string>(*this, "log", "The file to log to", "/dev/stderr"));
@@ -87,8 +87,8 @@ Main::_help_self(std::ostream &out, const unsigned int) const {
   out << "  Usage: " << full_name() << " [options]";
   for (auto &c : _positional_arg_nodes)
     out << " [" << c->name() << "]";
-  if (_allow_unclaimed_args)
-    out << " [args...]";
+  if (allow_unclaimed_args())
+    out << " " << _unclaimed_args_desc;
   out << std::endl;
 }
 
@@ -202,7 +202,7 @@ Main::_main(void) {
     return false;
 
   // If we're not allowing unclaimed args but there are still some positional arguments left, reject.
-  if (!_allow_unclaimed_args && !positional_args.empty())
+  if (!allow_unclaimed_args() && !positional_args.empty())
     throw_config_exception("Unknown option or value", positional_args.front());
 
   // Copy across the remaining positional arguments to the unclaimed arguments.
