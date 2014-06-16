@@ -4,31 +4,40 @@ set -e
 
 MAINTAINER_NAME='Tim Dawborn'
 MAINTAINER_EMAIL='tim.dawborn@gmail.com'
-WORKING_DIR=/tmp/create-deb-package
 
+# Ensure we have a correct looking argument.
+if [[ ${#} -ne 1 ]]; then
+  echo "Usage: ${0} libschwa-X.Y.Z.tar.gz"
+  exit 1
+fi
 
-# Relocate to the top level project directory.
-cd $(dirname ${0})/..
+if ! $(echo "${1}" | grep -q '^libschwa-[0-9]*\.[0-9]*\.[0-9]*\.tar\.gz$'); then
+  echo "Usage: ${0} libschwa-X.Y.Z.tar.gz"
+  exit 1
+fi
+VERSION=$(echo "${1}" | grep -o '[0-9]*\.[0-9]*\.[0-9]*')
+
+if [[ "$(uname)" != "Linux" ]]; then
+  echo 'Error: this script must be run on a Linux machine.'
+  exit 1
+fi
+
+# Work out absolute path to tarball.
+TARBALL="$(cd $(dirname ${1}) && pwd)/$(basename ${1})"
+
+# Create the working directory.
+WORKING_DIR=$(mktemp -d)
+trap 'rm -rf "${WORKING_DIR}"' EXIT
 
 # Check required dependencies for building a deb file.
 sudo apt-get install build-essential autoconf automake autotools-dev dh-make debhelper devscripts fakeroot xutils lintian pbuilder
 
-# Create the distribution.
-make dist
-version=$(tail -n +2 m4/version.m4)
-
-# Create and relocate to the working directory.
-rm -rf ${WORKING_DIR}
-mkdir -p ${WORKING_DIR}
-cp libschwa-${version}.tar.gz ${WORKING_DIR}
-cd ${WORKING_DIR}
-
 # Extract the tarball and go into the extracted folder.
-tar xzf libschwa-${version}.tar.gz
-cd libschwa-${version}
+tar xzf "${TARBALL}" -C ${WORKING_DIR}
+cd ${WORKING_DIR}/libschwa-*
 
 # Start the debianisation.
-dh_make --email "${MAINTAINER_EMAIL}" --multi --file ../libschwa-${version}.tar.gz
+dh_make --email "${MAINTAINER_EMAIL}" --multi --file "${TARBALL}"
 
 # Update the generated debian files.
 cat > debian/control <<EOF
@@ -49,11 +58,13 @@ EOF
 cp LICENCE debian/copyright
 
 # Build the source as a debian package.
-dpkg-buildpackage -rfakeroot
+dpkg-buildpackage -rfakeroot -us -uc
 
 # Install the generated deb file on packages.schwa.org.
 read -r -p 'Copy deb file to packages.schwa.org? [y/N] ' response
 if [[ ${response} =~ ^([yY][eE][sS]|[yY])$ ]]; then
-  scp ../libschwa*.deb deb@ch2:packages/ubuntu/pool/main/precise
-  ssh deb@ch2 'packages/ubuntu/update-amd64.sh precise'
+  LSB_RELEASE=$(lsb_release -c -s)
+  scp ../libschwa*.deb setup@ch2:/var/www/sites/packages/ubuntu/pool/main/${LSB_RELEASE}
+  ssh setup@ch2 "/var/www/sites/packages/ubuntu/update.sh"
 fi
+cp ../libschwa*.deb /tmp

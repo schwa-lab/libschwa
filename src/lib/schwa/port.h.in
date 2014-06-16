@@ -1,14 +1,20 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #ifndef SCHWA_PORT_H_
 #define SCHWA_PORT_H_
-#include <schwa/_base.h>
 
 #include <string>
+#include <vector>
 
 #include <@ENDIAN_CONVERSION_HEADER@>
 
+#include <schwa/_base.h>
+
 
 namespace schwa {
+  namespace io {
+    class OutputStream;
+  }
+
   namespace port {
 
     extern const char *BOLD;
@@ -22,28 +28,12 @@ namespace schwa {
     std::string demangle_typeid(const char *typeid_name);
 
     /**
-     * Returns the absolute path to the currently running executable.
-     * See http://stackoverflow.com/a/1024937 for the system-dependant ways to obtain this.
-     **/
-    std::string abspath_to_argv0(void);
-
-    /**
-     * Returns the directory of the provided \p path.
-     **/
-    std::string path_dirname(const std::string &path);
-
-    /**
-     * Returns paths \p a and \p b joined together.
-     **/
-    std::string path_join(const std::string &a, const std::string &b);
-
-    /**
      * If the functionality is available, and the provided ostream is stdout, fork and exec to make
      * the stdout a pager. Returns whether or not this occurred.
      *
      * Warning: if successful, this function most likely forks.
      **/
-    bool make_stdout_pager(std::ostream &out);
+    bool make_stdout_pager(io::OutputStream &out);
 
     inline uint16_t h_to_be16(const uint16_t x) { return @ENDIAN_CONVERSION_H_TO_BE16@(x); }
     inline uint32_t h_to_be32(const uint32_t x) { return @ENDIAN_CONVERSION_H_TO_BE32@(x); }

@@ -19,7 +19,6 @@ aclocal.in
 aclocal.m4
 autom4te.cache
 build-aux
-config.h*
 config.log
 config.status
 configure
@@ -28,4 +27,5 @@ libtool
 m4/*.m4
 stamp-h1
 /src/lib/schwa/_base.h
+/src/lib/schwa/_config.h*
 /src/lib/schwa/port.h

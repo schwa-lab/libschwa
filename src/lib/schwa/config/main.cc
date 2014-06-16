@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/port.h>
 #include <schwa/utils/shlex.h>
 #include <schwa/version.h>
@@ -26,15 +26,13 @@ throw_config_exception(const std::string &msg, const std::string &key) {
 }
 
 
-Main::Main(const std::string &name, const std::string &desc) :
-    Group(name, desc),
-    _allow_unclaimed_args(false) {
-  _owned.push_back(new OpHelp(*this));
-  _owned.push_back(new OpVersion(*this));
-  _owned.push_back(_log = new Op<std::string>(*this, "log", "The file to log to", "/dev/stderr"));
-  _owned.push_back(_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
-  _owned.push_back(_load_config = new OpLoadConfig(*this));
-  _owned.push_back(_save_config = new OpSaveConfig(*this));
+Main::Main(const std::string &name, const std::string &desc) : Group(name, desc) {
+  _owned.push_back(_op_help = new OpHelp(*this));
+  _owned.push_back(_op_version = new OpVersion(*this));
+  _owned.push_back(_op_log = new Op<std::string>(*this, "log", "The file to log to", "/dev/stderr"));
+  _owned.push_back(_op_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
+  _owned.push_back(_op_load_config = new OpLoadConfig(*this));
+  _owned.push_back(_op_save_config = new OpSaveConfig(*this));
 }
 
 
@@ -85,12 +83,12 @@ Main::_help(std::ostream &out, const unsigned int depth) const {
 
 void
 Main::_help_self(std::ostream &out, const unsigned int) const {
-  out << port::BOLD << _full_name << port::OFF << ": " << _desc << std::endl;
-  out << "  Usage: " << _full_name << " [options]";
+  out << port::BOLD << full_name() << port::OFF << ": " << desc() << std::endl;
+  out << "  Usage: " << full_name() << " [options]";
   for (auto &c : _positional_arg_nodes)
     out << " [" << c->name() << "]";
-  if (_allow_unclaimed_args)
-    out << " [args...]";
+  if (allow_unclaimed_args())
+    out << " " << _unclaimed_args_desc;
   out << std::endl;
 }
 
@@ -137,7 +135,7 @@ Main::_main(void) {
   std::sort(
       _positional_arg_nodes.begin(),
       _positional_arg_nodes.end(),
-      [](const ConfigNode *a, const ConfigNode *b) { return a->position_arg_precedence() < b->position_arg_precedence(); }
+      [](const ConfigNode *a, const ConfigNode *b) { return a->positional_precedence() < b->positional_precedence(); }
   );
 
   // Place the arguments into a queue for ease of processing.
@@ -182,11 +180,11 @@ Main::_main(void) {
     }
 
     // If the node is the load-config node, load the config.
-    if (node == _load_config)
-      _load_config->load_config(args);
+    if (node == _op_load_config)
+      _op_load_config->load_config(args);
   }
 
-  // TODO positional argument
+  // Take care of the positional arguments.
   if (!positional_args.empty()) {
     for (auto &c : _positional_arg_nodes) {
       if (positional_args.empty())
@@ -204,7 +202,7 @@ Main::_main(void) {
     return false;
 
   // If we're not allowing unclaimed args but there are still some positional arguments left, reject.
-  if (!_allow_unclaimed_args && !positional_args.empty())
+  if (!allow_unclaimed_args() && !positional_args.empty())
     throw_config_exception("Unknown option or value", positional_args.front());
 
   // Copy across the remaining positional arguments to the unclaimed arguments.
@@ -215,7 +213,7 @@ Main::_main(void) {
   }
 
   // Perform the saving of the config, if required.
-  _save_config->save_config(*this);
+  _op_save_config->save_config(*this);
 
   return true;
 }

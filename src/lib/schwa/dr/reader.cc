@@ -26,7 +26,7 @@ namespace mp = schwa::msgpack;
 namespace schwa {
 namespace dr {
 
-Reader::Reader(std::istream &in, BaseDocSchema &dschema) :
+Reader::Reader(std::istream &in, const BaseDocSchema &dschema) :
     _in(in),
     _dschema(dschema),
     _has_more(false)
@@ -513,7 +513,7 @@ read_lazy_doc(std::istream &in, std::ostream &out) {
       return false;
 
   // instances (nstores + 1 size-data pairs)
-  for (; nstores >= 0; --nstores) {
+  for ( ; nstores >= 0; --nstores) {
     const uint64_t nbytes = mp::read_uint(in);
     mp::write_uint(out, nbytes);
 
@@ -521,7 +521,10 @@ read_lazy_doc(std::istream &in, std::ostream &out) {
       buf.reset(new char[nbytes]);
       buf_size = nbytes;
     }
+
     in.read(buf.get(), nbytes);
+    if (!in)
+      return false;
     out.write(buf.get(), nbytes);
   }
 

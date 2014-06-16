@@ -8,6 +8,7 @@
 
 #include <schwa/_base.h>
 
+
 namespace schwa {
 
   /**
@@ -23,9 +24,21 @@ namespace schwa {
     Exception(const Exception &o) : std::exception(o), _msg(o._msg) { }
     virtual ~Exception(void) throw() { }
 
-    virtual const char* what(void) const throw() override { return _msg.c_str(); }
-
     inline const std::string &msg(void) const { return _msg; }
+    virtual const char* what(void) const throw() override { return _msg.c_str(); }
+  };
+
+
+  /**
+   * Exception subclass to indicate an error in the configuration framework. This includes both
+   * the invalid setting up of the configuration framework itself and the invalid parsing of
+   * configuration values.
+   **/
+  class ConfigException : public Exception {
+  public:
+    explicit ConfigException(const std::string &msg) : Exception(msg) { }
+    ConfigException(const ConfigException &other) : Exception(other) { }
+    virtual ~ConfigException(void) throw() { }
   };
 
 
@@ -46,8 +59,8 @@ namespace schwa {
     IOException(const IOException &other);
     virtual ~IOException(void) throw() { }
 
-    inline const std::string &uri(void) const { return _uri; }
     inline int linenum(void) const { return _linenum; }
+    inline const std::string &uri(void) const { return _uri; }
   };
 
 
@@ -60,6 +73,27 @@ namespace schwa {
     ValueException(const ValueException &o) : Exception(o) { }
     virtual ~ValueException(void) throw() { }
   };
+
+
+  /**
+   * Exception used to quick escape to terminate ::main.
+   **/
+  class SystemExit : std::exception {
+  protected:
+    std::string _msg;
+    int _exit_code;
+
+  public:
+    explicit SystemExit(int exit_code);
+    SystemExit(const SystemExit &o) : std::exception(o), _exit_code(o._exit_code) { }
+    virtual ~SystemExit(void) throw() { }
+
+    inline int exit_code(void) const { return _exit_code; }
+    inline const std::string &msg(void) const { return _msg; }
+    virtual const char* what(void) const throw() override { return _msg.c_str(); }
+  };
+
+
 
 
   /**

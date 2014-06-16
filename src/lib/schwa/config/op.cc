@@ -5,9 +5,10 @@
 #include <iostream>
 #include <sstream>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/config/group.h>
 #include <schwa/config/main.h>
+#include <schwa/io/streams.h>
 #include <schwa/version.h>
 
 namespace io = schwa::io;
@@ -62,92 +63,6 @@ Option::validate(const Main &main) {
 
 
 // ============================================================================
-// OpIStream
-// ============================================================================
-OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpIStream(group, name, desc, STDIN_STRING, flags) { }
-
-OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpIStream(group, name, short_name, desc, STDIN_STRING, flags) { }
-
-OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, desc, default_, flags),
-    _in(nullptr),
-    _is_stdin(false)
-  { }
-
-OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, short_name, desc, default_, flags),
-    _in(nullptr),
-    _is_stdin(false)
-  { }
-
-OpIStream::~OpIStream(void) {
-  if (!_is_stdin)
-    delete _in;
-}
-
-
-bool
-OpIStream::_validate(const Main &) {
-  if (_value == STDIN_STRING) {
-    _is_stdin = true;
-    _in = &std::cin;
-  }
-  else {
-    _is_stdin = false;
-    _in = new std::ifstream(_value);
-    if (!*_in)
-      throw IOException("Could not open file for reading", _value);
-  }
-  return true;
-}
-
-
-// ============================================================================
-// OpOStream
-// ============================================================================
-OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpOStream(group, name, desc, STDOUT_STRING, flags) { }
-
-OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpOStream(group, name, short_name, desc, STDOUT_STRING, flags) { }
-
-OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, desc, default_, flags),
-    _out(nullptr),
-    _is_std(false)
-  { }
-
-OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, short_name, desc, default_, flags),
-    _out(nullptr),
-    _is_std(false)
-  { }
-
-OpOStream::~OpOStream(void) {
-  if (!_is_std)
-    delete _out;
-}
-
-
-bool
-OpOStream::_validate(const Main &) {
-  if (_value == STDOUT_STRING) {
-    _is_std = true;
-    _out = &std::cout;
-  }
-  else if (_value == STDERR_STRING) {
-    _is_std = true;
-    _out = &std::cerr;
-  }
-  else {
-    _is_std = false;
-    _out = new std::ofstream(_value);
-    if (!*_out)
-      throw IOException("Could not open file for writing", _value);
-  }
-  return true;
-}
-
-
-// ============================================================================
 // OpLogLevel
 // ============================================================================
 OpLogLevel::OpLogLevel(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
@@ -184,6 +99,38 @@ OpLogLevel::_validate(const Main &main) {
 
 
 // ============================================================================
+// OpSequenceTagFormat
+// ============================================================================
+OpSequenceTagFormat::OpSequenceTagFormat(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
+    OpChoices<std::string>(group, name, desc, {"iob1", "iob2", "bmewo"}, default_),
+    _format(SequenceTagFormat::IOB2)
+  { }
+
+OpSequenceTagFormat::OpSequenceTagFormat(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_) :
+    OpChoices<std::string>(group, name, short_name, desc, {"iob1", "iob2", "bmewo"}, default_),
+    _format(SequenceTagFormat::IOB2)
+  { }
+
+OpSequenceTagFormat::~OpSequenceTagFormat(void) { }
+
+
+bool
+OpSequenceTagFormat::_validate(const Main &main) {
+  if (!OpChoices<std::string>::_validate(main))
+    return false;
+  if (_value == "iob1")
+    _format = SequenceTagFormat::IOB1;
+  else if (_value == "iob2")
+    _format = SequenceTagFormat::IOB2;
+  else if (_value == "bmewo")
+    _format = SequenceTagFormat::BMEWO;
+  else
+    return false;
+  return true;
+}
+
+
+// ============================================================================
 // CommandOption
 // ============================================================================
 void
@@ -196,9 +143,9 @@ void
 CommandOption::_help_self(std::ostream &out, const unsigned int depth) const {
   for (unsigned int i = 0; i != depth; ++i)
     out << "  ";
-  if (_short_name)
-    out << port::BOLD << '-' << _short_name << port::OFF << ", ";
-  out << port::BOLD << "--" << _full_name << port::OFF << ": " << _desc;
+  if (short_name())
+    out << port::BOLD << '-' << short_name() << port::OFF << ", ";
+  out << port::BOLD << SEPARATOR << full_name() << port::OFF << ": " << desc();
 }
 
 
@@ -232,14 +179,11 @@ CommandOption::set_default(void) {
 // ============================================================================
 bool
 OpHelp::_validate(const Main &main) {
-  if (_was_mentioned)
+  if (_was_mentioned) {
     main.help(std::cerr);
+    throw SystemExit(0);
+  }
   return true;
-}
-
-bool
-OpHelp::terminate_main(void) const {
-  return _was_mentioned;
 }
 
 
@@ -248,14 +192,11 @@ OpHelp::terminate_main(void) const {
 // ============================================================================
 bool
 OpVersion::_validate(const Main &main) {
-  if (_was_mentioned)
-    std::cerr << port::BOLD << main.name() << port::OFF << ": " << VERSION << std::endl;
+  if (_was_mentioned) {
+    std::cout << port::BOLD << main.name() << port::OFF << ": " << VERSION << std::endl;
+    throw SystemExit(0);
+  }
   return true;
-}
-
-bool
-OpVersion::terminate_main(void) const {
-  return _was_mentioned;
 }
 
 }  // namespace config

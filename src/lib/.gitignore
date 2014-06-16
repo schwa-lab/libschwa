@@ -1,1 +1,28 @@
-unittests
+# libschwa unit tests
+/schwa_tests
+/schwa_containers_tests
+/schwa_dr_tests
+/schwa_io_tests
+/schwa_learn_tests
+/schwa_mpl_tests
+/schwa_msgpack_tests
+/schwa_utils_tests
+
+# cityhash unit tests
+/cityhash_tests
+
+# re2 unit tests
+/libre2_charclass_test
+/libre2_compile_test
+/libre2_filtered_re2_test
+/libre2_mimics_pcre_test
+/libre2_parse_test
+/libre2_possible_match_test
+/libre2_re2_arg_test
+/libre2_re2_test
+/libre2_regexp_test
+/libre2_required_prefix_test
+/libre2_search_test
+/libre2_set_test
+/libre2_simplify_test
+/libre2_string_generator_test

@@ -28,6 +28,9 @@ namespace schwa {
 
       inline bool operator ==(const Slice<T> &o) const { return start == o.start && stop == o.stop; }
       inline bool operator !=(const Slice<T> &o) const { return start != o.start || stop != o.stop; }
+
+      inline T begin(void) const { return start; }
+      inline T end(void) const { return stop; }
     };
 
 

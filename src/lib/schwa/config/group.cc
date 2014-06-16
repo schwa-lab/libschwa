@@ -5,7 +5,6 @@
 #include <sstream>
 
 #include <schwa/exception.h>
-#include <schwa/config/exception.h>
 #include <schwa/port.h>
 
 
@@ -18,17 +17,17 @@ Group::Group(Group &group, const std::string &name, const std::string &desc, con
 
 
 ConfigNode *
-Group::find(const char short_name) {
-  if (_short_name == short_name)
+Group::find(const char name) {
+  if (short_name() == name)
     return this;
 
   for (auto &child : _options) {
-    ConfigNode *const p = child->find(short_name);
+    ConfigNode *const p = child->find(name);
     if (p != nullptr)
       return p;
   }
   for (auto &child : _groups) {
-    ConfigNode *const p = child->find(short_name);
+    ConfigNode *const p = child->find(name);
     if (p != nullptr)
       return p;
   }
@@ -69,8 +68,8 @@ Group::_help_self(std::ostream &out, const unsigned int depth) const {
     out << "  ";
   out << port::BOLD;
   if (accepts_mention())
-    out << "--";
-  out << _full_name << port::OFF << ": " << _desc;
+    out << SEPARATOR;
+  out << full_name() << port::OFF << ": " << desc();
 }
 
 
@@ -109,7 +108,7 @@ Group::_pre_add(ConfigNode &child) {
 
 void
 Group::_post_add(ConfigNode &child) {
-  child.set_prefix(_name);
+  child.set_parent(this);
 }
 
 
@@ -183,18 +182,6 @@ Group::serialise(std::ostream &out) const {
 
   for (auto &c : _groups)
     c->serialise(out);
-}
-
-
-bool
-Group::terminate_main(void) const {
-  for (auto &child : _options)
-    if (child->terminate_main())
-      return true;
-  for (auto &child : _groups)
-    if (child->terminate_main())
-      return true;
-  return false;
 }
 
 

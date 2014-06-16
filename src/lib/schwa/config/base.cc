@@ -4,7 +4,7 @@
 #include <cctype>
 #include <sstream>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 
 
 namespace schwa {
@@ -15,10 +15,10 @@ ConfigNode::ConfigNode(const std::string &name, const std::string &desc, const F
 ConfigNode::ConfigNode(const std::string &name, const char short_name, const std::string &desc, const Flags flags) :
     _name(name),
     _desc(desc),
-    _full_name(name),
     _short_name(short_name),
     _flags(flags),
-    _position_arg_precedence(-1),
+    _parent(nullptr),
+    _positional_precedence(-1),
     _was_mentioned(false),
     _was_assigned(false) {
   // Option names cannot be empty.
@@ -51,10 +51,10 @@ ConfigNode::ConfigNode(const std::string &name, const char short_name, const std
 
 
 void
-ConfigNode::position_arg_precedence(const int precedence) {
+ConfigNode::set_positional_precedence(const int precedence) {
   if (precedence < 0)
     throw ConfigException("precedence value must be >= 0");
-  _position_arg_precedence = precedence;
+  _positional_precedence = precedence;
 }
 
 
@@ -84,15 +84,19 @@ ConfigNode::find(const std::string &key) {
 }
 
 
-void
-ConfigNode::set_prefix(const std::string &prefix) {
-  _full_name = prefix + SEPARATOR + _name;
+std::string
+ConfigNode::full_name(void) const {
+  std::ostringstream ss;
+  if (_parent != nullptr)
+    ss << _parent->full_name() << SEPARATOR;
+  ss << _name;
+  return ss.str();
 }
 
 
 void
 ConfigNode::_get_positional_arg_nodes(std::vector<ConfigNode *> &nodes) {
-  if (_position_arg_precedence != -1)
+  if (_positional_precedence != -1)
     nodes.push_back(this);
 }
 

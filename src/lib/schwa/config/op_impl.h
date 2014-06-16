@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/config/op.h>
 #include <schwa/port.h>
 
@@ -97,9 +97,9 @@ namespace schwa {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
       out << port::BOLD;
-      if (_short_name)
-        out << port::BOLD << '-' << _short_name << port::OFF << ", ";
-      out << port::BOLD << "--" << _full_name << port::OFF << ": " << _desc;
+      if (short_name())
+        out << port::BOLD << '-' << short_name() << port::OFF << ", ";
+      out << port::BOLD << SEPARATOR << full_name() << port::OFF << ": " << desc();
     }
 
 
@@ -157,9 +157,9 @@ namespace schwa {
       for (unsigned int i = 0; i != depth; ++i)
         out << "  ";
       out << port::BOLD;
-      if (Op<T>::_short_name)
-        out << port::BOLD << '-' << Op<T>::_short_name << port::OFF << ", ";
-      out << port::BOLD << "--" << Op<T>::_full_name << port::OFF << ": " << Op<T>::_desc;
+      if (OpChoices<T>::short_name())
+        out << port::BOLD << '-' << OpChoices<T>::short_name() << port::OFF << ", ";
+      out << port::BOLD << OpChoices<T>::SEPARATOR << OpChoices<T>::full_name() << port::OFF << ": " << OpChoices<T>::desc();
       out << " {";
       bool first = true;
       for (const auto &it : _options) {

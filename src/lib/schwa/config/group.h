@@ -45,7 +45,6 @@ namespace schwa {
       virtual bool requires_assignment(void) const override;
 
       virtual void serialise(std::ostream &out) const override;
-      virtual bool terminate_main(void) const override;
       virtual bool validate(const Main &main) override;
 
     private:

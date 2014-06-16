@@ -122,12 +122,12 @@ parse(const char **upto, Pool &pool, Node *const parent) {
 
 
 static void
-main(std::istream &input, std::ostream &output, const bool ptb) {
+main(std::istream &in, std::ostream &out, const bool ptb) {
   char buf[4096];
   char *end;
 
   // Read in lines from the input.
-  while (input.getline(buf, sizeof(buf))) {
+  while (in.getline(buf, sizeof(buf))) {
     // Strip spaces from the end of the line.
     for (end = buf; *end != '\0'; ++end) { }
     --end;
@@ -146,14 +146,23 @@ main(std::istream &input, std::ostream &output, const bool ptb) {
     catch (ParseException) { }
 
     if (tree == nullptr)
-      output << buf;
+      out << buf;
     else {
       if (ptb)
-        tree->pprint_ptb(output);
+        tree->pprint_ptb(out);
       else
-        tree->pprint_hierarchy(output);
+        tree->pprint_hierarchy(out);
     }
-    output << std::endl;
+    out << std::endl;
+  }
+}
+
+
+static void
+main(const std::vector<std::string> &input_paths, std::ostream &out, const bool ptb) {
+  for (const auto &input_path : input_paths) {
+    io::InputStream in(input_path);
+    main(in, out, ptb);
   }
 }
 
@@ -161,25 +170,34 @@ main(std::istream &input, std::ostream &output, const bool ptb) {
 }  // namespace schwa
 
 
+
+
 int
 main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("ccg-pprint", "Pretty-print CCG derivations");
-  cf::OpIStream input(cfg, "input", 'i', "The input file");
-  cf::OpOStream output(cfg, "output", 'o', "The output file");
+  cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
+  cf::Op<std::string> output_path(cfg, "output", 'o', "The output path", io::STDOUT_STRING);
   cf::Op<bool> ptb(cfg, "ptb", 'p', "Pretty-print the trees in PTB format", false);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  cfg.allow_unclaimed_args("[input-path...]");
 
-  // Dispatch to main function.
-  try {
-    schwa::ccg_pprint::main(input.file(), output.file(), ptb());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
+
+    // Work out which input paths to read from.
+    std::vector<std::string> input_paths;
+    if (input_path.was_mentioned() || cfg.unclaimed_args().empty())
+      input_paths.push_back(input_path());
+    else
+      input_paths = cfg.unclaimed_args();
+
+    // Open the ouptut stream.
+    io::OutputStream out(output_path());
+
+    // Dispatch main.
+    schwa::ccg_pprint::main(input_paths, out, ptb());
+  })
   return 0;
 }

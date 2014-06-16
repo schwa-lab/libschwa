@@ -397,7 +397,9 @@ namespace schwa {
     template <typename S, typename T, Store<S> T::*store_ptr>
     inline void
     StoreDef<Store<S> T::*, store_ptr>::resize(Doc &doc, const size_t size) const {
-      (static_cast<T &>(doc).*store_ptr).resize(size);
+      auto &v = static_cast<T &>(doc).*store_ptr;
+      v.clear();
+      v.resize(size);
     }
 
 

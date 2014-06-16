@@ -9,7 +9,9 @@
 
 #include <schwa/_base.h>
 #include <schwa/config/base.h>
-#include <schwa/io/logging_enums.h>
+#include <schwa/io/enums.h>
+#include <schwa/io/streams.h>
+
 
 namespace schwa {
   namespace config {
@@ -97,55 +99,6 @@ namespace schwa {
     };
 
 
-    class OpIStream : public Op<std::string> {
-    public:
-      static constexpr const char *const STDIN_STRING = "<stdin>";
-
-    protected:
-      std::istream *_in;
-      bool _is_stdin;
-
-      virtual bool _validate(const Main &main) override;
-
-    public:
-      OpIStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
-      OpIStream(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
-      OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      OpIStream(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      virtual ~OpIStream(void);
-
-      inline std::istream &file(void) const { return *_in; }
-
-    private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpIStream);
-    };
-
-
-    class OpOStream : public Op<std::string> {
-    public:
-      static constexpr const char *const STDOUT_STRING = "<stdout>";
-      static constexpr const char *const STDERR_STRING = "<stderr>";
-
-    protected:
-      std::ostream *_out;
-      bool _is_std;
-
-      virtual bool _validate(const Main &main) override;
-
-    public:
-      OpOStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
-      OpOStream(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
-      OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      OpOStream(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      virtual ~OpOStream(void);
-
-      inline std::ostream &file(void) const { return *_out; }
-
-    private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpOStream);
-    };
-
-
     class OpLogLevel : public OpChoices<std::string> {
     protected:
       schwa::io::LogLevel _level;
@@ -161,6 +114,24 @@ namespace schwa {
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpLogLevel);
+    };
+
+
+    class OpSequenceTagFormat : public OpChoices<std::string> {
+    protected:
+      SequenceTagFormat _format;
+
+      virtual bool _validate(const Main &main) override;
+
+    public:
+      OpSequenceTagFormat(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      OpSequenceTagFormat(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
+      virtual ~OpSequenceTagFormat(void);
+
+      inline SequenceTagFormat format(void) const { return _format; }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpSequenceTagFormat);
     };
 
 
@@ -190,8 +161,6 @@ namespace schwa {
       OpHelp(Group &group, const std::string &name="help", char short_name='h', const std::string &desc="Displays the help text") : CommandOption(group, name, short_name, desc) { }
       virtual ~OpHelp(void) { }
 
-      virtual bool terminate_main(void) const override;
-
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpHelp);
     };
@@ -204,8 +173,6 @@ namespace schwa {
     public:
       OpVersion(Group &group, const std::string &name="version", const std::string &desc="Displays the version") : CommandOption(group, name, desc) { }
       virtual ~OpVersion(void) { }
-
-      virtual bool terminate_main(void) const override;
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpVersion);
