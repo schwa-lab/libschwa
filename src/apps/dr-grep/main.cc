@@ -30,15 +30,22 @@ main(const std::vector<std::string> &input_paths, std::ostream &out, const std::
   interpreter.compile(expression);
 
   // Process each input stream.
+  uint32_t doc_num = 0;
   for (const std::string &input_path : input_paths) {
     io::InputStream in(input_path);
     dr::Reader reader(in, schema);
 
     // Read the documents off the input stream and evaluate them against the expression.
-    for (uint32_t i = 0; reader >> doc; ++i) {
-      const auto v = interpreter(doc, i);
-      if (v)
-        writer << doc;
+    try {
+      while (reader >> doc) {
+        const auto v = interpreter(doc, doc_num);
+        if (v)
+          writer << doc;
+        ++doc_num;
+      }
+    }
+    catch (dr::ReaderException &) {
+      LOG(WARNING) << "Failed to read document from '" << in.path() << "'" << std::endl;
     }
   }
 }
