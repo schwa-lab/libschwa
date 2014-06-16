@@ -2,8 +2,8 @@ require "formula"
 
 class Libschwa < Formula
   homepage "https://github.com/schwa-lab/libschwa"
-  url "https://github.com/schwa-lab/libschwa/releases/download/0.2.2/libschwa-0.2.2.tar.gz"
-  sha1 "41d3e1a2dd3686da6ee0acb302e88eb84ca937bb"
+  url "https://github.com/schwa-lab/libschwa/releases/download/0.3.0/libschwa-0.3.0.tar.gz"
+  sha1 "4d03883d2318352856c0a2dd6bc2bbf4bab6c202"
 
   depends_on "pkg-config"
   depends_on "zeromq" => :optional
