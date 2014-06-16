@@ -17,8 +17,8 @@ int
 main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("dr-dist", "A docrep stream parallelisation source and sink.");
-  cf::OpIStream input(cfg, "input", 'i', "The input file");
-  cf::OpOStream output(cfg, "output", 'o', "The output file");
+  cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
+  cf::Op<std::string> output_path(cfg, "output", 'o', "The output path", io::STDOUT_STRING);
   cf::Op<std::string> bind_host(cfg, "bind-host", "The network hostname to bind to", "*");
   cf::Op<uint32_t> source_port(cfg, "source-port", "The network port to bind to on which to push docrep documents", 7301);
   cf::Op<uint32_t> sink_port(cfg, "sink-port", "The network port to bind to on which to pull docrep documents", 7302);
@@ -37,15 +37,19 @@ main(int argc, char **argv) {
     const std::string control_addr = schwa::dr_dist::build_socket_addr(bind_host(), control_port());
     const std::string direct_sink_addr = schwa::dr_dist::build_socket_addr(bind_host() == "*" ? "127.0.0.1" : bind_host(), sink_port());
 
+    // Open the input and output streams.
+    io::InputStream in(input_path());
+    io::OutputStream out(output_path());
+
     // Run the source and sink threads.
-    auto wrap_source = [&](std::istream &input) {
-      success_source = schwa::dr_dist::source(source_addr, direct_sink_addr, input);
+    auto wrap_source = [&] {
+      success_source = schwa::dr_dist::source(source_addr, direct_sink_addr, in);
     };
-    auto wrap_sink = [&](std::ostream &output) {
-      success_sink = schwa::dr_dist::sink(sink_addr, control_addr, preserve_order(), kill_clients(), output);
+    auto wrap_sink = [&] {
+      success_sink = schwa::dr_dist::sink(sink_addr, control_addr, preserve_order(), kill_clients(), out);
     };
-    std::thread source_thread(wrap_source, std::ref(input.file()));
-    std::thread sink_thread(wrap_sink, std::ref(output.file()));
+    std::thread source_thread(wrap_source);
+    std::thread sink_thread(wrap_sink);
     source_thread.join();
     sink_thread.join();
   })

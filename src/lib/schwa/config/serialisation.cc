@@ -2,11 +2,10 @@
 #include <schwa/config/serialisation.h>
 
 #include <fstream>
-#include <memory>
 #include <iostream>
 
 #include <schwa/config/main.h>
-#include <schwa/io/utils.h>
+#include <schwa/io/streams.h>
 
 namespace io = schwa::io;
 
@@ -36,7 +35,7 @@ OpSaveConfig::save_config(const Main &main) const {
     return;
 
   // Open the file for writing.
-  std::unique_ptr<std::ofstream> out(io::safe_open_ofstream(_value));
+  io::OutputStream out(_value);
   main.serialise(*out);
 }
 

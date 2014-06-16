@@ -67,9 +67,9 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/mmapped_source.h \
 		schwa/io/paths.h \
 		schwa/io/source.h \
+		schwa/io/streams.h \
 		schwa/io/traits.h \
 		schwa/io/unsafe_array_writer.h \
-		schwa/io/utils.h \
 		schwa/io/write_buffer.h \
 		schwa/learn/extract.h \
 		schwa/learn/extract_impl.h \
@@ -126,7 +126,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/logging.cc \
 		schwa/io/mmapped_source.cc \
 		schwa/io/paths.cc \
-		schwa/io/utils.cc \
+		schwa/io/streams.cc \
 		schwa/io/write_buffer.cc \
 		schwa/learn/extract.cc \
 		schwa/learn/features.cc \

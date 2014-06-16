@@ -3,10 +3,9 @@
 #define SCHWA_CONFIG_SERIALISATION_IMPL_H_
 
 #include <fstream>
-#include <memory>
 #include <stack>
 
-#include <schwa/io/utils.h>
+#include <schwa/io/streams.h>
 
 
 namespace schwa {
@@ -16,7 +15,7 @@ namespace schwa {
     inline void
     OpLoadConfig::load_config(C &container) const {
       // Open the file for reading.
-      std::unique_ptr<std::ifstream> in(io::safe_open_ifstream(_value));
+      io::InputStream in(_value);
 
       // Keep a stack of the found values so that we can push_front onto the provided container.
       std::stack<typename C::value_type> stack;

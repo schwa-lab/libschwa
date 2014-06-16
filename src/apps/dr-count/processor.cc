@@ -66,7 +66,7 @@ public:
   }
 
   void finalise(void);
-  void process_doc(const dr::Doc &doc);
+  void process_doc(const dr::Doc &doc, const std::string &path);
 };
 
 const size_t Processor::Impl::MIN_WIDTH = 10;
@@ -93,7 +93,7 @@ Processor::Impl::_get_doc_id(const dr::Doc &doc) const {
 
 
 void
-Processor::Impl::process_doc(const dr::Doc &doc) {
+Processor::Impl::process_doc(const dr::Doc &doc, const std::string &) {
   const dr::RTManager &rt = *(doc.rt());
   const dr::RTSchema &schema = *(rt.doc);
 
@@ -222,8 +222,8 @@ Processor::~Processor(void) {
 }
 
 void
-Processor::process_doc(const dr::Doc &doc) {
-  _impl->process_doc(doc);
+Processor::process_doc(const dr::Doc &doc, const std::string &path) {
+  _impl->process_doc(doc, path);
 }
 
 void

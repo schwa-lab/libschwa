@@ -8,7 +8,7 @@
 #include <schwa/exception.h>
 #include <schwa/config/group.h>
 #include <schwa/config/main.h>
-#include <schwa/io/utils.h>
+#include <schwa/io/streams.h>
 #include <schwa/version.h>
 
 namespace io = schwa::io;
@@ -59,88 +59,6 @@ Option::validate(const Main &main) {
     set_default();
   }
   return _validate(main);
-}
-
-
-// ============================================================================
-// OpIStream
-// ============================================================================
-OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpIStream(group, name, desc, io::STDIN_STRING, flags) { }
-
-OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpIStream(group, name, short_name, desc, io::STDIN_STRING, flags) { }
-
-OpIStream::OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, desc, default_, flags),
-    _in(nullptr),
-    _is_stdin(false)
-  { }
-
-OpIStream::OpIStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, short_name, desc, default_, flags),
-    _in(nullptr),
-    _is_stdin(false)
-  { }
-
-OpIStream::~OpIStream(void) {
-  if (!_is_stdin)
-    delete _in;
-}
-
-
-bool
-OpIStream::_validate(const Main &) {
-  if (_value == io::STDIN_STRING) {
-    _is_stdin = true;
-    _in = &std::cin;
-  }
-  else {
-    _is_stdin = false;
-    _in = io::safe_open_ifstream(_value);
-  }
-  return true;
-}
-
-
-// ============================================================================
-// OpOStream
-// ============================================================================
-OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const Flags flags) : OpOStream(group, name, desc, io::STDOUT_STRING, flags) { }
-
-OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const Flags flags) : OpOStream(group, name, short_name, desc, io::STDOUT_STRING, flags) { }
-
-OpOStream::OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, desc, default_, flags),
-    _out(nullptr),
-    _is_std(false)
-  { }
-
-OpOStream::OpOStream(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_, const Flags flags) :
-    Op<std::string>(group, name, short_name, desc, default_, flags),
-    _out(nullptr),
-    _is_std(false)
-  { }
-
-OpOStream::~OpOStream(void) {
-  if (!_is_std)
-    delete _out;
-}
-
-
-bool
-OpOStream::_validate(const Main &) {
-  if (_value == io::STDOUT_STRING) {
-    _is_std = true;
-    _out = &std::cout;
-  }
-  else if (_value == io::STDERR_STRING) {
-    _is_std = true;
-    _out = &std::cerr;
-  }
-  else {
-    _is_std = false;
-    _out = io::safe_open_ofstream(_value);
-  }
-  return true;
 }
 
 

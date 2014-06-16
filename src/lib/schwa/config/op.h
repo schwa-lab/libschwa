@@ -10,6 +10,8 @@
 #include <schwa/_base.h>
 #include <schwa/config/base.h>
 #include <schwa/io/enums.h>
+#include <schwa/io/streams.h>
+
 
 namespace schwa {
   namespace config {
@@ -94,48 +96,6 @@ namespace schwa {
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpChoices);
-    };
-
-
-    class OpIStream : public Op<std::string> {
-    protected:
-      std::istream *_in;
-      bool _is_stdin;
-
-      virtual bool _validate(const Main &main) override;
-
-    public:
-      OpIStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
-      OpIStream(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
-      OpIStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      OpIStream(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      virtual ~OpIStream(void);
-
-      inline std::istream &file(void) const { return *_in; }
-
-    private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpIStream);
-    };
-
-
-    class OpOStream : public Op<std::string> {
-    protected:
-      std::ostream *_out;
-      bool _is_std;
-
-      virtual bool _validate(const Main &main) override;
-
-    public:
-      OpOStream(Group &group, const std::string &name, const std::string &desc, Flags flags=Flags::NONE);
-      OpOStream(Group &group, const std::string &name, char short_name, const std::string &desc, Flags flags=Flags::NONE);
-      OpOStream(Group &group, const std::string &name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      OpOStream(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_, Flags flags=Flags::NONE);
-      virtual ~OpOStream(void);
-
-      inline std::ostream &file(void) const { return *_out; }
-
-    private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpOStream);
     };
 
 

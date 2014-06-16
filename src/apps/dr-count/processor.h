@@ -30,9 +30,9 @@ namespace schwa {
       ~Processor(void);
 
       void finalise(void);
-      void process_doc(const dr::Doc &doc);
+      void process_doc(const dr::Doc &doc, const std::string &path);
 
-      inline void operator ()(const dr::Doc &doc) { process_doc(doc); }
+      inline void operator ()(const dr::Doc &doc, const std::string &path) { process_doc(doc, path); }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Processor);
