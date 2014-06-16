@@ -28,9 +28,15 @@ static const std::string TOOL_PREFIX = "dr-";
 
 namespace {
 
-// Smart pointer deleter for DIR structs.
+/**
+ * Smart pointer deleter for DIR structs.
+ **/
 struct closedir_delete {
-  inline void operator ()(DIR *d) { if (d != nullptr) { ::closedir(d); } }
+  inline
+  void operator ()(DIR *d) {
+    if (d != nullptr)
+      ::closedir(d);
+  }
 };
 
 
@@ -65,26 +71,31 @@ find_tools_in_dir(const std::string dir_path, std::map<std::string, std::string>
 
 static void
 show_tools_help(std::ostream &out=std::cerr) {
-  std::map<std::string, std::string> tools;
+  std::map<std::string, std::string> core_tools, extra_tools;
 
   // Search `dirname ${0}`.
-  std::string path = io::path_dirname(io::abspath_to_argv0());
-  find_tools_in_dir(path, tools);
-  if (!tools.empty()) {
+  const std::string argv0_path = io::path_dirname(io::abspath_to_argv0());
+  find_tools_in_dir(argv0_path, core_tools);
+  if (!core_tools.empty()) {
     out << "  Core tools:" << std::endl;
-    for (const auto &pair : tools)
+    for (const auto &pair : core_tools)
       out << "    " << port::BOLD << pair.first << port::OFF << std::endl;
   }
-  tools.clear();
 
   // Search each of the paths in ${PATH}.
   std::vector<std::string> paths;
   io::get_env_paths(paths, "PATH");
-  for (auto path : paths)
-    find_tools_in_dir(path, tools);
-  if (!tools.empty()) {
+  for (const std::string &path : paths)
+    find_tools_in_dir(path, extra_tools);
+
+  // Remove the core tools from the set of additional tools found.
+  for (const auto &pair : core_tools)
+    extra_tools.erase(pair.first);
+
+  // Output any extra tools found.
+  if (!extra_tools.empty()) {
     out << "  Additional tools found:" << std::endl;
-    for (const auto &pair : tools) {
+    for (const auto &pair : extra_tools) {
       out << "    " << port::BOLD << pair.first << port::OFF;
       out << " (" << port::DARK_GREY << pair.second << port::OFF << ")" << std::endl;
     }
