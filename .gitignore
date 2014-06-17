@@ -26,6 +26,6 @@ dist/libschwa.pc
 libtool
 m4/*.m4
 stamp-h1
-/src/lib/schwa/_base.h
 /src/lib/schwa/_config.h*
+/src/lib/schwa/macros.h
 /src/lib/schwa/port.h

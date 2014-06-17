@@ -1,3 +1,7 @@
+0.3.1
+* Don't distribute _config.h (whoops).
+* Added `SCHWA_LIKELY` and `SCHWA_UNLIKELY` macro definitions to wrap around `__builtin_expect`.
+
 0.3.0
 * Allowed `dr-count` and `dr-grep` to skip incomplete documents (#6).
 * Corrected bug lazy docrep reading to ensure that it reads the desired number of bytes (#5).
