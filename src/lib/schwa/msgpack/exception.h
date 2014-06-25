@@ -7,6 +7,7 @@
 #include <schwa/_base.h>
 #include <schwa/exception.h>
 
+
 namespace schwa {
   namespace msgpack {
 
@@ -16,6 +17,7 @@ namespace schwa {
       const int _expected;
 
     public:
+      explicit ReadException(const std::string &msg);
       ReadException(const std::string &msg, const int read, const int expected=-1);
       ReadException(const ReadException &o);
       virtual ~ReadException(void) throw() { }

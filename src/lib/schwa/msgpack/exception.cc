@@ -8,6 +8,8 @@
 namespace schwa {
 namespace msgpack {
 
+ReadException::ReadException(const std::string &msg : IOException(msg), _read(-1), _expected(-1) { }
+
 ReadException::ReadException(const std::string &msg, const int read, const int expected) : IOException(""), _read(read), _expected(expected) {
   std::ostringstream ss;
   ss << msg << ": got=0x" << std::hex << read << std::dec;

@@ -152,7 +152,7 @@ TEST(test_uint_fixed) {
   VALUE_BEGIN(uint8_t) = 100;
   write_uint_fixed(ss, value);
   BYTES_WRITE_CHECK();
-  BYTES_READ_HEADER_CHECK(WireType::FIXNUM_POSITIVE);
+  BYTES_READ_HEADER_CHECK(WireType::FIXINT_POSITIVE);
   CHECK_EQUAL(value, read_uint_fixed(ss));
   BYTES_CONSUMED_CHECK();
 }
@@ -162,7 +162,7 @@ TEST(test_uint_8_100) {
   VALUE_BEGIN(uint64_t) = 100;
   write_uint(ss, 100);
   BYTES_WRITE_CHECK();
-  BYTES_READ_HEADER_CHECK(WireType::FIXNUM_POSITIVE);
+  BYTES_READ_HEADER_CHECK(WireType::FIXINT_POSITIVE);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
 }

@@ -2,44 +2,58 @@
 #ifndef SCHWA_MSGPACK_ENUMS_H_
 #define SCHWA_MSGPACK_ENUMS_H_
 
-#include <iosfwd>
+#include <iostream>
 
 #include <schwa/_base.h>
+
 
 namespace schwa {
   namespace msgpack {
 
     enum class WireType : uint8_t {
-      FIXNUM_POSITIVE, FIXNUM_NEGATIVE,
+      FIXINT_POSITIVE, UINT_8, UINT_16, UINT_32, UINT_64,
+      FIXINT_NEGATIVE, INT_8, INT_16, INT_32, INT_64,
       MAP_FIXED, MAP_16, MAP_32,
       ARRAY_FIXED, ARRAY_16, ARRAY_32,
-      RAW_FIXED, RAW_16, RAW_32,
+      STR_FIXED, STR_8, STR_16, STR_32,
+      BIN_8, BIN_16, BIN_32,
       NIL,
       TRUE, FALSE,
       FLOAT, DOUBLE,
-      UINT_8, UINT_16, UINT_32, UINT_64,
-      INT_8, INT_16, INT_32, INT_64,
-      RESERVED
+      EXT_8, EXT_16, EXT_32,
+      EXT_FIXED_8, EXT_FIXED_16, EXT_FIXED_32, EXT_FIXED_64, EXT_FIXED_128,
+      RESERVED,
     };
 
-    std::ostream &operator <<(std::ostream &out, const WireType type);
+    inline std::ostream &
+    operator <<(std::ostream &out, const WireType type) {
+      return out << static_cast<int>(type);
+    }
+
 
     inline bool
     is_array(const WireType type) {
-      return type == WireType::ARRAY_FIXED ||
-             type == WireType::ARRAY_16 ||
-             type == WireType::ARRAY_32;
+      return WireType::ARRAY_FIXED <= type && type <= WireType::ARRAY_32;
+    }
+
+    inline bool
+    is_bin(const WireType type) {
+      return WireType::BIN_8 <= type && type <= WireType::BIN_32;
     }
 
     inline bool
     is_bool(const WireType type) {
-      return type == WireType::FALSE ||
-             type == WireType::TRUE;
+      return type == WireType::FALSE || type == WireType::TRUE;
     }
 
     inline bool
     is_double(const WireType type) {
       return type == WireType::DOUBLE;
+    }
+
+    inline bool
+    is_ext(const WireType type) {
+      return WireType::EXT_8 <= type && type <= WireType::EXT_FIXED_128;
     }
 
     inline bool
@@ -49,9 +63,7 @@ namespace schwa {
 
     inline bool
     is_map(const WireType type) {
-      return type == WireType::MAP_FIXED ||
-             type == WireType::MAP_16 ||
-             type == WireType::MAP_32;
+      return WireType::MAP_FIXED <= type && type <= WireType::MAP_32;
     }
 
     inline bool
@@ -60,28 +72,23 @@ namespace schwa {
     }
 
     inline bool
-    is_raw(const WireType type) {
-      return type == WireType::RAW_FIXED ||
-             type == WireType::RAW_16 ||
-             type == WireType::RAW_32;
+    is_reserved(const WireType type) {
+      return type == WireType::RESERVED;
     }
 
     inline bool
     is_sint(const WireType type) {
-      return type == WireType::FIXNUM_NEGATIVE ||
-             type == WireType::INT_8 ||
-             type == WireType::INT_16 ||
-             type == WireType::INT_32 ||
-             type == WireType::INT_64;
+      return WireType::FIXINT_NEGATIVE <= type && type <= WireType::INT_64;
+    }
+
+    inline bool
+    is_str(const WireType type) {
+      return WireType::STR_FIXED <= type && type <= WireType::STR_32;
     }
 
     inline bool
     is_uint(const WireType type) {
-      return type == WireType::FIXNUM_POSITIVE ||
-             type == WireType::UINT_8 ||
-             type == WireType::UINT_16 ||
-             type == WireType::UINT_32 ||
-             type == WireType::UINT_64;
+      return WireType::FIXINT_POSITIVE <= type && type <= WireType::UINT_64;
     }
 
     inline bool

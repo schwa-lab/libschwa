@@ -341,10 +341,9 @@ Reader::read(Doc &doc) {
 
       // Deserialize the field value if required.
       if (field.is_lazy()) {
-        mp::WireType type;
         ++lazy_nfields;
         mp::write_uint(lazy_writer, key);
-        mp::read_lazy(reader, lazy_writer, type);
+        mp::read_lazy(reader, lazy_writer);
       }
       else {
         const char *const before = reader.upto();
@@ -440,10 +439,9 @@ Reader::read(Doc &doc) {
 
         // deserialize the field value if required
         if (field.is_lazy()) {
-          mp::WireType type;
           ++lazy_nfields;
           mp::write_uint(lazy_writer, key);
-          mp::read_lazy(reader, lazy_writer, type);
+          mp::read_lazy(reader, lazy_writer);
         }
         else {
           const char *const before = reader.upto();
@@ -509,7 +507,7 @@ read_lazy_doc(std::istream &in, std::ostream &out) {
   int nstores = mp::read_array_size(in);
   mp::write_array_size(out, nstores);
   for (int i = 0; i < nstores; ++i)
-    if (!mp::read_lazy(in, out, type))
+    if (!mp::read_lazy(in, out))
       return false;
 
   // instances (nstores + 1 size-data pairs)
@@ -523,14 +521,13 @@ read_lazy_doc(std::istream &in, std::ostream &out) {
     }
 
     in.read(buf.get(), nbytes);
-    if (!in)
+    if (in.gcount() != nbytes)
       return false;
     out.write(buf.get(), nbytes);
   }
 
   return true;
 }
-
 
 }  // namespace dr
 }  // namespace schwa

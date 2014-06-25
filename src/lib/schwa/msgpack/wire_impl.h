@@ -7,6 +7,7 @@
 
 #include <schwa/io/traits.h>
 #include <schwa/mpl/if.h>
+#include <schwa/msgpack/dynamic.h>
 #include <schwa/msgpack/exception.h>
 #include <schwa/msgpack/wire.h>
 #include <schwa/port.h>
@@ -14,6 +15,80 @@
 
 namespace schwa {
   namespace msgpack {
+
+    constexpr const WireType HEADER_TYPES[256] = {
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      ,
+      WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      ,
+      WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    ,
+      WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    ,
+      WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      ,
+      WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      ,
+      WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      ,
+      WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      , WireType::STR_FIXED      ,
+      WireType::NIL            , WireType::RESERVED       , WireType::FALSE          , WireType::TRUE           , WireType::BIN_8          , WireType::BIN_16         , WireType::BIN_32         , WireType::EXT_8          ,
+      WireType::EXT_16         , WireType::EXT_32         , WireType::FLOAT          , WireType::DOUBLE         , WireType::UINT_8         , WireType::UINT_16        , WireType::UINT_32        , WireType::UINT_64        ,
+      WireType::INT_8          , WireType::INT_16         , WireType::INT_32         , WireType::INT_64         , WireType::EXT_FIXED_8    , WireType::EXT_FIXED_16   , WireType::EXT_FIXED_32   , WireType::EXT_FIXED_64   ,
+      WireType::EXT_FIXED_128  , WireType::STR_8          , WireType::STR_16         , WireType::STR_32         , WireType::ARRAY_16       , WireType::ARRAY_32       , WireType::MAP_16         , WireType::MAP_32         ,
+      WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE,
+      WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE,
+      WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE,
+      WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE, WireType::FIXINT_NEGATIVE,
+    };
+
+    namespace header {
+      constexpr const unsigned char FIXINT_POSITIVE = 0x7f;
+      constexpr const unsigned char MAP_FIXED       = 0x80;
+      constexpr const unsigned char ARRAY_FIXED     = 0x90;
+      constexpr const unsigned char STR_FIXED       = 0xa0;
+      constexpr const unsigned char NIL             = 0xc0;
+      constexpr const unsigned char RESERVED        = 0xc1;
+      constexpr const unsigned char FALSE           = 0xc2;
+      constexpr const unsigned char TRUE            = 0xc3;
+      constexpr const unsigned char BIN_8           = 0xc4;
+      constexpr const unsigned char BIN_16          = 0xc5;
+      constexpr const unsigned char BIN_32          = 0xc6;
+      constexpr const unsigned char EXT_8           = 0xc7;
+      constexpr const unsigned char EXT_16          = 0xc8;
+      constexpr const unsigned char EXT_32          = 0xc9;
+      constexpr const unsigned char FLOAT           = 0xca;
+      constexpr const unsigned char DOUBLE          = 0xcb;
+      constexpr const unsigned char UINT_8          = 0xcc;
+      constexpr const unsigned char UINT_16         = 0xcd;
+      constexpr const unsigned char UINT_32         = 0xce;
+      constexpr const unsigned char UINT_64         = 0xcf;
+      constexpr const unsigned char INT_8           = 0xd0;
+      constexpr const unsigned char INT_16          = 0xd1;
+      constexpr const unsigned char INT_32          = 0xd2;
+      constexpr const unsigned char INT_64          = 0xd3;
+      constexpr const unsigned char EXT_FIXED_8     = 0xd4;
+      constexpr const unsigned char EXT_FIXED_16    = 0xd5;
+      constexpr const unsigned char EXT_FIXED_32    = 0xd6;
+      constexpr const unsigned char EXT_FIXED_64    = 0xd7;
+      constexpr const unsigned char EXT_FIXED_128   = 0xd8;
+      constexpr const unsigned char STR_8           = 0xd9;
+      constexpr const unsigned char STR_16          = 0xda;
+      constexpr const unsigned char STR_32          = 0xdb;
+      constexpr const unsigned char ARRAY_16        = 0xdc;
+      constexpr const unsigned char ARRAY_32        = 0xdd;
+      constexpr const unsigned char MAP_16          = 0xde;
+      constexpr const unsigned char MAP_32          = 0xdf;
+      constexpr const unsigned char FIXINT_NEGATIVE = 0xff;
+    }
+
 
     // ========================================================================
     // Host <--> big endian low level functions.
@@ -24,6 +99,8 @@ namespace schwa {
       static_assert(sizeof(T) == 1, "wrong sized pointer target");
       uint8_t be8;
       in.read(reinterpret_cast<char *>(&be8), 1);
+      if (SCHWA_UNLIKELY(in.gcount() != 1))
+        throw ReadException("Failed to read data", in.gcount(), 1);
       *reinterpret_cast<uint8_t *>(h8) = be8;
     }
 
@@ -33,6 +110,8 @@ namespace schwa {
       static_assert(sizeof(T) == 2, "wrong sized pointer target");
       uint16_t be16;
       in.read(reinterpret_cast<char *>(&be16), 2);
+      if (SCHWA_UNLIKELY(in.gcount() != 2))
+        throw ReadException("Failed to read data", in.gcount(), 2);
       *reinterpret_cast<uint16_t *>(h16) = port::be16_to_h(be16);
     }
 
@@ -42,6 +121,8 @@ namespace schwa {
       static_assert(sizeof(T) == 4, "wrong sized pointer target");
       uint32_t be32;
       in.read(reinterpret_cast<char *>(&be32), 4);
+      if (SCHWA_UNLIKELY(in.gcount() != 4))
+        throw ReadException("Failed to read data", in.gcount(), 4);
       *reinterpret_cast<uint32_t *>(h32) = port::be32_to_h(be32);
     }
 
@@ -51,6 +132,8 @@ namespace schwa {
       static_assert(sizeof(T) == 8, "wrong sized pointer target");
       uint64_t be64;
       in.read(reinterpret_cast<char *>(&be64), 8);
+      if (SCHWA_UNLIKELY(in.gcount() != 8))
+        throw ReadException("Failed to read data", in.gcount(), 8);
       *reinterpret_cast<uint64_t *>(h64) = port::be64_to_h(be64);
     }
 
@@ -88,7 +171,22 @@ namespace schwa {
 
 
     // ========================================================================
-    // Type traits
+    // Helper functions.
+    // ========================================================================
+    template <size_t NBYTES, typename IN, typename OUT>
+    inline void
+    _read_write_nbytes(IN &in, OUT &out) {
+      static_assert(NBYTES != 0, "nbytes must be positive");
+      char buf[NBYTES];
+      in.read(buf, NBYTES);
+      if (SCHWA_UNLIKELY(in.gcount() != NBYTES))
+        throw ReadException("Failed to read data", in.gcount(), NBYTES);
+      out.write(buf, NBYTES);
+    }
+
+
+    // ========================================================================
+    // Type traits.
     // ========================================================================
     namespace traits {
       template <typename T, bool>
@@ -162,16 +260,17 @@ namespace schwa {
 
     inline WireType
     header_type(const int header) {
-      if (header < 0 || header > 255)
-        return WireType::RESERVED;
-      return TABLE[header & 0xFF];
+      if (SCHWA_UNLIKELY(header == EOF))
+        throw ReadException("Read EOF", header);
+      return HEADER_TYPES[header & 0xff];
     }
 
     template <typename IN>
     inline void
     read_nil(IN &in) {
       const int h = in.get();
-      assert(h == header::NIL);
+      if (SCHWA_UNLIKELY(h != header::NIL))
+        throw ReadException("Failed to `read_nil`", h);
     }
 
     template <typename IN>
@@ -182,8 +281,8 @@ namespace schwa {
         return true;
       else if (h == header::FALSE)
         return false;
-      assert((h == header::TRUE || h == header::FALSE));
-      return false;
+      else
+        throw ReadException("Failed to `read_bool`", h);
     }
 
     template <typename IN>
@@ -191,7 +290,8 @@ namespace schwa {
     read_float(IN &in) {
       float x;
       const int h = in.get();
-      assert(h == header::FLOAT);
+      if (SCHWA_UNLIKELY(h != header::FLOAT))
+        throw ReadException("Failed to `read_float`", h);
       _read_be32(in, &x);
       return x;
     }
@@ -201,14 +301,17 @@ namespace schwa {
     read_double(IN &in) {
       double x;
       const int h = in.get();
-      assert(h == header::DOUBLE);
+      if (SCHWA_UNLIKELY(h != header::DOUBLE))
+        throw ReadException("Failed to `read_double`", h);
       _read_be64(in, &x);
       return x;
     }
 
     inline int8_t
-    read_val_int_fixed(const int h) {
-      return static_cast<int8_t>(h & 0x1F);
+    read_val_fixint_negative(const int h) {
+      int8_t n;
+      *reinterpret_cast<uint8_t *>(&n) = static_cast<uint8_t>(h & header::FIXINT_NEGATIVE);
+      return n;
     }
 
     template <typename IN>
@@ -245,19 +348,19 @@ namespace schwa {
 
     template <typename IN>
     inline int8_t
-    read_int_fixed(IN &in) {
+    read_fixint_negative(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::FIXNUM_NEGATIVE)
-        throw ReadException("Failed to read FIXNUM_NEGATIVE", h);
-      return read_val_int_fixed(h);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::FIXINT_NEGATIVE))
+        throw ReadException("Failed to `read_fixint_negative`", h);
+      return read_val_fixint_negative(h);
     }
 
     template <typename IN>
     inline int8_t
     read_int8(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::INT_8)
-        throw ReadException("Failed to read INT_8", h, header::INT_8);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_8))
+        throw ReadException("Failed to `read_int8`", h, header::INT_8);
       return read_val_int8(in);
     }
 
@@ -265,8 +368,8 @@ namespace schwa {
     inline int16_t
     read_int16(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::INT_16)
-        throw ReadException("Failed to read INT_16", h, header::INT_16);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_16))
+        throw ReadException("Failed to `read_int16`", h, header::INT_16);
       return read_val_int16(in);
     }
 
@@ -274,8 +377,8 @@ namespace schwa {
     inline int32_t
     read_int32(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::INT_32)
-        throw ReadException("Failed to read INT_32", h, header::INT_32);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_32))
+        throw ReadException("Failed to `read_int32`", h, header::INT_32);
       return read_val_int32(in);
     }
 
@@ -283,8 +386,8 @@ namespace schwa {
     inline int64_t
     read_int64(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::INT_64)
-        throw ReadException("Failed to read INT_64", h, header::INT_64);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_64))
+        throw ReadException("Failed to `read_int64`", h, header::INT_64);
       return read_val_int64(in);
     }
 
@@ -294,8 +397,8 @@ namespace schwa {
       const int h = in.get();
       const WireType type = header_type(h);
       switch (type) {
-      case WireType::FIXNUM_NEGATIVE: return read_val_int_fixed(h);
-      case WireType::FIXNUM_POSITIVE: return read_val_uint_fixed(h);
+      case WireType::FIXINT_NEGATIVE: return read_val_fixint_negative(h);
+      case WireType::FIXINT_POSITIVE: return read_val_fixint_positive(h);
       case WireType::INT_8: return read_val_int8(in);
       case WireType::INT_16: return read_val_int16(in);
       case WireType::INT_32: return read_val_int32(in);
@@ -305,13 +408,13 @@ namespace schwa {
       case WireType::UINT_32: return static_cast<int64_t>(read_val_uint32(in));
       case WireType::UINT_64: return static_cast<int64_t>(read_val_uint64(in));
       default:
-        throw ReadException("Did not find an integer to read", h);
+        throw ReadException("Failed to `read_int`", h);
       }
     }
 
     inline uint8_t
-    read_val_uint_fixed(const int h) {
-      return static_cast<uint8_t>(h & 0x7F);
+    read_val_fixint_positive(const int h) {
+      return static_cast<uint8_t>(h & header::FIXINT_POSITIVE);
     }
 
     template <typename IN>
@@ -348,19 +451,19 @@ namespace schwa {
 
     template <typename IN>
     inline uint8_t
-    read_uint_fixed(IN &in) {
+    read_fixint_positive(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::FIXNUM_POSITIVE)
-        throw ReadException("Failed to read FIXNUM_POSITIVE", h);
-      return read_val_uint_fixed(h);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::FIXINT_POSITIVE))
+        throw ReadException("Failed to `read_fixint_positive`", h);
+      return read_val_fixint_positive(h);
     }
 
     template <typename IN>
     inline uint8_t
     read_uint8(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::UINT_8)
-        throw ReadException("Failed to read UINT_8", h, header::UINT_8);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_8))
+        throw ReadException("Failed to `read_uint8`", h, header::UINT_8);
       return read_val_uint8(in);
     }
 
@@ -368,8 +471,8 @@ namespace schwa {
     inline uint16_t
     read_uint16(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::UINT_16)
-        throw ReadException("Failed to read UINT_16", h, header::UINT_16);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_16))
+        throw ReadException("Failed to `read_uint16`", h, header::UINT_16);
       return read_val_uint16(in);
     }
 
@@ -377,8 +480,8 @@ namespace schwa {
     inline uint32_t
     read_uint32(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::UINT_32)
-        throw ReadException("Failed to read UINT_32", h, header::UINT_32);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_32))
+        throw ReadException("Failed to `read_uint32`", h, header::UINT_32);
       return read_val_uint32(in);
     }
 
@@ -386,8 +489,8 @@ namespace schwa {
     inline uint64_t
     read_uint64(IN &in) {
       const int h = in.get();
-      if (header_type(h) != WireType::UINT_64)
-        throw ReadException("Failed to read UINT_64", h, header::UINT_64);
+      if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_64))
+        throw ReadException("Failed to `read_uint64`", h, header::UINT_64);
       return read_val_uint64(in);
     }
 
@@ -397,26 +500,26 @@ namespace schwa {
       const int h = in.get();
       const WireType type = header_type(h);
       switch (type) {
-      case WireType::FIXNUM_POSITIVE: return read_val_uint_fixed(h);
+      case WireType::FIXINT_POSITIVE: return read_val_fixint_positive(h);
       case WireType::UINT_8: return read_val_uint8(in);
       case WireType::UINT_16: return read_val_uint16(in);
       case WireType::UINT_32: return read_val_uint32(in);
       case WireType::UINT_64: return read_val_uint64(in);
       default:
-        throw ReadException("Did not find an unsigned integer to read", h);
+        throw ReadException("Failed to `read_uint`", h);
       }
     }
 
     template <typename IN>
     inline uint32_t
     read_array_size(IN &in) {
-      const int header = in.get();
-      const WireType type = header_type(header);
+      const int h = in.get();
+      const WireType type = header_type(h);
       uint16_t s16;
       uint32_t s32;
       switch (type) {
       case WireType::ARRAY_FIXED:
-        return header & 0x0F;
+        return h & 0x0f;
       case WireType::ARRAY_16:
         _read_be16(in, &s16);
         return s16;
@@ -424,21 +527,20 @@ namespace schwa {
         _read_be32(in, &s32);
         return s32;
       default:
-        assert(!"header is not an array");
-        return 0;
+        throw ReadException("Failed to `read_array_size`", h);
       }
     }
 
     template <typename IN>
     inline uint32_t
     read_map_size(IN &in) {
-      const int header = in.get();
-      const WireType type = header_type(header);
+      const int h = in.get();
+      const WireType type = header_type(h);
       uint16_t s16;
       uint32_t s32;
       switch (type) {
       case WireType::MAP_FIXED:
-        return header & 0x0F;
+        return h & 0x0f;
       case WireType::MAP_16:
         _read_be16(in, &s16);
         return s16;
@@ -446,57 +548,69 @@ namespace schwa {
         _read_be32(in, &s32);
         return s32;
       default:
-        assert(!"header is not a map");
-        return 0;
+        throw ReadException("Failed to `read_map_size`", h);
       }
     }
 
     template <typename IN>
     inline std::string
-    read_raw(IN &in) {
-      const int header = in.get();
-      const WireType type = header_type(header);
-      uint16_t s16;
-      uint32_t s32;
+    read_str(IN &in) {
+      const int h = in.get();
+      const WireType type = header_type(h);
 
+      uint32_t s32;
       switch (type) {
-      case WireType::RAW_FIXED:
-        s32 = header & 0x1F;
+      case WireType::STR_FIXED:
+        s32 = h & 0x1f;
         break;
-      case WireType::RAW_16:
+      case WireType::STR_8:
+        uint8_t s8;
+        _read_be8(in, &s8);
+        s32 = s8;
+        break;
+      case WireType::STR_16:
+        uint16_t s16;
         _read_be16(in, &s16);
         s32 = s16;
         break;
-      case WireType::RAW_32:
+      case WireType::STR_32:
         _read_be32(in, &s32);
         break;
       default:
-        assert(!"header is not a raw");
-        return "";
+        throw ReadException("Failed to `read_str`", h);
       }
 
-      std::string s;
-      s.resize(s32);
+      std::string s(s32, '\0');
       in.read(&s[0], s32);
+      if (SCHWA_UNLIKELY(in.gcount() != s32))
+        throw ReadException("Failed to read all of the str data in `read_str`", in.gcount(), s32);
       return s;
     }
 
 
     template <typename IN>
     inline UnicodeString
-    read_utf8(IN &in) {
-      const std::string utf8 = read_raw(in);
-      return UnicodeString::from_utf8(utf8);
+    read_str(IN &in) {
+      return UnicodeString::from_utf8(read_str(in));
     }
 
 
     template <typename IN, typename OUT>
-    bool
+    inline bool
+    read_lazy(IN &in, OUT &out) {
+      WireType type;
+      return read_lazy(in, out, type);
+    }
+
+
+    template <typename IN, typename OUT>
+    inline bool
     read_lazy(IN &in, OUT &out, WireType &type) {
-      char buf[8];
+      uint8_t s8;
       uint16_t s16;
       uint32_t s32;
-      bool recurse = false, raw = false;
+      uint64_t s64;
+      bool recurse = false, remaining_bytes = false;
 
       const int h = in.get();
       if (h == EOF)
@@ -505,97 +619,121 @@ namespace schwa {
 
       type = header_type(h);
       switch (type) {
-      case WireType::FIXNUM_POSITIVE:
-      case WireType::FIXNUM_NEGATIVE:
+      case WireType::FIXINT_POSITIVE:
+      case WireType::FIXINT_NEGATIVE:
       case WireType::NIL:
       case WireType::TRUE:
       case WireType::FALSE:
+      case WireType::RESERVED:
         break;
+      case WireType::EXT_FIXED_8:
       case WireType::INT_8:
       case WireType::UINT_8:
-        in.read(buf, 1);
-        out.write(buf, 1);
+        _read_write_nbytes<1, IN, OUT>(in, out);
         break;
+      case WireType::EXT_FIXED_16:
       case WireType::INT_16:
       case WireType::UINT_16:
-        in.read(buf, 2);
-        out.write(buf, 2);
+        _read_write_nbytes<2, IN, OUT>(in, out);
         break;
+      case WireType::EXT_FIXED_32:
       case WireType::FLOAT:
       case WireType::INT_32:
       case WireType::UINT_32:
-        in.read(buf, 4);
-        out.write(buf, 4);
+        _read_write_nbytes<4, IN, OUT>(in, out);
         break;
       case WireType::DOUBLE:
+      case WireType::EXT_FIXED_64:
       case WireType::INT_64:
       case WireType::UINT_64:
-        in.read(buf, 8);
-        out.write(buf, 8);
+        _read_write_nbytes<8, IN, OUT>(in, out);
+        break;
+      case WireType::EXT_FIXED_128:
+        _read_write_nbytes<16, IN, OUT>(in, out);
         break;
       case WireType::ARRAY_FIXED:
-        s32 = h & 0x0F;
+        s64 = h & 0x0f;
         recurse = true;
         break;
       case WireType::ARRAY_16:
         _read_be16(in, &s16);
         _write_be16(out, &s16);
-        s32 = s16;
+        s64 = s16;
         recurse = true;
         break;
       case WireType::ARRAY_32:
         _read_be32(in, &s32);
         _write_be32(out, &s32);
+        s64 = s32;
         recurse = true;
         break;
       case WireType::MAP_FIXED:
-        s32 = h & 0x0F;
-        s32 *= 2;
+        s64 = 2 * (h & 0x0f);
         recurse = true;
         break;
       case WireType::MAP_16:
         _read_be16(in, &s16);
         _write_be16(out, &s16);
-        s32 = 2 * s16;
+        s64 = 2 * s16;
         recurse = true;
         break;
       case WireType::MAP_32:
         _read_be32(in, &s32);
         _write_be32(out, &s32);
-        s32 *= 2;
+        s64 = 2 * s32;
         recurse = true;
         break;
-      case WireType::RAW_FIXED:
-        s32 = h & 0x1F;
-        raw = true;
+      case WireType::STR_FIXED:
+        s32 = h & 0x1f;
+        remaining_bytes = true;
         break;
-      case WireType::RAW_16:
+      case WireType::BIN_8:
+      case WireType::EXT_8:
+      case WireType::STR_8:
+        _read_be8(in, &s8);
+        _write_be8(out, &s8);
+        s32 = s8;
+        remaining_bytes = true;
+        break;
+      case WireType::BIN_16:
+      case WireType::EXT_16:
+      case WireType::STR_16:
         _read_be16(in, &s16);
         _write_be16(out, &s16);
         s32 = s16;
-        raw = true;
+        remaining_bytes = true;
         break;
-      case WireType::RAW_32:
+      case WireType::BIN_32:
+      case WireType::EXT_32:
+      case WireType::STR_32:
         _read_be32(in, &s32);
         _write_be32(out, &s32);
-        raw = true;
-        break;
-      case WireType::RESERVED:
+        remaining_bytes = true;
         break;
       }
 
+      // Read the extension type information.
+      if (is_ext(type)) {
+        remaining_bytes = true;
+        _read_write_nbytes<1, IN, OUT>(in, out);
+      }
+
       if (recurse) {
-        WireType t;
-        for (uint32_t i = 0; i != s32; ++i)
-          if (!read_lazy(in, out, t))
+        // Read in the `s64` additional msgpack objects.
+        for (uint64_t i = 0; i != s64; ++i)
+          if (!read_lazy(in, out))
             return false;
       }
-      else if (raw) {
-        for (uint32_t i = 0; i != s32; ++i) {
-          int c = in.get();
-          if (c == EOF)
+      else if (remaining_bytes) {
+        // Read in the `s32` remaining bytes of data that make up the current msgpack object.
+        char buf[128];
+        for (uint32_t remaining = s32; remaining != 0; ) {
+          const uint32_t nbytes = std::min(static_cast<uint32_t>(sizeof(buf)), remaining);
+          in.read(buf, nbytes);
+          if (in.gcount() != nbytes)
             return false;
-          out.put(c);
+          out.write(buf, nbytes);
+          remaining -= nbytes;
         }
       }
 
@@ -604,12 +742,8 @@ namespace schwa {
 
 
     template <typename IN>
-    Value *
-    read_dynamic(IN &in, Pool &pool, Value *value) {
-      uint16_t s16;
-      uint32_t s32;
-      bool is_array = false, is_map = false, is_raw = false;
-
+    inline Value *
+    _read_dynamic(IN &in, Pool &pool, Value *value) {
       const int h = in.peek();
       if (h == EOF)
         return nullptr;
@@ -619,6 +753,9 @@ namespace schwa {
         value = Value::create(pool, type);
       value->type = type;
 
+      uint8_t s8;
+      uint16_t s16;
+      uint32_t s32;
       switch (type) {
       case WireType::NIL:
         read_nil(in);
@@ -627,14 +764,14 @@ namespace schwa {
       case WireType::FALSE:
         value->via._bool = read_bool(in);
         break;
-      case WireType::FIXNUM_POSITIVE:
+      case WireType::FIXINT_POSITIVE:
       case WireType::UINT_8:
       case WireType::UINT_16:
       case WireType::UINT_32:
       case WireType::UINT_64:
         value->via._uint64 = read_uint(in);
         break;
-      case WireType::FIXNUM_NEGATIVE:
+      case WireType::FIXINT_NEGATIVE:
       case WireType::INT_8:
       case WireType::INT_16:
       case WireType::INT_32:
@@ -649,76 +786,92 @@ namespace schwa {
         break;
       case WireType::ARRAY_FIXED:
         in.get();
-        s32 = h & 0x0F;
-        is_array = true;
-        break;
-      case WireType::ARRAY_16:
-        in.get();
-        _read_be16(in, &s16);
-        s32 = s16;
-        is_array = true;
-        break;
-      case WireType::ARRAY_32:
-        in.get();
-        _read_be32(in, &s32);
-        is_array = true;
+        s32 = h & 0x0f;
         break;
       case WireType::MAP_FIXED:
         in.get();
-        s32 = h & 0x0F;
-        is_map = true;
+        s32 = h & 0x0f;
         break;
+      case WireType::STR_FIXED:
+        in.get();
+        s32 = h & 0x1f;
+        break;
+      case WireType::BIN_8:
+      case WireType::EXT_8:
+      case WireType::STR_8:
+        in.get();
+        _read_be8(in, &s8);
+        s32 = s8;
+        break;
+      case WireType::ARRAY_16:
+      case WireType::BIN_16:
+      case WireType::EXT_16:
       case WireType::MAP_16:
+      case WireType::STR_16:
         in.get();
         _read_be16(in, &s16);
         s32 = s16;
-        is_map = true;
         break;
+      case WireType::ARRAY_32:
+      case WireType::BIN_32:
+      case WireType::EXT_32:
       case WireType::MAP_32:
+      case WireType::STR_32:
         in.get();
         _read_be32(in, &s32);
-        is_map = true;
         break;
-      case WireType::RAW_FIXED:
+      case WireType::EXT_FIXED_8:
         in.get();
-        s32 = h & 0x1F;
-        is_raw = true;
+        s32 = 1;
         break;
-      case WireType::RAW_16:
+      case WireType::EXT_FIXED_16:
         in.get();
-        _read_be16(in, &s16);
-        s32 = s16;
-        is_raw = true;
+        s32 = 2;
         break;
-      case WireType::RAW_32:
+      case WireType::EXT_FIXED_32:
         in.get();
-        _read_be32(in, &s32);
-        is_raw = true;
+        s32 = 4;
+        break;
+      case WireType::EXT_FIXED_64:
+        in.get();
+        s32 = 8;
+        break;
+      case WireType::EXT_FIXED_128:
+        in.get();
+        s32 = 16;
         break;
       case WireType::RESERVED:
         in.get();
         break;
       }
 
-      if (is_array) {
+      if (is_array(type)) {
         Array *array = Array::create(pool, s32);
         value->via._array = array;
         for (uint32_t i = 0; i != s32; ++i)
-          read_dynamic(in, pool, &array->get(i));
+          _read_dynamic(in, pool, &array->get(i));
       }
-      else if (is_map) {
+      else if (is_map(type)) {
         Map *map = Map::create(pool, s32);
         value->via._map = map;
         for (uint32_t i = 0; i != s32; ++i) {
           Map::Pair &pair = map->get(i);
-          read_dynamic(in, pool, &pair.key);
-          read_dynamic(in, pool, &pair.value);
+          _read_dynamic(in, pool, &pair.key);
+          _read_dynamic(in, pool, &pair.value);
         }
       }
-      else if (is_raw) {
-        Raw *raw = Raw::create(pool, s32, in.upto());
-        value->via._raw = raw;
-        in.ignore(s32);
+      else if (is_bin(type)) {
+        Bin *obj = Bin::create(pool, s32, in);
+        value->via._bin = obj;
+      }
+      else if (is_str(type)) {
+        Str *obj = Str::create(pool, s32, in);
+        value->via._str = obj;
+      }
+      else if (is_ext(type)) {
+        const int8_t type = read_int8(in);
+        Ext *obj = Ext::create(pool, type, s32, in);
+        value->via._ext = obj;
       }
 
       return value;
@@ -726,9 +879,9 @@ namespace schwa {
 
 
     template <typename IN>
-    Value *
+    inline Value *
     read_dynamic(IN &in, Pool &pool) {
-      return read_dynamic(in, pool, nullptr);
+      return _read_dynamic(in, pool, nullptr);
     }
 
 
@@ -753,8 +906,8 @@ namespace schwa {
 
     template <typename OUT>
     inline void
-    write_uint_fixed(OUT &out, const uint8_t x) {
-      write_raw_uint8(out, x & 0x7F);
+    write_fixint_positive(OUT &out, const uint8_t x) {
+      write_raw_uint8(out, x);
     }
 
     template <typename OUT>
@@ -787,8 +940,8 @@ namespace schwa {
 
     template <typename OUT>
     inline void
-    write_int_fixed(OUT &out, const int8_t x) {
-      write_raw_uint8(out, ~(*reinterpret_cast<const uint8_t *>(&x)) & 0xE0);
+    write_fixint_negative(OUT &out, const int8_t x) {
+      write_raw_int8(out, x);
     }
 
     template <typename OUT>
@@ -865,7 +1018,7 @@ namespace schwa {
     inline void
     write_uint(OUT &out, const uint64_t x) {
       if (x <= 127)
-        write_uint_fixed(out, static_cast<uint8_t>(x));
+        write_fixint_positive(out, static_cast<uint8_t>(x));
       else if (x <= std::numeric_limits<uint8_t>::max())
         write_uint8(out, static_cast<uint8_t>(x));
       else if (x <= std::numeric_limits<uint16_t>::max())
@@ -880,9 +1033,9 @@ namespace schwa {
     inline void
     write_int(OUT &out, const int64_t x) {
       if (x >= -32 && x <= -1)
-        write_int_fixed(out, static_cast<int8_t>(x));
+        write_fixint_negative(out, static_cast<int8_t>(x));
       else if (x >= 0 && x <= 127)
-        write_uint_fixed(out, static_cast<uint8_t>(x));
+        write_fixint_positive(out, static_cast<uint8_t>(x));
       else if (x >= std::numeric_limits<int8_t>::min() && x <= std::numeric_limits<int8_t>::max())
         write_int8(out, static_cast<int8_t>(x));
       else if (x >= std::numeric_limits<int16_t>::min() && x <= std::numeric_limits<int16_t>::max())

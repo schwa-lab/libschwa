@@ -13,8 +13,10 @@ namespace schwa {
   namespace msgpack {
 
     class Array;
+    class Bin;
+    class Ext;
     class Map;
-    class Raw;
+    class Str;
 
 
     class Value {
@@ -22,8 +24,10 @@ namespace schwa {
       WireType type;
       union {
         Array *_array;
+        Bin *_bin;
+        Ext *_ext;
         Map *_map;
-        Raw *_raw;
+        Str *_str;
         bool _bool;
         int64_t _int64;
         uint64_t _uint64;
@@ -36,8 +40,10 @@ namespace schwa {
       Value(const Value &o) { std::memcpy(this, &o, sizeof(Value)); }
       Value(const Value &&o) { std::memcpy(this, &o, sizeof(Value)); }
       Value(WireType type, Array *value) : type(type) { via._array = value; }
+      Value(WireType type, Bin *value) : type(type) { via._bin = value; }
+      Value(WireType type, Ext *value) : type(type) { via._ext = value; }
       Value(WireType type, Map *value) : type(type) { via._map = value; }
-      Value(WireType type, Raw *value) : type(type) { via._raw = value; }
+      Value(WireType type, Str *value) : type(type) { via._str = value; }
       Value(WireType type, bool value) : type(type) { via._bool = value; }
       Value(WireType type, int64_t value) : type(type) { via._int64 = value; }
       Value(WireType type, uint64_t value) : type(type) { via._uint64 = value; }
@@ -82,6 +88,54 @@ namespace schwa {
     };
 
 
+    class Bin {
+    private:
+      const uint32_t _nbytes;
+
+      explicit Bin(uint32_t nbytes) : _nbytes(nbytes) { }
+
+    public:
+      ~Bin(void) { }
+
+      inline uint32_t nbytes(void) const { return _nbytes; }
+      inline char *value(void) { return reinterpret_cast<char *>(this + 1); }
+      inline const char *value(void) const { return reinterpret_cast<const char *>(this + 1); }
+
+      inline void operator delete(void *) { }
+
+      template <typename IN>
+      static Bin *create(Pool &pool, uint32_t nbytes, IN &in);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Bin);
+    };
+
+
+    class Ext {
+    private:
+      const int8_t _type;
+      const uint32_t _nbytes;
+
+      Ext(int8_t type, uint32_t nbytes) : _type(type), _nbytes(nbytes) { }
+
+    public:
+      ~Ext(void) { }
+
+      inline uint32_t nbytes(void) const { return _nbytes; }
+      inline int8_t type(void) const { return _type; }
+      inline char *value(void) { return reinterpret_cast<char *>(this + 1); }
+      inline const char *value(void) const { return reinterpret_cast<const char *>(this + 1); }
+
+      inline void operator delete(void *) { }
+
+      template <typename IN>
+      static Ext *create(Pool &pool, int8_t type, uint32_t nbytes, IN &in);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Ext);
+    };
+
+
     class Map {
     public:
       class Pair {
@@ -118,27 +172,31 @@ namespace schwa {
     };
 
 
-    class Raw {
+    class Str {
     private:
-      const uint32_t _size;
-      const char *const _value;
+      const uint32_t _nbytes;
 
-      Raw(uint32_t size, const char *value);
+      explicit Str(uint32_t nbytes) : _nbytes(nbytes) { }
 
     public:
-      ~Raw(void) { }
+      ~Str(void) { }
 
-      inline uint32_t size(void) const { return _size; }
-      inline const char *value(void) const { return _value; }
+      inline uint32_t nbytes(void) const { return _nbytes; }
+      inline char *value(void) { return reinterpret_cast<char *>(this + 1); }
+      inline const char *value(void) const { return reinterpret_cast<const char *>(this + 1); }
 
       inline void operator delete(void *) { }
-      static Raw *create(Pool &pool, uint32_t size, const char *value);
+
+      template <typename IN>
+      static Str *create(Pool &pool, uint32_t nbytes, IN &in);
 
     private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(Raw);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Str);
     };
 
   }
 }
+
+#include <schwa/msgpack/dynamic_impl.h>
 
 #endif  // SCHWA_MSGPACK_DYNAMIC_H_
