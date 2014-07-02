@@ -31,6 +31,8 @@ namespace schwa {
       WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
       WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
       WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
+      WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE, WireType::FIXINT_POSITIVE,
       WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      ,
       WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      , WireType::MAP_FIXED      ,
       WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    , WireType::ARRAY_FIXED    ,
@@ -246,9 +248,9 @@ namespace schwa {
       template <>
       struct rw_not_integral<UnicodeString> {
         template <typename IN>
-        static inline void read(IN &in, UnicodeString &val) { val = read_and_decode_str(in); }
+        static inline void read(IN &in, UnicodeString &val) { val = read_utf8(in); }
         template <typename OUT>
-        static inline void write(OUT &out, const UnicodeString &val) { write_and_encode_str(out, val); }
+        static inline void write(OUT &out, const UnicodeString &val) { write_utf8(out, val); }
       };
 
       template <typename T>
@@ -412,7 +414,13 @@ namespace schwa {
       case WireType::UINT_8: return static_cast<int64_t>(read_val_uint8(in));
       case WireType::UINT_16: return static_cast<int64_t>(read_val_uint16(in));
       case WireType::UINT_32: return static_cast<int64_t>(read_val_uint32(in));
-      case WireType::UINT_64: return static_cast<int64_t>(read_val_uint64(in));
+      case WireType::UINT_64:
+        {
+          const uint64_t n = read_val_uint64(in);
+          if (n > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
+            throw ReadError("Cannot `read_int`: unsigned integer value exceeds capacity of signed integer data type. Use `read_uint` instead.");
+          return static_cast<int64_t>(n);
+        }
       default:
         throw ReadError("Failed to `read_int`", h);
       }
@@ -597,7 +605,7 @@ namespace schwa {
 
     template <typename IN>
     inline UnicodeString
-    read_and_decode_str(IN &in) {
+    read_utf8(IN &in) {
       return UnicodeString::from_utf8(read_str(in));
     }
 
@@ -1036,7 +1044,7 @@ namespace schwa {
         write_raw_uint32(out, size);
       }
       else
-        throw WriteError("Msgpack does not support arrays of length > 2^32 elements.");
+        throw WriteError("Msgpack does not support arrays of length >= 2^32 elements.");
     }
 
 
@@ -1054,7 +1062,7 @@ namespace schwa {
         write_raw_uint32(out, size);
       }
       else
-        throw WriteError("Msgpack does not support maps of length > 2^32 elements.");
+        throw WriteError("Msgpack does not support maps of length >= 2^32 elements.");
     }
 
 
@@ -1140,7 +1148,7 @@ namespace schwa {
         write_raw_uint32(out, nbytes);
       }
       else
-        throw WriteError("Msgpack does not support UTF-8 strings of length > 2^32 bytes.");
+        throw WriteError("Msgpack does not support UTF-8 strings of length >= 2^32 bytes.");
       io::Traits<OUT>::write_zerocopy(out, data, nbytes);
     }
 
@@ -1152,7 +1160,7 @@ namespace schwa {
 
     template <typename OUT>
     inline void
-    write_and_encode_str(OUT &out, const UnicodeString &s) {
+    write_utf8(OUT &out, const UnicodeString &s) {
       const std::string utf8 = s.to_utf8();
       write_str(out, utf8.c_str(), utf8.size());
     }
@@ -1174,7 +1182,7 @@ namespace schwa {
         write_raw_uint32(out, nbytes);
       }
       else
-        throw WriteError("Msgpack does not support binary strings of length > 2^32 bytes.");
+        throw WriteError("Msgpack does not support binary strings of length >= 2^32 bytes.");
       io::Traits<OUT>::write_zerocopy(out, data, nbytes);
     }
 

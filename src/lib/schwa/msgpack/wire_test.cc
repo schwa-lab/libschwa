@@ -26,11 +26,11 @@ namespace msgpack {
 
 SUITE(schwa__msgpack__wire) {
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // _write_be8
 //  100 = 0110 0100
 // -100 = 1001 1100
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_write_be8_unsigned) {
   BYTES_BEGIN() = {0x64};
   const uint8_t x = 100;
@@ -46,11 +46,11 @@ TEST(test_write_be8_signed) {
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // _write_be16
 //  4957 = 0001 0011 0101 1101
 // -4957 = 1110 1100 1010 0011
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_write_be16_unsigned) {
   BYTES_BEGIN() = {0x13, 0x5D};
   const uint16_t x = 4957;
@@ -66,11 +66,11 @@ TEST(test_write_be16_signed) {
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // _write_be32
 //  584667347 = 0010 0010 1101 1001 0101 0000 1101 0011
 // -584667347 = 1101 1101 0010 0110 1010 1111 0010 1101
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_write_be32_unsigned) {
   BYTES_BEGIN() = {0x22, 0xD9, 0x50, 0xD3};
   const uint32_t x = 584667347;
@@ -86,11 +86,11 @@ TEST(test_write_be32_signed) {
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // _write_be64
 //  8436114578613100000 = 0111 0101 0001 0011 0001 1001 1000 0011 0100 0110 1011 1010 0101 1101 1110 0000
 // -8436114578613100000 = 1000 1010 1110 1100 1110 0110 0111 1100 1011 1001 0100 0101 1010 0010 0010 0000
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_write_be64_unsigned) {
   BYTES_BEGIN() = {0x75, 0x13, 0x19, 0x83, 0x46, 0xBA, 0x5D, 0xE0};
   const uint64_t x = 8436114578613100000ULL;
@@ -107,9 +107,9 @@ TEST(test_write_be64_signed) {
 
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // write_nil
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_nil) {
   BYTES_BEGIN() = {header::NIL};
   write_nil(ss);
@@ -120,9 +120,9 @@ TEST(test_nil) {
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // write_bool
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_boolean_true) {
   BYTES_BEGIN() = {header::TRUE};
   VALUE_BEGIN(bool) = true;
@@ -144,16 +144,22 @@ TEST(test_boolean_false) {
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // write_uint
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_uint_fixed) {
   BYTES_BEGIN() = {0x64};
   VALUE_BEGIN(uint8_t) = 100;
-  write_uint_fixed(ss, value);
+  write_fixint_positive(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(WireType::FIXINT_POSITIVE);
-  CHECK_EQUAL(value, read_uint_fixed(ss));
+  CHECK_EQUAL(value, read_fixint_positive(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
 }
 
@@ -165,6 +171,12 @@ TEST(test_uint_8_100) {
   BYTES_READ_HEADER_CHECK(WireType::FIXINT_POSITIVE);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 TEST(test_uint_8_128) {
   BYTES_BEGIN() = {header::UINT_8, 0x80};
@@ -172,6 +184,12 @@ TEST(test_uint_8_128) {
   write_uint(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(WireType::UINT_8);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
 }
@@ -183,6 +201,12 @@ TEST(test_uint_8_200) {
   BYTES_READ_HEADER_CHECK(WireType::UINT_8);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 TEST(test_uint_8_255) {
   BYTES_BEGIN() = {header::UINT_8, 0xFF};
@@ -190,6 +214,12 @@ TEST(test_uint_8_255) {
   write_uint(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(WireType::UINT_8);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
 }
@@ -202,6 +232,12 @@ TEST(test_uint_16_256) {
   BYTES_READ_HEADER_CHECK(WireType::UINT_16);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 TEST(test_uint_16_4957) {
   BYTES_BEGIN() = {header::UINT_16, 0x13, 0x5D};
@@ -211,6 +247,12 @@ TEST(test_uint_16_4957) {
   BYTES_READ_HEADER_CHECK(WireType::UINT_16);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 TEST(test_uint_16_65535) {
   BYTES_BEGIN() = {header::UINT_16, 0xFF, 0xFF};
@@ -218,6 +260,12 @@ TEST(test_uint_16_65535) {
   write_uint(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(WireType::UINT_16);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
 }
@@ -230,6 +278,12 @@ TEST(test_uint_32_65536) {
   BYTES_READ_HEADER_CHECK(WireType::UINT_32);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 TEST(test_uint_32_584667347) {
   BYTES_BEGIN() = {header::UINT_32, 0x22, 0xD9, 0x50, 0xD3};
@@ -239,6 +293,12 @@ TEST(test_uint_32_584667347) {
   BYTES_READ_HEADER_CHECK(WireType::UINT_32);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 TEST(test_uint_32_4294967295) {
   BYTES_BEGIN() = {header::UINT_32, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -246,6 +306,12 @@ TEST(test_uint_32_4294967295) {
   write_uint(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(WireType::UINT_32);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
 }
@@ -258,6 +324,12 @@ TEST(test_uint_64_4294967296) {
   BYTES_READ_HEADER_CHECK(WireType::UINT_64);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 TEST(test_uint_64_8436114578613100000) {
   BYTES_BEGIN() = {header::UINT_64, 0x75, 0x13, 0x19, 0x83, 0x46, 0xBA, 0x5D, 0xE0};
@@ -265,6 +337,12 @@ TEST(test_uint_64_8436114578613100000) {
   write_uint(ss, value);
   BYTES_WRITE_CHECK();
   BYTES_READ_HEADER_CHECK(WireType::UINT_64);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_int(ss));
+  BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
 }
@@ -276,12 +354,17 @@ TEST(test_uint_64_max) {
   BYTES_READ_HEADER_CHECK(WireType::UINT_64);
   CHECK_EQUAL(value, read_uint(ss));
   BYTES_CONSUMED_CHECK();
+  ss.seekg(0);
+  CHECK_THROW(read_int(ss), ReadError);  // Value is too large for signed integer.
+  ss.seekg(0);
+  CHECK_EQUAL(value, read_uint(ss));
+  BYTES_CONSUMED_CHECK();
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // write_float
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_float) {
   BYTES_BEGIN() = {0xCA, 0x46, 0x40, 0xE4, 0x90};
   VALUE_BEGIN(float) = 12345.141;
@@ -293,9 +376,9 @@ TEST(test_float) {
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // write_double
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_double) {
   BYTES_BEGIN() = {0xCB, 0x40, 0xC8, 0x1C, 0x92, 0x0C, 0x49, 0xBA, 0x5E};
   VALUE_BEGIN(double) = 12345.141;
@@ -307,10 +390,10 @@ TEST(test_double) {
 }
 
 
-// ----------------------------------------------------------------------------
+// =============================================================================
 // write_array_size
-// ----------------------------------------------------------------------------
-TEST(test_array_fixed_0) {
+// =============================================================================
+TEST(test_array_size_0) {
   BYTES_BEGIN() = {header::ARRAY_FIXED};
   const size_t size = 0;
   write_array_size(ss, size);
@@ -320,7 +403,7 @@ TEST(test_array_fixed_0) {
   BYTES_CONSUMED_CHECK();
 }
 
-TEST(test_array_fixed_15) {
+TEST(test_array_size_15) {
   BYTES_BEGIN() = {header::ARRAY_FIXED | 0x0F, header::NIL, header::TRUE, header::FALSE, header::NIL, header::TRUE, header::FALSE, header::NIL, header::TRUE, header::FALSE, header::NIL, header::TRUE, header::FALSE, 8, header::UINT_8, 200, header::NIL};
   const size_t size = 15;
   write_array_size(ss, size);
@@ -354,7 +437,7 @@ TEST(test_array_fixed_15) {
   BYTES_CONSUMED_CHECK();
 }
 
-TEST(test_array_fixed_16) {
+TEST(test_array_size_16) {
   BYTES_BEGIN() = {header::ARRAY_16, 0, 16, header::NIL, header::TRUE, header::FALSE, header::NIL, header::TRUE, header::FALSE, header::NIL, header::TRUE, header::FALSE, header::NIL, header::TRUE, header::FALSE, 8, header::UINT_8, 200, header::NIL, header::NIL};
   const size_t size = 16;
   write_array_size(ss, size);
@@ -390,10 +473,32 @@ TEST(test_array_fixed_16) {
   BYTES_CONSUMED_CHECK();
 }
 
+TEST(test_array_size_int16) {
+  std::stringstream ss;
+  const size_t size = std::numeric_limits<uint16_t>::max();
+  write_array_size(ss, size);
+  BYTES_READ_HEADER_CHECK(WireType::ARRAY_16);
+  CHECK_EQUAL(size, read_array_size(ss));
+}
 
-// ----------------------------------------------------------------------------
+TEST(test_array_size_int32) {
+  std::stringstream ss;
+  const size_t size = static_cast<size_t>(std::numeric_limits<uint16_t>::max()) + 1;
+  write_array_size(ss, size);
+  BYTES_READ_HEADER_CHECK(WireType::ARRAY_32);
+  CHECK_EQUAL(size, read_array_size(ss));
+}
+
+TEST(test_array_size_too_large) {
+  std::stringstream ss;
+  const size_t size = static_cast<size_t>(std::numeric_limits<uint32_t>::max()) + 1;
+  CHECK_THROW(write_array_size(ss, size), WriteError);
+}
+
+
+// =============================================================================
 // write_map_size
-// ----------------------------------------------------------------------------
+// =============================================================================
 TEST(test_map_fixed_0) {
   BYTES_BEGIN() = {header::MAP_FIXED};
   const size_t size = 0;
@@ -450,6 +555,206 @@ TEST(test_map_fixed_16) {
   }
 
   BYTES_CONSUMED_CHECK();
+}
+
+TEST(test_map_size_int16) {
+  std::stringstream ss;
+  const size_t size = std::numeric_limits<uint16_t>::max();
+  write_map_size(ss, size);
+  BYTES_READ_HEADER_CHECK(WireType::MAP_16);
+  CHECK_EQUAL(size, read_map_size(ss));
+}
+
+TEST(test_map_size_int32) {
+  std::stringstream ss;
+  const size_t size = static_cast<size_t>(std::numeric_limits<uint16_t>::max()) + 1;
+  write_map_size(ss, size);
+  BYTES_READ_HEADER_CHECK(WireType::MAP_32);
+  CHECK_EQUAL(size, read_map_size(ss));
+}
+
+TEST(test_map_size_too_large) {
+  std::stringstream ss;
+  const size_t size = static_cast<size_t>(std::numeric_limits<uint32_t>::max()) + 1;
+  CHECK_THROW(write_map_size(ss, size), WriteError);
+}
+
+
+// =============================================================================
+// write_str
+// =============================================================================
+static void
+_populate_str_data(uint8_t *ptr, const size_t nbytes) {
+  uint8_t value = 'a';
+  for (size_t i = 0; i != nbytes; ++i) {
+    *ptr++ = ++value;
+    if (value > 'z')
+      value = 'a';
+  }
+}
+
+TEST(test_str_1) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = 1;
+  uint8_t *const expected = new uint8_t[nbytes];
+  _populate_str_data(expected, nbytes);
+  write_str(ss, reinterpret_cast<char *>(expected), nbytes);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 1, ss.tellp());
+  BYTES_READ_HEADER_CHECK(WireType::STR_FIXED);
+  const std::string read = read_str(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(expected, nbytes, read);
+  CHECK_EQUAL(nbytes + 1, ss.tellg());
+  delete [] expected;
+}
+
+TEST(test_str_32) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = 32;
+  uint8_t *const expected = new uint8_t[nbytes];
+  _populate_str_data(expected, nbytes);
+  write_str(ss, reinterpret_cast<char *>(expected), nbytes);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 2, ss.tellp());
+  BYTES_READ_HEADER_CHECK(WireType::STR_8);
+  const std::string read = read_str(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(expected, nbytes, read);
+  CHECK_EQUAL(nbytes + 2, ss.tellg());
+  delete [] expected;
+}
+
+TEST(test_str_65535) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = 65535;
+  uint8_t *const expected = new uint8_t[nbytes];
+  _populate_str_data(expected, nbytes);
+  write_str(ss, reinterpret_cast<char *>(expected), nbytes);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 3, ss.tellp());
+  BYTES_READ_HEADER_CHECK(WireType::STR_16);
+  const std::string read = read_str(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(expected, nbytes, read);
+  CHECK_EQUAL(nbytes + 3, ss.tellg());
+  delete [] expected;
+}
+
+TEST(test_str_65536) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = 65536;
+  uint8_t *const expected = new uint8_t[nbytes];
+  _populate_str_data(expected, nbytes);
+  write_str(ss, reinterpret_cast<char *>(expected), nbytes);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 5, ss.tellp());
+  BYTES_READ_HEADER_CHECK(WireType::STR_32);
+  const std::string read = read_str(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(expected, nbytes, read);
+  CHECK_EQUAL(nbytes + 5, ss.tellg());
+  delete [] expected;
+}
+
+TEST(test_str_too_large) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = static_cast<size_t>(std::numeric_limits<uint32_t>::max()) + 1;
+  CHECK_THROW(write_str(ss, nullptr, nbytes), WriteError);
+}
+
+TEST(test_utf8) {
+  const std::string utf8(u8"κόσμε");
+  const UnicodeString u = UnicodeString::from_utf8(utf8);
+
+  std::stringstream ss;
+  const size_t nbytes = utf8.size();
+  uint8_t *const expected = new uint8_t[nbytes];
+  write_utf8(ss, u);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 1, ss.tellp());
+
+  BYTES_READ_HEADER_CHECK(WireType::STR_FIXED);
+  const std::string read = read_str(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(reinterpret_cast<const uint8_t *>(utf8.c_str()), nbytes, read);
+  CHECK_EQUAL(nbytes + 1, ss.tellg());
+
+  ss.seekg(0);
+  const UnicodeString read_u = read_utf8(ss);
+  CHECK_EQUAL(u.size(), read_u.size());
+  CHECK_EQUAL(u.to_utf8(), read_u.to_utf8());
+  CHECK_EQUAL(nbytes + 1, ss.tellg());
+
+  delete [] expected;
+}
+
+
+// =============================================================================
+// write_bin
+// =============================================================================
+static void
+_populate_bin_data(uint8_t *ptr, const size_t nbytes) {
+  uint8_t value = 'A';
+  for (size_t i = 0; i != nbytes; ++i) {
+    *ptr++ = ++value;
+    if (value > 'Z')
+      value = 'A';
+  }
+}
+
+TEST(test_bin_32) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = 32;
+  uint8_t *const expected = new uint8_t[nbytes];
+  _populate_bin_data(expected, nbytes);
+  write_bin(ss, reinterpret_cast<char *>(expected), nbytes);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 2, ss.tellp());
+  BYTES_READ_HEADER_CHECK(WireType::BIN_8);
+  const std::string read = read_bin(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(expected, nbytes, read);
+  CHECK_EQUAL(nbytes + 2, ss.tellg());
+  delete [] expected;
+}
+
+TEST(test_bin_65535) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = 65535;
+  uint8_t *const expected = new uint8_t[nbytes];
+  _populate_bin_data(expected, nbytes);
+  write_bin(ss, reinterpret_cast<char *>(expected), nbytes);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 3, ss.tellp());
+  BYTES_READ_HEADER_CHECK(WireType::BIN_16);
+  const std::string read = read_bin(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(expected, nbytes, read);
+  CHECK_EQUAL(nbytes + 3, ss.tellg());
+  delete [] expected;
+}
+
+TEST(test_bin_65536) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = 65536;
+  uint8_t *const expected = new uint8_t[nbytes];
+  _populate_bin_data(expected, nbytes);
+  write_bin(ss, reinterpret_cast<char *>(expected), nbytes);
+  ss.flush();
+  CHECK_EQUAL(nbytes + 5, ss.tellp());
+  BYTES_READ_HEADER_CHECK(WireType::BIN_32);
+  const std::string read = read_bin(ss);
+  CHECK_EQUAL(nbytes, read.size());
+  CHECK_COMPARE_BYTES3(expected, nbytes, read);
+  CHECK_EQUAL(nbytes + 5, ss.tellg());
+  delete [] expected;
+}
+
+TEST(test_bin_too_large) {
+  std::stringstream ss;
+  constexpr const size_t nbytes = static_cast<size_t>(std::numeric_limits<uint32_t>::max()) + 1;
+  CHECK_THROW(write_bin(ss, nullptr, nbytes), WriteError);
 }
 
 }  // SUITE
