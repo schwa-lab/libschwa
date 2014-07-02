@@ -14,7 +14,6 @@
 namespace schwa {
   namespace dr {
     namespace wire {
-      namespace mp = schwa::msgpack;
 
       enum FieldType : uint8_t {
         NAME = 0,
@@ -43,13 +42,13 @@ namespace schwa {
         template <typename OUT>
         static inline void
         write(OUT &out, const T &val) {
-          mp::write(out, val);
+          msgpack::write(out, val);
         }
 
         template <typename IN>
         static inline void
         read(IN &in, T &val) {
-          mp::read(in, val);
+          msgpack::read(in, val);
         }
       };
 
@@ -68,13 +67,13 @@ namespace schwa {
         template <typename OUT>
         static inline void
         write(OUT &out, const std::string &val) {
-          mp::write(out, val);
+          msgpack::write(out, val);
         }
 
         template <typename IN>
         static inline void
         read(IN &in, std::string &val) {
-          mp::read(in, val);
+          msgpack::read(in, val);
         }
       };
 
@@ -89,13 +88,13 @@ namespace schwa {
         template <typename OUT>
         static inline void
         write(OUT &out, const UnicodeString &val) {
-          mp::write(out, val);
+          msgpack::write(out, val);
         }
 
         template <typename IN>
         static inline void
         read(IN &in, UnicodeString &val) {
-          mp::read(in, val);
+          msgpack::read(in, val);
         }
       };
 
@@ -110,13 +109,13 @@ namespace schwa {
         template <typename OUT>
         static inline void
         write(OUT &out, const Pointer<T> &val, const IStore &istore) {
-          mp::write_uint(out, istore.index_of(*val));
+          msgpack::write_uint(out, istore.index_of(*val));
         }
 
         template <typename IN>
         static inline void
         read(IN &in, Pointer<T> &val, IStore &istore) {
-          const size_t offset = mp::read_uint(in);
+          const size_t offset = msgpack::read_uint(in);
           val = &static_cast<T &>(istore.at_index(offset));
         }
       };
@@ -132,17 +131,17 @@ namespace schwa {
         template <typename OUT>
         static inline void
         write(OUT &out, const Pointers<T> &val, const IStore &istore) {
-          mp::write_array_size(out, val.size());
+          msgpack::write_array_size(out, val.size());
           for (auto &it : val)
-            mp::write_uint(out, istore.index_of(*it));
+            msgpack::write_uint(out, istore.index_of(*it));
         }
 
         template <typename IN>
         static inline void
         read(IN &in, Pointers<T> &val, IStore &istore) {
-          const uint32_t nitems = mp::read_array_size(in);
+          const uint32_t nitems = msgpack::read_array_size(in);
           for (uint32_t i = 0; i != nitems; ++i) {
-            const size_t offset = mp::read_uint(in);
+            const size_t offset = msgpack::read_uint(in);
             val.push_back(&static_cast<T &>(istore.at_index(offset)));
           }
         }
@@ -159,18 +158,18 @@ namespace schwa {
         template <typename OUT>
         static inline void
         write(OUT &out, const Slice<T> &val) {
-          mp::write_array_size(out, 2);
-          mp::write(out, val.start);
-          mp::write(out, val.stop - val.start);
+          msgpack::write_array_size(out, 2);
+          msgpack::write(out, val.start);
+          msgpack::write(out, val.stop - val.start);
         }
 
         template <typename IN>
         static inline void
         read(IN &in, Slice<T> &val) {
-          const uint32_t nitems = mp::read_array_size(in);
+          const uint32_t nitems = msgpack::read_array_size(in);
           assert(nitems == 2);
-          mp::read<IN>(in, val.start);
-          mp::read<IN>(in, val.stop);
+          msgpack::read<IN>(in, val.start);
+          msgpack::read<IN>(in, val.stop);
           val.stop += val.start;
         }
       };
@@ -188,18 +187,18 @@ namespace schwa {
         write(OUT &out, const Slice<T> &val, const IStore &istore) {
           const size_t a = istore.index_of(*val.start);
           const size_t b = istore.index_of(*val.stop);
-          mp::write_array_size(out, 2);
-          mp::write_uint(out, a);
-          mp::write_uint(out, b - a);
+          msgpack::write_array_size(out, 2);
+          msgpack::write_uint(out, a);
+          msgpack::write_uint(out, b - a);
         }
 
         template <typename IN>
         static inline void
         read(IN &in, Slice<T> &val, IStore &istore) {
-          const uint32_t nitems = mp::read_array_size(in);
+          const uint32_t nitems = msgpack::read_array_size(in);
           assert(nitems == 2);
-          const size_t offset = mp::read_uint(in);
-          const size_t delta = mp::read_uint(in);
+          const size_t offset = msgpack::read_uint(in);
+          const size_t delta = msgpack::read_uint(in);
           val.start = &static_cast<typename FieldTraits<Slice<T>>::value_type &>(istore.at_index(offset));
           val.stop = &static_cast<typename FieldTraits<Slice<T>>::value_type &>(istore.at_index(offset + delta));
         }

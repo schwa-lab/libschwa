@@ -88,11 +88,11 @@ Writer::write(const Doc &doc) {
 
     // <klass_name>
     if (schema == rt->doc)
-      mp::write_raw(_out, "__meta__");
+      mp::write_str(_out, "__meta__");
     else if (schema->is_lazy())
-      mp::write_raw(_out, schema->serial);
+      mp::write_str(_out, schema->serial);
     else
-      mp::write_raw(_out, schema->def->serial);
+      mp::write_str(_out, schema->def->serial);
 
     // <fields> ::= [ <field> ]
     mp::write_array_size(_out, schema->fields.size());
@@ -102,30 +102,30 @@ Writer::write(const Doc &doc) {
       mp::write_map_size(_out, nelem);
 
       // <field_type> ::= 0 # NAME => the name of the field
-      mp::write_uint_fixed(_out, to_underlying(wire::NAME));
-      mp::write_raw(_out, field->is_lazy() ? field->serial : field->def->serial);
+      mp::write_fixint_positive(_out, to_underlying(wire::NAME));
+      mp::write_str(_out, field->is_lazy() ? field->serial : field->def->serial);
 
       // <field_type> ::= 1 # POINTER_TO => the <store_id> that this field points into
       if (field->points_into != nullptr) {
-        mp::write_uint_fixed(_out, to_underlying(wire::POINTER_TO));
+        mp::write_fixint_positive(_out, to_underlying(wire::POINTER_TO));
         mp::write_uint(_out, field->points_into->store_id);
       }
 
       // <field_type> ::= 2 # IS_SLICE => whether or not this field is a "Slice" field
       if (field->is_slice) {
-        mp::write_uint_fixed(_out, to_underlying(wire::IS_SLICE));
+        mp::write_fixint_positive(_out, to_underlying(wire::IS_SLICE));
         mp::write_nil(_out);
       }
 
       // <field_type>  ::= 3 # IS_SELF_POINTER => whether or not this field is a self-pointer. POINTER_TO and IS_SELF_POINTER are mutually exclusive.
       if (field->is_self_pointer) {
-        mp::write_uint_fixed(_out, to_underlying(wire::IS_SELF_POINTER));
+        mp::write_fixint_positive(_out, to_underlying(wire::IS_SELF_POINTER));
         mp::write_nil(_out);
       }
 
       // <field_type>  ::= 4 # IS_COLLECTION => whether or not this field is a collection. IS_COLLECTION and IS_SLICE are mutually exclusive.
       if (field->is_collection) {
-        mp::write_uint_fixed(_out, to_underlying(wire::IS_COLLECTION));
+        mp::write_fixint_positive(_out, to_underlying(wire::IS_COLLECTION));
         mp::write_nil(_out);
       }
     } // for each field
@@ -138,13 +138,13 @@ Writer::write(const Doc &doc) {
     // <store> ::= ( <store_name>, <type_id>, <store_nelem> )
     mp::write_array_size(_out, 3);
     if (store->is_lazy()) {
-      mp::write_raw(_out, store->serial);
+      mp::write_str(_out, store->serial);
       mp::write_uint(_out, store->klass->klass_id);
       mp::write_uint(_out, store->lazy_nelem);
     }
     else {
       IStore &istore = store->def->istore(doc);
-      mp::write_raw(_out, store->def->serial);
+      mp::write_str(_out, store->def->serial);
       mp::write_uint(_out, store->klass->klass_id);
       mp::write_uint(_out, istore.nelem());
     }

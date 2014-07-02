@@ -16,9 +16,9 @@ namespace schwa {
     Bin::create(Pool &pool, const uint32_t nbytes, IN &in) {
       Bin *const obj = pool.alloc<Bin *>(sizeof(Bin) + nbytes);
       new (obj) Bin(nbytes);
-      in.read(obj->value(), nbytes);
+      in.read(obj->data(), nbytes);
       if (SCHWA_UNLIKELY(in.gcount() != nbytes))
-        throw ReadException("Failed to read all of the bin data in `read_dynamic`", in.gcount(), nbytes);
+        throw ReadError("Failed to read all of the bin data in `read_dynamic`", in.gcount(), nbytes);
       return obj;
     }
 
@@ -31,9 +31,9 @@ namespace schwa {
     Ext::create(Pool &pool, const int8_t type, const uint32_t nbytes, IN &in) {
       Ext *const obj = pool.alloc<Ext *>(sizeof(Ext) + nbytes);
       new (obj) Ext(nbytes, type);
-      in.read(obj->value(), nbytes);
+      in.read(obj->data(), nbytes);
       if (SCHWA_UNLIKELY(in.gcount() != nbytes))
-        throw ReadException("Failed to read all of the ext data in `read_dynamic`", in.gcount(), nbytes);
+        throw ReadError("Failed to read all of the ext data in `read_dynamic`", in.gcount(), nbytes);
       return obj;
     }
 
@@ -46,9 +46,9 @@ namespace schwa {
     Str::create(Pool &pool, const uint32_t nbytes, IN &in) {
       Str *const obj = pool.alloc<Str *>(sizeof(Str) + nbytes);
       new (obj) Str(nbytes);
-      in.read(obj->value(), nbytes);
+      in.read(obj->data(), nbytes);
       if (SCHWA_UNLIKELY(in.gcount() != nbytes))
-        throw ReadException("Failed to read all of the str data in `read_dynamic`", in.gcount(), nbytes);
+        throw ReadError("Failed to read all of the str data in `read_dynamic`", in.gcount(), nbytes);
       return obj;
     }
 

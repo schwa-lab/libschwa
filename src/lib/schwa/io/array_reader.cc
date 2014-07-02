@@ -8,6 +8,9 @@
 namespace schwa {
 namespace io {
 
+ArrayReader::ArrayReader(const char *data, size_t nbytes) : _data(data), _nbytes(nbytes), _upto(_data), _left(nbytes), _gcount(0) { }
+
+
 int
 ArrayReader::get(void) {
   if (_left == 0)
@@ -28,19 +31,19 @@ ArrayReader::peek(void) {
 
 void
 ArrayReader::read(char *const buf, const size_t amount) {
-  const size_t n = std::min(_left, amount);
-  std::memcpy(buf, _upto, n);
-  _upto += n;
-  _left -= n;
+  _gcount = std::min(_left, amount);
+  std::memcpy(buf, _upto, _gcount);
+  _upto += _gcount;
+  _left -= _gcount;
 }
 
 
 size_t
 ArrayReader::ignore(const size_t amount) {
-  const size_t n = std::min(_left, amount);
-  _upto += n;
-  _left -= n;
-  return n;
+  _gcount = std::min(_left, amount);
+  _upto += _gcount;
+  _left -= _gcount;
+  return _gcount;
 }
 
 }  // namespace io

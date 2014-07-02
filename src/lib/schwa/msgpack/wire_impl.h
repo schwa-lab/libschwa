@@ -100,7 +100,7 @@ namespace schwa {
       uint8_t be8;
       in.read(reinterpret_cast<char *>(&be8), 1);
       if (SCHWA_UNLIKELY(in.gcount() != 1))
-        throw ReadException("Failed to read data", in.gcount(), 1);
+        throw ReadError("Failed to read data", in.gcount(), 1);
       *reinterpret_cast<uint8_t *>(h8) = be8;
     }
 
@@ -111,7 +111,7 @@ namespace schwa {
       uint16_t be16;
       in.read(reinterpret_cast<char *>(&be16), 2);
       if (SCHWA_UNLIKELY(in.gcount() != 2))
-        throw ReadException("Failed to read data", in.gcount(), 2);
+        throw ReadError("Failed to read data", in.gcount(), 2);
       *reinterpret_cast<uint16_t *>(h16) = port::be16_to_h(be16);
     }
 
@@ -122,7 +122,7 @@ namespace schwa {
       uint32_t be32;
       in.read(reinterpret_cast<char *>(&be32), 4);
       if (SCHWA_UNLIKELY(in.gcount() != 4))
-        throw ReadException("Failed to read data", in.gcount(), 4);
+        throw ReadError("Failed to read data", in.gcount(), 4);
       *reinterpret_cast<uint32_t *>(h32) = port::be32_to_h(be32);
     }
 
@@ -133,7 +133,7 @@ namespace schwa {
       uint64_t be64;
       in.read(reinterpret_cast<char *>(&be64), 8);
       if (SCHWA_UNLIKELY(in.gcount() != 8))
-        throw ReadException("Failed to read data", in.gcount(), 8);
+        throw ReadError("Failed to read data", in.gcount(), 8);
       *reinterpret_cast<uint64_t *>(h64) = port::be64_to_h(be64);
     }
 
@@ -180,7 +180,7 @@ namespace schwa {
       char buf[NBYTES];
       in.read(buf, NBYTES);
       if (SCHWA_UNLIKELY(in.gcount() != NBYTES))
-        throw ReadException("Failed to read data", in.gcount(), NBYTES);
+        throw ReadError("Failed to read data", in.gcount(), NBYTES);
       out.write(buf, NBYTES);
     }
 
@@ -190,14 +190,15 @@ namespace schwa {
     // ========================================================================
     namespace traits {
       template <typename T, bool>
-      struct rw_integral_signed {
+      struct rw_signed_integral {
         template <typename IN>
         static inline void read(IN &in, T &val) { val = read_uint(in); }
         template <typename OUT>
         static inline void write(OUT &out, const T &val) { write_uint(out, val); }
       };
+
       template <typename T>
-      struct rw_integral_signed<T, true> {
+      struct rw_signed_integral<T, true> {
         template <typename IN>
         static inline void read(IN &in, T &val) { val = read_int(in); }
         template <typename OUT>
@@ -205,7 +206,8 @@ namespace schwa {
       };
 
       template <typename T>
-      struct rw_integral : rw_integral_signed<T, std::is_signed<T>::value> { };
+      struct rw_integral : rw_signed_integral<T, std::is_signed<T>::value> { };
+
       template <>
       struct rw_integral<bool> {
         template <typename IN>
@@ -215,38 +217,42 @@ namespace schwa {
       };
 
       template <typename T>
-      struct rw_other { };
+      struct rw_not_integral { };
+
       template <>
-      struct rw_other<float> {
+      struct rw_not_integral<float> {
         template <typename IN>
         static inline void read(IN &in, float &val) { val = read_float(in); }
         template <typename OUT>
         static inline void write(OUT &out, const float &val) { write_float(out, val); }
       };
+
       template <>
-      struct rw_other<double> {
+      struct rw_not_integral<double> {
         template <typename IN>
         static inline void read(IN &in, double &val) { val = read_double(in); }
         template <typename OUT>
         static inline void write(OUT &out, const double &val) { write_double(out, val); }
       };
+
       template <>
-      struct rw_other<std::string> {
+      struct rw_not_integral<std::string> {
         template <typename IN>
-        static inline void read(IN &in, std::string &val) { val = read_raw(in); }
+        static inline void read(IN &in, std::string &val) { val = read_str(in); }
         template <typename OUT>
-        static inline void write(OUT &out, const std::string &val) { write_raw(out, val); }
+        static inline void write(OUT &out, const std::string &val) { write_str(out, val); }
       };
+
       template <>
-      struct rw_other<UnicodeString> {
+      struct rw_not_integral<UnicodeString> {
         template <typename IN>
-        static inline void read(IN &in, UnicodeString &val) { val = read_utf8(in); }
+        static inline void read(IN &in, UnicodeString &val) { val = read_and_decode_str(in); }
         template <typename OUT>
-        static inline void write(OUT &out, const UnicodeString &val) { write_utf8(out, val); }
+        static inline void write(OUT &out, const UnicodeString &val) { write_and_encode_str(out, val); }
       };
 
       template <typename T>
-      struct rw : mpl::if_<std::is_integral<T>, rw_integral<T>, rw_other<T>>::type { };
+      struct rw : mpl::if_<std::is_integral<T>, rw_integral<T>, rw_not_integral<T>>::type { };
     }
 
 
@@ -261,7 +267,7 @@ namespace schwa {
     inline WireType
     header_type(const int header) {
       if (SCHWA_UNLIKELY(header == EOF))
-        throw ReadException("Read EOF", header);
+        throw ReadError("Read EOF", header);
       return HEADER_TYPES[header & 0xff];
     }
 
@@ -270,7 +276,7 @@ namespace schwa {
     read_nil(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(h != header::NIL))
-        throw ReadException("Failed to `read_nil`", h);
+        throw ReadError("Failed to `read_nil`", h);
     }
 
     template <typename IN>
@@ -282,7 +288,7 @@ namespace schwa {
       else if (h == header::FALSE)
         return false;
       else
-        throw ReadException("Failed to `read_bool`", h);
+        throw ReadError("Failed to `read_bool`", h);
     }
 
     template <typename IN>
@@ -291,7 +297,7 @@ namespace schwa {
       float x;
       const int h = in.get();
       if (SCHWA_UNLIKELY(h != header::FLOAT))
-        throw ReadException("Failed to `read_float`", h);
+        throw ReadError("Failed to `read_float`", h);
       _read_be32(in, &x);
       return x;
     }
@@ -302,7 +308,7 @@ namespace schwa {
       double x;
       const int h = in.get();
       if (SCHWA_UNLIKELY(h != header::DOUBLE))
-        throw ReadException("Failed to `read_double`", h);
+        throw ReadError("Failed to `read_double`", h);
       _read_be64(in, &x);
       return x;
     }
@@ -351,7 +357,7 @@ namespace schwa {
     read_fixint_negative(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::FIXINT_NEGATIVE))
-        throw ReadException("Failed to `read_fixint_negative`", h);
+        throw ReadError("Failed to `read_fixint_negative`", h);
       return read_val_fixint_negative(h);
     }
 
@@ -360,7 +366,7 @@ namespace schwa {
     read_int8(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_8))
-        throw ReadException("Failed to `read_int8`", h, header::INT_8);
+        throw ReadError("Failed to `read_int8`", h, header::INT_8);
       return read_val_int8(in);
     }
 
@@ -369,7 +375,7 @@ namespace schwa {
     read_int16(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_16))
-        throw ReadException("Failed to `read_int16`", h, header::INT_16);
+        throw ReadError("Failed to `read_int16`", h, header::INT_16);
       return read_val_int16(in);
     }
 
@@ -378,7 +384,7 @@ namespace schwa {
     read_int32(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_32))
-        throw ReadException("Failed to `read_int32`", h, header::INT_32);
+        throw ReadError("Failed to `read_int32`", h, header::INT_32);
       return read_val_int32(in);
     }
 
@@ -387,7 +393,7 @@ namespace schwa {
     read_int64(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::INT_64))
-        throw ReadException("Failed to `read_int64`", h, header::INT_64);
+        throw ReadError("Failed to `read_int64`", h, header::INT_64);
       return read_val_int64(in);
     }
 
@@ -408,7 +414,7 @@ namespace schwa {
       case WireType::UINT_32: return static_cast<int64_t>(read_val_uint32(in));
       case WireType::UINT_64: return static_cast<int64_t>(read_val_uint64(in));
       default:
-        throw ReadException("Failed to `read_int`", h);
+        throw ReadError("Failed to `read_int`", h);
       }
     }
 
@@ -454,7 +460,7 @@ namespace schwa {
     read_fixint_positive(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::FIXINT_POSITIVE))
-        throw ReadException("Failed to `read_fixint_positive`", h);
+        throw ReadError("Failed to `read_fixint_positive`", h);
       return read_val_fixint_positive(h);
     }
 
@@ -463,7 +469,7 @@ namespace schwa {
     read_uint8(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_8))
-        throw ReadException("Failed to `read_uint8`", h, header::UINT_8);
+        throw ReadError("Failed to `read_uint8`", h, header::UINT_8);
       return read_val_uint8(in);
     }
 
@@ -472,7 +478,7 @@ namespace schwa {
     read_uint16(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_16))
-        throw ReadException("Failed to `read_uint16`", h, header::UINT_16);
+        throw ReadError("Failed to `read_uint16`", h, header::UINT_16);
       return read_val_uint16(in);
     }
 
@@ -481,7 +487,7 @@ namespace schwa {
     read_uint32(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_32))
-        throw ReadException("Failed to `read_uint32`", h, header::UINT_32);
+        throw ReadError("Failed to `read_uint32`", h, header::UINT_32);
       return read_val_uint32(in);
     }
 
@@ -490,7 +496,7 @@ namespace schwa {
     read_uint64(IN &in) {
       const int h = in.get();
       if (SCHWA_UNLIKELY(header_type(h) != WireType::UINT_64))
-        throw ReadException("Failed to `read_uint64`", h, header::UINT_64);
+        throw ReadError("Failed to `read_uint64`", h, header::UINT_64);
       return read_val_uint64(in);
     }
 
@@ -506,7 +512,7 @@ namespace schwa {
       case WireType::UINT_32: return read_val_uint32(in);
       case WireType::UINT_64: return read_val_uint64(in);
       default:
-        throw ReadException("Failed to `read_uint`", h);
+        throw ReadError("Failed to `read_uint`", h);
       }
     }
 
@@ -527,7 +533,7 @@ namespace schwa {
         _read_be32(in, &s32);
         return s32;
       default:
-        throw ReadException("Failed to `read_array_size`", h);
+        throw ReadError("Failed to `read_array_size`", h);
       }
     }
 
@@ -548,9 +554,10 @@ namespace schwa {
         _read_be32(in, &s32);
         return s32;
       default:
-        throw ReadException("Failed to `read_map_size`", h);
+        throw ReadError("Failed to `read_map_size`", h);
       }
     }
+
 
     template <typename IN>
     inline std::string
@@ -577,21 +584,54 @@ namespace schwa {
         _read_be32(in, &s32);
         break;
       default:
-        throw ReadException("Failed to `read_str`", h);
+        throw ReadError("Failed to `read_str`", h);
       }
 
       std::string s(s32, '\0');
       in.read(&s[0], s32);
       if (SCHWA_UNLIKELY(in.gcount() != s32))
-        throw ReadException("Failed to read all of the str data in `read_str`", in.gcount(), s32);
+        throw ReadError("Failed to read all of the str data in `read_str`", in.gcount(), s32);
       return s;
     }
 
 
     template <typename IN>
     inline UnicodeString
-    read_str(IN &in) {
+    read_and_decode_str(IN &in) {
       return UnicodeString::from_utf8(read_str(in));
+    }
+
+
+    template <typename IN>
+    inline std::string
+    read_bin(IN &in) {
+      const int h = in.get();
+      const WireType type = header_type(h);
+
+      uint32_t s32;
+      switch (type) {
+      case WireType::BIN_8:
+        uint8_t s8;
+        _read_be8(in, &s8);
+        s32 = s8;
+        break;
+      case WireType::BIN_16:
+        uint16_t s16;
+        _read_be16(in, &s16);
+        s32 = s16;
+        break;
+      case WireType::BIN_32:
+        _read_be32(in, &s32);
+        break;
+      default:
+        throw ReadError("Failed to `read_bin`", h);
+      }
+
+      std::string s(s32, '\0');
+      in.read(&s[0], s32);
+      if (SCHWA_UNLIKELY(in.gcount() != s32))
+        throw ReadError("Failed to read all of the bin data in `read_bin`", in.gcount(), s32);
+      return s;
     }
 
 
@@ -910,12 +950,14 @@ namespace schwa {
       write_raw_uint8(out, x);
     }
 
+
     template <typename OUT>
     inline void
     write_uint8(OUT &out, const uint8_t x) {
       out.put(header::UINT_8);
       write_raw_uint8(out, x);
     }
+
 
     template <typename OUT>
     inline void
@@ -924,12 +966,14 @@ namespace schwa {
       write_raw_uint16(out, x);
     }
 
+
     template <typename OUT>
     inline void
     write_uint32(OUT &out, const uint32_t x) {
       out.put(header::UINT_32);
       write_raw_uint32(out, x);
     }
+
 
     template <typename OUT>
     inline void
@@ -938,11 +982,13 @@ namespace schwa {
       write_raw_uint64(out, x);
     }
 
+
     template <typename OUT>
     inline void
     write_fixint_negative(OUT &out, const int8_t x) {
       write_raw_int8(out, x);
     }
+
 
     template <typename OUT>
     inline void
@@ -951,12 +997,14 @@ namespace schwa {
       write_raw_int8(out, x);
     }
 
+
     template <typename OUT>
     inline void
     write_int16(OUT &out, const int16_t x) {
       out.put(header::INT_16);
       write_raw_int16(out, x);
     }
+
 
     template <typename OUT>
     inline void
@@ -965,12 +1013,14 @@ namespace schwa {
       write_raw_int32(out, x);
     }
 
+
     template <typename OUT>
     inline void
     write_int64(OUT &out, const int64_t x) {
       out.put(header::INT_64);
       write_raw_int64(out, x);
     }
+
 
     template <typename OUT>
     inline void
@@ -981,11 +1031,14 @@ namespace schwa {
         out.put(header::ARRAY_16);
         write_raw_uint16(out, size);
       }
-      else {
+      else if (size <= std::numeric_limits<uint32_t>::max()) {
         out.put(header::ARRAY_32);
         write_raw_uint32(out, size);
       }
+      else
+        throw WriteError("Msgpack does not support arrays of length > 2^32 elements.");
     }
+
 
     template <typename OUT>
     inline void
@@ -996,11 +1049,14 @@ namespace schwa {
         out.put(header::MAP_16);
         write_raw_uint16(out, size);
       }
-      else {
+      else if (size <= std::numeric_limits<uint32_t>::max()) {
         out.put(header::MAP_32);
         write_raw_uint32(out, size);
       }
+      else
+        throw WriteError("Msgpack does not support maps of length > 2^32 elements.");
     }
+
 
     template <typename OUT>
     inline void
@@ -1008,11 +1064,13 @@ namespace schwa {
       out.put(header::NIL);
     }
 
+
     template <typename OUT>
     inline void
     write_bool(OUT &out, const bool x) {
       out.put(x ? header::TRUE : header::FALSE);
     }
+
 
     template <typename OUT>
     inline void
@@ -1028,6 +1086,7 @@ namespace schwa {
       else
         write_uint64(out, x);
     }
+
 
     template <typename OUT>
     inline void
@@ -1046,12 +1105,14 @@ namespace schwa {
         write_int64(out, x);
     }
 
+
     template <typename OUT>
     inline void
     write_float(OUT &out, const float x) {
       out.put(header::FLOAT);
       _write_be32(out, &x);
     }
+
 
     template <typename OUT>
     inline void
@@ -1060,33 +1121,61 @@ namespace schwa {
       _write_be64(out, &x);
     }
 
+
     template <typename OUT>
     inline void
-    write_raw(OUT &out, const char *const data, const size_t size) {
-      if (size <= 31)
-        out.put(static_cast<unsigned char>(header::RAW_FIXED | size));
-      else if (size <= std::numeric_limits<uint16_t>::max()) {
-        out.put(header::RAW_16);
-        write_raw_uint16(out, size);
+    write_str(OUT &out, const char *const data, const size_t nbytes) {
+      if (nbytes <= 31)
+        out.put(static_cast<unsigned char>(header::STR_FIXED | nbytes));
+      else if (nbytes <= std::numeric_limits<uint8_t>::max()) {
+        out.put(header::STR_8);
+        write_raw_uint8(out, nbytes);
       }
-      else {
-        out.put(header::RAW_32);
-        write_raw_uint32(out, size);
+      else if (nbytes <= std::numeric_limits<uint16_t>::max()) {
+        out.put(header::STR_16);
+        write_raw_uint16(out, nbytes);
       }
-      io::Traits<OUT>::write_zerocopy(out, data, size);
+      else if (nbytes <= std::numeric_limits<uint32_t>::max()) {
+        out.put(header::STR_32);
+        write_raw_uint32(out, nbytes);
+      }
+      else
+        throw WriteError("Msgpack does not support UTF-8 strings of length > 2^32 bytes.");
+      io::Traits<OUT>::write_zerocopy(out, data, nbytes);
     }
 
     template <typename OUT>
     inline void
-    write_raw(OUT &out, const std::string &data) {
-      write_raw(out, data.c_str(), data.size());
+    write_str(OUT &out, const std::string &data) {
+      write_str(out, data.c_str(), data.size());
     }
 
     template <typename OUT>
     inline void
-    write_utf8(OUT &out, const UnicodeString &s) {
+    write_and_encode_str(OUT &out, const UnicodeString &s) {
       const std::string utf8 = s.to_utf8();
-      write_raw(out, utf8.c_str(), utf8.size());
+      write_str(out, utf8.c_str(), utf8.size());
+    }
+
+
+    template <typename OUT>
+    inline void
+    write_bin(OUT &out, const char *const data, const size_t nbytes) {
+      if (nbytes <= std::numeric_limits<uint8_t>::max()) {
+        out.put(header::BIN_8);
+        write_raw_uint8(out, nbytes);
+      }
+      else if (nbytes <= std::numeric_limits<uint16_t>::max()) {
+        out.put(header::BIN_16);
+        write_raw_uint16(out, nbytes);
+      }
+      else if (nbytes <= std::numeric_limits<uint32_t>::max()) {
+        out.put(header::BIN_32);
+        write_raw_uint32(out, nbytes);
+      }
+      else
+        throw WriteError("Msgpack does not support binary strings of length > 2^32 bytes.");
+      io::Traits<OUT>::write_zerocopy(out, data, nbytes);
     }
 
   }

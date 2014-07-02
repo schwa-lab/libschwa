@@ -30,10 +30,10 @@ namespace schwa {
     template <typename IN> inline uint32_t read_array_size(IN &in);
     template <typename IN> inline uint32_t read_map_size(IN &in);
 
-    template <typename IN> inline std::string   read_bin(IN &in);
-
     template <typename IN> inline std::string   read_str(IN &in);
-    template <typename IN> inline UnicodeString read_str(IN &in);
+    template <typename IN> inline UnicodeString read_and_decode_str(IN &in);
+
+    template <typename IN> inline std::string   read_bin(IN &in);
 
     inline int8_t                          read_val_fixint_negative(int h);
     template <typename IN> inline int8_t   read_val_int8(IN &in);
@@ -85,9 +85,12 @@ namespace schwa {
     template <typename OUT> inline void write_array_size(OUT &out, size_t size);
     template <typename OUT> inline void write_map_size(OUT &out, size_t size);
 
-    template <typename OUT> inline void write_raw(OUT &out, const std::string &data);
-    template <typename OUT> inline void write_raw(OUT &out, const char *data, size_t size);
-    template <typename OUT> inline void write_utf8(OUT &out, const UnicodeString &s);
+    template <typename OUT> inline void write_str(OUT &out, const std::string &data);
+    template <typename OUT> inline void write_str(OUT &out, const char *data, size_t nbytes);
+    template <typename OUT> inline void write_and_encode_str(OUT &out, const UnicodeString &s);
+
+    template <typename OUT> inline void write_bin(OUT &out, const std::string &data);
+    template <typename OUT> inline void write_bin(OUT &out, const char *data, size_t nbytes);
 
     template <typename OUT> inline void write_fixint_negative(OUT &out, int8_t x);
     template <typename OUT> inline void write_int8(OUT &out, int8_t x);

@@ -4,6 +4,7 @@
 
 #include <schwa/_base.h>
 
+
 namespace schwa {
   namespace io {
 
@@ -13,13 +14,15 @@ namespace schwa {
       const size_t _nbytes;
       const char *_upto;
       size_t _left;
+      size_t _gcount;
 
     public:
-      ArrayReader(const char *data, size_t nbytes) : _data(data), _nbytes(nbytes), _upto(_data), _left(nbytes) { }
+      ArrayReader(const char *data, size_t nbytes);
       ~ArrayReader(void) { }
 
       inline const char *data(void) const { return _data; }
       inline const char *upto(void) const { return _upto; }
+      inline size_t gcount(void) const { return _gcount; }
       inline size_t nbytes(void) const { return _nbytes; }
 
       int get(void);

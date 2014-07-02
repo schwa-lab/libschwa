@@ -15,7 +15,7 @@ namespace schwa {
 
     class Writer {
     public:
-      static constexpr uint64_t WIRE_VERSION = 2;
+      static constexpr uint64_t WIRE_VERSION = 3;
 
     protected:
       std::ostream &_out;

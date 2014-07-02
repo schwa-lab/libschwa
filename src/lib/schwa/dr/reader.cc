@@ -29,25 +29,29 @@ namespace dr {
 Reader::Reader(std::istream &in, const BaseDocSchema &dschema) :
     _in(in),
     _dschema(dschema),
-    _has_more(false)
+    _has_more(false),
+    _version(0)
   { }
 
 
 Reader &
 Reader::read(Doc &doc) {
+  // Is there anything more to read?
   if (_in.peek() == EOF || _in.eof()) {
     _has_more = false;
     return *this;
   }
 
-  // check the wire format version before anything else
+  // Read the wire format version.
   {
-    uint64_t version = 1;
-    if (is_uint(mp::header_type(_in.peek())))
-      version = mp::read_uint(_in);
-    if (version != WIRE_VERSION) {
+    const int h = _in.peek();
+    if (!is_uint(mp::header_type(h)))
+      throw ReaderException("Could not read wire format version. Ensure that the input is docrep.");
+
+    _version = mp::read_uint(_in);
+    if (!(_version == WIRE_VERSION || _version == LEGACY_WIRE_VERSION)) {
       std::stringstream msg;
-      msg << "Invalid wire format version. Stream has version " << version << " but I can read " << WIRE_VERSION << ". Ensure the input is not plain text.";
+      msg << "Invalid wire format version. Stream has version " << _version << " but I can only read " << WIRE_VERSION << ".";
       throw ReaderException(msg.str());
     }
   }
@@ -80,7 +84,7 @@ Reader::read(Doc &doc) {
 
     // read in the class name and check that we have a registered class with this name
     RTSchema *rtschema;
-    const std::string klass_name = mp::read_raw(_in);
+    const std::string klass_name = mp::read_str(_in);
     {
       const auto &kit = klass_name_map.find(klass_name);
       if (kit == klass_name_map.end())
@@ -107,10 +111,10 @@ Reader::read(Doc &doc) {
       // <field> ::= { <field_type> : <field_val> }
       const uint32_t nitems = mp::read_map_size(_in);
       for (uint32_t i = 0; i != nitems; ++i) {
-        const uint8_t key = mp::read_uint_fixed(_in);
+        const uint8_t key = mp::read_fixint_positive(_in);
         switch (key) {
         case to_underlying(wire::NAME):
-          field_name = mp::read_raw(_in);
+          field_name = mp::read_str(_in);
           break;
         case to_underlying(wire::POINTER_TO):
           store_id = mp::read_uint(_in) + 1;
@@ -199,7 +203,7 @@ Reader::read(Doc &doc) {
       msg << "Invalid sized tuple read in: expected 3 elements but found " << ntriple;
       throw ReaderException(msg.str());
     }
-    const std::string store_name = mp::read_raw(_in);
+    const std::string store_name = mp::read_str(_in);
     const size_t klass_id = mp::read_uint(_in);
     const size_t nelem = mp::read_uint(_in);
 
@@ -521,7 +525,7 @@ read_lazy_doc(std::istream &in, std::ostream &out) {
     }
 
     in.read(buf.get(), nbytes);
-    if (in.gcount() != nbytes)
+    if (in.gcount() < 0 || static_cast<uint64_t>(in.gcount()) != nbytes)
       return false;
     out.write(buf.get(), nbytes);
   }

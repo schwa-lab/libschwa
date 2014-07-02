@@ -8,9 +8,9 @@
 namespace schwa {
 namespace msgpack {
 
-ReadException::ReadException(const std::string &msg : IOException(msg), _read(-1), _expected(-1) { }
+ReadError::ReadError(const std::string &msg) : IOException(msg), _read(-1), _expected(-1) { }
 
-ReadException::ReadException(const std::string &msg, const int read, const int expected) : IOException(""), _read(read), _expected(expected) {
+ReadError::ReadError(const std::string &msg, const int read, const int expected) : IOException(""), _read(read), _expected(expected) {
   std::ostringstream ss;
   ss << msg << ": got=0x" << std::hex << read << std::dec;
   if (expected != -1)
@@ -19,7 +19,12 @@ ReadException::ReadException(const std::string &msg, const int read, const int e
 }
 
 
-ReadException::ReadException(const ReadException &o) : IOException(o), _read(o._read), _expected(o._expected) { }
+ReadError::ReadError(const ReadError &o) : IOException(o), _read(o._read), _expected(o._expected) { }
+
+
+WriteError::WriteError(const std::string &msg) : IOException(msg) { }
+
+WriteError::WriteError(const WriteError &o) : IOException(o) { }
 
 }  // namespace msgpack
 }  // namespace schwa

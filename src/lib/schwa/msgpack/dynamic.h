@@ -98,8 +98,8 @@ namespace schwa {
       ~Bin(void) { }
 
       inline uint32_t nbytes(void) const { return _nbytes; }
-      inline char *value(void) { return reinterpret_cast<char *>(this + 1); }
-      inline const char *value(void) const { return reinterpret_cast<const char *>(this + 1); }
+      inline char *data(void) { return reinterpret_cast<char *>(this + 1); }
+      inline const char *data(void) const { return reinterpret_cast<const char *>(this + 1); }
 
       inline void operator delete(void *) { }
 
@@ -123,8 +123,8 @@ namespace schwa {
 
       inline uint32_t nbytes(void) const { return _nbytes; }
       inline int8_t type(void) const { return _type; }
-      inline char *value(void) { return reinterpret_cast<char *>(this + 1); }
-      inline const char *value(void) const { return reinterpret_cast<const char *>(this + 1); }
+      inline char *data(void) { return reinterpret_cast<char *>(this + 1); }
+      inline const char *data(void) const { return reinterpret_cast<const char *>(this + 1); }
 
       inline void operator delete(void *) { }
 
@@ -182,8 +182,8 @@ namespace schwa {
       ~Str(void) { }
 
       inline uint32_t nbytes(void) const { return _nbytes; }
-      inline char *value(void) { return reinterpret_cast<char *>(this + 1); }
-      inline const char *value(void) const { return reinterpret_cast<const char *>(this + 1); }
+      inline char *data(void) { return reinterpret_cast<char *>(this + 1); }
+      inline const char *data(void) const { return reinterpret_cast<const char *>(this + 1); }
 
       inline void operator delete(void *) { }
 
