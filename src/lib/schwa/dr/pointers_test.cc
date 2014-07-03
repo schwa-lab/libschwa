@@ -107,7 +107,7 @@ TEST(self_pointer0) {
   Writer writer(stream, schema);
   writer << doc0;
 
-  correct << '\x02';
+  correct << '\x03';
   correct << '\x93';  // <klasses>: 3-element array
 
   correct << '\x92';  // <klass>: 2-element array

@@ -114,7 +114,7 @@ TEST(slices) {
   Writer writer(stream, schema);
   writer << doc0;
 
-  static constexpr unsigned char correct[] = "\x02"
+  static constexpr unsigned char correct[] = "\x03"
   "\x93"
     "\x92"
       "\xa8" "__meta__"

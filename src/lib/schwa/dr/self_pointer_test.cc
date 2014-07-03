@@ -75,7 +75,7 @@ TEST(self_pointer0) {
   Writer writer(stream, schema);
   writer << doc0;
 
-  correct << '\x02';
+  correct << '\x03';
   correct << '\x92';  // <klasses>: 2-element array
   correct << '\x92';  // <klass>: 2-element array
   correct << '\xa8' << "__meta__";  // <klass_name>: 8-bytes of utf-8 encoded "__meta__"
