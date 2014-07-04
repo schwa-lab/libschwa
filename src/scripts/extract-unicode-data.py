@@ -11,7 +11,7 @@ import re
 import sys
 import urllib.request
 
-BASE_URL = 'http://www.unicode.org/Public/6.3.0/ucd/'
+BASE_URL = 'http://www.unicode.org/Public/7.0.0/ucd/'
 SCRIPT_PATH = None
 TMP_DIR = '/tmp'
 
