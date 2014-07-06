@@ -16,6 +16,11 @@
 #   -std=c++11).  If neither is specified, you get whatever works, with
 #   preference for an extended mode.
 #
+#   Additionally, check if the standard library supports C++11.  If not,
+#   try adding -stdlib=libc++ to see if that fixes it.  This is needed e.g.
+#   on Mac OSX 10.8, which ships with a very old libstdc++ but a relatively
+#   new libc++.
+#
 #   The second argument, if specified 'mandatory' or if left unspecified,
 #   indicates that baseline C++11 support is required and that the macro
 #   should error out if no mode with that support is found.  If specified
@@ -26,6 +31,7 @@
 #
 #   Copyright (c) 2008 Benjamin Kosnik <bkoz@redhat.com>
 #   Copyright (c) 2012 Zack Weinberg <zackw@panix.com>
+#   Copyright (c) 2013 Kenton Varda <temporal@gmail.com>
 #   Copyright (c) 2013 Roy Stogner <roystgnr@ices.utexas.edu>
 #   Copyright (c) 2014 Alexey Sokolov <sokolov@google.com>
 #
@@ -62,6 +68,13 @@ m4_define([_AX_CXX_COMPILE_STDCXX_11_testbody], [[
     auto d = a;
     auto l = [](){};
 ]])
+
+m4_define([_AX_CXX_COMPILE_STDCXX_11_testbody_lib], [
+  #include <initializer_list>
+  #include <unordered_map>
+  #include <atomic>
+  #include <thread>
+])
 
 AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
   m4_if([$1], [], [],
@@ -126,6 +139,36 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
   if test x$ax_cxx_compile_cxx11_required = xtrue; then
     if test x$ac_success = xno; then
       AC_MSG_ERROR([*** A compiler with support for C++11 language features is required.])
+    else
+      ac_success=no
+      AC_CACHE_CHECK(whether $CXX supports C++11 library features by default,
+                     ax_cv_cxx_compile_cxx11_lib,
+        [AC_COMPILE_IFELSE([AC_LANG_SOURCE([_AX_CXX_COMPILE_STDCXX_11_testbody_lib])],
+           [ax_cv_cxx_compile_cxx11_lib=yes],
+           [ax_cv_cxx_compile_cxx11_lib=no])
+        ])
+      if test x$ax_cv_cxx_compile_cxx11_lib = xyes; then
+        ac_success=yes
+      else
+        # Try with -stdlib=libc++
+        AC_CACHE_CHECK(whether $CXX supports C++11 library features with -stdlib=libc++,
+                       ax_cv_cxx_compile_cxx11_lib_libcxx,
+          [ac_save_CXXFLAGS="$CXXFLAGS"
+           CXXFLAGS="$CXXFLAGS -stdlib=libc++"
+           AC_COMPILE_IFELSE([AC_LANG_SOURCE([_AX_CXX_COMPILE_STDCXX_11_testbody_lib])],
+            [eval ax_cv_cxx_compile_cxx11_lib_libcxx=yes],
+            [eval ax_cv_cxx_compile_cxx11_lib_libcxx=no])
+           CXXFLAGS="$ac_save_CXXFLAGS"])
+        if eval test x$ax_cv_cxx_compile_cxx11_lib_libcxx = xyes; then
+          CXXFLAGS="$CXXFLAGS -stdlib=libc++"
+          ac_success=yes
+          break
+        fi
+      fi
+
+      if test x$ac_success = xno; then
+        AC_MSG_ERROR([*** A C++ library support for C++11 features is required.])
+      fi
     fi
   else
     if test x$ac_success = xno; then
