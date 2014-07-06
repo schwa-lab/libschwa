@@ -11,6 +11,7 @@
 #include <schwa/msgpack/wire.h>
 #include <schwa/port.h>
 
+
 namespace schwa {
   namespace msgpack {
 
@@ -137,6 +138,13 @@ namespace schwa {
         static inline void read(IN &in, std::string &val) { val = read_raw(in); }
         template <typename OUT>
         static inline void write(OUT &out, const std::string &val) { write_raw(out, val); }
+      };
+      template <>
+      struct rw_other<UnicodeString> {
+        template <typename IN>
+        static inline void read(IN &in, UnicodeString &val) { val = read_utf8(in); }
+        template <typename OUT>
+        static inline void write(OUT &out, const UnicodeString &val) { write_utf8(out, val); }
       };
 
       template <typename T>
@@ -474,6 +482,14 @@ namespace schwa {
     }
 
 
+    template <typename IN>
+    inline UnicodeString
+    read_utf8(IN &in) {
+      const std::string utf8 = read_raw(in);
+      return UnicodeString::from_utf8(utf8);
+    }
+
+
     template <typename IN, typename OUT>
     bool
     read_lazy(IN &in, OUT &out, WireType &type) {
@@ -653,6 +669,7 @@ namespace schwa {
         is_map = true;
         break;
       case WireType::MAP_16:
+        in.get();
         _read_be16(in, &s16);
         s32 = s16;
         is_map = true;
@@ -910,6 +927,13 @@ namespace schwa {
     inline void
     write_raw(OUT &out, const std::string &data) {
       write_raw(out, data.c_str(), data.size());
+    }
+
+    template <typename OUT>
+    inline void
+    write_utf8(OUT &out, const UnicodeString &s) {
+      const std::string utf8 = s.to_utf8();
+      write_raw(out, utf8.c_str(), utf8.size());
     }
 
   }

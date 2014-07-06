@@ -71,7 +71,7 @@ namespace schwa {
 namespace dr {
 namespace query {
 
-%% write data;
+%% write data noerror nofinal;
 
 void
 Interpreter::_tokenise(const char *const str, const size_t len) {
@@ -81,13 +81,14 @@ Interpreter::_tokenise(const char *const str, const size_t len) {
   const char *p = str;
   const char *pe = p + len;
   const char *eof = pe;
+  (void)language_en_main;  // Shoosh compiler warning about unused variable.
 
   // Initialise and run the FSA.
   %% write init;
   %% write exec;
 
   // Did the FSA terminate on an accepting state?
-  if (cs < language_first_final)
+  if (cs < %%{ write first_final; }%%)
     _throw_compile_error(p, pe);
 }
 

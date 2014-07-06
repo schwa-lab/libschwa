@@ -35,10 +35,10 @@ namespace schwa {
     protected:
       const std::string _name;  //!< Name of the config option.
       const std::string _desc;  //!< Help text for the config option.
-      std::string _full_name;  //!< The full name of the option, accounting for nesting.
       const char _short_name;  //!< The short single-letter name for the option. '\0' if not defined.
       const Flags _flags;  //!< The bitmask of the flags set for this config node.
-      int _position_arg_precedence;  //!< Precedence value for whether this option can consume unclaimed positional arguments. -1 if it cannot.
+      ConfigNode *_parent;  //!< The parent of this option. This should only be NULL at the root.
+      int _positional_precedence;  //!< Precedence value for whether this option can consume unclaimed positional arguments. -1 if it cannot.
       bool _was_mentioned;  //!< Whether or not this option was mentioned by name when parsing config options.
       bool _was_assigned;  //!< Whether or not this option was assigned a value when parsing config options.
 
@@ -67,17 +67,18 @@ namespace schwa {
       void assign(const std::string &value);
       void mention(void);
       virtual void serialise(std::ostream &out) const = 0;
-      virtual bool terminate_main(void) const { return false; }
       virtual bool validate(const Main &main) = 0;
 
       inline const std::string &desc(void) const { return _desc; }
-      inline const std::string &full_name(void) const { return _full_name; }
+      std::string full_name(void) const;
       inline const std::string &name(void) const { return _name; }
+      inline char short_name(void) const { return _short_name; }
 
-      void set_prefix(const std::string &prefix);
+      inline void set_parent(ConfigNode *parent) { _parent = parent; }
 
-      void position_arg_precedence(int precedence);
-      inline int position_arg_precedence(void) const { return _position_arg_precedence; }
+      inline int positional_precedence(void) const { return _positional_precedence; }
+      void set_positional_precedence(int precedence);
+
       inline bool optional(void) const { return _flags & Flags::OPTIONAL; }
       inline bool was_assigned(void) const { return _was_assigned; }
       inline bool was_mentioned(void) const { return _was_mentioned; }

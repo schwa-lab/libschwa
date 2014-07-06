@@ -8,6 +8,7 @@
 #include <schwa/_base.h>
 #include <schwa/dr/fields.h>
 #include <schwa/msgpack.h>
+#include <schwa/unicode.h>
 
 
 namespace schwa {
@@ -73,6 +74,27 @@ namespace schwa {
         template <typename IN>
         static inline void
         read(IN &in, std::string &val) {
+          mp::read(in, val);
+        }
+      };
+
+
+      template <>
+      struct WireTraits<UnicodeString> {
+        static inline bool
+        should_write(const UnicodeString &val) {
+          return !val.empty();
+        }
+
+        template <typename OUT>
+        static inline void
+        write(OUT &out, const UnicodeString &val) {
+          mp::write(out, val);
+        }
+
+        template <typename IN>
+        static inline void
+        read(IN &in, UnicodeString &val) {
           mp::read(in, val);
         }
       };

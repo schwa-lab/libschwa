@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <schwa/config/exception.h>
+#include <schwa/exception.h>
 #include <schwa/dr/field_defs.h>
 #include <schwa/port.h>
 
@@ -30,7 +30,7 @@ OpDocrepField::_validate(const cf::Main &main) {
   if (_value.empty()) {
     std::ostringstream ss;
     ss << "Error setting value for \"" << _name << "\": value is empty";
-    throw cf::ConfigException(ss.str());
+    throw ConfigException(ss.str());
   }
   _field.serial = _value;
   return true;
@@ -81,7 +81,7 @@ DocrepClassGroup::_assign(const std::string &value) {
   if (value.empty()) {
     std::ostringstream ss;
     ss << "Error setting value for \"" << _name << "\": value is empty";
-    throw cf::ConfigException(ss.str());
+    throw ConfigException(ss.str());
   }
   _schema.serial = value;
 }
@@ -94,7 +94,7 @@ DocrepClassGroup::_mention(void) { }
 void
 DocrepClassGroup::serialise(std::ostream &out) const {
   if (_was_assigned)
-    out << _full_name << '=' << _schema.serial << '\n';
+    out << full_name() << '=' << _schema.serial << '\n';
   Group::serialise(out);
 }
 

@@ -7,7 +7,8 @@
 #include <sstream>
 
 #include <schwa/_base.h>
-#include <schwa/io/logging_enums.h>
+#include <schwa/io/enums.h>
+#include <schwa/io/streams.h>
 
 namespace schwa {
   namespace io {
@@ -43,14 +44,14 @@ namespace schwa {
     public:
       class Streambuf : public std::stringbuf {
       protected:
+        io::OutputStream *_ostream;
         std::ostream *_out;
-        const bool _opened_out;
         LogLevel _threshold;
         LogLevel _level;
 
       public:
         Streambuf(std::ostream &out, LogLevel threshold);
-        Streambuf(const char *filename, LogLevel threshold);
+        Streambuf(const char *path, LogLevel threshold);
         virtual ~Streambuf(void);
 
         inline LogLevel level(void) const { return _level; }
@@ -68,7 +69,7 @@ namespace schwa {
 
     public:
       explicit BasicLogger(std::ostream &out, LogLevel threshold=LogLevel::INFO);
-      explicit BasicLogger(const char *filename, LogLevel threshold=LogLevel::INFO);
+      explicit BasicLogger(const char *path, LogLevel threshold=LogLevel::INFO);
       virtual ~BasicLogger(void);
 
       inline LogLevel threshold(void) const override { return _streambuf.threshold(); }
@@ -88,7 +89,7 @@ namespace schwa {
 
     public:
       explicit PrettyLogger(std::ostream &out, LogLevel threshold=LogLevel::INFO);
-      explicit PrettyLogger(const char *filename, LogLevel threshold=LogLevel::INFO);
+      explicit PrettyLogger(const char *path, LogLevel threshold=LogLevel::INFO);
       virtual ~PrettyLogger(void);
 
       virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;
@@ -103,7 +104,7 @@ namespace schwa {
 
       public:
         Streambuf(std::ostream &ostream, LogLevel threshold);
-        Streambuf(const char *filename, LogLevel threshold);
+        Streambuf(const char *path, LogLevel threshold);
         virtual ~Streambuf(void);
 
         inline void lock(void) { _lock.lock(); }
@@ -117,7 +118,7 @@ namespace schwa {
 
     public:
       explicit ThreadsafeBasicLogger(std::ostream &out, LogLevel threshold=LogLevel::INFO);
-      explicit ThreadsafeBasicLogger(const char *filename, LogLevel threshold=LogLevel::INFO);
+      explicit ThreadsafeBasicLogger(const char *path, LogLevel threshold=LogLevel::INFO);
       virtual ~ThreadsafeBasicLogger(void);
 
       inline LogLevel threshold(void) const override { return _streambuf.threshold(); }
@@ -133,7 +134,7 @@ namespace schwa {
 
     public:
       explicit ThreadsafePrettyLogger(std::ostream &out, LogLevel threshold=LogLevel::INFO);
-      explicit ThreadsafePrettyLogger(const char *filename, LogLevel threshold=LogLevel::INFO);
+      explicit ThreadsafePrettyLogger(const char *path, LogLevel threshold=LogLevel::INFO);
       virtual ~ThreadsafePrettyLogger(void);
 
       virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;

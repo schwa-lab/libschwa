@@ -5,6 +5,8 @@
 #include <cstring>
 #include <functional>
 
+#include <schwa/third-party/cityhash/city.h>
+
 
 namespace schwa {
 
@@ -16,16 +18,26 @@ namespace schwa {
   };
 
 
-  struct cstr_hash : public std::unary_function<const char *, size_t> {
-    inline size_t
+  template <size_t SIZE_T_BYTES>
+  struct _cstr_hash { };
+
+  template <>
+  struct _cstr_hash<8> : public std::unary_function<const char *, uint64_t> {
+    inline uint64_t
     operator ()(const char *str) const {
-      size_t hash = 5381;
-      int c;
-      while ((c = *str++))
-        hash = ((hash << 5) + hash) + c;
-      return hash;
+      return third_party::cityhash::CityHash64(str, std::strlen(str));
     }
   };
+
+  template <>
+  struct _cstr_hash<4> : public std::unary_function<const char *, uint32_t> {
+    inline uint32_t
+    operator ()(const char *str) const {
+      return third_party::cityhash::CityHash32(str, std::strlen(str));
+    }
+  };
+
+  struct cstr_hash : public _cstr_hash<sizeof(size_t)> { };
 
   // using cstr_map<T> = std::unordered_map<const char *, T, cstr_hash, cstr_equal_to>;
 

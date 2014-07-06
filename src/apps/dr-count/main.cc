@@ -1,13 +1,14 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include <schwa/config.h>
 #include <schwa/dr.h>
 #include <schwa/io/logging.h>
 
-#include <dr-count/main.h>
-#include <dr-count/processor.h>
+#include "processor.h"
 
 namespace cf = schwa::config;
 namespace dr = schwa::dr;
@@ -16,33 +17,46 @@ namespace io = schwa::io;
 using Formatting = schwa::dr_count::Processor::Formatting;
 
 
-namespace {
+namespace schwa {
+namespace dr_count {
 
 static void
-main(std::istream &input, std::ostream &output, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) {
-  // Construct a docrep reader over the provided input stream.
+main(const std::vector<std::string> &input_paths, std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) {
+  // Construct the document processor.
+  Processor processor(out, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id);
+
   dr::FauxDoc doc;
   dr::FauxDoc::Schema schema;
-  dr::Reader reader(input, schema);
 
-  // Construct the document processor.
-  schwa::dr_count::Processor processor(output, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id);
+  // For each input path to read from.
+  for (const auto &input_path : input_paths) {
+    // Construct a docrep reader over the provided input stream.
+    io::InputStream in(input_path);
+    dr::Reader reader(*in, schema);
 
-  // Read the documents off the input stream.
-  while (reader >> doc)
-    processor(doc);
+    // Read the documents off the input stream.
+    try {
+      while (reader >> doc)
+        processor(doc, in.path());
+    }
+    catch (dr::ReaderException &) {
+      LOG(WARNING) << "Failed to read document from '" << in.path() << "'" << std::endl;
+    }
+  }
+
   processor.finalise();
 }
 
-}
+}  // namespace dr_count
+}  // namespace schwa
 
 
 int
 main(int argc, char **argv) {
   // Construct an option parser.
-  cf::Main cfg(schwa::dr_count::PROGRAM_NAME, schwa::dr_count::PROGRAM_DESC);
-  cf::OpIStream input(cfg, "input", 'i', "The input file");
-  cf::OpOStream output(cfg, "output", 'o', "The output file");
+  cf::Main cfg("dr-count", "Count the number of documents or annotations in stores on a docrep stream.");
+  cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
+  cf::Op<std::string> output_path(cfg, "output", 'o', "The output path", io::STDOUT_STRING);
   cf::Op<bool> all_stores(cfg, "all", 'a', "Count docs and elements in all stores found on the first doc", false);
   cf::Op<std::string> store(cfg, "store", 's', "Count docs and elements in the provided store only", cf::Flags::OPTIONAL);
   cf::Op<bool> per_doc(cfg, "per-doc", 'e', "Show counts per doc instead of for the stream", false);
@@ -51,24 +65,31 @@ main(int argc, char **argv) {
   cf::OpChoices<std::string> format(cfg, "format", 'f', "How to format the output data", {"aligned", "tabs"}, "aligned");
   cf::Op<std::string> doc_id(cfg, "doc-id", 'd', "Output this expression before each document instead when outputting per-document counts", cf::Flags::OPTIONAL);
 
-  // Parse argv.
-  input.position_arg_precedence(0);
-  cfg.main<io::PrettyLogger>(argc, argv);
+  cfg.allow_unclaimed_args("[input-path...]");
 
-  // Construct the formatting enum value.
-  Formatting formatting = Formatting::ALIGNED;
-  if (format() == "aligned")
-    formatting = Formatting::ALIGNED;
-  else if (format() == "tabs")
-    formatting = Formatting::TABS;
+  SCHWA_MAIN(cfg, [&] {
+    // Parse argv.
+    cfg.main<io::PrettyLogger>(argc, argv);
 
-  // Dispatch to main function.
-  try {
-    main(input.file(), output.file(), all_stores(), store(), count_bytes(), cumulative(), per_doc(), formatting, doc_id());
-  }
-  catch (schwa::Exception &e) {
-    std::cerr << schwa::print_exception(e) << std::endl;
-    return 1;
-  }
+    // Construct the formatting enum value.
+    Formatting formatting = Formatting::ALIGNED;
+    if (format() == "aligned")
+      formatting = Formatting::ALIGNED;
+    else if (format() == "tabs")
+      formatting = Formatting::TABS;
+
+    // Work out which input paths to read from.
+    std::vector<std::string> input_paths;
+    if (input_path.was_mentioned() || cfg.unclaimed_args().empty())
+      input_paths.push_back(input_path());
+    else
+      input_paths = cfg.unclaimed_args();
+
+    // Open the ouptut stream.
+    io::OutputStream out(output_path());
+
+    // Dispatch to main function.
+    schwa::dr_count::main(input_paths, *out, all_stores(), store(), count_bytes(), cumulative(), per_doc(), formatting, doc_id());
+  })
   return 0;
 }

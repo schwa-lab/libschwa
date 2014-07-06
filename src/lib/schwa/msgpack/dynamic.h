@@ -2,12 +2,14 @@
 #ifndef SCHWA_MSGPACK_DYNAMIC_H_
 #define SCHWA_MSGPACK_DYNAMIC_H_
 
+#include <cstring>
+
 #include <schwa/_base.h>
 #include <schwa/pool.h>
 #include <schwa/msgpack/enums.h>
 
-namespace schwa {
 
+namespace schwa {
   namespace msgpack {
 
     class Array;
@@ -31,6 +33,8 @@ namespace schwa {
 
       Value(void) : type(WireType::RESERVED) { }
       explicit Value(WireType type) : type(type) { }
+      Value(const Value &o) { std::memcpy(this, &o, sizeof(Value)); }
+      Value(const Value &&o) { std::memcpy(this, &o, sizeof(Value)); }
       Value(WireType type, Array *value) : type(type) { via._array = value; }
       Value(WireType type, Map *value) : type(type) { via._map = value; }
       Value(WireType type, Raw *value) : type(type) { via._raw = value; }
@@ -39,8 +43,7 @@ namespace schwa {
       Value(WireType type, uint64_t value) : type(type) { via._uint64 = value; }
       Value(WireType type, float value) : type(type) { via._float = value; }
       Value(WireType type, double value) : type(type) { via._double = value; }
-      Value(const Value &o);
-      Value &operator =(const Value &o);
+      Value &operator =(const Value &o) { std::memcpy(this, &o, sizeof(Value)); return *this; }
       ~Value(void) { }
 
       inline void operator delete(void *) { }
@@ -59,21 +62,23 @@ namespace schwa {
       const uint32_t _size;
 
       explicit Array(uint32_t size);
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(Array);
 
     public:
       ~Array(void) { }
 
-      Value &get(size_t index);
-      const Value &get(size_t index) const;
+      inline Value &get(size_t index) { return reinterpret_cast<Value *>(this + 1)[index]; }
+      inline const Value &get(size_t index) const { return reinterpret_cast<const Value *>(this + 1)[index]; }
 
       inline uint32_t size(void) const { return _size; }
 
-      Value &operator [](size_t index) { return get(index); }
-      const Value &operator [](size_t index) const { return get(index); }
+      inline Value &operator [](size_t index) { return get(index); }
+      inline const Value &operator [](size_t index) const { return get(index); }
 
       inline void operator delete(void *) { }
       static Array *create(Pool &pool, uint32_t size);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Array);
     };
 
 
@@ -93,21 +98,23 @@ namespace schwa {
       const uint32_t _size;
 
       explicit Map(uint32_t size);
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(Map);
 
     public:
       ~Map(void) { }
 
-      Pair &get(size_t index);
-      const Pair &get(size_t index) const;
+      inline Pair &get(size_t index) { return reinterpret_cast<Pair *>(this + 1)[index]; }
+      inline const Pair &get(size_t index) const { return reinterpret_cast<const Pair *>(this + 1)[index]; }
 
       inline uint32_t size(void) const { return _size; }
 
-      Pair &operator [](size_t index) { return get(index); }
-      const Pair &operator [](size_t index) const { return get(index); }
+      inline Pair &operator [](size_t index) { return get(index); }
+      inline const Pair &operator [](size_t index) const { return get(index); }
 
       inline void operator delete(void *) { }
       static Map *create(Pool &pool, uint32_t size);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Map);
     };
 
 
@@ -117,7 +124,6 @@ namespace schwa {
       const char *const _value;
 
       Raw(uint32_t size, const char *value);
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(Raw);
 
     public:
       ~Raw(void) { }
@@ -127,6 +133,9 @@ namespace schwa {
 
       inline void operator delete(void *) { }
       static Raw *create(Pool &pool, uint32_t size, const char *value);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Raw);
     };
 
   }
