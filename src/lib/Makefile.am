@@ -62,6 +62,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/dr-dist/helpers.h \
 		schwa/dr-dist/server.h \
 		schwa/dr-dist/worker_main.h \
+		schwa/encoding.h \
+		schwa/encoding_gen.h \
 		schwa/enums.h \
 		schwa/exception.h \
 		schwa/io/array_reader.h \
@@ -125,6 +127,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/dr/schema.cc \
 		schwa/dr/type_info.cc \
 		schwa/dr/writer.cc \
+		schwa/encoding.cc \
 		schwa/exception.cc \
 		schwa/io/array_reader.cc \
 		schwa/io/enums.cc \
