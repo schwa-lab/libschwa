@@ -7,13 +7,13 @@
   include "html.rl";
 
   main := |*
-    comment => { debug("comment", output, ts, te); } ;
-    cdata => { debug("cdata", output, ts, te); } ;
-    doctype => { debug("doctype", output, ts, te); } ;
+    comment => { debug("comment", ts, te); } ;
+    cdata => { debug("cdata", ts, te); } ;
+    doctype => { debug("doctype", ts, te); } ;
 
-    tag => { debug("tag", output, ts, te); } ;
+    tag => { debug("tag", ts, te); } ;
 
-    text+ => { debug("text", output, ts, te); } ;
+    text+ => { debug("text", ts, te); } ;
   *|;
 
 }%%
@@ -25,22 +25,28 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <schwa/formats/html.h>
+
 
 namespace schwa {
-namespace dstruct {
-namespace html {
+namespace formats {
 
 %% write data noerror nofinal;
 
-void
-debug(const char *rule, std::ostream &output, uint8_t *ts, uint8_t *te) {
-  output << rule << " " << (te - ts) << ": '";
-  output.write(reinterpret_cast<char *>(ts), te - ts);
-  output << "'" << std::endl;
+static void
+debug(const char *rule, uint8_t *ts, uint8_t *te) {
+  (void)rule;
+  (void)ts;
+  (void)te;
+#if 0
+  std::cout << rule << " " << (te - ts) << ": '";
+  std::cout.write(reinterpret_cast<char *>(ts), te - ts);
+  std::cout << "'" << std::endl;
+#endif
 }
 
-static bool
-run(std::istream &input, std::ostream &output, const size_t buffer_size=4*4096) {
+bool
+HTMLLexer::run(std::istream &input, const size_t buffer_size) {
   int cs = 0, act = 0;
   uint8_t *te = nullptr, *ts = nullptr;
   (void)html_en_main;  // Shoosh compiler warning about unused variable.
@@ -89,13 +95,5 @@ run(std::istream &input, std::ostream &output, const size_t buffer_size=4*4096) 
   return true;
 }
 
-}  // namespace html
-}  // namespace dstruct
+}  // namespace formats
 }  // namespace schwa
-
-
-int
-main(void) {
-  const bool success = schwa::dstruct::html::run(std::cin, std::cout);
-  return success ? 0 : 1;
-}

@@ -48,5 +48,5 @@ if __name__ == '__main__':
   SCRIPT_PATH = os.path.join(path, os.path.basename(__file__))
 
   url = URL if len(sys.argv) == 1 else sys.argv[1]
-  with open('src/ragel/document-structure/html/named_character_references.rl', 'w') as file:
+  with open('src/ragel/formats/html/named_character_references.rl', 'w') as file:
     main(file, url)

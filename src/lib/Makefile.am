@@ -18,6 +18,12 @@ libschwa_thirdparty_re2_la_LDFLAGS = -no-undefined -version-info 1:0:0
 # =============================================================================
 # Ragel
 # =============================================================================
+schwa/formats/html_gen.cc: $(srcdir)/../ragel/formats/html/main.rl $(srcdir)/../ragel/formats/html/*.rl
+	ragel -C -G2 -o $@ $<
+
+schwa/formats/warc_gen.cc: $(srcdir)/../ragel/formats/warc/warc.rl
+	ragel -C -G2 -o $@ $<
+
 schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
 	ragel -C -G2 -o $@ $<
 
@@ -66,6 +72,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/encoding_gen.h \
 		schwa/enums.h \
 		schwa/exception.h \
+		schwa/formats/html.h \
+		schwa/formats/warc.h \
 		schwa/io/array_reader.h \
 		schwa/io/enums.h \
 		schwa/io/file_source.h \
@@ -129,6 +137,10 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/dr/writer.cc \
 		schwa/encoding.cc \
 		schwa/exception.cc \
+		schwa/formats/html.cc \
+		schwa/formats/html_gen.cc \
+		schwa/formats/warc.cc \
+		schwa/formats/warc_gen.cc \
 		schwa/io/array_reader.cc \
 		schwa/io/enums.cc \
 		schwa/io/file_source.cc \
