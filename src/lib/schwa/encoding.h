@@ -65,13 +65,13 @@ namespace schwa {
   size_t to_utf8(Encoding encoding, const std::string &encoded_bytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
 
 
-  size_t ascii_to_utf8(const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
-  size_t cp1251_to_utf8(const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
-  size_t cp1252_to_utf8(const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
-  size_t gb2312_to_utf8(const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
-  size_t latin1_to_utf8(const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
-  size_t latin2_to_utf8(const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
-  size_t utf_8_to_utf8(const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
+  size_t ascii_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
+  size_t cp1251_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
+  size_t cp1252_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
+  size_t gb2312_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
+  size_t latin1_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
+  size_t latin2_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
+  size_t utf_8_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes);
 
 }  // namespace schwa
 
