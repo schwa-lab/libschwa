@@ -7,13 +7,13 @@
   include "html.rl";
 
   main := |*
-    comment => { debug("comment", ts, te); } ;
-    cdata => { debug("cdata", ts, te); } ;
-    doctype => { debug("doctype", ts, te); } ;
+    comment => { _debug("comment", ts, te); } ;
+    cdata => { _debug("cdata", ts, te); } ;
+    doctype => { _debug("doctype", ts, te); } ;
 
-    tag => { debug("tag", ts, te); } ;
+    tag => { _debug("tag", ts, te); } ;
 
-    text+ => { debug("text", ts, te); } ;
+    text+ => { _debug("text", ts, te); } ;
   *|;
 
 }%%
@@ -33,17 +33,8 @@ namespace formats {
 
 %% write data noerror nofinal;
 
-void
-HTMLLexer::debug(const char *const rule, const uint8_t *const ts, const uint8_t *const te) {
-  if (_debug) {
-    std::cout << rule << " " << (te - ts) << ": '";
-    std::cout.write(reinterpret_cast<const char *>(ts), te - ts);
-    std::cout << "'" << std::endl;
-  }
-}
-
 bool
-HTMLLexer::run(std::istream &input, const size_t buffer_size) {
+HTMLLexer::_run(std::istream &input, const size_t buffer_size) {
   int cs = 0, act = 0;
   uint8_t *te = nullptr, *ts = nullptr;
   (void)html_en_main;  // Shoosh compiler warning about unused variable.
@@ -90,6 +81,19 @@ HTMLLexer::run(std::istream &input, const size_t buffer_size) {
   }
 
   return true;
+}
+
+
+bool
+HTMLLexer::_run(const uint8_t *const input, const size_t nbytes) {
+  const uint8_t *p = input, *pe = p + nbytes, *eof = pe;
+  int cs = 0, act = 0;
+  const uint8_t *te = nullptr, *ts = nullptr;
+
+  %% write init;
+  %% write exec;
+
+  return cs != %%{ write error; }%%;
 }
 
 }  // namespace formats

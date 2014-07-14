@@ -23,11 +23,11 @@ namespace schwa {
       size_t _block_nbytes_consumed;
       std::string _warc_type;
       std::string _current_key;
-      std::string _current_val;
       bool _in_key_content_length;
       bool _in_key_warc_type;
 
       bool _run(std::istream &input, size_t buffer_size=DEFAULT_BUFFER_SIZE);
+      bool _run(const uint8_t *input, const size_t nbytes);
 
       virtual void _block_start(void);
       virtual void _block_consume(uint8_t c);
@@ -49,6 +49,7 @@ namespace schwa {
       virtual ~WARCLexer(void);
 
       virtual bool run(std::istream &input, size_t buffer_size=DEFAULT_BUFFER_SIZE);
+      virtual bool run(const uint8_t *input, const size_t nbytes);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(WARCLexer);

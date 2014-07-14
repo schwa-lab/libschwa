@@ -60,7 +60,7 @@ namespace formats {
 bool
 WARCLexer::_run(std::istream &input, const size_t buffer_size) {
   int cs = 0;
-  uint8_t *te = nullptr, *ts = nullptr;
+  const uint8_t *te = nullptr, *ts = nullptr;
   (void)warc_en_main;  // Shoosh compiler warning about unused variable.
 
   %% write init;
@@ -105,6 +105,18 @@ WARCLexer::_run(std::istream &input, const size_t buffer_size) {
   }
 
   return true;
+}
+
+
+bool
+WARCLexer::_run(const uint8_t *const input, const size_t nbytes) {
+  const uint8_t *p = input, *pe = p + nbytes, *eof = pe;
+  int cs = 0;
+
+  %% write init;
+  %% write exec;
+
+  return cs != %%{ write error; }%%;
 }
 
 }  // namespace formats

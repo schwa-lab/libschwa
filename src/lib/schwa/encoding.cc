@@ -64,9 +64,9 @@ EncodingResult::~EncodingResult(void) {
 
 
 void
-EncodingResult::grow(const size_t grow_size) {
-  uint8_t *utf8 = new uint8_t[_allocated + grow_size];
-  uint8_t *deltas = new uint8_t[_allocated + grow_size];
+EncodingResult::_grow(const size_t new_nbytes) {
+  uint8_t *utf8 = new uint8_t[new_nbytes];
+  uint8_t *deltas = new uint8_t[new_nbytes];
   if (_allocated != 0) {
     std::memcpy(utf8, _utf8, _allocated);
     std::memcpy(deltas, _deltas, _allocated);
@@ -75,7 +75,20 @@ EncodingResult::grow(const size_t grow_size) {
   }
   _utf8 = utf8;
   _deltas = deltas;
-  _allocated += grow_size;
+  _allocated = new_nbytes;
+}
+
+
+void
+EncodingResult::grow(const size_t grow_size) {
+  _grow(_allocated + grow_size);
+}
+
+
+void
+EncodingResult::reserve(const size_t nbytes) {
+  if (nbytes > _allocated)
+    _grow(nbytes);
 }
 
 
@@ -275,11 +288,17 @@ void
 utf_8_to_utf8(const uint8_t *const encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
   result.reset(Encoding::UTF_8);
 
+  unicode_t code_point;
   const uint8_t *start = encoded_bytes, *old_start;
   const uint8_t *end = start + encoded_nbytes;
   while (start != end) {
     old_start = start;
-    const unicode_t code_point = read_utf8(&start, end);
+    try {
+      code_point = read_utf8(&start, end);
+    }
+    catch (UnicodeException &e) {
+      throw DecodeException(e.msg());
+    }
     result.write(code_point, start - old_start, start - old_start);
   }
 }

@@ -22,20 +22,25 @@ namespace formats {
 
 class WARCHTMLLexer : public WARCLexer {
 protected:
-  const size_t _html_buffer_size;
   HTMLLexer _html_lexer;
   EncodingResult _encoding_result;
   unsigned int _nfail;
+  unsigned int _nskipped;
   unsigned int _nsuccess;
 
   virtual void _record_end(void) override;
 
 public:
-  WARCHTMLLexer(const size_t html_buffer_size) : WARCLexer(), _html_buffer_size(html_buffer_size) { }
+  WARCHTMLLexer(void);
   virtual ~WARCHTMLLexer(void) { }
 
   virtual bool run(std::istream &input, const size_t buffer_size) override;
 };
+
+
+WARCHTMLLexer::WARCHTMLLexer(void) {
+  _encoding_result.reserve(1 * 1024 * 1024);
+}
 
 
 void
@@ -66,46 +71,36 @@ WARCHTMLLexer::_record_end(void) {
   }
 
   bool success;
-  std::stringstream ss;
-  ss.write(html_ptr, html_ptr_end - html_ptr);
 
-  // Attempt to lex the HTML.
-  success = _html_lexer.run(ss, _html_buffer_size);
+  // First, assume that it's UTF-8.
+  try {
+    to_utf8(Encoding::UTF_8, html_ptr, html_ptr_end - html_ptr, _encoding_result);
+    success = _html_lexer.run(_encoding_result);
+  }
+  catch (DecodeException) {
+    ++_nskipped;
+    return;
+  }
+
   if (success)
     ++_nsuccess;
-  else {
-    // Try converting it from latin2 (ISO-8859-2) to UTF-8.
-    to_utf8(Encoding::LATIN2, html_ptr, html_ptr_end - html_ptr, _encoding_result);
-    ss.str("");
-    ss.clear();
-    ss.write(reinterpret_cast<const char *>(_encoding_result.utf8()), _encoding_result.nbytes());
-    success = _html_lexer.run(ss, _html_buffer_size);
-    if (success)
-      ++_nsuccess;
-    else {
-#if 0
-      std::ostringstream path;
-      path << "/tmp/html/" << std::setfill('0') << std::setw(5) << _nfail << ".html";
-      std::ofstream f(path.str());
-      f.write(html_ptr, html_ptr_end - html_ptr);
-      f.close();
-#endif
-      ++_nfail;
-    }
-  }
+  else
+   ++_nfail;
 }
 
 
 bool
 WARCHTMLLexer::run(std::istream &input, const size_t buffer_size) {
-  _nfail = _nsuccess = 0;
+  _nfail = _nskipped = _nsuccess = 0;
 
   const bool ret = _run(input, buffer_size);
 
-  const unsigned int total = _nfail + _nsuccess;
+  const unsigned int total = _nfail + _nskipped + _nsuccess;
   if (total != 0) {
-    std::cerr << "   nfail: " << _nfail    << "/" << total << " (" << (100*_nfail/static_cast<float>(total)) << "%)" << std::endl;
-    std::cerr << "nsuccess: " << _nsuccess << "/" << total << " (" << (100*_nsuccess/static_cast<float>(total)) << "%)" << std::endl;
+    const float ftotal = total;
+    std::cerr << "   nfail: " << std::setw(5) << _nfail    << "/" << total << " (" << (100*_nfail/total) << "%)" << std::endl;
+    std::cerr << "nskipped: " << std::setw(5) << _nskipped << "/" << total << " (" << (100*_nskipped/ftotal) << "%)" << std::endl;
+    std::cerr << "nsuccess: " << std::setw(5) << _nsuccess << "/" << total << " (" << (100*_nsuccess/ftotal) << "%)" << std::endl;
   }
 
   return ret;
@@ -135,7 +130,7 @@ main(int argc, char **argv) {
       success = lexer.run(in, html_buffer());
     }
     else {
-      fm::WARCHTMLLexer lexer(html_buffer());
+      fm::WARCHTMLLexer lexer;
       success = lexer.run(in, warc_buffer());
     }
   })

@@ -58,6 +58,8 @@ namespace schwa {
     uint8_t _tmp[4];
     Encoding _from_encoding;
 
+    void _grow(size_t new_nbytes);
+
   public:
     explicit EncodingResult(Encoding from_encoding=Encoding::__END__);
     ~EncodingResult(void);
@@ -70,6 +72,7 @@ namespace schwa {
     inline const uint8_t *utf8(void) const { return _utf8; }
 
     void grow(size_t grow_size=4096);
+    void reserve(size_t nbytes);
     void reset(Encoding from_encoding);
 
     size_t write(unicode_t code_point, uint8_t nbytes_consumed);
