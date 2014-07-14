@@ -33,16 +33,13 @@ namespace formats {
 
 %% write data noerror nofinal;
 
-static void
-debug(const char *rule, uint8_t *ts, uint8_t *te) {
-  (void)rule;
-  (void)ts;
-  (void)te;
-#if 0
-  std::cout << rule << " " << (te - ts) << ": '";
-  std::cout.write(reinterpret_cast<char *>(ts), te - ts);
-  std::cout << "'" << std::endl;
-#endif
+void
+HTMLLexer::debug(const char *const rule, const uint8_t *const ts, const uint8_t *const te) {
+  if (_debug) {
+    std::cout << rule << " " << (te - ts) << ": '";
+    std::cout.write(reinterpret_cast<const char *>(ts), te - ts);
+    std::cout << "'" << std::endl;
+  }
 }
 
 bool
