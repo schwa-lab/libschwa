@@ -14,8 +14,13 @@ namespace schwa {
     public:
       static const size_t DEFAULT_BUFFER_SIZE;
 
+    private:
+      bool _debug;
+
+      void debug(const char *rule, const uint8_t *ts, const uint8_t *te);
+
     public:
-      HTMLLexer(void) { }
+      HTMLLexer(bool debug=false) : _debug(debug) { }
 
       bool run(std::istream &input, size_t buffer_size=DEFAULT_BUFFER_SIZE);
 
