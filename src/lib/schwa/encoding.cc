@@ -8,7 +8,6 @@
 #include <sstream>
 #include <utility>
 
-#include <schwa/unicode.h>
 #include <schwa/utils/enums.h>
 
 
@@ -50,6 +49,84 @@ operator <<(std::ostream &out, const Encoding encoding) {
 }
 
 
+EncodingResult::EncodingResult(const Encoding from_encoding) :
+    _utf8(nullptr),
+    _deltas(nullptr),
+    _allocated(0),
+    _consumed(0),
+    _from_encoding(from_encoding)
+  { }
+
+EncodingResult::~EncodingResult(void) {
+  delete [] _utf8;
+  delete [] _deltas;
+}
+
+
+void
+EncodingResult::grow(const size_t grow_size) {
+  uint8_t *utf8 = new uint8_t[_allocated + grow_size];
+  uint8_t *deltas = new uint8_t[_allocated + grow_size];
+  if (_allocated != 0) {
+    std::memcpy(utf8, _utf8, _allocated);
+    std::memcpy(deltas, _deltas, _allocated);
+    delete [] _utf8;
+    delete [] _deltas;
+  }
+  _utf8 = utf8;
+  _deltas = deltas;
+  _allocated += grow_size;
+}
+
+
+void
+EncodingResult::reset(const Encoding from_encoding) {
+  _consumed = 0;
+  _from_encoding = from_encoding;
+}
+
+
+size_t
+EncodingResult::write(const unicode_t code_point, const uint8_t nbytes_consumed) {
+  // Write the UTF-8 for the code point to the temporary working buffer.
+  const uint8_t n = static_cast<uint8_t>(write_utf8(code_point, _tmp));
+
+  // Grow the output buffer if required.
+  if (SCHWA_UNLIKELY(remaining() < n))
+    grow();
+
+  // Copy the UTF-8 from the temporary buffer to the output buffer, and insert the delta
+  // values into the delta buffer.
+  std::memcpy(_utf8 + _consumed, _tmp, n);
+  _deltas[_consumed] = nbytes_consumed;
+  if (n != 1)
+    std::memset(_deltas + _consumed + 1, 0, n - 1);
+  _consumed += n;
+
+  // Return the number of UTF-8 bytes written out.
+  return n;
+}
+
+
+size_t
+EncodingResult::write(const unicode_t code_point, const uint8_t nbytes_consumed, const uint8_t utf8_nbytes_needed) {
+  // Grow the output buffer if required.
+  if (SCHWA_UNLIKELY(remaining() < utf8_nbytes_needed))
+    grow();
+
+  // Write the UTF-8 directly into the output buffer, and insert the delta values into the delta
+  // buffer.
+  const uint8_t n = static_cast<uint8_t>(write_utf8(code_point, _utf8 + _consumed));
+  _deltas[_consumed] = nbytes_consumed;
+  if (n != 1)
+    std::memset(_deltas + _consumed + 1, 0, n - 1);
+  _consumed += n;
+
+  // Return the number of UTF-8 bytes written out.
+  return n;
+}
+
+
 const std::string &
 encoding_name(const Encoding encoding) {
   for (const auto &pair : ENCODINGS)
@@ -78,189 +155,133 @@ get_encoding(const std::string &name) {
       return pair.second;
   }
   throw UnknownEncodingException(name);
-};
-
-
-inline size_t
-to_utf8(Encoding encoding, const char *encoded_bytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  return to_utf8(encoding, encoded_bytes, std::strlen(encoded_bytes), utf8_bytes, utf8_nbytes);
 }
 
 
-inline size_t
-to_utf8(Encoding encoding, const std::string &encoded_bytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  return to_utf8(encoding, encoded_bytes.c_str(), encoded_bytes.size(), utf8_bytes, utf8_nbytes);
+inline void
+to_utf8(Encoding encoding, const char *encoded_bytes, EncodingResult &result) {
+  to_utf8(encoding, encoded_bytes, std::strlen(encoded_bytes), result);
 }
 
 
-size_t
-to_utf8(Encoding encoding, const char *encoded_bytes, size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
+inline void
+to_utf8(Encoding encoding, const std::string &encoded_bytes, EncodingResult &result) {
+  to_utf8(encoding, encoded_bytes.c_str(), encoded_bytes.size(), result);
+}
+
+
+void
+to_utf8(Encoding encoding, const char *encoded_bytes, size_t encoded_nbytes, EncodingResult &result) {
   const uint8_t *encoded = reinterpret_cast<const uint8_t *>(encoded_bytes);
   switch (encoding) {
-  case Encoding::UTF_8: return utf_8_to_utf8(encoded, encoded_nbytes, utf8_bytes, utf8_nbytes);
-  case Encoding::ASCII: return ascii_to_utf8(encoded, encoded_nbytes, utf8_bytes, utf8_nbytes);
-  case Encoding::CP1251: return cp1251_to_utf8(encoded, encoded_nbytes, utf8_bytes, utf8_nbytes);
-  case Encoding::CP1252: return cp1252_to_utf8(encoded, encoded_nbytes, utf8_bytes, utf8_nbytes);
-  case Encoding::GB2312: return gb2312_to_utf8(encoded, encoded_nbytes, utf8_bytes, utf8_nbytes);
-  case Encoding::LATIN1: return latin1_to_utf8(encoded, encoded_nbytes, utf8_bytes, utf8_nbytes);
-  case Encoding::LATIN2: return latin2_to_utf8(encoded, encoded_nbytes, utf8_bytes, utf8_nbytes);
+  case Encoding::UTF_8: utf_8_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::ASCII: ascii_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1251: cp1251_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1252: cp1252_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::GB2312: gb2312_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::LATIN1: latin1_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::LATIN2: latin2_to_utf8(encoded, encoded_nbytes, result); return;
   default:
     throw UnknownEncodingException(encoding);
   }
 }
 
 
-static void
-_grow_output_buffer(uint8_t *&utf8_bytes, size_t &utf8_nbytes, uint8_t *&output, uint8_t *&output_end, const size_t grow_size=4096) {
-  delete [] utf8_bytes;
-  utf8_nbytes += grow_size;
-  utf8_bytes = new uint8_t[utf8_nbytes];
-  output = utf8_bytes + (utf8_nbytes - grow_size);
-  output_end = utf8_bytes + utf8_nbytes;
-}
+void
+ascii_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::ASCII);
 
-
-size_t
-ascii_to_utf8(const uint8_t *const encoded_bytes, const size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  if (utf8_nbytes < encoded_nbytes) {
-    delete [] utf8_bytes;
-    utf8_nbytes = encoded_nbytes;
-    utf8_bytes = new uint8_t[utf8_nbytes];
-  }
-  std::memcpy(utf8_bytes, encoded_bytes, encoded_nbytes);
-  return encoded_nbytes;
-}
-
-
-size_t
-cp1251_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  uint8_t *output = utf8_bytes, *output_end = utf8_bytes + utf8_nbytes;
   for (size_t i = 0; i != encoded_nbytes; ++i) {
-    if (SCHWA_UNLIKELY(output_end - output < CP1251_UTF8_NBYTES))
-      _grow_output_buffer(utf8_bytes, utf8_nbytes, output, output_end);
+    const unicode_t code_point = *encoded_bytes++;
+    result.write(code_point, 1, 1);
+  }
+}
 
-    // Work out the Unicode code point for the current encoded input character.
+
+void
+cp1251_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::CP1251);
+
+  for (size_t i = 0; i != encoded_nbytes; ++i) {
     const unicode_t code_point = CP1251_TABLE[*encoded_bytes - CP1251_DELTA];
-
-    // Write out the UTF-8.
-    const size_t n = write_utf8(code_point, output);
-    assert(0 < n && n <= CP1251_UTF8_NBYTES);  // FIXME remove this after unit tests
-    output += n;
+    result.write(code_point, 1, CP1251_UTF8_NBYTES);
     ++encoded_bytes;
   }
-  return output - utf8_bytes;
 }
 
 
-size_t
-cp1252_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  uint8_t *output = utf8_bytes, *output_end = utf8_bytes + utf8_nbytes;
+void
+cp1252_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::CP1252);
+
   for (size_t i = 0; i != encoded_nbytes; ++i) {
-    if (SCHWA_UNLIKELY(output_end - output < CP1252_UTF8_NBYTES))
-      _grow_output_buffer(utf8_bytes, utf8_nbytes, output, output_end);
-
-    // Work out the Unicode code point for the current encoded input character.
     const unicode_t code_point = CP1252_TABLE[*encoded_bytes - CP1252_DELTA];
-
-    // Write out the UTF-8.
-    const size_t n = write_utf8(code_point, output);
-    assert(0 < n && n <= CP1252_UTF8_NBYTES);  // FIXME remove this after unit tests
-    output += n;
+    result.write(code_point, 1, CP1252_UTF8_NBYTES);
     ++encoded_bytes;
   }
-  return output - utf8_bytes;
 }
 
 
-size_t
-gb2312_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  uint8_t *output = utf8_bytes, *output_end = utf8_bytes + utf8_nbytes;
-  for (size_t i = 0; i != encoded_nbytes; ) {
-    const uint8_t c0 = *encoded_bytes;
-    if ((c0 & 0x80) == 0) {
-      if (SCHWA_UNLIKELY(output_end - output == 0))
-        _grow_output_buffer(utf8_bytes, utf8_nbytes, output, output_end);
-      *output++ = c0;
-      ++encoded_bytes;
-      ++i;
-    }
-    else {
-      if (SCHWA_UNLIKELY(output_end - output < GB2312_UTF8_NBYTES))
-        _grow_output_buffer(utf8_bytes, utf8_nbytes, output, output_end);
-      ++encoded_bytes;
-      ++i;
+void
+gb2312_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::GB2312);
 
+  for (size_t i = 0; i != encoded_nbytes; ) {
+    const uint8_t c0 = *encoded_bytes++;
+    ++i;
+
+    if ((c0 & 0x80) == 0)
+      result.write(c0, 1, 1);
+    else {
       if (SCHWA_UNLIKELY(i == encoded_nbytes))
         throw DecodeException("Failed to read second byte of two-byte GB2312 sequence");
-      const uint8_t c1 = *encoded_bytes;
-      ++encoded_bytes;
+      const uint8_t c1 = *encoded_bytes++;
       ++i;
       if (SCHWA_UNLIKELY((c1 & 0x80) == 0))
         throw DecodeException("Invalid second byte of two-byte GB2312 sequence");
 
-      // Work out the Unicode code point for the current encoded input character.
       const unicode_t code_point = GB2312_TABLE[c0 - GB2312_DELTA][c1 - GB2312_DELTA];
-
-      // Write out the UTF-8.
-      const size_t n = write_utf8(code_point, output);
-      assert(0 < n && n <= GB2312_UTF8_NBYTES);  // FIXME remove this after unit tests
-      output += n;
+      result.write(code_point, 2, GB2312_UTF8_NBYTES);
     }
   }
-  return output - utf8_bytes;
 }
 
 
-size_t
-latin1_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  uint8_t *output = utf8_bytes, *output_end = utf8_bytes + utf8_nbytes;
-  for (size_t i = 0; i != encoded_nbytes; ++i) {
-    if (SCHWA_UNLIKELY(output_end - output < LATIN1_UTF8_NBYTES))
-      _grow_output_buffer(utf8_bytes, utf8_nbytes, output, output_end);
+void
+latin1_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::LATIN1);
 
-    // Work out the Unicode code point for the current encoded input character.
+  for (size_t i = 0; i != encoded_nbytes; ++i) {
     const unicode_t code_point = LATIN1_TABLE[*encoded_bytes - LATIN1_DELTA];
-
-    // Write out the UTF-8.
-    const size_t n = write_utf8(code_point, output);
-    assert(0 < n && n <= LATIN1_UTF8_NBYTES);  // FIXME remove this after unit tests
-    output += n;
+    result.write(code_point, 1, LATIN1_UTF8_NBYTES);
     ++encoded_bytes;
   }
-  return output - utf8_bytes;
 }
 
 
-size_t
-latin2_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  uint8_t *output = utf8_bytes, *output_end = utf8_bytes + utf8_nbytes;
+void
+latin2_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::LATIN2);
+
   for (size_t i = 0; i != encoded_nbytes; ++i) {
-    // Grow the output buffer if needed. ISO-8859-1 will only ever write up to 2 UTF-8 bytes of output.
-    if (SCHWA_UNLIKELY(output_end - output < LATIN2_UTF8_NBYTES))
-      _grow_output_buffer(utf8_bytes, utf8_nbytes, output, output_end);
-
-    // Work out the Unicode code point for the current encoded input character.
     const unicode_t code_point = LATIN2_TABLE[*encoded_bytes - LATIN2_DELTA];
-
-    // Write out the UTF-8.
-    const size_t n = write_utf8(code_point, output);
-    assert(0 < n && n <= LATIN2_UTF8_NBYTES);  // FIXME remove this after unit tests
-    output += n;
+    result.write(code_point, 1, LATIN2_UTF8_NBYTES);
     ++encoded_bytes;
   }
-  return output - utf8_bytes;
 }
 
 
-size_t
-utf_8_to_utf8(const uint8_t *const encoded_bytes, const size_t encoded_nbytes, uint8_t *&utf8_bytes, size_t &utf8_nbytes) {
-  if (utf8_nbytes < encoded_nbytes) {
-    delete [] utf8_bytes;
-    utf8_nbytes = encoded_nbytes;
-    utf8_bytes = new uint8_t[utf8_nbytes];
+void
+utf_8_to_utf8(const uint8_t *const encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::UTF_8);
+
+  const uint8_t *start = encoded_bytes, *old_start;
+  const uint8_t *end = start + encoded_nbytes;
+  while (start != end) {
+    old_start = start;
+    const unicode_t code_point = read_utf8(&start, end);
+    result.write(code_point, start - old_start, start - old_start);
   }
-  std::memcpy(utf8_bytes, encoded_bytes, encoded_nbytes);
-  return encoded_nbytes;
 }
 
 }
