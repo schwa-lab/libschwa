@@ -1,7 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <cassert>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <sstream>
 
@@ -115,7 +117,6 @@ main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("warc-processor", "Test WARC file processor.");
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
-  cf::Op<size_t> html_buffer(cfg, "html-buffer", "HTML lexer input buffer size (bytes)", fm::HTMLLexer::DEFAULT_BUFFER_SIZE);
   cf::Op<size_t> warc_buffer(cfg, "warc-buffer", "WARC lexer input buffer size (bytes)", fm::WARCLexer::DEFAULT_BUFFER_SIZE);
   cf::Op<bool> html(cfg, "html", "Lex HTML only", false);
 
@@ -127,7 +128,14 @@ main(int argc, char **argv) {
     io::InputStream in(input_path());
     if (html()) {
       fm::HTMLLexer lexer(true);
-      success = lexer.run(in, html_buffer());
+
+      const size_t nbytes = 4 * 1024 * 1024;
+      std::unique_ptr<char []> buf(new char[nbytes]);
+      std::istream &input = in;
+      input.read(buf.get(), nbytes);
+      assert(input.gcount() < static_cast<ssize_t>(nbytes));
+
+      success = lexer.run(reinterpret_cast<const uint8_t *>(buf.get()), nbytes);
     }
     else {
       fm::WARCHTMLLexer lexer;

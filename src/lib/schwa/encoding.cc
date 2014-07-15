@@ -67,9 +67,9 @@ void
 EncodingResult::_grow(const size_t new_nbytes) {
   uint8_t *utf8 = new uint8_t[new_nbytes];
   uint8_t *deltas = new uint8_t[new_nbytes];
-  if (_allocated != 0) {
-    std::memcpy(utf8, _utf8, _allocated);
-    std::memcpy(deltas, _deltas, _allocated);
+  if (_consumed != 0) {
+    std::memcpy(utf8, _utf8, _consumed);
+    std::memcpy(deltas, _deltas, _consumed);
     delete [] _utf8;
     delete [] _deltas;
   }

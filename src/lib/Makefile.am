@@ -139,6 +139,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/exception.cc \
 		schwa/formats/html.cc \
 		schwa/formats/html_gen.cc \
+		schwa/formats/html_named_character_references_gen.cc \
 		schwa/formats/warc.cc \
 		schwa/formats/warc_gen.cc \
 		schwa/io/array_reader.cc \
