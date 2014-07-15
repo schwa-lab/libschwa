@@ -20,26 +20,60 @@
   action record_start { _record_start(); }
   action record_end { _record_end(); }
 
-  # Version 0.18 of the WARC specification.
-  # http://archive-access.sourceforge.net/warc/
-  crlf = '\r'? '\n' ;
-  ctl = cntrl | 0x7f ;
-  lws = crlf? /[ \t]/+ ;
-  separators = [][()<>@,;:\"/?={} \t] ;
-  token = ( ascii - ctl - separators )+ ;
+  # The WARC format specifications:
+  #   Version 0.18: http://archive-access.sourceforge.net/warc/
+  #   Version 1.0: http://bibnum.bnf.fr/WARC/WARC_ISO_28500_version1_latestdraft.pdf
 
-  named_field =
-      token >named_field_key_start $named_field_key_consume %named_field_key_end ':' lws? <: ( any - [\n] )* >named_field_val_start $named_field_val_consume %named_field_val_end
+  # ===========================================================================
+  # Version 0.18.
+  # ===========================================================================
+  warc_0_18_crlf = '\r'? '\n' ;
+  warc_0_18_ctl = cntrl | 0x7f ;
+  warc_0_18_lws = warc_0_18_crlf? [ \t]+ ;
+  warc_0_18_separators = [][()<>@,;:\"/?={} \t] ;
+  warc_0_18_token = ( ascii - warc_0_18_ctl - warc_0_18_separators )+ ;
+
+  warc_0_18_named_field =
+      warc_0_18_token >named_field_key_start $named_field_key_consume %named_field_key_end
+      ':'
+      warc_0_18_lws? <:
+      ( any - [\r\n] )* >named_field_val_start $named_field_val_consume %named_field_val_end
     | ( any - [\n] )+  # This is here as an attempt to recover from the broken UTF-16 data in ClueWeb09.
     ;
 
-  warc_fields = ( named_field crlf )* ;
-  version = 'WARC/0.18' crlf ;
-  header = version warc_fields;
-  block = ( any when block_consume_test $block_consume )* ;
-  warc_record = header >record_start crlf block >block_start crlf crlf %block_end %record_end ;
+  warc_0_18_warc_fields = ( warc_0_18_named_field warc_0_18_crlf )* ;
+  warc_0_18_version = 'WARC/0.18' warc_0_18_crlf ;
+  warc_0_18_header = warc_0_18_version warc_0_18_warc_fields;
+  warc_0_18_block = ( any when block_consume_test $block_consume )* ;
+  warc_0_18_warc_record =
+      warc_0_18_header >record_start warc_0_18_crlf
+      warc_0_18_block >block_start
+      warc_0_18_crlf warc_0_18_crlf %block_end %record_end ;
 
-  main := warc_record** ;
+  # ===========================================================================
+  # Version 1.0.
+  # ===========================================================================
+  warc_1_0_crlf = '\r\n' ;
+  warc_1_0_ctl = cntrl | 0x7f ;
+  warc_1_0_lws = warc_1_0_crlf? [ \t]+ ;
+  warc_1_0_separators = [][()<>@,;:\"/?={} \t] ;
+  warc_1_0_token = ( ascii - warc_1_0_ctl - warc_1_0_separators )+ ;
+
+  warc_1_0_field_content = warc_1_0_lws | ( any - warc_1_0_ctl ) $named_field_val_consume ;
+  warc_1_0_field_value = [ \t]* warc_1_0_field_content* >named_field_val_start %named_field_val_end ;
+  warc_1_0_field_name = warc_1_0_token >named_field_key_start $named_field_key_consume %named_field_key_end ;
+  warc_1_0_named_field = warc_1_0_field_name ':' warc_1_0_field_value ;
+
+  warc_1_0_warc_fields = ( warc_1_0_named_field warc_1_0_crlf )* ;
+  warc_1_0_version = 'WARC/1.0' warc_1_0_crlf ;
+  warc_1_0_header = warc_1_0_version warc_1_0_warc_fields;
+  warc_1_0_block = ( any when block_consume_test $block_consume )* ;
+  warc_1_0_warc_record =
+      warc_1_0_header >record_start warc_1_0_crlf
+      warc_1_0_block >block_start warc_1_0_crlf warc_1_0_crlf %block_end %record_end ;
+
+  # ===========================================================================
+  main := ( warc_0_18_warc_record | warc_1_0_warc_record )** ;
 }%%
 
 
