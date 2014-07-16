@@ -12,6 +12,7 @@
 #include <schwa/exception.h>
 #include <schwa/io/logging.h>
 #include <schwa/formats/html.h>
+#include <schwa/formats/http.h>
 #include <schwa/formats/warc.h>
 
 namespace cf = schwa::config;
@@ -25,6 +26,7 @@ namespace formats {
 class WARCHTMLLexer : public WARCLexer {
 protected:
   HTMLLexer _html_lexer;
+  HTTPLexer _http_lexer;
   EncodingResult _encoding_result;
   unsigned int _nfail;
   unsigned int _nskipped;
@@ -47,11 +49,20 @@ WARCHTMLLexer::WARCHTMLLexer(void) {
 
 void
 WARCHTMLLexer::_record_end(void) {
+  bool success;
   WARCLexer::_record_end();
 
   // Only bother processing HTTP response WARC records.
   if (_warc_type != "response")
     return;
+
+  // Parse the HTTP message.
+  success = _http_lexer.run(_block_buffer, _block_nbytes_consumed);
+  if (!success) {
+    std::cerr.write(reinterpret_cast<const char *>(_block_buffer), _block_nbytes_consumed);
+    std::cerr << std::endl;
+  }
+  assert(success);
 
   // Attempt to find the end of the HTTP headers which should be the start of the HTML payload.
   const char *html_ptr = reinterpret_cast<char *>(_block_buffer);
@@ -71,8 +82,6 @@ WARCHTMLLexer::_record_end(void) {
     ++_nfail;
     return;
   }
-
-  bool success;
 
   // First, assume that it's UTF-8.
   try {

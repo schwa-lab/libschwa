@@ -23,6 +23,7 @@ namespace schwa {
       size_t _block_nbytes_consumed;
       std::string _warc_type;
       std::string _current_key;
+      //std::string _current_val;
       bool _in_key_content_length;
       bool _in_key_warc_type;
 

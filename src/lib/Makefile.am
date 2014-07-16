@@ -18,13 +18,19 @@ libschwa_thirdparty_re2_la_LDFLAGS = -no-undefined -version-info 1:0:0
 # =============================================================================
 # Ragel
 # =============================================================================
-schwa/formats/html_gen.cc: $(srcdir)/../ragel/formats/html/main.rl $(srcdir)/../ragel/formats/html/*.rl
+schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
+	ragel -C -G2 -o $@ $<
+
+schwa/formats/html_gen.cc: $(srcdir)/../ragel/formats/html/main.rl $(srcdir)/../ragel/formats/html/html.rl
+	ragel -C -G2 -o $@ $<
+
+schwa/formats/http_gen.cc: $(srcdir)/../ragel/formats/http/main.rl $(srcdir)/../ragel/formats/http/http.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
 schwa/formats/warc_gen.cc: $(srcdir)/../ragel/formats/warc/warc.rl
 	ragel -C -G2 -o $@ $<
 
-schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
+schwa/formats/uri_gen.cc: $(srcdir)/../ragel/formats/uri/main.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
 schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
@@ -73,7 +79,9 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/enums.h \
 		schwa/exception.h \
 		schwa/formats/html.h \
+		schwa/formats/http.h \
 		schwa/formats/warc.h \
+		schwa/formats/uri.h \
 		schwa/io/array_reader.h \
 		schwa/io/enums.h \
 		schwa/io/file_source.h \
@@ -140,8 +148,12 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/formats/html.cc \
 		schwa/formats/html_gen.cc \
 		schwa/formats/html_named_character_references_gen.cc \
+		schwa/formats/http.cc \
+		schwa/formats/http_gen.cc \
 		schwa/formats/warc.cc \
 		schwa/formats/warc_gen.cc \
+		schwa/formats/uri.cc \
+		schwa/formats/uri_gen.cc \
 		schwa/io/array_reader.cc \
 		schwa/io/enums.cc \
 		schwa/io/file_source.cc \

@@ -31,13 +31,13 @@ HTMLLexer::_run(const uint8_t *const input, const size_t nbytes) {
   int cs = 0, act = 0;
   const uint8_t *te = nullptr, *ts = nullptr;
   (void)html_en_main;  // Shoosh compiler warning about unused variable.
-  std::cerr << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+
+  _begin_document();
 
   %% write init;
   %% write exec;
 
-  std::cerr << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
-  std::exit(0);
+  _end_document();
   return cs != %%{ write error; }%%;
 }
 

@@ -102,6 +102,7 @@ WARCLexer::_named_field_key_end(void) {
 void
 WARCLexer::_named_field_val_start(void) {
   //std::cerr << "[WARCLexer::_named_field_val_start]" << std::endl;
+  //_current_val.clear();
   if (_in_key_content_length)
     _block_nbytes_stated = 0;
   else if (_in_key_warc_type)
@@ -111,18 +112,19 @@ WARCLexer::_named_field_val_start(void) {
 
 void
 WARCLexer::_named_field_val_consume(const uint8_t c_) {
-  //std::cerr << "[WARCLexer::_named_field_val_consume]" << std::endl;
+  //std::cerr << "[WARCLexer::_named_field_val_consume] 0x" << std::hex << static_cast<unsigned int>(c_) << std::endl;
   const char c = static_cast<char>(c_);
   if (_in_key_content_length)
     _block_nbytes_stated = 10*_block_nbytes_stated + (c - '0');
   else if (_in_key_warc_type)
     _warc_type.push_back(std::tolower(c));
+  //_current_val.push_back(c);
 }
 
 
 void
 WARCLexer::_named_field_val_end(void) {
-  //std::cerr << "[WARCLexer::_named_field_val_end] '" << _current_key << "'" << std::endl;
+  //std::cerr << "[WARCLexer::_named_field_val_end] '" << _current_key << "' '" << _current_val << "'" << std::endl;
   //if (_in_key_content_length)
     //std::cerr << "_block_nbytes_stated=" << _block_nbytes_stated << std::endl;
   //else if (_in_key_warc_type)
