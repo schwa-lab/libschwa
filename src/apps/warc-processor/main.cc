@@ -33,6 +33,9 @@ protected:
   unsigned int _nskipped;
   unsigned int _nsuccess;
 
+  bool _decode_using_charset(const std::string &charset);
+  bool _decode_using_encoding(Encoding encoding);
+
   virtual void _record_end(void) override;
 
 public:
@@ -45,6 +48,32 @@ public:
 
 WARCHTMLParser::WARCHTMLParser(void) {
   _encoding_result.reserve(1 * 1024 * 1024);
+}
+
+
+bool
+WARCHTMLParser::_decode_using_charset(const std::string &charset) {
+  // Attempt to convert the string value to an enum value.
+  try {
+    return _decode_using_encoding(get_encoding(charset));
+  }
+  catch (UnknownEncodingException) {
+    std::cerr << "[" << warc_trec_id() << "][1] Failed to convert charset '" << charset << "' to encoding" << std::endl;
+    return false;
+  }
+}
+
+
+bool
+WARCHTMLParser::_decode_using_encoding(const Encoding encoding) {
+  // Attempt to convert the encoded payload to UTF-8.
+  try {
+    to_utf8(encoding, _http_parser.message(), _http_parser.message_nbytes(), _encoding_result);
+    return true;
+  }
+  catch (DecodeException) {
+    return false;
+  }
 }
 
 
@@ -73,58 +102,20 @@ WARCHTMLParser::_record_end(void) {
   }
 
   bool successfully_decoded = false;
-  if (_http_parser.has_charset()) {
-    // Obtain the charset.
-    const std::string &charset = _http_parser.charset();
-    //std::cerr << "charset '" << charset << "'" << std::endl;
-
-    try {
-      // Attempt to convert the string value to an enum value.
-      const Encoding encoding = get_encoding(charset);
-
-      // Attempt to convert the encoded payload to UTF-8.
-      to_utf8(encoding, _http_parser.message(), _http_parser.message_nbytes(), _encoding_result);
-      successfully_decoded = true;
-    }
-    catch (UnknownEncodingException) {
-      std::cerr << "[" << warc_trec_id() << "][1] Failed to convert charset '" << charset << "' to encoding" << std::endl;
-    }
-    catch (DecodeException e) {
-      std::cerr << "[" << warc_trec_id() << "][1] " << e.what() << std::endl;
-    }
-  }
+  if (_http_parser.has_charset())
+    successfully_decoded = _decode_using_charset(_http_parser.charset());
 
   if (!successfully_decoded) {
-    // Attempt to extract the charset from the <meta tag.
+    // Attempt to extract the charset from the <meta> tag.
     _html_charset_sniffer.run(_http_parser.message(), _http_parser.message_nbytes());
-    if (_html_charset_sniffer.has_charset()) {
-      const std::string &charset = _html_charset_sniffer.charset();
-
-      try {
-        // Attempt to convert the string value to an enum value.
-        const Encoding encoding = get_encoding(charset);
-
-        // Attempt to convert the encoded payload to UTF-8.
-        to_utf8(encoding, _http_parser.message(), _http_parser.message_nbytes(), _encoding_result);
-        successfully_decoded = true;
-      }
-      catch (UnknownEncodingException) {
-        std::cerr << "[" << warc_trec_id() << "][2] Failed to convert charset '" << charset << "' to encoding" << std::endl;
-      }
-      catch (DecodeException e) {
-        std::cerr << "[" << warc_trec_id() << "][2] " << e.what() << std::endl;
-      }
-    }
+    if (_html_charset_sniffer.has_charset())
+      successfully_decoded = _decode_using_charset(_html_charset_sniffer.charset());
   }
 
   if (!successfully_decoded) {
     // TODO detect character encoding.
-    // Guess CP1252.
-    try {
-      to_utf8(Encoding::CP1252, _http_parser.message(), _http_parser.message_nbytes(), _encoding_result);
-      successfully_decoded = true;
-    }
-    catch (DecodeException) { }
+    // Guess WINDOWS_1252.
+    successfully_decoded = _decode_using_encoding(Encoding::WINDOWS_1252);
   }
 
   // If we didn't manage to correctly convert the payload to UTF-8, bail.
