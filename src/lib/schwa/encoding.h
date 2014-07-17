@@ -22,6 +22,19 @@ namespace schwa {
     GB2312 = 4,
     LATIN1 = 5,
     LATIN2 = 6,
+    LATIN3 = 7,
+    LATIN4 = 8,
+    LATIN5 = 9,
+    LATIN6 = 10,
+    LATIN7 = 11,
+    LATIN8 = 12,
+    LATIN9 = 13,
+    LATIN10 = 14,
+    LATIN11 = 15,
+    LATIN13 = 16,
+    LATIN14 = 17,
+    LATIN15 = 18,
+    LATIN16 = 19,
     UTF_8 = 0,
     __END__,
   };
@@ -106,6 +119,19 @@ namespace schwa {
   void gb2312_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin1_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin2_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin3_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin4_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin5_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin6_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin7_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin8_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin9_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin10_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin11_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin13_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin14_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin15_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void latin16_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void utf_8_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
 
 }  // namespace schwa

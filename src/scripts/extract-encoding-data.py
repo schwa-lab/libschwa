@@ -14,12 +14,26 @@ UNICODE_MAPPINGS = (
     ('CP1252', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT'),
     ('LATIN1', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-1.TXT'),
     ('LATIN2', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-2.TXT'),
+    ('LATIN3', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-3.TXT'),
+    ('LATIN4', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-4.TXT'),
+    ('LATIN5', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-5.TXT'),
+    ('LATIN6', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-6.TXT'),
+    ('LATIN7', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-7.TXT'),
+    ('LATIN8', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-8.TXT'),
+    ('LATIN9', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-9.TXT'),
+    ('LATIN10', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-10.TXT'),
+    ('LATIN11', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-11.TXT'),
+    ('LATIN13', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-13.TXT'),
+    ('LATIN14', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-14.TXT'),
+    ('LATIN15', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-15.TXT'),
+    ('LATIN16', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-16.TXT'),
 )
 
 RE_REMOVE_COMMENTS = re.compile(r'#.*$')
 
 
 def load_data(uri):
+  print('[load_data] {0!r}'.format(uri))
   table = {}
 
   if uri.startswith('http'):
@@ -88,6 +102,12 @@ def process_unicode_mapping(file_h, prefix, uri):
   min_encoded = min(table)
   max_encoded = max(table) + 1
   nencoded = max_encoded - min_encoded
+  assert nencoded <= 2**8
+  nencoded = 2**8
+
+  if any(i not in table for i in range(nencoded)):
+    max_utf8_nbytes = 4
+    max_nbytes = 32
 
   print(file=file_h)
   print('// Data source: {0}.'.format(uri), file=file_h)
@@ -101,7 +121,7 @@ def process_unicode_mapping(file_h, prefix, uri):
       print('  ', end='', file=file_h)
     else:
       print(' ', end='', file=file_h)
-    print('0x{0:04x},'.format(table.get(min_encoded + i, 0)), end='', file=file_h)
+    print('0x{0:06x},'.format(table.get(min_encoded + i, MAX_CODE_POINT)), end='', file=file_h)
   print('\n};', file=file_h)
 
 
@@ -137,7 +157,7 @@ def process_gb2321(file_h, uri):
   print('static constexpr const uint{0}_t GB2312_TABLE[{1}][{2}] = {{'.format(max_nbytes, array_length, internal_array_length), file=file_h)
   for a in range(len(arrays)):
     array = arrays.get(a, {})
-    print('  {{{0}}},'.format(', '.join('0x{0:04x}'.format(array.get(b, 0)) for b in range(internal_array_length))), file=file_h)
+    print('  {{{0}}},'.format(', '.join('0x{0:06x}'.format(array.get(b, 0)) for b in range(internal_array_length))), file=file_h)
   print('};', file=file_h)
 
 
