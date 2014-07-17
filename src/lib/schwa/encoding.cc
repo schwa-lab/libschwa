@@ -37,6 +37,7 @@ static const std::map<Encoding, std::string> ENCODING_NAMES = {{
   {Encoding::KOI8_R, "KOI8-R"},
   {Encoding::KOI8_U, "KOI8-U"},
   {Encoding::UTF_8, "UTF-8"},
+  {Encoding::WINDOWS_1250, "WINDOWS-1250"},
   {Encoding::WINDOWS_1251, "WINDOWS-1251"},
   {Encoding::WINDOWS_1252, "WINDOWS-1252"},
   {Encoding::WINDOWS_1253, "WINDOWS-1253"},
@@ -47,9 +48,12 @@ static const std::map<Encoding, std::string> ENCODING_NAMES = {{
   {Encoding::WINDOWS_1258, "WINDOWS-1258"},
 }};
 
+// The strings in this hash table are normalised to be in uppercase and to not have any hyphens or
+// underscores. See `get_encoding` for the normalisation process.
 static const std::unordered_map<std::string, Encoding> ENCODINGS = {{
   {"ASCII", Encoding::ASCII},
 
+  {"CP1250", Encoding::WINDOWS_1250},
   {"CP1251", Encoding::WINDOWS_1251},
   {"CP1252", Encoding::WINDOWS_1252},
   {"CP1253", Encoding::WINDOWS_1253},
@@ -61,40 +65,26 @@ static const std::unordered_map<std::string, Encoding> ENCODINGS = {{
 
   {"GB2312", Encoding::GB2312},
 
-  {"ISO-8859-1", Encoding::LATIN1},
-  {"ISO-8859-2", Encoding::LATIN2},
-  {"ISO-8859-3", Encoding::LATIN3},
-  {"ISO-8859-4", Encoding::LATIN4},
-  {"ISO-8859-5", Encoding::LATIN5},
-  {"ISO-8859-6", Encoding::LATIN6},
-  {"ISO-8859-7", Encoding::LATIN7},
-  {"ISO-8859-8", Encoding::LATIN8},
-  {"ISO-8859-9", Encoding::LATIN9},
-  {"ISO-8859-10", Encoding::LATIN10},
-  {"ISO-8859-11", Encoding::LATIN11},
-  {"ISO-8859-13", Encoding::LATIN13},
-  {"ISO-8859-14", Encoding::LATIN14},
-  {"ISO-8859-15", Encoding::LATIN15},
-  {"ISO-8859-16", Encoding::LATIN16},
+  {"ISO88591", Encoding::LATIN1},
+  {"ISO88592", Encoding::LATIN2},
+  {"ISO88593", Encoding::LATIN3},
+  {"ISO88594", Encoding::LATIN4},
+  {"ISO88595", Encoding::LATIN5},
+  {"ISO88596", Encoding::LATIN6},
+  {"ISO88597", Encoding::LATIN7},
+  {"ISO88598", Encoding::LATIN8},
+  {"ISO88598I", Encoding::LATIN8},
+  {"ISO88599", Encoding::LATIN9},
+  {"ISO885910", Encoding::LATIN10},
+  {"ISO885911", Encoding::LATIN11},
+  {"ISO885913", Encoding::LATIN13},
+  {"ISO885914", Encoding::LATIN14},
+  {"ISO885915", Encoding::LATIN15},
+  {"ISO885916", Encoding::LATIN16},
+  {"ISOLATIN1", Encoding::LATIN1},
 
-  {"ISO8859-1", Encoding::LATIN1},
-  {"ISO8859-2", Encoding::LATIN2},
-  {"ISO8859-3", Encoding::LATIN3},
-  {"ISO8859-4", Encoding::LATIN4},
-  {"ISO8859-5", Encoding::LATIN5},
-  {"ISO8859-6", Encoding::LATIN6},
-  {"ISO8859-7", Encoding::LATIN7},
-  {"ISO8859-8", Encoding::LATIN8},
-  {"ISO8859-9", Encoding::LATIN9},
-  {"ISO8859-10", Encoding::LATIN10},
-  {"ISO8859-11", Encoding::LATIN11},
-  {"ISO8859-13", Encoding::LATIN13},
-  {"ISO8859-14", Encoding::LATIN14},
-  {"ISO8859-15", Encoding::LATIN15},
-  {"ISO8859-16", Encoding::LATIN16},
-
-  {"KOI8-R", Encoding::KOI8_R},
-  {"KOI8-U", Encoding::KOI8_U},
+  {"KOI8R", Encoding::KOI8_R},
+  {"KOI8U", Encoding::KOI8_U},
 
   {"LATIN1", Encoding::LATIN1},
   {"LATIN2", Encoding::LATIN2},
@@ -112,18 +102,19 @@ static const std::unordered_map<std::string, Encoding> ENCODINGS = {{
   {"LATIN15", Encoding::LATIN15},
   {"LATIN16", Encoding::LATIN16},
 
-  {"US-ASCII", Encoding::ASCII},
-  {"UTF-8", Encoding::UTF_8},
+  {"USASCII", Encoding::ASCII},
   {"UTF8", Encoding::UTF_8},
 
-  {"WINDOWS-1251", Encoding::WINDOWS_1251},
-  {"WINDOWS-1252", Encoding::WINDOWS_1252},
-  {"WINDOWS-1253", Encoding::WINDOWS_1253},
-  {"WINDOWS-1254", Encoding::WINDOWS_1254},
-  {"WINDOWS-1255", Encoding::WINDOWS_1255},
-  {"WINDOWS-1256", Encoding::WINDOWS_1256},
-  {"WINDOWS-1257", Encoding::WINDOWS_1257},
-  {"WINDOWS-1258", Encoding::WINDOWS_1258},
+  {"WIN1251", Encoding::WINDOWS_1251},
+  {"WINDOWS1250", Encoding::WINDOWS_1250},
+  {"WINDOWS1251", Encoding::WINDOWS_1251},
+  {"WINDOWS1252", Encoding::WINDOWS_1252},
+  {"WINDOWS1253", Encoding::WINDOWS_1253},
+  {"WINDOWS1254", Encoding::WINDOWS_1254},
+  {"WINDOWS1255", Encoding::WINDOWS_1255},
+  {"WINDOWS1256", Encoding::WINDOWS_1256},
+  {"WINDOWS1257", Encoding::WINDOWS_1257},
+  {"WINDOWS1258", Encoding::WINDOWS_1258},
 }};
 
 
@@ -248,12 +239,13 @@ get_encoding(const char *const name) {
 
 Encoding
 get_encoding(const std::string &name) {
-  std::string uname;
-  uname.reserve(name.size());
+  std::string norm;
+  norm.reserve(name.size());
   for (const char c : name)
-    uname.push_back(std::toupper(c));
+    if (c != '-' && c != '_')
+      norm.push_back(std::toupper(c));
 
-  const auto &it = ENCODINGS.find(uname);
+  const auto &it = ENCODINGS.find(norm);
   if (it == ENCODINGS.end())
     throw UnknownEncodingException(name);
   return it->second;
@@ -295,6 +287,7 @@ to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, Encodi
   case Encoding::LATIN14: latin14_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::LATIN15: latin15_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::LATIN16: latin16_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::WINDOWS_1250: windows_1250_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::WINDOWS_1251: windows_1251_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::WINDOWS_1252: windows_1252_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::WINDOWS_1253: windows_1253_to_utf8(encoded, encoded_nbytes, result); return;
@@ -396,6 +389,7 @@ CREATE_TABLE_TO_UTF8_FUNCTION(latin14, LATIN14, Encoding::LATIN14)
 CREATE_TABLE_TO_UTF8_FUNCTION(latin15, LATIN15, Encoding::LATIN15)
 CREATE_TABLE_TO_UTF8_FUNCTION(latin16, LATIN16, Encoding::LATIN16)
 
+CREATE_TABLE_TO_UTF8_FUNCTION(windows_1250, WINDOWS_1250, Encoding::WINDOWS_1250)
 CREATE_TABLE_TO_UTF8_FUNCTION(windows_1251, WINDOWS_1251, Encoding::WINDOWS_1251)
 CREATE_TABLE_TO_UTF8_FUNCTION(windows_1252, WINDOWS_1252, Encoding::WINDOWS_1252)
 CREATE_TABLE_TO_UTF8_FUNCTION(windows_1253, WINDOWS_1253, Encoding::WINDOWS_1253)

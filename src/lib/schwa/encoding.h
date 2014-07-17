@@ -17,7 +17,12 @@ namespace schwa {
    **/
   enum class Encoding : uint8_t {
     ASCII = 1,
+    // BIG5
+    // EUC_JP
+    // EUC_KR
     GB2312 = 2,
+    // GB18030
+    // ISO_2022_JP
     KOI8_R = 10,
     KOI8_U = 11,
     LATIN1 = 21,
@@ -35,7 +40,9 @@ namespace schwa {
     LATIN14 = 33,
     LATIN15 = 34,
     LATIN16 = 35,
+    // SHIFT_JIS
     UTF_8 = 0,
+    WINDOWS_1250 = 40,
     WINDOWS_1251 = 41,
     WINDOWS_1252 = 42,
     WINDOWS_1253 = 43,
@@ -141,6 +148,7 @@ namespace schwa {
   void latin15_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin16_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void utf_8_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1250_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void windows_1251_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void windows_1252_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void windows_1253_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
