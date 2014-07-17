@@ -66,7 +66,11 @@ HTTPParser::_content_type_param_key_end(const uint8_t *const fpc) {
   std::string key;
   for (const uint8_t *p = _content_type_ptr; p != fpc; ++p)
     key.push_back(std::tolower(*reinterpret_cast<const char *>(p)));
-  _in_content_type_charset = key == "charset";
+
+  if (key == "charset") {
+    _in_content_type_charset = true;
+    _content_type_charset.clear();
+  }
 }
 
 void

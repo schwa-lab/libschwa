@@ -23,7 +23,7 @@ namespace io = schwa::io;
 namespace schwa {
 namespace formats {
 
-class WARCHTMLLexer : public WARCLexer {
+class WARCHTMLParser : public WARCParser {
 protected:
   HTMLLexer _html_lexer;
   HTTPParser _http_parser;
@@ -35,22 +35,22 @@ protected:
   virtual void _record_end(void) override;
 
 public:
-  WARCHTMLLexer(void);
-  virtual ~WARCHTMLLexer(void) { }
+  WARCHTMLParser(void);
+  virtual ~WARCHTMLParser(void) { }
 
   virtual bool run(std::istream &input, const size_t buffer_size) override;
 };
 
 
-WARCHTMLLexer::WARCHTMLLexer(void) {
+WARCHTMLParser::WARCHTMLParser(void) {
   _encoding_result.reserve(1 * 1024 * 1024);
 }
 
 
 void
-WARCHTMLLexer::_record_end(void) {
+WARCHTMLParser::_record_end(void) {
   bool success;
-  WARCLexer::_record_end();
+  WARCParser::_record_end();
 
   // Only bother processing HTTP response WARC records.
   if (_warc_type != "response")
@@ -86,10 +86,10 @@ WARCHTMLLexer::_record_end(void) {
       successfully_decoded = true;
     }
     catch (UnknownEncodingException) {
-      std::cerr << "Failed to convert charset '" << charset << "' to encoding" << std::endl;
+      std::cerr << "[" << warc_trec_id() << "] Failed to convert charset '" << charset << "' to encoding" << std::endl;
     }
     catch (DecodeException e) {
-      std::cerr << e.what() << std::endl;
+      std::cerr << "[" << warc_trec_id() << "] " << e.what() << std::endl;
     }
   }
   else {
@@ -117,7 +117,7 @@ WARCHTMLLexer::_record_end(void) {
 
 
 bool
-WARCHTMLLexer::run(std::istream &input, const size_t buffer_size) {
+WARCHTMLParser::run(std::istream &input, const size_t buffer_size) {
   _nfail = _nskipped = _nsuccess = 0;
 
   const bool ret = _run(input, buffer_size);
@@ -142,7 +142,7 @@ main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("warc-processor", "Test WARC file processor.");
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
-  cf::Op<size_t> warc_buffer(cfg, "warc-buffer", "WARC lexer input buffer size (bytes)", fm::WARCLexer::DEFAULT_BUFFER_SIZE);
+  cf::Op<size_t> warc_buffer(cfg, "warc-buffer", "WARC lexer input buffer size (bytes)", fm::WARCParser::DEFAULT_BUFFER_SIZE);
   cf::Op<bool> html(cfg, "html", "Lex HTML only", false);
 
   bool success = true;
@@ -163,7 +163,7 @@ main(int argc, char **argv) {
       success = lexer.run(reinterpret_cast<const uint8_t *>(buf.get()), nbytes);
     }
     else {
-      fm::WARCHTMLLexer lexer;
+      fm::WARCHTMLParser lexer;
       success = lexer.run(in, warc_buffer());
     }
   })
