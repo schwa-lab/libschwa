@@ -17,24 +17,30 @@ namespace schwa {
    **/
   enum class Encoding : uint8_t {
     ASCII = 1,
-    CP1251 = 2,
-    CP1252 = 3,
-    GB2312 = 4,
-    LATIN1 = 5,
-    LATIN2 = 6,
-    LATIN3 = 7,
-    LATIN4 = 8,
-    LATIN5 = 9,
-    LATIN6 = 10,
-    LATIN7 = 11,
-    LATIN8 = 12,
-    LATIN9 = 13,
-    LATIN10 = 14,
-    LATIN11 = 15,
-    LATIN13 = 16,
-    LATIN14 = 17,
-    LATIN15 = 18,
-    LATIN16 = 19,
+    CP1251 = 41,
+    CP1252 = 42,
+    CP1253 = 43,
+    CP1254 = 44,
+    CP1255 = 45,
+    CP1256 = 46,
+    CP1257 = 47,
+    CP1258 = 48,
+    GB2312 = 2,
+    LATIN1 = 21,
+    LATIN2 = 22,
+    LATIN3 = 23,
+    LATIN4 = 24,
+    LATIN5 = 25,
+    LATIN6 = 26,
+    LATIN7 = 27,
+    LATIN8 = 28,
+    LATIN9 = 29,
+    LATIN10 = 30,
+    LATIN11 = 31,
+    LATIN13 = 32,
+    LATIN14 = 33,
+    LATIN15 = 34,
+    LATIN16 = 35,
     UTF_8 = 0,
     __END__,
   };
@@ -116,6 +122,12 @@ namespace schwa {
   void ascii_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void cp1251_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void cp1252_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void cp1253_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void cp1254_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void cp1255_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void cp1256_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void cp1257_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void cp1258_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void gb2312_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin1_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin2_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);

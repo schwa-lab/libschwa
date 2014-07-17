@@ -18,7 +18,7 @@ namespace schwa {
 // Canonical names appear before aliases for the same encoding so that the encoding_name function
 // returns the canonical name. UTF-8 appears first in this list as it will be the most frequently
 // requested encoding.
-static const std::array<std::pair<std::string, Encoding>, 54> ENCODINGS = {{
+static const std::array<std::pair<std::string, Encoding>, 68> ENCODINGS = {{
   {"UTF-8", Encoding::UTF_8},
   {"UTF8", Encoding::UTF_8},
   {"ASCII", Encoding::ASCII},
@@ -27,6 +27,18 @@ static const std::array<std::pair<std::string, Encoding>, 54> ENCODINGS = {{
   {"WINDOWS-1251", Encoding::CP1251},
   {"CP1252", Encoding::CP1252},
   {"WINDOWS-1252", Encoding::CP1252},
+  {"CP1253", Encoding::CP1253},
+  {"WINDOWS-1253", Encoding::CP1253},
+  {"CP1254", Encoding::CP1254},
+  {"WINDOWS-1254", Encoding::CP1254},
+  {"CP1255", Encoding::CP1255},
+  {"WINDOWS-1255", Encoding::CP1255},
+  {"CP1256", Encoding::CP1256},
+  {"WINDOWS-1256", Encoding::CP1256},
+  {"CP1257", Encoding::CP1257},
+  {"WINDOWS-1257", Encoding::CP1257},
+  {"CP1258", Encoding::CP1258},
+  {"WINDOWS-1258", Encoding::CP1258},
   {"GB2312", Encoding::GB2312},
   {"LATIN1", Encoding::LATIN1},
   {"ISO-8859-1", Encoding::LATIN1},
@@ -230,6 +242,12 @@ to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, Encodi
   case Encoding::ASCII: ascii_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::CP1251: cp1251_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::CP1252: cp1252_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1253: cp1253_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1254: cp1254_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1255: cp1255_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1256: cp1256_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1257: cp1257_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::CP1258: cp1258_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::GB2312: gb2312_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::LATIN1: latin1_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::LATIN2: latin2_to_utf8(encoded, encoded_nbytes, result); return;
@@ -322,6 +340,12 @@ gb2312_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
 
 CREATE_TABLE_TO_UTF8_FUNCTION(cp1251, CP1251, Encoding::CP1251)
 CREATE_TABLE_TO_UTF8_FUNCTION(cp1252, CP1252, Encoding::CP1252)
+CREATE_TABLE_TO_UTF8_FUNCTION(cp1253, CP1253, Encoding::CP1253)
+CREATE_TABLE_TO_UTF8_FUNCTION(cp1254, CP1254, Encoding::CP1254)
+CREATE_TABLE_TO_UTF8_FUNCTION(cp1255, CP1255, Encoding::CP1255)
+CREATE_TABLE_TO_UTF8_FUNCTION(cp1256, CP1256, Encoding::CP1256)
+CREATE_TABLE_TO_UTF8_FUNCTION(cp1257, CP1257, Encoding::CP1257)
+CREATE_TABLE_TO_UTF8_FUNCTION(cp1258, CP1258, Encoding::CP1258)
 
 CREATE_TABLE_TO_UTF8_FUNCTION(latin1, LATIN1, Encoding::LATIN1)
 CREATE_TABLE_TO_UTF8_FUNCTION(latin2, LATIN2, Encoding::LATIN2)

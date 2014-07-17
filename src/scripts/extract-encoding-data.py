@@ -12,6 +12,12 @@ TMP_DIR = '/tmp'
 UNICODE_MAPPINGS = (
     ('CP1251', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT'),
     ('CP1252', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT'),
+    ('CP1253', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1253.TXT'),
+    ('CP1254', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1254.TXT'),
+    ('CP1255', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1255.TXT'),
+    ('CP1256', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1256.TXT'),
+    ('CP1257', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT'),
+    ('CP1258', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1258.TXT'),
     ('LATIN1', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-1.TXT'),
     ('LATIN2', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-2.TXT'),
     ('LATIN3', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-3.TXT'),
