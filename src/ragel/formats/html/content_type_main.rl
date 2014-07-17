@@ -12,11 +12,7 @@
   # RFC5234
   #   Augmented BNF for Syntax Specifications: ABNF
   #   http://tools.ietf.org/html/rfc5234#appendix-B.1
-  char = ascii ;
   crlf = '\r\n' | '\n' ;
-  ctl = cntrl | 0x7f ;
-  octet = any ;
-  sp = ' ' ;
   vchar = 0x21..0x7e ;
   wsp = [ \t] ;
   lwsp = ( wsp | crlf wsp )* ;
@@ -26,9 +22,6 @@
   #  http://tools.ietf.org/html/rfc7230
   #
   # https://www.mnot.net/blog/2014/06/07/rfc2616_is_dead
-  http_name = 'HTTP' ;
-  http_version = http_name '/' digit '.' digit ;
-
   tchar = [!#$%&'*+\-.^_`|~0-9a-zA-Z ] ;
   token = tchar+ ;
 
@@ -53,7 +46,6 @@
 }%%
 
 #include <schwa/formats/html.h>
-#include <iostream>
 
 namespace schwa {
 namespace formats {
@@ -68,14 +60,6 @@ HTMLCharsetSniffer::_run_content_type(const uint8_t *const input, const size_t n
 
   %% write init;
   %% write exec;
-
-  if (cs == %%{ write error; }%%) {
-    std::cerr << "<<<<<<<<<<<<<<<<<<<" << std::endl;
-    std::cerr.write(reinterpret_cast<const char *>(input), nbytes);
-    std::cerr << "===================" << std::endl;
-    std::cerr.write(reinterpret_cast<const char *>(p), pe - p);
-    std::cerr << ">>>>>>>>>>>>>>>>>>>" << std::endl;
-  }
 
   return cs != %%{ write error; }%%;
 }
