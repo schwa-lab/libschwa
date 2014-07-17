@@ -46,31 +46,31 @@ namespace schwa {
 
       void _set_tag_name(const uint8_t *tag_name_end_ptr);
 
-      virtual void _decimal_character_reference_start(const uint8_t *fpc);
-      virtual void _decimal_character_reference_end(const uint8_t *fpc);
-      virtual void _hex_character_reference_start(const uint8_t *fpc);
-      virtual void _hex_character_reference_end(const uint8_t *fpc);
-      virtual void _named_character_reference_start(const uint8_t *fpc);
-      virtual void _named_character_reference_end(const uint8_t *fpc);
-      virtual void _text_character_start(const uint8_t *fpc);
-      virtual void _text_character_end(const uint8_t *fpc);
+      void _decimal_character_reference_start(const uint8_t *fpc);
+      void _decimal_character_reference_end(const uint8_t *fpc);
+      void _hex_character_reference_start(const uint8_t *fpc);
+      void _hex_character_reference_end(const uint8_t *fpc);
+      void _named_character_reference_start(const uint8_t *fpc);
+      void _named_character_reference_end(const uint8_t *fpc);
+      void _text_character_start(const uint8_t *fpc);
+      void _text_character_end(const uint8_t *fpc);
 
-      virtual void _cdata_start(const uint8_t *fpc);
-      virtual void _cdata_end(const uint8_t *fpc);
-      virtual void _comment_start(const uint8_t *fpc);
-      virtual void _comment_end(const uint8_t *fpc);
-      virtual void _doctype_start(const uint8_t *fpc);
-      virtual void _doctype_end(const uint8_t *fpc);
+      void _cdata_start(const uint8_t *fpc);
+      void _cdata_end(const uint8_t *fpc);
+      void _comment_start(const uint8_t *fpc);
+      void _comment_end(const uint8_t *fpc);
+      void _doctype_start(const uint8_t *fpc);
+      void _doctype_end(const uint8_t *fpc);
 
-      virtual void _open_tag_start(const uint8_t *fpc);
-      virtual void _open_tag_end(const uint8_t *fpc);
-      virtual void _open_tag_name_start(const uint8_t *fpc);
-      virtual void _open_tag_name_end(const uint8_t *fpc);
-      virtual void _open_tag_self_closing(void);
-      virtual void _close_tag_start(const uint8_t *fpc);
-      virtual void _close_tag_end(const uint8_t *fpc);
-      virtual void _close_tag_name_start(const uint8_t *fpc);
-      virtual void _close_tag_name_end(const uint8_t *fpc);
+      void _open_tag_start(const uint8_t *fpc);
+      void _open_tag_end(const uint8_t *fpc);
+      void _open_tag_name_start(const uint8_t *fpc);
+      void _open_tag_name_end(const uint8_t *fpc);
+      void _open_tag_self_closing(void);
+      void _close_tag_start(const uint8_t *fpc);
+      void _close_tag_end(const uint8_t *fpc);
+      void _close_tag_name_start(const uint8_t *fpc);
+      void _close_tag_name_end(const uint8_t *fpc);
 
       virtual void _seen_tag(const uint8_t *ts, const uint8_t *te);
       virtual void _seen_text(const uint8_t *ts, const uint8_t *te);
@@ -88,6 +88,46 @@ namespace schwa {
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(HTMLLexer);
+    };
+
+
+    class HTMLCharsetSniffer {
+    private:
+      const uint8_t *_start;
+      bool _is_charset;
+      bool _is_content_type;
+      std::string _current_key;
+      std::string _content_type;
+      std::string _charset;
+
+      bool _run_charset_sniff(const uint8_t *input, size_t nbytes);
+      bool _run_content_type(const uint8_t *input, size_t nbytes);
+
+      void _attribute_name_start(const uint8_t *fpc);
+      void _attribute_name_end(const uint8_t *fpc);
+      void _attribute_value_start(const uint8_t *fpc);
+      void _attribute_value_end(const uint8_t *fpc);
+
+      void _content_type_param_key_start(const uint8_t *fpc);
+      void _content_type_param_key_end(const uint8_t *fpc);
+      void _content_type_param_val_start(const uint8_t *fpc);
+      void _content_type_param_val_end(const uint8_t *fpc);
+
+      void _meta_end(void);
+
+      void _reset(void);
+
+    public:
+      HTMLCharsetSniffer(void);
+      ~HTMLCharsetSniffer(void) { }
+
+      inline const std::string &charset(void) const { return _charset; }
+      inline bool has_charset(void) const { return !_charset.empty(); }
+
+      bool run(const uint8_t *input, size_t nbytes);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(HTMLCharsetSniffer);
     };
 
   }  // namespace formats

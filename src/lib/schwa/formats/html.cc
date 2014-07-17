@@ -330,5 +330,99 @@ HTMLLexer::run(const EncodingResult &er) {
   return _run(er.utf8(), er.nbytes());
 }
 
+
+// ================================================================================================
+// HTMLCharsetSniffer
+// ================================================================================================
+HTMLCharsetSniffer::HTMLCharsetSniffer(void) : _start(nullptr) { }
+
+void
+HTMLCharsetSniffer::_attribute_name_start(const uint8_t *const fpc) {
+  _start = fpc;
+}
+void
+HTMLCharsetSniffer::_attribute_name_end(const uint8_t *const fpc) {
+  _current_key.clear();
+  for (const uint8_t *p = _start; p != fpc; ++p) {
+    const char c = std::tolower(*reinterpret_cast<const char *>(p));
+    _current_key.push_back(c);
+  }
+}
+
+void
+HTMLCharsetSniffer::_attribute_value_start(const uint8_t *const fpc) {
+  _start = fpc;
+}
+void
+HTMLCharsetSniffer::_attribute_value_end(const uint8_t *const fpc) {
+  std::string value;
+  for (const uint8_t *p = _start; p != fpc; ++p) {
+    const char c = std::tolower(*reinterpret_cast<const char *>(p));
+    value.push_back(c);
+  }
+  if (_current_key == "http-equiv" && value == "content-type")
+    _is_content_type = true;
+  else if (_current_key == "content")
+    _content_type = value;
+  else if (_current_key == "charset")
+    _charset = value;
+}
+
+
+void
+HTMLCharsetSniffer::_content_type_param_key_start(const uint8_t *const fpc) {
+  _start = fpc;
+}
+void
+HTMLCharsetSniffer::_content_type_param_key_end(const uint8_t *const fpc) {
+  std::string name;
+  for (const uint8_t *p = _start; p != fpc; ++p) {
+    const char c = std::tolower(*reinterpret_cast<const char *>(p));
+    name.push_back(c);
+  }
+  _is_charset = name == "charset";
+}
+
+void
+HTMLCharsetSniffer::_content_type_param_val_start(const uint8_t *const fpc) {
+  _start = fpc;
+}
+void
+HTMLCharsetSniffer::_content_type_param_val_end(const uint8_t *const fpc) {
+  if (!_is_charset)
+    return;
+  _charset.clear();
+  for (const uint8_t *p = _start; p != fpc; ++p) {
+    const char c = std::toupper(*reinterpret_cast<const char *>(p));
+    if (c != '"')
+      _charset.push_back(c);
+  }
+}
+
+
+void
+HTMLCharsetSniffer::_meta_end(void) {
+  if (_is_content_type && !_content_type.empty())
+    _run_content_type(reinterpret_cast<const uint8_t *>(_content_type.c_str()), _content_type.size());
+  _reset();
+}
+
+
+void
+HTMLCharsetSniffer::_reset(void) {
+  _start = nullptr;
+  _is_charset = false;
+  _is_content_type = false;
+  _content_type.clear();
+  _charset.clear();
+}
+
+
+bool
+HTMLCharsetSniffer::run(const uint8_t *const input, const size_t nbytes) {
+  _reset();
+  return _run_charset_sniff(input, nbytes > 2048 ? 2048 : nbytes);
+}
+
 }  // namesapce formats
 }  // namespace schwa

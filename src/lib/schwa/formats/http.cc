@@ -44,7 +44,10 @@ HTTPParser::_content_type_type_start(const uint8_t *const fpc) {
 }
 void
 HTTPParser::_content_type_type_end(const uint8_t *const fpc) {
-  _content_type.append(reinterpret_cast<const char *>(_content_type_ptr), fpc - _content_type_ptr);
+  for (const uint8_t *p = _content_type_ptr; p != fpc; ++p) {
+    const char c = std::tolower(*reinterpret_cast<const char *>(p));
+    _content_type.push_back(c);
+  }
   _content_type.push_back('/');
 }
 
@@ -54,7 +57,10 @@ HTTPParser::_content_type_subtype_start(const uint8_t *const fpc) {
 }
 void
 HTTPParser::_content_type_subtype_end(const uint8_t *const fpc) {
-  _content_type.append(reinterpret_cast<const char *>(_content_type_ptr), fpc - _content_type_ptr);
+  for (const uint8_t *p = _content_type_ptr; p != fpc; ++p) {
+    const char c = std::tolower(*reinterpret_cast<const char *>(p));
+    _content_type.push_back(c);
+  }
 }
 
 void
@@ -83,7 +89,8 @@ HTTPParser::_content_type_param_val_end(const uint8_t *const fpc) {
     return;
   for (const uint8_t *p = _content_type_ptr; p != fpc; ++p) {
     const char c = std::toupper(*reinterpret_cast<const char *>(p));
-    _content_type_charset.push_back(c);
+    if (c != '"')
+      _content_type_charset.push_back(c);
   }
 }
 

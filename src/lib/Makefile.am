@@ -24,6 +24,12 @@ schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
 schwa/formats/html_gen.cc: $(srcdir)/../ragel/formats/html/main.rl $(srcdir)/../ragel/formats/html/html.rl
 	ragel -C -G2 -o $@ $<
 
+schwa/formats/html_charset_sniff_gen.cc: $(srcdir)/../ragel/formats/html/charset_sniff_main.rl $(srcdir)/../ragel/formats/html/charset_sniff.rl
+	ragel -C -G2 -o $@ $<
+
+schwa/formats/html_charset_sniff_content_type_gen.cc: $(srcdir)/../ragel/formats/html/content_type_main.rl
+	ragel -C -G2 -o $@ $<
+
 schwa/formats/http_gen.cc: $(srcdir)/../ragel/formats/http/main.rl $(srcdir)/../ragel/formats/http/http.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
@@ -147,6 +153,8 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/exception.cc \
 		schwa/formats/html.cc \
 		schwa/formats/html_gen.cc \
+		schwa/formats/html_charset_sniff_gen.cc \
+		schwa/formats/html_charset_sniff_content_type_gen.cc \
 		schwa/formats/html_named_character_references_gen.cc \
 		schwa/formats/http.cc \
 		schwa/formats/http_gen.cc \
