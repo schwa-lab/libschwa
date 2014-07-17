@@ -93,9 +93,9 @@ namespace formats {
 
 bool
 WARCLexer::_run(std::istream &input, const size_t buffer_size) {
-  int cs = 0;
-  const uint8_t *te = nullptr, *ts = nullptr;
   (void)warc_en_main;  // Shoosh compiler warning about unused variable.
+  const uint8_t *te = nullptr, *ts = nullptr;
+  int cs = 0;
 
   %% write init;
 

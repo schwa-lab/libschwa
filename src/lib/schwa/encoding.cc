@@ -43,7 +43,7 @@ UnknownEncodingException::UnknownEncodingException(const Encoding encoding) : Ex
 }
 
 
-inline std::ostream &
+std::ostream &
 operator <<(std::ostream &out, const Encoding encoding) {
   return out << encoding_name(encoding);
 }
@@ -173,19 +173,18 @@ get_encoding(const std::string &name) {
 
 inline void
 to_utf8(Encoding encoding, const char *encoded_bytes, EncodingResult &result) {
-  to_utf8(encoding, encoded_bytes, std::strlen(encoded_bytes), result);
+  to_utf8(encoding, reinterpret_cast<const uint8_t *>(encoded_bytes), std::strlen(encoded_bytes), result);
 }
 
 
 inline void
 to_utf8(Encoding encoding, const std::string &encoded_bytes, EncodingResult &result) {
-  to_utf8(encoding, encoded_bytes.c_str(), encoded_bytes.size(), result);
+  to_utf8(encoding, reinterpret_cast<const uint8_t *>(encoded_bytes.c_str()), encoded_bytes.size(), result);
 }
 
 
 void
-to_utf8(Encoding encoding, const char *encoded_bytes, size_t encoded_nbytes, EncodingResult &result) {
-  const uint8_t *encoded = reinterpret_cast<const uint8_t *>(encoded_bytes);
+to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, EncodingResult &result) {
   switch (encoding) {
   case Encoding::UTF_8: utf_8_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::ASCII: ascii_to_utf8(encoded, encoded_nbytes, result); return;

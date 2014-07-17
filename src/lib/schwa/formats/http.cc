@@ -8,80 +8,114 @@
 namespace schwa {
 namespace formats {
 
-HTTPLexer::HTTPLexer(void) : _content_length_consumed(0), _content_length_stated(0) { }
+HTTPParser::HTTPParser(void) :
+    _message_ptr(nullptr),
+    _content_length_consumed(0),
+    _content_length_stated(0),
+    _status_code(0)
+  { }
 
-HTTPLexer::~HTTPLexer(void) { }
+HTTPParser::~HTTPParser(void) { }
 
 
 void
-HTTPLexer::_field_name_start(const uint8_t *) {
-  _current_key.clear();
+HTTPParser::_content_length_start(const uint8_t *) {
+  _content_length_stated = 0;
+}
+void
+HTTPParser::_content_length_consume(const uint8_t c) {
+  _content_length_stated = 10*_content_length_stated + (c - '0');
+}
+void
+HTTPParser::_content_length_end(const uint8_t *) {
+  _seen_content_length = true;
+}
+
+
+void
+HTTPParser::_status_code_consume(const uint8_t c) {
+  _status_code = 10*_status_code + (c - '0');
+}
+
+
+void
+HTTPParser::_content_type_type_start(const uint8_t *const fpc) {
+  _content_type_ptr = fpc;
+}
+void
+HTTPParser::_content_type_type_end(const uint8_t *const fpc) {
+  _content_type.append(reinterpret_cast<const char *>(_content_type_ptr), fpc - _content_type_ptr);
+  _content_type.push_back('/');
 }
 
 void
-HTTPLexer::_field_name_consume(const uint8_t c_) {
-  const char c = static_cast<char>(c_);
-  _current_key.push_back(std::tolower(c));
+HTTPParser::_content_type_subtype_start(const uint8_t *const fpc) {
+  _content_type_ptr = fpc;
+}
+void
+HTTPParser::_content_type_subtype_end(const uint8_t *const fpc) {
+  _content_type.append(reinterpret_cast<const char *>(_content_type_ptr), fpc - _content_type_ptr);
 }
 
 void
-HTTPLexer::_field_name_end(const uint8_t *) {
-  std::cerr << "[HTTPLexer::field_name_end] '" << _current_key << "'" << std::endl;
-  _in_content_length = _current_key == "content-length";
-  if (_in_content_length) {
-    _content_length_stated = 0;
-    _seen_content_length = true;
+HTTPParser::_content_type_param_key_start(const uint8_t *const fpc) {
+  _content_type_ptr = fpc;
+}
+void
+HTTPParser::_content_type_param_key_end(const uint8_t *const fpc) {
+  std::string key;
+  for (const uint8_t *p = _content_type_ptr; p != fpc; ++p)
+    key.push_back(std::tolower(*reinterpret_cast<const char *>(p)));
+  _in_content_type_charset = key == "charset";
+}
+
+void
+HTTPParser::_content_type_param_val_start(const uint8_t *const fpc) {
+  _content_type_ptr = fpc;
+}
+void
+HTTPParser::_content_type_param_val_end(const uint8_t *const fpc) {
+  if (!_in_content_type_charset)
+    return;
+  for (const uint8_t *p = _content_type_ptr; p != fpc; ++p) {
+    const char c = std::toupper(*reinterpret_cast<const char *>(p));
+    _content_type_charset.push_back(c);
   }
 }
 
+
 void
-HTTPLexer::_field_value_start(const uint8_t *) {
-  _current_val.clear();
+HTTPParser::_message_body_start(const uint8_t *const fpc) {
+  _message_ptr = fpc;
 }
-
 void
-HTTPLexer::_field_value_consume(const uint8_t c) {
-  _current_val.push_back(static_cast<char>(c));
-  if (_in_content_length) {
-    _content_length_stated = 10*_content_length_stated + (c - '0');
-    std::cerr << "[HTTPLexer::field_value_consume] _content_length_stated=" << _content_length_stated << std::endl;
-  }
+HTTPParser::_message_body_consume(const uint8_t) {
+  ++_content_length_consumed;
 }
-
-void
-HTTPLexer::_field_value_end(const uint8_t *) {
-  std::cerr << "[HTTPLexer::field_value_end] '" << _current_val << "'" << std::endl;
-}
-
-
-void
-HTTPLexer::_message_body_start(const uint8_t *) { }
-
-void
-HTTPLexer::_message_body_consume(const uint8_t) {
-  ++_content_length_consumed;  // FIXME
-}
-
 bool
-HTTPLexer::_message_body_test(void) {
+HTTPParser::_message_body_test(void) {
   return _seen_content_length ? _content_length_consumed != _content_length_stated : true;
 }
+void
+HTTPParser::_message_body_end(const uint8_t *) { }
+
 
 void
-HTTPLexer::_message_body_end(const uint8_t *) { }
-
-
-void
-HTTPLexer::_reset(void) {
+HTTPParser::_reset(void) {
   _content_length_consumed = 0;
   _content_length_stated = 0;
+  _message_ptr = nullptr;
   _in_content_length = false;
   _seen_content_length = false;
+  _content_type.clear();
+  _content_type_charset.clear();
+  _in_content_type_charset = false;
+  _status_code = 0;
 }
 
 
 bool
-HTTPLexer::run(const uint8_t *const input, const size_t nbytes) {
+HTTPParser::run(const uint8_t *const input, const size_t nbytes) {
   _reset();
   return _run(input, nbytes);
 }

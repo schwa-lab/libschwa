@@ -96,8 +96,8 @@ namespace schwa {
   Encoding get_encoding(const char *name);
 
   void to_utf8(Encoding encoding, const char *encoded_bytes, EncodingResult &result);
-  void to_utf8(Encoding encoding, const char *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void to_utf8(Encoding encoding, const std::string &encoded_bytes, EncodingResult &result);
+  void to_utf8(Encoding encoding, const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
 
 
   void ascii_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);

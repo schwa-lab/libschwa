@@ -19,7 +19,7 @@ namespace formats {
 %% write data noerror nofinal;
 
 bool
-HTTPLexer::_run(const uint8_t *const input, const size_t nbytes) {
+HTTPParser::_run(const uint8_t *const input, const size_t nbytes) {
   (void)http_en_main;  // Shoosh compiler warning about unused variable.
   const uint8_t *p = input, *pe = p + nbytes, *eof = pe;
   int cs = 0;
@@ -27,9 +27,11 @@ HTTPLexer::_run(const uint8_t *const input, const size_t nbytes) {
   %% write init;
   %% write exec;
 
+#if 0
   std::cerr << "<<<<<" << std::endl;
   std::cerr.write(reinterpret_cast<const char *>(p), pe - p);
   std::cerr << ">>>>>" << std::endl;
+#endif
 
   return cs != %%{ write error; }%%;
 }

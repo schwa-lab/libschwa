@@ -26,7 +26,7 @@ namespace formats {
 class WARCHTMLLexer : public WARCLexer {
 protected:
   HTMLLexer _html_lexer;
-  HTTPLexer _http_lexer;
+  HTTPParser _http_parser;
   EncodingResult _encoding_result;
   unsigned int _nfail;
   unsigned int _nskipped;
@@ -57,42 +57,58 @@ WARCHTMLLexer::_record_end(void) {
     return;
 
   // Parse the HTTP message.
-  success = _http_lexer.run(_block_buffer, _block_nbytes_consumed);
+  success = _http_parser.run(_block_buffer, _block_nbytes_consumed);
   if (!success) {
     std::cerr.write(reinterpret_cast<const char *>(_block_buffer), _block_nbytes_consumed);
     std::cerr << std::endl;
-  }
-  assert(success);
-
-  // Attempt to find the end of the HTTP headers which should be the start of the HTML payload.
-  const char *html_ptr = reinterpret_cast<char *>(_block_buffer);
-  const char *const html_ptr_end = html_ptr + _block_nbytes_consumed;
-  bool found = false;
-  for ( ; html_ptr != html_ptr_end - 1; ++html_ptr) {
-    if (html_ptr[0] == '\n' && html_ptr[1] == '\n') {
-      html_ptr += 2;
-      found = true;
-      break;
-    }
+    assert(success);
   }
 
-  // If we didn't find the end of the HTTP headers, bail.
-  if (!found) {
-    std::cerr << "No HTML content found" << std::endl;
-    ++_nfail;
-    return;
-  }
-
-  // First, assume that it's UTF-8.
-  try {
-    to_utf8(Encoding::UTF_8, html_ptr, html_ptr_end - html_ptr, _encoding_result);
-    success = _html_lexer.run(_encoding_result);
-  }
-  catch (DecodeException) {
+  // Reject the reqponse if it was not a success status or if it's not a HTML response.
+  if (_http_parser.status_code() != 200 || _http_parser.content_type() != "text/html") {
+    std::cerr << _http_parser.status_code() << " '" << _http_parser.content_type() << "'" << std::endl;
     ++_nskipped;
     return;
   }
 
+  bool successfully_decoded = false;
+  if (_http_parser.has_charset()) {
+    // Obtain the charset.
+    const std::string &charset = _http_parser.charset();
+    std::cerr << "charset '" << charset << "'" << std::endl;
+
+    try {
+      // Attempt to convert the string value to an enum value.
+      const Encoding encoding = get_encoding(charset);
+
+      // Attempt to convert the encoded payload to UTF-8.
+      to_utf8(encoding, _http_parser.message(), _http_parser.message_nbytes(), _encoding_result);
+      successfully_decoded = true;
+    }
+    catch (UnknownEncodingException) {
+      std::cerr << "Failed to convert charset '" << charset << "' to encoding" << std::endl;
+    }
+    catch (DecodeException e) {
+      std::cerr << e.what() << std::endl;
+    }
+  }
+  else {
+    // TODO detect <meta charset definition.
+    // Guess UTF-8.
+    try {
+      to_utf8(Encoding::UTF_8, _http_parser.message(), _http_parser.message_nbytes(), _encoding_result);
+      successfully_decoded = true;
+    }
+    catch (DecodeException) { }
+  }
+
+  // If we didn't manage to correctly convert the payload to UTF-8, bail.
+  if (!successfully_decoded) {
+    ++_nskipped;
+    return;
+  }
+
+  success = _html_lexer.run(_encoding_result);
   if (success)
     ++_nsuccess;
   else

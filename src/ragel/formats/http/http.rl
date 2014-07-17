@@ -7,17 +7,25 @@
 
   include uri "../uri/uri.rl";
 
-  action field_name_start    { _field_name_start(fpc); }
-  action field_name_consume  { _field_name_consume(fc); }
-  action field_name_end      { _field_name_end(fpc); }
-  action field_value_start   { _field_value_start(fpc); }
-  action field_value_consume { _field_value_consume(fc); }
-  action field_value_end     { _field_value_end(fpc); }
+  action content_length_start   { _content_length_start(fpc); }
+  action content_length_consume { _content_length_consume(fc); }
+  action content_length_end     { _content_length_end(fpc); }
+
+  action content_type_type_start { _content_type_type_start(fpc); }
+  action content_type_type_end   { _content_type_type_end(fpc); }
+  action content_type_subtype_start { _content_type_subtype_start(fpc); }
+  action content_type_subtype_end   { _content_type_subtype_end(fpc); }
+  action content_type_param_key_start { _content_type_param_key_start(fpc); }
+  action content_type_param_key_end   { _content_type_param_key_end(fpc); }
+  action content_type_param_val_start { _content_type_param_val_start(fpc); }
+  action content_type_param_val_end   { _content_type_param_val_end(fpc); }
 
   action message_body_start   { _message_body_start(fpc); }
   action message_body_consume { _message_body_consume(fc); }
   action message_body_test    { _message_body_test() }
   action message_body_end     { _message_body_end(fpc); }
+
+  action status_code_consume { _status_code_consume(fc); }
 
   # RFC5234
   #   Augmented BNF for Syntax Specifications: ABNF
@@ -39,7 +47,7 @@
   http_name = 'HTTP' ;
   http_version = http_name '/' digit '.' digit ;
 
-  tchar = [!#$%&'*+\-.^_`|~0-9a-zA-Z] ;
+  tchar = [!#$%&'*+\-.^_`|~0-9a-zA-Z ] ;
   token = tchar+ ;
 
   obs_text = 0x80..0xff ;
@@ -57,10 +65,25 @@
   obs_fold = crlf wsp+ ;
   field_vchar = vchar | obs_text ;
   field_content = field_vchar | wsp+ field_vchar ;
-  field_value = ( field_content | obs_fold )** >field_value_start $field_value_consume ;
-  field_name = token >field_name_start $field_name_consume %field_name_end ;
+  field_value = ( field_content | obs_fold )** ;
+  field_name = token ;
   header_field =
-      ( field_name | 'Secured by Excellent Serv' ) wsp* ':' wsp* field_value wsp* %field_value_end
+      'content-length'i
+      wsp* ':' wsp*
+      digit+ >content_length_start $content_length_consume %content_length_end
+      wsp*
+    | 'content-type'i
+      wsp* ':' wsp*
+      token >content_type_type_start %content_type_type_end
+      '/'
+      token >content_type_subtype_start %content_type_subtype_end
+      (
+        wsp* ';' wsp*
+        token >content_type_param_key_start %content_type_param_key_end
+        '='
+        ( token | quoted_string ) >content_type_param_val_start %content_type_param_val_end
+      )* wsp*
+    | field_name wsp* ':' wsp* field_value wsp*
     | 'Error creating image file'
     ;
 
@@ -73,9 +96,9 @@
   request_target = origin_form | absolute_form | authority_form | asterisk_form ;
 
   request_line = method sp request_target sp http_version crlf ;
-  status_line = http_version sp status_code ( sp reason_phrase )? crlf ;
+  status_line = http_version sp status_code $status_code_consume ( sp reason_phrase )? crlf ;
   start_line = request_line | status_line ;
 
   message_body = ( octet when message_body_test $message_body_consume )* ;
-  http_message = start_line ( header_field crlf )* crlf message_body >message_body_start %message_body_end ;
+  http_message = start_line ( header_field crlf )* crlf message_body >message_body_start %message_body_end space* ;
 }%%
