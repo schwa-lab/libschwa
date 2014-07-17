@@ -10,14 +10,8 @@ MAX_CODE_POINT = 0x110000
 SCRIPT_PATH = None
 TMP_DIR = '/tmp'
 UNICODE_MAPPINGS = (
-    ('CP1251', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT'),
-    ('CP1252', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT'),
-    ('CP1253', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1253.TXT'),
-    ('CP1254', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1254.TXT'),
-    ('CP1255', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1255.TXT'),
-    ('CP1256', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1256.TXT'),
-    ('CP1257', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT'),
-    ('CP1258', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1258.TXT'),
+    ('KOI8_R', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MISC/KOI8-R.TXT'),
+    ('KOI8_U', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MISC/KOI8-U.TXT'),
     ('LATIN1', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-1.TXT'),
     ('LATIN2', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-2.TXT'),
     ('LATIN3', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-3.TXT'),
@@ -33,6 +27,14 @@ UNICODE_MAPPINGS = (
     ('LATIN14', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-14.TXT'),
     ('LATIN15', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-15.TXT'),
     ('LATIN16', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-16.TXT'),
+    ('WINDOWS_1251', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1251.TXT'),
+    ('WINDOWS_1252', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1252.TXT'),
+    ('WINDOWS_1253', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1253.TXT'),
+    ('WINDOWS_1254', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1254.TXT'),
+    ('WINDOWS_1255', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1255.TXT'),
+    ('WINDOWS_1256', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1256.TXT'),
+    ('WINDOWS_1257', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT'),
+    ('WINDOWS_1258', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1258.TXT'),
 )
 
 RE_REMOVE_COMMENTS = re.compile(r'#.*$')

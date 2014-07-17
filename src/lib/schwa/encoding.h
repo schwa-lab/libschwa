@@ -17,15 +17,9 @@ namespace schwa {
    **/
   enum class Encoding : uint8_t {
     ASCII = 1,
-    CP1251 = 41,
-    CP1252 = 42,
-    CP1253 = 43,
-    CP1254 = 44,
-    CP1255 = 45,
-    CP1256 = 46,
-    CP1257 = 47,
-    CP1258 = 48,
     GB2312 = 2,
+    KOI8_R = 10,
+    KOI8_U = 11,
     LATIN1 = 21,
     LATIN2 = 22,
     LATIN3 = 23,
@@ -42,6 +36,14 @@ namespace schwa {
     LATIN15 = 34,
     LATIN16 = 35,
     UTF_8 = 0,
+    WINDOWS_1251 = 41,
+    WINDOWS_1252 = 42,
+    WINDOWS_1253 = 43,
+    WINDOWS_1254 = 44,
+    WINDOWS_1255 = 45,
+    WINDOWS_1256 = 46,
+    WINDOWS_1257 = 47,
+    WINDOWS_1258 = 48,
     __END__,
   };
   std::ostream &operator <<(std::ostream &out, Encoding encoding);
@@ -120,15 +122,9 @@ namespace schwa {
 
 
   void ascii_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1251_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1252_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1253_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1254_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1255_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1256_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1257_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
-  void cp1258_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void gb2312_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void koi8_r_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void koi8_u_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin1_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin2_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin3_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
@@ -145,6 +141,14 @@ namespace schwa {
   void latin15_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin16_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void utf_8_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1251_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1252_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1253_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1254_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1255_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1256_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1257_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void windows_1258_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
 
 }  // namespace schwa
 
