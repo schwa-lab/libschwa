@@ -9,7 +9,7 @@ import urllib.request
 MAX_CODE_POINT = 0x110000
 SCRIPT_PATH = None
 TMP_DIR = '/tmp'
-UNICODE_MAPPINGS = (
+UNICODE_CODE_PAGE_MAPPINGS = (
     ('KOI8_R', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MISC/KOI8-R.TXT'),
     ('KOI8_U', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MISC/KOI8-U.TXT'),
     ('LATIN1', 'http://www.unicode.org/Public/MAPPINGS/ISO8859/8859-1.TXT'),
@@ -37,7 +37,10 @@ UNICODE_MAPPINGS = (
     ('WINDOWS_1257', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1257.TXT'),
     ('WINDOWS_1258', 'http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP1258.TXT'),
 )
-UNICODE_SHIFT_JIS_MAPPING = 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/JIS/SHIFTJIS.TXT'
+UNICODE_EASTASIAN_MAPPINGS = {
+    'BIG5': 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/OTHER/BIG5.TXT',
+    'Shift_JIS': 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/JIS/SHIFTJIS.TXT',
+}
 
 RE_REMOVE_COMMENTS = re.compile(r'#.*$')
 
@@ -171,6 +174,40 @@ def process_gb2321(file_h, uri):
   print('};', file=file_h)
 
 
+def process_big5(file_h, uri):
+  table, max_utf8_nbytes, max_nbytes = load_data(uri)
+
+  arrays = {}
+  for encoded, code_point in sorted(table.items(), key=lambda t: (t[1], t[0])):
+    # Remove '*** NO MAPPING ***' entries (\U+FFFD).
+    if code_point == 0xfffd:
+      continue
+
+    e = chr(code_point).encode('big5')
+    assert len(e) == 2
+    a, b = map(int, e)
+    assert 0xa1 <= a <= 0xf9
+    assert 0x40 <= b <= 0x7e or 0xa1 <= b <= 0xfe
+    n = (a << 8) | b
+    assert n == encoded
+    if a not in arrays:
+      arrays[a] = {}
+    arrays[a][b] = code_point
+
+  outer_array_length = (0xf9 - 0xa1) + 1
+  inner_array_length = 2**8 - 0x40
+
+  print(file=file_h)
+  print('// Data source: {0}.'.format(uri), file=file_h)
+  print('static constexpr const uint8_t BIG5_UTF8_NBYTES = 0x{0:02x};'.format(max_utf8_nbytes), file=file_h)
+  print('static constexpr const uint{0}_t BIG5_TABLE[{1}][{2}] = {{'.format(max_nbytes, outer_array_length, inner_array_length), file=file_h)
+  for a in range(0xa1, 0xf9 + 1):
+    array = arrays.get(a, {})
+    items = [array.get(i, 0) for i in range(0x40, 2**8)]
+    print('  {{{0}}},'.format(', '.join('0x{0:06x}'.format(item) for item in items)), file=file_h)
+  print('};', file=file_h)
+
+
 def process_shift_jis(file_h, uri):
   table, max_utf8_nbytes, max_nbytes = load_data(uri)
 
@@ -207,11 +244,12 @@ def process_shift_jis(file_h, uri):
   for k, v in sorted(arrays.items()):
     assert min(v) >= 64
 
-  array_length = len(arrays)
-  assert array_length == 3*16 - 1 - len(EXCLUDED)
-  internal_array_length = 2**8 - 64
-  internal_array_min = min(map(min, arrays.values()))
-  assert internal_array_min == 64
+  outer_array_length = len(arrays)
+  assert outer_array_length == 3*16 - 1 - len(EXCLUDED)
+  inner_array_length = 2**8 - 64
+
+  inner_array_min = min(map(min, arrays.values()))
+  assert inner_array_min == 64
 
   first_index_deltas = []
   index_counter = 0
@@ -224,18 +262,18 @@ def process_shift_jis(file_h, uri):
     else:
       delta = -1
     first_index_deltas.append(delta)
-  assert index_counter == array_length
+  assert index_counter == outer_array_length
 
   print(file=file_h)
   print('// Data source: {0}.'.format(uri), file=file_h)
   print('static constexpr const uint8_t SHIFT_JIS_UTF8_NBYTES = 0x{0:02x};'.format(max_utf8_nbytes), file=file_h)
   print('static constexpr const int8_t SHIFT_JIS_INDICES[256] = {', file=file_h)
-  for i in range(0, 256, 32):
+  for i in range(0, 2**8, 32):
     print('  {0},'.format(', '.join(map(lambda n: '{:2d}'.format(n), first_index_deltas[i:i+32]))), file=file_h)
   print('};', file=file_h)
-  print('static constexpr const uint{0}_t SHIFT_JIS_TABLE[{1}][{2}] = {{'.format(max_nbytes, array_length, internal_array_length), file=file_h)
+  print('static constexpr const uint{0}_t SHIFT_JIS_TABLE[{1}][{2}] = {{'.format(max_nbytes, outer_array_length, inner_array_length), file=file_h)
   for a, array in sorted(arrays.items()):
-    items = [array.get(i + 64, 0) for i in range(internal_array_length)]
+    items = [array.get(i + 64, 0) for i in range(inner_array_length)]
     print('  {{{0}}},'.format(', '.join('0x{0:06x}'.format(item) for item in items)), file=file_h)
   print('};', file=file_h)
 
@@ -246,10 +284,11 @@ def main(file_h):
   print(file=file_h)
   print('namespace schwa {', file=file_h)
 
-  for prefix, uri in UNICODE_MAPPINGS:
+  for prefix, uri in UNICODE_CODE_PAGE_MAPPINGS:
     process_unicode_mapping(file_h, prefix, uri)
+  process_big5(file_h, UNICODE_EASTASIAN_MAPPINGS['BIG5'])
   process_gb2321(file_h, 'src/data/gb2312-80.txt.gz')
-  process_shift_jis(file_h, UNICODE_SHIFT_JIS_MAPPING)
+  process_shift_jis(file_h, UNICODE_EASTASIAN_MAPPINGS['Shift_JIS'])
 
   print(file=file_h)
   print('}  // namespace schwa', file=file_h)

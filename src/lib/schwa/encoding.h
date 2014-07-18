@@ -13,13 +13,13 @@
 namespace schwa {
 
   /**
-   * Enum class of encoding types that we know how to convert to UTF-8.
+   * Enum class of character set encoding types that we know how to convert to UTF-8.
    **/
   enum class Encoding : uint8_t {
     UTF_8 = 0,
     ASCII = 1,
 
-    // BIG5 = 80,
+    BIG5 = 80,
     // EUC_JP = 81,
     // EUC_KR = 82,
     GB2312 = 83,
@@ -134,6 +134,7 @@ namespace schwa {
 
 
   void ascii_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void big5_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void gb2312_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void koi8_r_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void koi8_u_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);

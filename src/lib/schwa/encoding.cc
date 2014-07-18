@@ -18,6 +18,7 @@ namespace schwa {
 
 static const std::map<Encoding, std::string> ENCODING_NAMES = {{
   {Encoding::ASCII, "ASCII"},
+  {Encoding::BIG5, "Big-5"},
   {Encoding::GB2312, "GB2312"},
   {Encoding::LATIN1, "ISO-8859-1"},
   {Encoding::LATIN2, "ISO-8859-2"},
@@ -53,6 +54,8 @@ static const std::map<Encoding, std::string> ENCODING_NAMES = {{
 // underscores. See `get_encoding` for the normalisation process.
 static const std::unordered_map<std::string, Encoding> ENCODINGS = {{
   {"ASCII", Encoding::ASCII},
+
+  {"BIG5", Encoding::BIG5},
 
   {"CP1250", Encoding::WINDOWS_1250},
   {"CP1251", Encoding::WINDOWS_1251},
@@ -273,6 +276,7 @@ to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, Encodi
   switch (encoding) {
   case Encoding::UTF_8: utf_8_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::ASCII: ascii_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::BIG5: big5_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::GB2312: gb2312_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::KOI8_R: koi8_r_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::KOI8_U: koi8_u_to_utf8(encoded, encoded_nbytes, result); return;
@@ -334,6 +338,40 @@ utf_8_to_utf8(const uint8_t *const encoded_bytes, const size_t encoded_nbytes, E
       throw DecodeException(e.msg());
     }
     result.write(code_point, start - old_start, start - old_start);
+  }
+}
+
+
+void
+big5_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::BIG5);
+
+  for (size_t i = 0; i != encoded_nbytes; ) {
+    const uint8_t c0 = *encoded_bytes++;
+    ++i;
+
+    // Is it a one-byte encoding?
+    if ((c0 & 0x80) == 0) {
+      // Assume ASCII. Technically could be any single-byte encoding, but is almost always ASCII.
+      result.write(c0, 1, 1);
+    }
+    else if (0xa1 <= c0 && c0 <= 0xf9) {
+      // Consume the second byte.
+      if (SCHWA_UNLIKELY(i == encoded_nbytes))
+        throw DecodeException("Failed to read second byte of two-byte Big-52 sequence");
+      const uint8_t c1 = *encoded_bytes++;
+      ++i;
+
+      // Construct the Unicode code point, and write out the UTF-8.
+      if (SCHWA_UNLIKELY(!((0x40 <= c1 && c1 <= 0x7e) || (0xa1 <= c1 && c1 <= 0xfe))))
+        throw DecodeException("Invalid second byte of two-byte Shift_JIS sequence");
+      const unicode_t code_point = BIG5_TABLE[c0 - 0xa1][c1 - 0x40];
+      result.write(code_point, 2, BIG5_UTF8_NBYTES);
+    }
+    else {
+      // Unmapped region of the space.
+      throw DecodeException("Invalid byte in Big-5 sequence");
+    }
   }
 }
 
@@ -406,7 +444,7 @@ shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Enc
 }
 
 
-#define CREATE_TABLE_TO_UTF8_FUNCTION(FN_NAME, NAME, ENCODING) \
+#define CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(FN_NAME, NAME, ENCODING) \
   void \
   FN_NAME ## _to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) { \
     result.reset(ENCODING); \
@@ -418,36 +456,35 @@ shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Enc
     } \
   }
 
-CREATE_TABLE_TO_UTF8_FUNCTION(koi8_r, KOI8_R, Encoding::KOI8_R)
-CREATE_TABLE_TO_UTF8_FUNCTION(koi8_u, KOI8_U, Encoding::KOI8_U)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(koi8_r, KOI8_R, Encoding::KOI8_R)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(koi8_u, KOI8_U, Encoding::KOI8_U)
 
-CREATE_TABLE_TO_UTF8_FUNCTION(latin1, LATIN1, Encoding::LATIN1)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin2, LATIN2, Encoding::LATIN2)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin3, LATIN3, Encoding::LATIN3)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin4, LATIN4, Encoding::LATIN4)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin5, LATIN5, Encoding::LATIN5)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin6, LATIN6, Encoding::LATIN6)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin7, LATIN7, Encoding::LATIN7)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin8, LATIN8, Encoding::LATIN8)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin9, LATIN9, Encoding::LATIN9)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin10, LATIN10, Encoding::LATIN10)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin11, LATIN11, Encoding::LATIN11)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin13, LATIN13, Encoding::LATIN13)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin14, LATIN14, Encoding::LATIN14)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin15, LATIN15, Encoding::LATIN15)
-CREATE_TABLE_TO_UTF8_FUNCTION(latin16, LATIN16, Encoding::LATIN16)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin1, LATIN1, Encoding::LATIN1)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin2, LATIN2, Encoding::LATIN2)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin3, LATIN3, Encoding::LATIN3)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin4, LATIN4, Encoding::LATIN4)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin5, LATIN5, Encoding::LATIN5)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin6, LATIN6, Encoding::LATIN6)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin7, LATIN7, Encoding::LATIN7)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin8, LATIN8, Encoding::LATIN8)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin9, LATIN9, Encoding::LATIN9)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin10, LATIN10, Encoding::LATIN10)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin11, LATIN11, Encoding::LATIN11)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin13, LATIN13, Encoding::LATIN13)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin14, LATIN14, Encoding::LATIN14)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin15, LATIN15, Encoding::LATIN15)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(latin16, LATIN16, Encoding::LATIN16)
 
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1250, WINDOWS_1250, Encoding::WINDOWS_1250)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1251, WINDOWS_1251, Encoding::WINDOWS_1251)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1252, WINDOWS_1252, Encoding::WINDOWS_1252)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1253, WINDOWS_1253, Encoding::WINDOWS_1253)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1254, WINDOWS_1254, Encoding::WINDOWS_1254)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1255, WINDOWS_1255, Encoding::WINDOWS_1255)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1256, WINDOWS_1256, Encoding::WINDOWS_1256)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1257, WINDOWS_1257, Encoding::WINDOWS_1257)
-CREATE_TABLE_TO_UTF8_FUNCTION(windows_1258, WINDOWS_1258, Encoding::WINDOWS_1258)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1250, WINDOWS_1250, Encoding::WINDOWS_1250)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1251, WINDOWS_1251, Encoding::WINDOWS_1251)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1252, WINDOWS_1252, Encoding::WINDOWS_1252)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1253, WINDOWS_1253, Encoding::WINDOWS_1253)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1254, WINDOWS_1254, Encoding::WINDOWS_1254)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1255, WINDOWS_1255, Encoding::WINDOWS_1255)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1256, WINDOWS_1256, Encoding::WINDOWS_1256)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1257, WINDOWS_1257, Encoding::WINDOWS_1257)
+CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(windows_1258, WINDOWS_1258, Encoding::WINDOWS_1258)
 
-
-#undef CREATE_TABLE_TO_UTF8_FUNCTION
+#undef CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION
 
 }
