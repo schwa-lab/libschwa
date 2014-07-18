@@ -11,8 +11,6 @@
 }%%
 
 #include <schwa/formats/http.h>
-#include <iomanip>
-#include <iostream>
 
 namespace schwa {
 namespace formats {

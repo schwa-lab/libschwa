@@ -16,15 +16,20 @@ namespace schwa {
    * Enum class of encoding types that we know how to convert to UTF-8.
    **/
   enum class Encoding : uint8_t {
+    UTF_8 = 0,
     ASCII = 1,
-    // BIG5
-    // EUC_JP
-    // EUC_KR
-    GB2312 = 2,
-    // GB18030
-    // ISO_2022_JP
+
+    // BIG5 = 80,
+    // EUC_JP = 81,
+    // EUC_KR = 82,
+    GB2312 = 83,
+    // GB18030 = 84
+    // ISO_2022_JP = 85
+    SHIFT_JIS = 86,
+
     KOI8_R = 10,
     KOI8_U = 11,
+
     LATIN1 = 21,
     LATIN2 = 22,
     LATIN3 = 23,
@@ -40,8 +45,7 @@ namespace schwa {
     LATIN14 = 33,
     LATIN15 = 34,
     LATIN16 = 35,
-    // SHIFT_JIS
-    UTF_8 = 0,
+
     WINDOWS_1250 = 40,
     WINDOWS_1251 = 41,
     WINDOWS_1252 = 42,
@@ -51,6 +55,7 @@ namespace schwa {
     WINDOWS_1256 = 46,
     WINDOWS_1257 = 47,
     WINDOWS_1258 = 48,
+
     __END__,
   };
   std::ostream &operator <<(std::ostream &out, Encoding encoding);
@@ -147,6 +152,7 @@ namespace schwa {
   void latin14_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin15_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void latin16_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void shift_jis_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void utf_8_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void windows_1250_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void windows_1251_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);

@@ -36,6 +36,7 @@ static const std::map<Encoding, std::string> ENCODING_NAMES = {{
   {Encoding::LATIN16, "ISO-8859-16"},
   {Encoding::KOI8_R, "KOI8-R"},
   {Encoding::KOI8_U, "KOI8-U"},
+  {Encoding::SHIFT_JIS, "Shift_JIS"},
   {Encoding::UTF_8, "UTF-8"},
   {Encoding::WINDOWS_1250, "WINDOWS-1250"},
   {Encoding::WINDOWS_1251, "WINDOWS-1251"},
@@ -101,6 +102,9 @@ static const std::unordered_map<std::string, Encoding> ENCODINGS = {{
   {"LATIN14", Encoding::LATIN14},
   {"LATIN15", Encoding::LATIN15},
   {"LATIN16", Encoding::LATIN16},
+
+  {"SJIS", Encoding::SHIFT_JIS},
+  {"SHIFTJIS", Encoding::SHIFT_JIS},
 
   {"USASCII", Encoding::ASCII},
   {"UTF8", Encoding::UTF_8},
@@ -287,6 +291,7 @@ to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, Encodi
   case Encoding::LATIN14: latin14_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::LATIN15: latin15_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::LATIN16: latin16_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::SHIFT_JIS: shift_jis_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::WINDOWS_1250: windows_1250_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::WINDOWS_1251: windows_1251_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::WINDOWS_1252: windows_1252_to_utf8(encoded, encoded_nbytes, result); return;
@@ -353,6 +358,49 @@ gb2312_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
 
       const unicode_t code_point = GB2312_TABLE[c0 - GB2312_DELTA][c1 - GB2312_DELTA];
       result.write(code_point, 2, GB2312_UTF8_NBYTES);
+    }
+  }
+}
+
+
+void
+shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::SHIFT_JIS);
+
+  for (size_t i = 0; i != encoded_nbytes; ) {
+    const uint8_t c0 = *encoded_bytes++;
+    ++i;
+
+    // Obtain its index or flag.
+    const int8_t index = SHIFT_JIS_INDICES[c0];
+
+    // Is it a two-byte encoding?
+    if (index >= 0) {
+      // Consume the second byte.
+      if (SCHWA_UNLIKELY(i == encoded_nbytes))
+        throw DecodeException("Failed to read second byte of two-byte GB2312 sequence");
+      const uint8_t c1 = *encoded_bytes++;
+      ++i;
+
+      // Construct the Unicode code point, and write out the UTF-8.
+      if (SCHWA_UNLIKELY(c1 < 64))
+        throw DecodeException("Invalid second byte of two-byte Shift_JIS sequence");
+      const unicode_t code_point = SHIFT_JIS_TABLE[index][c1 - 64];
+      result.write(code_point, 2, SHIFT_JIS_UTF8_NBYTES);
+    }
+    else if (index == -1) {
+      // The same as ASCII, except for two values.
+      if (c0 == 0x5c)
+        result.write(0x0000a5, 1, 2);
+      else if (c0 == 0x7e)
+        result.write(0x00203e, 1, 3);
+      else
+        result.write(c0, 1, 1);
+    }
+    else {
+      // Unmapped region of the space.
+      assert(index == -2);
+      throw DecodeException("Invalid byte in Shift_JIS sequence");
     }
   }
 }
