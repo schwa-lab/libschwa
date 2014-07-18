@@ -71,7 +71,6 @@ WARCParser::_block_consume_test(void) {
 void
 WARCParser::_block_end(void) {
   //std::cerr << "[WARCParser::_block_end]" << std::endl;
-  assert(_block_nbytes_consumed == _block_nbytes_stated);
 }
 
 

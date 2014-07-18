@@ -89,9 +89,11 @@ WARCHTMLParser::_record_end(void) {
   // Parse the HTTP message.
   success = _http_parser.run(_block_buffer, _block_nbytes_consumed);
   if (!success) {
-    std::cerr.write(reinterpret_cast<const char *>(_block_buffer), _block_nbytes_consumed);
+    std::cerr << "[" << warc_trec_id() << "][0] failed to parse HTTP headers" << std::endl;
+    std::cerr.write(reinterpret_cast<const char *>(_block_buffer), std::min(_block_nbytes_consumed, static_cast<size_t>(512)));
     std::cerr << std::endl;
-    assert(success);
+    ++_nskipped;
+    return;
   }
 
   // Reject the reqponse if it was not a success status or if it's not a HTML response.

@@ -48,7 +48,7 @@
   warc_0_18_warc_record =
       warc_0_18_header >record_start warc_0_18_crlf
       warc_0_18_block >block_start
-      warc_0_18_crlf warc_0_18_crlf %block_end %record_end ;
+      warc_0_18_crlf warc_0_18_crlf %block_end %record_end $/block_end $/record_end ;
 
   # ===========================================================================
   # Version 1.0.

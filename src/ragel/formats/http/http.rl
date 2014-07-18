@@ -27,6 +27,15 @@
 
   action status_code_consume { _status_code_consume(fc); }
 
+  action header_field_error {
+    fhold;
+    fgoto consume_bad_header_field;
+  }
+  action consume_bad_header_field_end {
+    fhold;
+    fgoto header_field_recover;
+  }
+
   # RFC5234
   #   Augmented BNF for Syntax Specifications: ABNF
   #   http://tools.ietf.org/html/rfc5234#appendix-B.1
@@ -84,8 +93,8 @@
         ( token | quoted_string ) >content_type_param_val_start %content_type_param_val_end
       )* wsp*
     | field_name wsp* ':' wsp* field_value wsp*
-    | 'Error creating image file'
     ;
+  consume_bad_header_field := [^\r\n]* [\r\n] $consume_bad_header_field_end ;
 
   absolute_path = ( '/' segment )+ ;
 
@@ -100,5 +109,10 @@
   start_line = request_line | status_line ;
 
   message_body = ( octet when message_body_test $message_body_consume )* ;
-  http_message = start_line ( header_field crlf )* crlf message_body >message_body_start %message_body_end space* ;
+  http_message =
+    start_line
+    ( header_field $!header_field_error header_field_recover: crlf )* crlf
+    message_body >message_body_start %message_body_end
+    space*
+    ;
 }%%
