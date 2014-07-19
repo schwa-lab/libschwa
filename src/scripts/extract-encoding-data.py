@@ -39,16 +39,16 @@ UNICODE_CODE_PAGE_MAPPINGS = (
 )
 UNICODE_EASTASIAN_MAPPINGS = {
     'BIG5': 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/OTHER/BIG5.TXT',
+    'JIS0201': 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/JIS/JIS0201.TXT',
+    'JIS0208': 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/JIS/JIS0208.TXT',
+    'JIS0212': 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/JIS/JIS0212.TXT',
     'Shift_JIS': 'http://www.unicode.org/Public/MAPPINGS/OBSOLETE/EASTASIA/JIS/SHIFTJIS.TXT',
 }
 
 RE_REMOVE_COMMENTS = re.compile(r'#.*$')
 
 
-def load_data(uri):
-  print('[load_data] {0!r}'.format(uri))
-  table = {}
-
+def load_data_bytes(uri):
   if uri.startswith('http'):
     md5 = hashlib.md5(uri.encode('utf-8')).hexdigest()
     path = os.path.join(TMP_DIR, md5)
@@ -66,7 +66,14 @@ def load_data(uri):
     else:
       with open(uri) as f:
         data = f.read()
+  return data
 
+
+def load_data(uri):
+  print('[load_data] {0!r}'.format(uri))
+  table = {}
+
+  data = load_data_bytes(uri)
   for line in data.split('\n'):
     line = RE_REMOVE_COMMENTS.sub('', line.strip('\r')).strip()
     if not line:
@@ -79,6 +86,8 @@ def load_data(uri):
       columns = line.split('=>')
     if len(columns) == 1:
       columns.append('0x0')
+    if uri.endswith('JIS0208.TXT'):
+      columns = columns[1:]
     assert len(columns) == 2
 
     encoded, code_point = map(lambda n: int(n, 16), columns)
@@ -208,74 +217,101 @@ def process_big5(file_h, uri):
   print('};', file=file_h)
 
 
-def process_shift_jis(file_h, uri):
+def process_jis0201(file_h, uri):
   table, max_utf8_nbytes, max_nbytes = load_data(uri)
-
-  EXCLUDED = {0x85, 0x86, 0x87, 0xeb, 0xec, 0xed, 0xee, 0xef}
-
-  arrays = {}
-  for encoded, code_point in sorted(table.items(), key=lambda t: (t[1], t[0])):
-    e = chr(code_point).encode('Shift_JIS')
-    assert 1 <= len(e) <= 2
-    a = int(e[0])
-    b = 0 if len(e) == 1 else int(e[1])
-    if len(e) == 1:
-      assert 0x00 <= a <= 0x80 or 0xa0 <= a <= 0xdf or 0xf0 <= a <= 0xff
-      assert a not in EXCLUDED, hex(a)
-      if 0xa1 <= a <= 0xdf:
-        assert a == code_point - 0xfec0, (a, code_point - 0xfec0)
-      elif a == 0x5c:
-        # assert code_point == 0xa5, hex(code_point)
-        pass
-      elif a == 0x7e:
-        assert code_point == 0x203e
-      else:
-        assert a == code_point
-    else:
-      assert 0x81 <= a <= 0x9f or 0xe0 <= a <= 0xef
-      assert a not in EXCLUDED, hex(a)
-      assert b >= 64
-      n = (a << 8) | b
-      assert n == encoded
-      if a not in arrays:
-        arrays[a] = {}
-      arrays[a][b] = code_point
-
-  for k, v in sorted(arrays.items()):
-    assert min(v) >= 64
-
-  outer_array_length = len(arrays)
-  assert outer_array_length == 3*16 - 1 - len(EXCLUDED)
-  inner_array_length = 2**8 - 64
-
-  inner_array_min = min(map(min, arrays.values()))
-  assert inner_array_min == 64
-
-  first_index_deltas = []
-  index_counter = 0
-  for i in range(2**8):
-    if i in EXCLUDED:
-      delta = -2
-    elif 0x81 <= i <= 0x9f or 0xe0 <= i <= 0xef:
-      delta = index_counter
-      index_counter += 1
-    else:
-      delta = -1
-    first_index_deltas.append(delta)
-  assert index_counter == outer_array_length
 
   print(file=file_h)
   print('// Data source: {0}.'.format(uri), file=file_h)
-  print('static constexpr const uint8_t SHIFT_JIS_UTF8_NBYTES = 0x{0:02x};'.format(max_utf8_nbytes), file=file_h)
-  print('static constexpr const int8_t SHIFT_JIS_INDICES[256] = {', file=file_h)
-  for i in range(0, 2**8, 32):
-    print('  {0},'.format(', '.join(map(lambda n: '{:2d}'.format(n), first_index_deltas[i:i+32]))), file=file_h)
+  print('static constexpr const uint8_t JIS0201_UTF8_NBYTES = 0x{0:02x};'.format(max_utf8_nbytes), file=file_h)
+  print('static constexpr const uint{0}_t JIS0201_TABLE[256] = {{'.format(max_nbytes), file=file_h)
+  for a in range(0, 256, 16):
+    items = [table.get(i, i) for i in range(a, a+16)]
+    print('  {0},'.format(', '.join('0x{0:06x}'.format(item) for item in items)), file=file_h)
   print('};', file=file_h)
-  print('static constexpr const uint{0}_t SHIFT_JIS_TABLE[{1}][{2}] = {{'.format(max_nbytes, outer_array_length, inner_array_length), file=file_h)
-  for a, array in sorted(arrays.items()):
-    items = [array.get(i + 64, 0) for i in range(inner_array_length)]
+
+
+def process_jis0208(file_h, uri):
+  table, max_utf8_nbytes, max_nbytes = load_data(uri)
+
+  arrays = {}
+  for encoded, code_point in sorted(table.items(), key=lambda t: (t[1], t[0])):
+    a = (encoded >> 8) & 0xff
+    b = (encoded >> 0) & 0xff
+    assert 0x21 <= a <= 0x74
+    assert 0x21 <= b <= 0x7e
+    if a not in arrays:
+      arrays[a] = {}
+    arrays[a][b] = code_point
+
+  outer_array_length = (0x74 - 0x21) + 1
+  inner_array_length = (0x7e - 0x21) + 1
+
+  print(file=file_h)
+  print('// Data source: {0}.'.format(uri), file=file_h)
+  print('static constexpr const uint8_t JIS0208_UTF8_NBYTES = 0x{0:02x};'.format(max_utf8_nbytes), file=file_h)
+  print('static constexpr const uint{0}_t JIS0208_TABLE[{1}][{2}] = {{'.format(max_nbytes, outer_array_length, inner_array_length), file=file_h)
+  for a in range(0x21, 0x74 + 1):
+    array = arrays.get(a, {})
+    items = [array.get(i, 0) for i in range(0x21, 0x7e + 1)]
     print('  {{{0}}},'.format(', '.join('0x{0:06x}'.format(item) for item in items)), file=file_h)
   print('};', file=file_h)
+
+
+def process_jis0212(file_h, uri):
+  table, max_utf8_nbytes, max_nbytes = load_data(uri)
+
+  arrays = {}
+  for encoded, code_point in sorted(table.items(), key=lambda t: (t[1], t[0])):
+    a = (encoded >> 8) & 0xff
+    b = (encoded >> 0) & 0xff
+    assert 0x22 <= a <= 0x6d
+    assert 0x21 <= b <= 0x7e
+    if a not in arrays:
+      arrays[a] = {}
+    arrays[a][b] = code_point
+
+  outer_array_length = (0x6d - 0x22) + 1
+  inner_array_length = (0x7e - 0x21) + 1
+
+  print(file=file_h)
+  print('// Data source: {0}.'.format(uri), file=file_h)
+  print('static constexpr const uint8_t JIS0212_UTF8_NBYTES = 0x{0:02x};'.format(max_utf8_nbytes), file=file_h)
+  print('static constexpr const uint{0}_t JIS0212_TABLE[{1}][{2}] = {{'.format(max_nbytes, outer_array_length, inner_array_length), file=file_h)
+  for a in range(0x22, 0x6d + 1):
+    array = arrays.get(a, {})
+    items = [array.get(i, 0) for i in range(0x21, 0x7e + 1)]
+    print('  {{{0}}},'.format(', '.join('0x{0:06x}'.format(item) for item in items)), file=file_h)
+  print('};', file=file_h)
+
+
+def check_shift_jis_to_jis0201_and_jis0208_conversion():
+  shift_jis_table, *_ = load_data(UNICODE_EASTASIAN_MAPPINGS['Shift_JIS'])
+
+  jis0201_table, *_ = load_data(UNICODE_EASTASIAN_MAPPINGS['JIS0201'])
+  for encoded, code_point in sorted(jis0201_table.items()):
+    assert encoded in shift_jis_table
+    assert shift_jis_table[encoded] == code_point
+
+  data = load_data_bytes(UNICODE_EASTASIAN_MAPPINGS['JIS0208'])
+  for line in data.split('\n'):
+    line = RE_REMOVE_COMMENTS.sub('', line.strip('\r')).strip()
+    if not line:
+      continue
+    line = line.strip(',')
+    columns = line.split('\t')
+    assert len(columns) == 3
+    shift_jis, jis0208, code_point = map(lambda n: int(n, 16), columns)
+    assert shift_jis in shift_jis_table
+    assert shift_jis_table[shift_jis] == code_point
+
+    # http://www8.plala.or.jp/tkubota1/unicode-symbols-map2.html
+    s1 = (shift_jis >> 8) & 0xff
+    s2 = (shift_jis >> 0) & 0xff
+    j1 = (s1 << 1) - (0xe0 if s1 <= 0x9f else 0x160) - (1 if s2 < 0x9f else 0)
+    j2 = s2 - 0x1f - (1 if s2 >= 0x7f else 0) - (0x5e if s2 >= 0x9f else 0)
+    j = (j1 << 8) | j2
+
+    assert jis0208 == j, (hex(jis0208), hex(j))
 
 
 def main(file_h):
@@ -286,9 +322,14 @@ def main(file_h):
 
   for prefix, uri in UNICODE_CODE_PAGE_MAPPINGS:
     process_unicode_mapping(file_h, prefix, uri)
+
   process_big5(file_h, UNICODE_EASTASIAN_MAPPINGS['BIG5'])
   process_gb2321(file_h, 'src/data/gb2312-80.txt.gz')
-  process_shift_jis(file_h, UNICODE_EASTASIAN_MAPPINGS['Shift_JIS'])
+
+  check_shift_jis_to_jis0201_and_jis0208_conversion()
+  process_jis0201(file_h, UNICODE_EASTASIAN_MAPPINGS['JIS0201'])
+  process_jis0208(file_h, UNICODE_EASTASIAN_MAPPINGS['JIS0208'])
+  process_jis0212(file_h, UNICODE_EASTASIAN_MAPPINGS['JIS0212'])
 
   print(file=file_h)
   print('}  // namespace schwa', file=file_h)

@@ -19,6 +19,7 @@ namespace schwa {
 static const std::map<Encoding, std::string> ENCODING_NAMES = {{
   {Encoding::ASCII, "ASCII"},
   {Encoding::BIG5, "Big-5"},
+  {Encoding::EUC_JP, "EUC-JP"},
   {Encoding::GB2312, "GB2312"},
   {Encoding::LATIN1, "ISO-8859-1"},
   {Encoding::LATIN2, "ISO-8859-2"},
@@ -66,6 +67,8 @@ static const std::unordered_map<std::string, Encoding> ENCODINGS = {{
   {"CP1256", Encoding::WINDOWS_1256},
   {"CP1257", Encoding::WINDOWS_1257},
   {"CP1258", Encoding::WINDOWS_1258},
+
+  {"EUCJP", Encoding::EUC_JP},
 
   {"GB2312", Encoding::GB2312},
 
@@ -277,6 +280,7 @@ to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, Encodi
   case Encoding::UTF_8: utf_8_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::ASCII: ascii_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::BIG5: big5_to_utf8(encoded, encoded_nbytes, result); return;
+  case Encoding::EUC_JP: euc_jp_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::GB2312: gb2312_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::KOI8_R: koi8_r_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::KOI8_U: koi8_u_to_utf8(encoded, encoded_nbytes, result); return;
@@ -358,19 +362,78 @@ big5_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encoding
     else if (0xa1 <= c0 && c0 <= 0xf9) {
       // Consume the second byte.
       if (SCHWA_UNLIKELY(i == encoded_nbytes))
-        throw DecodeException("Failed to read second byte of two-byte Big-52 sequence");
+        throw DecodeException("Failed to read second byte of two-byte Big-5 sequence");
       const uint8_t c1 = *encoded_bytes++;
       ++i;
 
       // Construct the Unicode code point, and write out the UTF-8.
       if (SCHWA_UNLIKELY(!((0x40 <= c1 && c1 <= 0x7e) || (0xa1 <= c1 && c1 <= 0xfe))))
-        throw DecodeException("Invalid second byte of two-byte Shift_JIS sequence");
+        throw DecodeException("Invalid second byte of two-byte Big-5 sequence");
       const unicode_t code_point = BIG5_TABLE[c0 - 0xa1][c1 - 0x40];
       result.write(code_point, 2, BIG5_UTF8_NBYTES);
     }
     else {
       // Unmapped region of the space.
       throw DecodeException("Invalid byte in Big-5 sequence");
+    }
+  }
+}
+
+
+void
+euc_jp_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
+  result.reset(Encoding::EUC_JP);
+
+  for (size_t i = 0; i != encoded_nbytes; ) {
+    const uint8_t c0 = *encoded_bytes++;
+    ++i;
+
+    // How many bytes is the current encoded code point spread across?
+    if ((c0 & 0x80) == 0) {
+      // Single byte => ASCII.
+      result.write(c0, 1, 1);
+    }
+    else {
+      // Consume the second byte.
+      if (SCHWA_UNLIKELY(i == encoded_nbytes))
+        throw DecodeException("Failed to read second byte of multi-byte EUC-JP sequence");
+      const uint8_t c1 = *encoded_bytes++;
+      ++i;
+
+      if (c0 == 0x8e) {
+        // Two bytes with leading 0x8e => JIS0201.
+        if (SCHWA_UNLIKELY((c1 < 0xa1 || c1 > 0xdf)))
+          throw DecodeException("Invalid second byte of two-byte EUC-JP sequence");
+
+        result.write(JIS0201_TABLE[c1], 2, JIS0201_UTF8_NBYTES);
+      }
+      else if (0xa1 <= c0 && c0 <= 0xf4) {
+        // Two bytes both in the range [0xa1, 0xfe] => JIS0208.
+        if (SCHWA_UNLIKELY((c1 < 0xa1 || c1 > 0xfe)))
+          throw DecodeException("Invalid second byte of two-byte EUC-JP sequence");
+
+        const unicode_t code_point = JIS0208_TABLE[c0 - 0xa1][c1 - 0xa1];
+        result.write(code_point, 2, JIS0208_UTF8_NBYTES);
+      }
+      else if (c0 == 0x8f) {
+        // Three bytes with leading 0x8f => JIS0212.
+        if (SCHWA_UNLIKELY(i == encoded_nbytes))
+          throw DecodeException("Failed to read third byte of multi-byte EUC-JP sequence");
+        const uint8_t c2 = *encoded_bytes++;
+        ++i;
+
+        if (SCHWA_UNLIKELY((c1 < 0xa2 || c1 > 0xed)))
+          throw DecodeException("Invalid second byte of three-byte EUC-JP sequence");
+        else if (SCHWA_UNLIKELY((c2 < 0xa1 || c2 > 0xfe)))
+          throw DecodeException("Invalid third byte of three-byte EUC-JP sequence");
+
+        const unicode_t code_point = JIS0212_TABLE[c1 - 0xa1][c2 - 0xa1];
+        result.write(code_point, 3, JIS0212_UTF8_NBYTES);
+      }
+      else {
+        // Unmapped region of the space.
+        throw DecodeException("Invalid byte in EUC-JP sequence");
+      }
     }
   }
 }
@@ -409,35 +472,33 @@ shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Enc
     const uint8_t c0 = *encoded_bytes++;
     ++i;
 
-    // Obtain its index or flag.
-    const int8_t index = SHIFT_JIS_INDICES[c0];
-
     // Is it a two-byte encoding?
-    if (index >= 0) {
+    if ((0x81 <= c0 && c0 <= 0x9f) || (0xe0 <= c0 && c0 <= 0xef)) {
       // Consume the second byte.
       if (SCHWA_UNLIKELY(i == encoded_nbytes))
-        throw DecodeException("Failed to read second byte of two-byte GB2312 sequence");
+        throw DecodeException("Failed to read second byte of two-byte Shift_JIS sequence");
       const uint8_t c1 = *encoded_bytes++;
       ++i;
 
-      // Construct the Unicode code point, and write out the UTF-8.
-      if (SCHWA_UNLIKELY(c1 < 64))
+      // Convert the Shift_JIS code to its corresponding JIS0208 code.
+      const uint8_t j0 = (c0 << 1) - ((c0 <= 0x9f) ? 0xe0 : 0x160) - (c1 < 0x9f ? 1 : 0);
+      const uint8_t j1 = c1 - 0x1f - (c1 >= 0x7f ? 1 : 0) - (c1 >= 0x9f ? 0x5e : 0);
+
+      if (SCHWA_UNLIKELY((j0 < 0x21) || (j0 > 0x74)))
+        throw DecodeException("Invalid first byte of two-byte Shift_JIS sequence");
+      else if (SCHWA_UNLIKELY((j1 < 0x21) || (j1 > 0x7e)))
         throw DecodeException("Invalid second byte of two-byte Shift_JIS sequence");
-      const unicode_t code_point = SHIFT_JIS_TABLE[index][c1 - 64];
-      result.write(code_point, 2, SHIFT_JIS_UTF8_NBYTES);
+
+      // Construct the Unicode code point, and write out the UTF-8.
+      const unicode_t code_point = JIS0208_TABLE[j0 - 0x21][j1 - 0x21];
+      result.write(code_point, 2, JIS0208_UTF8_NBYTES);
     }
-    else if (index == -1) {
-      // The same as ASCII, except for two values.
-      if (c0 == 0x5c)
-        result.write(0x0000a5, 1, 2);
-      else if (c0 == 0x7e)
-        result.write(0x00203e, 1, 3);
-      else
-        result.write(c0, 1, 1);
+    else if ((0x00 <= c0 && c0 <= 0x80) || (0xa0 <= c0 && c0 <= 0xdf) || (0xf0 <= c0 && c0 <= 0xff)) {
+      // Single byte => JIS0201.
+      result.write(JIS0201_TABLE[c0], 1, JIS0201_UTF8_NBYTES);
     }
     else {
       // Unmapped region of the space.
-      assert(index == -2);
       throw DecodeException("Invalid byte in Shift_JIS sequence");
     }
   }

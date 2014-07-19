@@ -20,7 +20,7 @@ namespace schwa {
     ASCII = 1,
 
     BIG5 = 80,
-    // EUC_JP = 81,
+    EUC_JP = 81,
     // EUC_KR = 82,
     GB2312 = 83,
     // GB18030 = 84
@@ -55,8 +55,6 @@ namespace schwa {
     WINDOWS_1256 = 46,
     WINDOWS_1257 = 47,
     WINDOWS_1258 = 48,
-
-    __END__,
   };
   std::ostream &operator <<(std::ostream &out, Encoding encoding);
 
@@ -94,7 +92,7 @@ namespace schwa {
     void _grow(size_t new_nbytes);
 
   public:
-    explicit EncodingResult(Encoding from_encoding=Encoding::__END__);
+    explicit EncodingResult(Encoding from_encoding=Encoding::ASCII);
     ~EncodingResult(void);
 
     inline size_t allocated(void) const { return _allocated; }
@@ -135,6 +133,7 @@ namespace schwa {
 
   void ascii_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void big5_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
+  void euc_jp_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void gb2312_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void koi8_r_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
   void koi8_u_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
