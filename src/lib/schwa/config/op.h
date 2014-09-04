@@ -65,6 +65,7 @@ namespace schwa {
       Op(Group &group, const std::string &name, char short_name, const std::string &desc, const T &default_, Flags flags=Flags::NONE) : Option(group, name, short_name, desc, flags, true), _default(default_) { }
       virtual ~Op(void) { }
 
+      virtual bool is_flag(void) const override;
       virtual bool requires_assignment(void) const override;
 
       virtual void serialise(std::ostream &out) const override;

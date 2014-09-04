@@ -164,7 +164,7 @@ Main::_main(void) {
       throw_config_exception("Invalid option", key);
 
     // If the node can be assigned a value, try and assign it one.
-    if (node->accepts_assignment()) {
+    if (node->accepts_assignment() && !(node->is_flag() && is_short_option(key))) {
       if (node->requires_assignment() && args.empty())
         throw_config_exception("Value missing for option", key);
       if (!args.empty()) {
