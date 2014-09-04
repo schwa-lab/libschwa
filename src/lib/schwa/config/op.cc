@@ -180,7 +180,20 @@ CommandOption::set_default(void) {
 bool
 OpHelp::_validate(const Main &main) {
   if (_was_mentioned) {
-    main.help(std::cerr);
+    main.help(std::cout);
+    throw SystemExit(0);
+  }
+  return true;
+}
+
+
+// ============================================================================
+// OpShortHelp
+// ============================================================================
+bool
+OpShortHelp::_validate(const Main &main) {
+  if (_was_mentioned) {
+    main.help_short(std::cout);
     throw SystemExit(0);
   }
   return true;

@@ -28,6 +28,7 @@ throw_config_exception(const std::string &msg, const std::string &key) {
 
 Main::Main(const std::string &name, const std::string &desc) : Group(name, desc) {
   _owned.push_back(_op_help = new OpHelp(*this));
+  _owned.push_back(_op_short_help = new OpShortHelp(*this));
   _owned.push_back(_op_version = new OpVersion(*this));
   _owned.push_back(_op_log = new Op<std::string>(*this, "log", "The file to log to", "/dev/stderr"));
   _owned.push_back(_op_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
@@ -96,6 +97,12 @@ Main::_help_self(std::ostream &out, const unsigned int) const {
 void
 Main::help(std::ostream &out) const {
   _help(out, 0);
+}
+
+
+void
+Main::help_short(std::ostream &out) const {
+  out << desc() << std::endl;
 }
 
 

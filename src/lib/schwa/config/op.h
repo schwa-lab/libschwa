@@ -167,6 +167,19 @@ namespace schwa {
     };
 
 
+    class OpShortHelp : public CommandOption {
+    protected:
+      virtual bool _validate(const Main &main) override;
+
+    public:
+      OpShortHelp(Group &group, const std::string &name="short-help", const std::string &desc="Displays the short help text") : CommandOption(group, name, desc) { }
+      virtual ~OpShortHelp(void) { }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpShortHelp);
+    };
+
+
     class OpVersion : public CommandOption {
     protected:
       virtual bool _validate(const Main &main) override;
