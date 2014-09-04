@@ -21,9 +21,9 @@ namespace schwa {
 namespace dr_count {
 
 static void
-main(const std::vector<std::string> &input_paths, std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) {
+main(const std::vector<std::string> &input_paths, std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id, bool no_header, bool no_footer, bool no_ndocs) {
   // Construct the document processor.
-  Processor processor(out, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id);
+  Processor processor(out, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id, no_header, no_footer, no_ndocs);
 
   dr::FauxDoc doc;
   dr::FauxDoc::Schema schema;
@@ -34,6 +34,12 @@ main(const std::vector<std::string> &input_paths, std::ostream &out, bool all_st
     io::InputStream in(input_path);
     dr::Reader reader(*in, schema);
 
+    // If there is more than one file to process, output the filename and reset the processors state.
+    if (input_paths.size() > 1) {
+      out << input_path << std::endl;
+      processor.reset();
+    }
+
     // Read the documents off the input stream.
     try {
       while (reader >> doc)
@@ -42,9 +48,9 @@ main(const std::vector<std::string> &input_paths, std::ostream &out, bool all_st
     catch (dr::ReaderException &) {
       LOG(WARNING) << "Failed to read document from '" << in.path() << "'" << std::endl;
     }
-  }
 
-  processor.finalise();
+    processor.finalise();
+  }
 }
 
 }  // namespace dr_count
@@ -64,6 +70,9 @@ main(int argc, char **argv) {
   cf::Op<bool> cumulative(cfg, "cumulative", 'c', "Show cumulative counts per doc", false);
   cf::OpChoices<std::string> format(cfg, "format", 'f', "How to format the output data", {"aligned", "tabs"}, "aligned");
   cf::Op<std::string> doc_id(cfg, "doc-id", 'd', "Output this expression before each document instead when outputting per-document counts", cf::Flags::OPTIONAL);
+  cf::Op<bool> no_header(cfg, "no-header", 'H', "Hide the column headings row", false);
+  cf::Op<bool> no_footer(cfg, "no-footer", 'F', "Hide the cumulative total footer row", false);
+  cf::Op<bool> no_ndocs(cfg, "no-ndocs", 'N', "Hide the ndocs column", false);
 
   cfg.allow_unclaimed_args("[input-path...]");
 
@@ -89,7 +98,7 @@ main(int argc, char **argv) {
     io::OutputStream out(output_path());
 
     // Dispatch to main function.
-    schwa::dr_count::main(input_paths, *out, all_stores(), store(), count_bytes(), cumulative(), per_doc(), formatting, doc_id());
+    schwa::dr_count::main(input_paths, *out, all_stores(), store(), count_bytes(), cumulative(), per_doc(), formatting, doc_id(), no_header(), no_footer(), no_ndocs());
   })
   return 0;
 }

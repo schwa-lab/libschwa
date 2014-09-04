@@ -26,11 +26,12 @@ namespace schwa {
       Impl *_impl;
 
     public:
-      Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id);
+      Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id, bool no_header, bool no_footer, bool no_ndocs);
       ~Processor(void);
 
       void finalise(void);
       void process_doc(const dr::Doc &doc, const std::string &path);
+      void reset(void);
 
       inline void operator ()(const dr::Doc &doc, const std::string &path) { process_doc(doc, path); }
 

@@ -34,6 +34,9 @@ private:
   const bool _count_bytes;
   const bool _cumulative;
   const bool _per_doc;
+  const bool _no_header;
+  const bool _no_footer;
+  const bool _no_ndocs;
   const Formatting _formatting;
   const std::string _store;
   const std::string _doc_id;
@@ -50,23 +53,27 @@ private:
   static std::string _int_to_str(const dq::Value &v);
 
 public:
-  Impl(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) :
+  Impl(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id, bool no_header, bool no_footer, bool no_ndocs) :
       _out(out),
       _all_stores(all_stores),
       _count_bytes(count_bytes),
       _cumulative(cumulative),
       _per_doc(per_doc),
+      _no_header(no_header || !store.empty()),
+      _no_footer(no_footer),
+      _no_ndocs(no_ndocs || !store.empty()),
       _formatting(formatting),
       _store(store),
       _doc_id(doc_id),
       _ndocs(0)
     {
-    if (!_doc_id.empty())
+    if (_per_doc && !_doc_id.empty())
       _interpreter.compile(_doc_id);
   }
 
   void finalise(void);
   void process_doc(const dr::Doc &doc, const std::string &path);
+  void reset(void);
 };
 
 const size_t Processor::Impl::MIN_WIDTH = 10;
@@ -99,7 +106,7 @@ Processor::Impl::process_doc(const dr::Doc &doc, const std::string &) {
 
   // Initialise state.
   if (_ndocs == 0) {
-    if (!_doc_id.empty())
+    if (_per_doc && !_doc_id.empty())
       _doc_id_width = std::max(MIN_WIDTH, _get_doc_id(doc).size());
 
     if (_all_stores || !_store.empty()) {
@@ -115,18 +122,19 @@ Processor::Impl::process_doc(const dr::Doc &doc, const std::string &) {
   }
 
   // Output the column headings.
-  if (_ndocs == 0 && !_widths.empty()) {
+  if (_ndocs == 0 && !_widths.empty() && !_no_header) {
     if (_formatting == Formatting::ALIGNED) {
-      if (!_doc_id.empty())
-        _out << std::setw(_doc_id_width) << "doc-id ";
-      _out << std::setw(NDOCS_WIDTH) << "ndocs";
+      if (_per_doc && !_doc_id.empty())
+        _out << std::setw(_doc_id_width) << "doc_id ";
+      if (!_no_ndocs)
+        _out << std::setw(NDOCS_WIDTH) << "ndocs";
       for (auto &pair : _widths)
         _out << ' ' << std::setw(pair.second) << pair.first;
       _out << std::endl;
     }
     else {
-      if (!_doc_id.empty())
-        _out << "doc-id\t";
+      if (_per_doc && !_doc_id.empty())
+        _out << "doc_id\t";
       _out << "ndocs";
       for (auto &pair : _widths)
         _out << '\t' << pair.first;
@@ -147,7 +155,7 @@ Processor::Impl::process_doc(const dr::Doc &doc, const std::string &) {
   }
 
   // Output the document count if per_doc.
-  if (_per_doc && !_widths.empty()) {
+  if (_per_doc && !_widths.empty() && !_no_ndocs) {
     const uint32_t count = _cumulative ? _ndocs : 1;
     if (_formatting == Formatting::ALIGNED)
       _out << std::setw(NDOCS_WIDTH) << count;
@@ -180,8 +188,12 @@ Processor::Impl::process_doc(const dr::Doc &doc, const std::string &) {
 
 void
 Processor::Impl::finalise(void) {
+  // Skip the footer row?
+  if (_no_footer)
+    return;
+
   // Output the doc_id.
-  if (!_doc_id.empty()) {
+  if (_per_doc && !_doc_id.empty()) {
     if (_formatting == Formatting::ALIGNED)
       _out << std::setw(_doc_id_width) << "" << ' ';
     else
@@ -189,18 +201,26 @@ Processor::Impl::finalise(void) {
   }
 
   // Output the document count.
-  if (_all_stores) {
-    if (_formatting == Formatting::ALIGNED)
-      _out << std::setw(NDOCS_WIDTH) << _ndocs;
+  if (!_no_ndocs) {
+    if (_all_stores) {
+      if (_formatting == Formatting::ALIGNED)
+        _out << std::setw(NDOCS_WIDTH) << _ndocs;
+      else
+        _out << _ndocs;
+    }
     else
       _out << _ndocs;
   }
-  else
-    _out << _ndocs;
 
   // Output the counts per store.
-  if (_all_stores) {
+  if (_all_stores || !_store.empty()) {
     for (auto &pair : _widths) {
+      bool keep = true;
+      if (!_store.empty())
+        keep = pair.first == _store;
+      if (!keep)
+        continue;
+
       const uint64_t count = _counts[pair.first];
       if (_formatting == Formatting::ALIGNED)
         _out << ' ' << std::setw(pair.second) << count;
@@ -212,10 +232,21 @@ Processor::Impl::finalise(void) {
 }
 
 
+void
+Processor::Impl::reset(void) {
+  _ndocs = 0;
+  _counts.clear();
+  _local_counts.clear();
+  _widths.clear();
+}
+
+
 // ============================================================================
 // Processor
 // ============================================================================
-Processor::Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) : _impl(new Processor::Impl(out, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id)) { }
+Processor::Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id, bool no_header, bool no_footer, bool no_ndocs) :
+    _impl(new Processor::Impl(out, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id, no_header, no_footer, no_ndocs))
+  { }
 
 Processor::~Processor(void) {
   delete _impl;
@@ -229,6 +260,11 @@ Processor::process_doc(const dr::Doc &doc, const std::string &path) {
 void
 Processor::finalise(void) {
   _impl->finalise();
+}
+
+void
+Processor::reset(void) {
+  _impl->reset();
 }
 
 }  // namespace dr_count
