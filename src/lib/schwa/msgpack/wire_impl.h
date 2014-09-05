@@ -655,7 +655,7 @@ namespace schwa {
     inline bool
     read_lazy(IN &in, OUT &out, WireType &type) {
       uint8_t s8 = 0;
-      uint16_t s16 = ;
+      uint16_t s16 = 0;
       uint32_t s32 = 0;
       uint64_t s64 = 0;
       bool recurse = false, remaining_bytes = false;
