@@ -149,7 +149,9 @@ Processor::Processor(std::ostream &out, bool all_stores, const std::string &stor
     _every(every),
     _formatting(formatting),
     _store(store),
-    _doc_id(doc_id)
+    _doc_id(doc_id),
+    _ndocs(0),
+    _local_ndocs(0)
   {
   // Construct the appropriate row formatter.
   if (_formatting == Formatting::ALIGNED)
@@ -169,7 +171,7 @@ Processor::~Processor(void) {
 
 std::string
 Processor::_get_doc_id(const dr::Doc &doc) const {
-  const dq::Value v = _interpreter(doc, _counts[0] - 1);
+  const dq::Value v = _interpreter(doc, _ndocs - 1);
   switch (v.type) {
   case dq::TYPE_STRING: return v.via._str;
   case dq::TYPE_INTEGER: return to_str(v.via._int);
@@ -179,12 +181,23 @@ Processor::_get_doc_id(const dr::Doc &doc) const {
 
 
 void
+Processor::initialise(void) {
+  // Maybe add the doc_id column.
+  if (output_doc_id())
+    _formatter->add_column("doc_id");
+  // Maybe add the ndocs column.
+  if (output_ndocs())
+    _formatter->add_column("ndocs");
+}
+
+
+void
 Processor::process_doc(const dr::Doc &doc, const std::string &) {
   const dr::RTManager &rt = *(doc.rt());
   const dr::RTSchema &schema = *(rt.doc);
 
   // If we have not processed any documents yet, initialise the column names.
-  if (_counts.empty()) {
+  if (_ndocs == 0) {
     // Work out which of the stores we should be outputting.
     _output_stores.clear();
     for (auto &store : schema.stores) {
@@ -194,19 +207,13 @@ Processor::process_doc(const dr::Doc &doc, const std::string &) {
       _output_stores.push_back(keep);
     }
 
-    // Maybe add the doc_id column.
-    if (output_doc_id())
-      _formatter->add_column("doc_id");
-    // Maybe add the ndocs column.
-    if (output_ndocs())
-      _formatter->add_column("ndocs");
     // Maybe add each store as a column.
     for (size_t i = 0; i != schema.stores.size(); ++i)
       if (output_store(i))
         _formatter->add_column(schema.stores[i]->serial);
 
     // Reset the counts.
-    _counts.resize(schema.stores.size() + 1);
+    _counts.resize(schema.stores.size());
     _local_counts.resize(_counts.size());
 
     // Output the header row if not suppressed.
@@ -215,19 +222,19 @@ Processor::process_doc(const dr::Doc &doc, const std::string &) {
   }
 
   // Increment the number of docs processed.
-  ++_counts[0];
-  ++_local_counts[0];
+  ++_ndocs;
+  ++_local_ndocs;
 
   // Update the counts for each store.
   for (size_t i = 0; i != schema.stores.size(); ++i) {
     const auto &store = *schema.stores[i];
     const uint32_t count = _count_bytes ? store.lazy_nbytes : store.lazy_nelem;
-    _counts[i + 1] += count;
-    _local_counts[i + 1] += count;
+    _counts[i] += count;
+    _local_counts[i] += count;
   }
 
   // If we want to output every N documents, and we're at a multiple of N.
-  if (_every != -1 && _local_counts[0] % _every == 0) {
+  if (_every != -1 && _local_ndocs % _every == 0) {
     // Add the doc_id column value to the row.
     if (output_doc_id()) {
       const std::string doc_id = _get_doc_id(doc);
@@ -236,14 +243,14 @@ Processor::process_doc(const dr::Doc &doc, const std::string &) {
 
     // Add the ndocs column value to the row.
     if (output_ndocs()) {
-      const uint64_t count = _cumulative ? _counts[0] : _local_counts[0];
+      const uint32_t count = _cumulative ? _ndocs : _local_ndocs;
       _formatter->add_value(count);
     }
 
     // Add each of the store counts to the row.
     for (size_t i = 0; i != schema.stores.size(); ++i) {
       if (output_store(i)) {
-        const uint64_t count = _cumulative ? _counts[i + 1] : _local_counts[i + 1];
+        const uint64_t count = _cumulative ? _counts[i] : _local_counts[i];
         _formatter->add_value(count);
       }
     }
@@ -252,6 +259,7 @@ Processor::process_doc(const dr::Doc &doc, const std::string &) {
     _formatter->write_row();
 
     // Reset the local counts.
+    _local_ndocs = 0;
     std::fill(_local_counts.begin(), _local_counts.end(), 0);
   }
 }
@@ -263,18 +271,22 @@ Processor::finalise(void) {
   if (!output_footer())
     return;
 
+  // If we did not process any documents, output the header row if not suppressed.
+  if (_ndocs == 0 && output_header())
+    _formatter->write_header();
+
   // Add the doc_id column value to the row.
   if (output_doc_id())
     _formatter->add_value("");
 
   // Add the ndocs column value to the row.
   if (output_ndocs())
-    _formatter->add_value(_counts[0]);
+    _formatter->add_value(_ndocs);
 
   // Add each of the store counts to the row.
-  for (size_t i = 0; i != _counts.size() - 1; ++i)
+  for (size_t i = 0; i != _counts.size(); ++i)
     if (output_store(i))
-      _formatter->add_value(_counts[i + 1]);
+      _formatter->add_value(_counts[i]);
 
   // Write out the row.
   _formatter->write_row();
@@ -286,6 +298,8 @@ Processor::reset(void) {
   _formatter->reset();
   _counts.clear();
   _local_counts.clear();
+  _ndocs = 0;
+  _local_ndocs = 0;
 }
 
 }  // namespace dr_count

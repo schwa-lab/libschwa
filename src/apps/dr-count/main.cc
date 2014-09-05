@@ -39,6 +39,7 @@ main(const std::vector<std::string> &input_paths, std::ostream &out, bool all_st
     }
 
     // Read the documents off the input stream.
+    processor.initialise();
     try {
       while (reader >> doc)
         processor(doc, in.path());
@@ -46,7 +47,6 @@ main(const std::vector<std::string> &input_paths, std::ostream &out, bool all_st
     catch (dr::ReaderException &) {
       LOG(WARNING) << "Failed to read document from '" << in.path() << "'" << std::endl;
     }
-
     processor.finalise();
   }
 }

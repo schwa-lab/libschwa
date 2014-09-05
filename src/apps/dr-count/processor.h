@@ -42,6 +42,8 @@ namespace schwa {
       std::vector<uint64_t> _counts;
       std::vector<uint64_t> _local_counts;
       std::vector<bool> _output_stores;
+      uint32_t _ndocs;
+      uint32_t _local_ndocs;
 
       std::string _get_doc_id(const dr::Doc &doc) const;
 
@@ -50,6 +52,7 @@ namespace schwa {
       ~Processor(void);
 
       void finalise(void);
+      void initialise(void);
       void process_doc(const dr::Doc &doc, const std::string &path);
       void reset(void);
 
