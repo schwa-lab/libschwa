@@ -44,7 +44,7 @@ Option::accepts_mention(void) const {
 
 bool
 Option::requires_assignment(void) const {
-  return true;
+  return !_has_default;
 }
 
 
@@ -58,6 +58,8 @@ Option::validate(const Main &main) {
     }
     set_default();
   }
+  if (!_was_assigned && accepts_assignment() && _has_default)
+    set_default();
   return _validate(main);
 }
 
