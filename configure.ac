@@ -3,7 +3,7 @@ AC_INIT([libschwa], m4_normalize(m4_include([m4/version.m4])), [schwa-lab@it.usy
 : ${CXXFLAGS=""}
 
 m4_include([m4/version-set.m4])
-AC_SUBST([libschwa_la_version_info], [3:0:0])
+AC_SUBST([libschwa_la_version_info], [4:0:0])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
