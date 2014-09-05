@@ -40,7 +40,7 @@ namespace schwa {
 
       Formatter *_formatter;
       std::vector<uint64_t> _counts;
-      std::vector<uint32_t> _local_counts;
+      std::vector<uint64_t> _local_counts;
       std::vector<bool> _output_stores;
 
       std::string _get_doc_id(const dr::Doc &doc) const;
