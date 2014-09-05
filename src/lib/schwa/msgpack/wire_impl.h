@@ -529,8 +529,8 @@ namespace schwa {
     read_array_size(IN &in) {
       const int h = in.get();
       const WireType type = header_type(h);
-      uint16_t s16;
-      uint32_t s32;
+      uint16_t s16 = 0;
+      uint32_t s32 = 0;
       switch (type) {
       case WireType::ARRAY_FIXED:
         return h & 0x0f;
@@ -550,8 +550,8 @@ namespace schwa {
     read_map_size(IN &in) {
       const int h = in.get();
       const WireType type = header_type(h);
-      uint16_t s16;
-      uint32_t s32;
+      uint16_t s16 = 0;
+      uint32_t s32 = 0;
       switch (type) {
       case WireType::MAP_FIXED:
         return h & 0x0f;
@@ -573,7 +573,7 @@ namespace schwa {
       const int h = in.get();
       const WireType type = header_type(h);
 
-      uint32_t s32;
+      uint32_t s32 = 0;
       switch (type) {
       case WireType::STR_FIXED:
         s32 = h & 0x1f;
@@ -616,7 +616,7 @@ namespace schwa {
       const int h = in.get();
       const WireType type = header_type(h);
 
-      uint32_t s32;
+      uint32_t s32 = 0;
       switch (type) {
       case WireType::BIN_8:
         uint8_t s8;
@@ -654,10 +654,10 @@ namespace schwa {
     template <typename IN, typename OUT>
     inline bool
     read_lazy(IN &in, OUT &out, WireType &type) {
-      uint8_t s8;
-      uint16_t s16;
-      uint32_t s32;
-      uint64_t s64;
+      uint8_t s8 = 0;
+      uint16_t s16 = ;
+      uint32_t s32 = 0;
+      uint64_t s64 = 0;
       bool recurse = false, remaining_bytes = false;
 
       const int h = in.get();
@@ -801,9 +801,9 @@ namespace schwa {
         value = Value::create(pool, type);
       value->type = type;
 
-      uint8_t s8;
-      uint16_t s16;
-      uint32_t s32;
+      uint8_t s8 = 0;
+      uint16_t s16 = 0;
+      uint32_t s32 = 0;
       switch (type) {
       case WireType::NIL:
         read_nil(in);
