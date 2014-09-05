@@ -1,1 +1,3 @@
+Schwa Lab core NLP tools, including the C++ implementation of docrep and the docrep command-line tools.
+
 Documentation can be found on the GitHub wiki page: https://github.com/schwa-lab/libschwa/wiki

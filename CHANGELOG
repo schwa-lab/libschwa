@@ -1,6 +1,11 @@
-0.3.1
+0.4.0
 * Don't distribute _config.h (whoops).
 * Added `SCHWA_LIKELY` and `SCHWA_UNLIKELY` macro definitions to wrap around `__builtin_expect`.
+* Made `--help` more helpful by adding a `--short-help` flag on all core tools (#14).
+* Made `dr-count` behave more like `wc` when multiple input files are provided (#15).
+* Corrected argument parsing for optional arguments (#17).
+* Upgraded the Unicode database data from 6.3.0 to 7.0.0.
+* Upgraded docrep reader and writer to use wire protocol version 3 (utilising the newly-added distinction between bytes and UTF-8 strings within MessagePack).
 
 0.3.0
 * Allowed `dr-count` and `dr-grep` to skip incomplete documents (#6).
