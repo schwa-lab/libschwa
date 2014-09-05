@@ -3,7 +3,7 @@ AC_INIT([libschwa], m4_normalize(m4_include([m4/version.m4])), [schwa-lab@it.usy
 : ${CXXFLAGS=""}
 
 m4_include([m4/version-set.m4])
-AC_SUBST([libschwa_la_version_info], [3:0:0])
+AC_SUBST([libschwa_la_version_info], [4:0:0])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -156,6 +156,11 @@ AC_COMPILE_IFELSE(
 )
 if test x$libschwa_have_builtin_expect = xyes ; then
   AC_DEFINE([HAVE_BUILTIN_EXPECT], [1], [Define to 1 if the compiler supports __builtin_expect.])
+  AC_SUBST([SCHWA_LIKELY], ['(__builtin_expect(!!(x), 1))'])
+  AC_SUBST([SCHWA_UNLIKELY], ['(__builtin_expect(!!(x), 0))'])
+else
+  AC_SUBST([SCHWA_LIKELY], ['(x)'])
+  AC_SUBST([SCHWA_UNLIKELY], ['(x)'])
 fi
 
 dnl Work out how to inline the "host to big endian" functions for various based on what headers we found.
@@ -219,7 +224,7 @@ AC_CONFIG_FILES([
   src/apps/dr-worker-example/Makefile
   src/apps/schwa-tokenizer/Makefile
   src/lib/Makefile
-  src/lib/schwa/_base.h:src/lib/schwa/_base.h.in
+  src/lib/schwa/macros.h:src/lib/schwa/macros.h.in
   src/lib/schwa/port.h:src/lib/schwa/port.h.in
   src/third-party/Makefile
   dist/libschwa.pc:dist/libschwa.pc.in

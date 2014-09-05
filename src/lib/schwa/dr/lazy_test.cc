@@ -130,7 +130,7 @@ TEST(lazy_test0) {
   static const char *WORDS[] = {"The", "quick", "brown", "fox", "jumped"};
   static constexpr size_t NWORDS = sizeof(WORDS)/sizeof(char *);
   static constexpr uint8_t stream0_expected[] = {
-    0x02,
+    0x03,
     0x92,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'A', 0x93, 0x81, 0x00, 0xA5, 'v', '_', 's', 't', 'r', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA6, 'v', '_', 'b', 'o', 'o', 'l',
@@ -146,7 +146,7 @@ TEST(lazy_test0) {
       0x83, 0x00, 0xA6, 'j', 'u', 'm', 'p', 'e', 'd', 0x01, 0x04, 0x02, 0xC2,
   };
   static constexpr uint8_t stream1_expected[] = {
-    0x02,
+    0x03,
     0x92,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'B', 0x94, 0x81, 0x00, 0xA4, 'w', 'o', 'r', 'd', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA8, 'i', 's', '_', 'f', 'i', 'r', 's', 't', 0x81, 0x00, 0xA5, 'u', 'p', 'p', 'e', 'r',
@@ -391,7 +391,7 @@ TEST(lazy_test1) {
   static const char *WORDS[] = {"How", "now", "brown", "cow"};
   static constexpr size_t NWORDS = sizeof(WORDS)/sizeof(char *);
   static constexpr uint8_t stream0_expected[] = {
-    0x02,
+    0x03,
     0x92,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'A', 0x93, 0x81, 0x00, 0xA5, 'v', '_', 's', 't', 'r', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA6, 'v', '_', 'b', 'o', 'o', 'l',
@@ -406,7 +406,7 @@ TEST(lazy_test1) {
       0x83, 0x00, 0xA3, 'c', 'o', 'w', 0x01, 0x03, 0x02, 0xC2,
   };
   static constexpr uint8_t stream1_expected[] = {
-    0x02,
+    0x03,
     0x93,
       0x92, 0xA8, '_', '_', 'm', 'e', 't', 'a', '_', '_', 0x90,
       0x92, 0xA1, 'A', 0x93, 0x81, 0x00, 0xA5, 'v', '_', 's', 't', 'r', 0x81, 0x00, 0xA7, 'v', '_', 'u', 'i', 'n', 't', '8', 0x81, 0x00, 0xA6, 'v', '_', 'b', 'o', 'o', 'l',
@@ -503,38 +503,9 @@ TEST(lazy_test1) {
 }
 
 
-static void
-check_unchanged(std::stringstream &stream0) {
-  // Reads from stream0 into a document where all data is kept lazily
-  // then ensures that writing the document replicates stream0's content
-  class DocA : public Doc {
-  public:
-    class Schema;
-  };
-
-  class DocA::Schema : public Doc::Schema<DocA> {
-  public:
-    Schema(void) :
-      Doc::Schema<DocA>("DocA", "Some text about DocA")
-      { }
-    virtual ~Schema(void) { }
-  };
-
-  std::stringstream stream1;
-
-  DocA doc;
-  DocA::Schema schema;
-  Reader reader(stream0, schema);
-  reader >> doc;
-  Writer writer(stream1, schema);
-  writer << doc;
-
-  CHECK_COMPARE_BYTES2(stream0.str(), stream1.str());
-}
-
 TEST(lazy_test_pointer_to_0) {
   std::stringstream stream;
-  stream << '\x02'; // version
+  stream << '\x03'; // version
   stream << '\x92'; // <klasses>: 2-element array
     stream << '\x92'; // <klass>
       stream << '\xA8' << "__meta__"; // <klass_name>
@@ -549,7 +520,62 @@ TEST(lazy_test_pointer_to_0) {
     stream << '\x93' << '\xA2' << "as" << '\x01' << '\x00'; // 0-element store
   stream << "\x01\x80"; // Empty document
   stream << "\x01\x90"; // Empty store
-  check_unchanged(stream);
+
+  std::stringstream output;
+  FauxDoc doc;
+  FauxDoc::Schema schema;
+  Reader reader(stream, schema);
+  reader >> doc;
+  Writer writer(output, schema);
+  writer << doc;
+
+  CHECK_COMPARE_BYTES2(stream.str(), output.str());
+}
+
+
+TEST(lazy_version_upgrade) {
+  std::stringstream input, output;
+  input << '\x02'; // version
+  input << '\x92'; // <klasses>: 2-element array
+    input << '\x92'; // <klass>
+      input << '\xA8' << "__meta__"; // <klass_name>
+      input << '\x91'; // <fields>
+        input << '\x82'; // 2 attributes
+        input << '\x00' << '\xA6' << "as_ptr"; // name
+        input << '\x01' << '\x00'; // ptr to store 0
+    input << '\x92'; // <klass>
+      input << '\xA1' << 'A'; // <klass_name>
+      input << '\x90'; // <fields>
+  input << '\x91'; // <stores>: 1-element array
+    input << '\x93' << '\xA2' << "as" << '\x01' << '\x00'; // 0-element store
+  input << "\x01\x80"; // Empty document
+  input << "\x01\x90"; // Empty store
+
+  output << '\x03'; // version
+  output << '\x92'; // <klasses>: 2-element array
+    output << '\x92'; // <klass>
+      output << '\xA8' << "__meta__"; // <klass_name>
+      output << '\x91'; // <fields>
+        output << '\x82'; // 2 attributes
+        output << '\x00' << '\xA6' << "as_ptr"; // name
+        output << '\x01' << '\x00'; // ptr to store 0
+    output << '\x92'; // <klass>
+      output << '\xA1' << 'A'; // <klass_name>
+      output << '\x90'; // <fields>
+  output << '\x91'; // <stores>: 1-element array
+    output << '\x93' << '\xA2' << "as" << '\x01' << '\x00'; // 0-element store
+  output << "\x01\x80"; // Empty document
+  output << "\x01\x90"; // Empty store
+
+  std::stringstream tmp;
+  FauxDoc doc;
+  FauxDoc::Schema schema;
+  Reader reader(input, schema);
+  reader >> doc;
+  Writer writer(tmp, schema);
+  writer << doc;
+
+  CHECK_COMPARE_BYTES2(output.str(), tmp.str());
 }
 
 }  // SUITE

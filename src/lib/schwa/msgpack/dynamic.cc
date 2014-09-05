@@ -8,6 +8,7 @@
 
 #include <schwa/pool.h>
 
+
 namespace schwa {
 namespace msgpack {
 
@@ -40,19 +41,6 @@ Map *
 Map::create(Pool &pool, const uint32_t size) {
   void *ptr = pool.alloc(sizeof(Map) + size*sizeof(Pair));
   return new (ptr) Map(size);
-}
-
-
-// ============================================================================
-// Raw
-// ============================================================================
-Raw::Raw(uint32_t size, const char *value) : _size(size), _value(value) { }
-
-
-Raw *
-Raw::create(Pool &pool, uint32_t size, const char *value) {
-  void *ptr = pool.alloc(sizeof(Raw));
-  return new (ptr) Raw(size, value);
 }
 
 }  // namespace msgpack

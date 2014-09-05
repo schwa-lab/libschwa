@@ -2,6 +2,7 @@
 #include "processor.h"
 
 #include <cassert>
+#include <cctype>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -12,6 +13,7 @@
 #include <schwa/msgpack.h>
 #include <schwa/pool.h>
 #include <schwa/port.h>
+#include <schwa/unicode.h>
 
 
 namespace dr = schwa::dr;
@@ -298,16 +300,43 @@ Processor::Impl::_write_primitive(const mp::Value &value) {
     _out << "0x" << std::hex << value.via._uint64 << std::dec << ",";
     _out << SEP << "uint (" << value.via._uint64 << ")" << port::OFF;
   }
+  else if (is_str(value.type)) {
+    const mp::Str &obj = *value.via._str;
+    const UnicodeString s = UnicodeString::from_utf8(obj.data(), obj.nbytes());
+    _out << "\"" << s << "\",";
+    _out << SEP << "str (" << std::dec << obj.nbytes() << "B, " << s.size() << " code point(s))" << port::OFF;
+  }
+  else if (is_bin(value.type)) {
+    const mp::Bin &obj = *value.via._bin;
+    _out << "\"";
+    for (uint32_t i = 0; i != obj.nbytes(); ++i) {
+      const char c = obj.data()[i];
+      if (std::isprint(c))
+        _out << std::dec << c;
+      else
+        _out << "\\x" << std::hex << static_cast<unsigned int>(c);
+    }
+    _out << "\",";
+    _out << SEP << "bin (" << std::dec << obj.nbytes() << "B)" << port::OFF;
+  }
   else if (is_array(value.type)) {
     _out << port::RED << "TODO array" << port::OFF;
   }
   else if (is_map(value.type)) {
     _out << port::RED << "TODO map" << port::OFF;
   }
-  else if (is_raw(value.type)) {
-    const mp::Raw &raw = *value.via._raw;
-    (_out << "\"").write(raw.value(), raw.size()) << "\",";
-    _out << SEP << "raw (" << std::dec << raw.size() << "B)" << port::OFF;
+  else if (is_ext(value.type)) {
+    const mp::Ext &obj = *value.via._ext;
+    _out << "\"";
+    for (uint32_t i = 0; i != obj.nbytes(); ++i) {
+      const char c = obj.data()[i];
+      if (std::isprint(c))
+        _out << std::dec << c;
+      else
+        _out << "\\x" << std::hex << static_cast<unsigned int>(c);
+    }
+    _out << "\",";
+    _out << SEP << "ext (" << std::dec << obj.nbytes() << "B)" << port::OFF;
   }
   else
     _out << port::RED << REPR_UNKNOWN << port::OFF;

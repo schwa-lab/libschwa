@@ -65,6 +65,7 @@ namespace schwa {
       Op(Group &group, const std::string &name, char short_name, const std::string &desc, const T &default_, Flags flags=Flags::NONE) : Option(group, name, short_name, desc, flags, true), _default(default_) { }
       virtual ~Op(void) { }
 
+      virtual bool is_flag(void) const override;
       virtual bool requires_assignment(void) const override;
 
       virtual void serialise(std::ostream &out) const override;
@@ -163,6 +164,19 @@ namespace schwa {
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(OpHelp);
+    };
+
+
+    class OpShortHelp : public CommandOption {
+    protected:
+      virtual bool _validate(const Main &main) override;
+
+    public:
+      OpShortHelp(Group &group, const std::string &name="short-help", const std::string &desc="Displays the short help text") : CommandOption(group, name, desc) { }
+      virtual ~OpShortHelp(void) { }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpShortHelp);
     };
 
 

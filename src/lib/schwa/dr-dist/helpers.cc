@@ -106,7 +106,7 @@ build_message(const MessageType type, const uint64_t doc_num, const char *const 
   std::stringstream msg;
   mp::write_uint8(msg, to_underlying(type));
   mp::write_uint64(msg, doc_num);
-  mp::write_raw(msg, doc, doc_len);
+  mp::write_bin(msg, doc, doc_len);
   msg.seekg(0);
   return msg.str();
 }
@@ -117,7 +117,7 @@ unpack_message(const char *const buf, const size_t buf_len, MessageType &msg_typ
   io::ArrayReader reader(buf, buf_len);
   msg_type = from_underlying<MessageType>(mp::read_uint8(reader));
   doc_num = mp::read_uint64(reader);
-  doc = mp::read_raw(reader);
+  doc = mp::read_bin(reader);
 }
 
 

@@ -5,10 +5,9 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-#include <map>
+#include <iterator>
 #include <sstream>
 #include <string>
-#include <unordered_map>
 
 #include <schwa/dr.h>
 #include <schwa/dr/query.h>
@@ -20,215 +19,273 @@ namespace dq = schwa::dr::query;
 namespace schwa {
 namespace dr_count {
 
-// ============================================================================
-// Processor::Impl
-// ============================================================================
-class Processor::Impl {
-public:
-  static const size_t MIN_WIDTH;
-  static const size_t NDOCS_WIDTH;
-
-private:
-  std::ostream &_out;
-  const bool _all_stores;
-  const bool _count_bytes;
-  const bool _cumulative;
-  const bool _per_doc;
-  const Formatting _formatting;
-  const std::string _store;
-  const std::string _doc_id;
-  size_t _doc_id_width;
-
-  uint32_t _ndocs;
-  std::unordered_map<std::string, uint64_t> _counts;
-  std::unordered_map<std::string, uint32_t> _local_counts;
-  std::map<std::string, size_t> _widths;
-
-  dq::Interpreter _interpreter;
-
-  std::string _get_doc_id(const dr::Doc &doc) const;
-  static std::string _int_to_str(const dq::Value &v);
-
-public:
-  Impl(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) :
-      _out(out),
-      _all_stores(all_stores),
-      _count_bytes(count_bytes),
-      _cumulative(cumulative),
-      _per_doc(per_doc),
-      _formatting(formatting),
-      _store(store),
-      _doc_id(doc_id),
-      _ndocs(0)
-    {
-    if (!_doc_id.empty())
-      _interpreter.compile(_doc_id);
-  }
-
-  void finalise(void);
-  void process_doc(const dr::Doc &doc, const std::string &path);
-};
-
-const size_t Processor::Impl::MIN_WIDTH = 10;
-const size_t Processor::Impl::NDOCS_WIDTH = 10;
-
-
-std::string
-Processor::Impl::_int_to_str(const dq::Value &v) {
+template <typename T>
+static inline std::string
+to_str(const T &value) {
   std::ostringstream ss;
-  ss << v.via._int;
+  ss << value;
   return ss.str();
 }
 
 
+// ============================================================================
+// Formatter
+// ============================================================================
+class Formatter {
+protected:
+  std::ostream &_out;
+  std::vector<std::string> _columns;
+  std::vector<std::string> _values;
+
+public:
+  explicit Formatter(std::ostream &out) : _out(out) { }
+  virtual ~Formatter(void) { }
+
+  virtual void
+  add_column(const std::string &column) {
+    _columns.push_back(column);
+  }
+
+  virtual void
+  reset(void) {
+    _columns.clear();
+    _values.clear();
+  }
+
+  virtual void
+  write_header(void) {
+    std::copy(_columns.cbegin(), _columns.cend(), std::back_insert_iterator<std::vector<std::string>>(_values));
+    write_row();
+    _values.clear();
+  }
+
+  virtual void write_row(void) = 0;
+
+  template <typename T>
+  inline void
+  add_value(const T &value) {
+    _values.push_back(to_str(value));
+  }
+};
+
+
+// ============================================================================
+// AlignedFormatter
+// ============================================================================
+class AlignedFormatter : public Formatter {
+public:
+  static const size_t MIN_WIDTH;
+
+protected:
+  std::vector<size_t> _widths;
+
+public:
+  explicit AlignedFormatter(std::ostream &out) : Formatter(out) { }
+  virtual ~AlignedFormatter(void) { }
+
+  virtual void
+  add_column(const std::string &column) override {
+    Formatter::add_column(column);
+    _widths.push_back(std::max(MIN_WIDTH, column.size()));
+  }
+
+  virtual void
+  reset(void) override {
+    Formatter::reset();
+    _widths.clear();
+  }
+
+  virtual void
+  write_row(void) override {
+    if (!_values.empty()) {
+      for (size_t i = 0; i != _values.size(); ++i) {
+        if (i != 0)
+          _out << ' ';
+        _out << std::setw(_widths[i]) << _values[i];
+      }
+      _out << std::endl;
+    }
+    _values.clear();
+  }
+};
+
+const size_t AlignedFormatter::MIN_WIDTH = 10;
+
+
+// ============================================================================
+// TabbedFormatter
+// ============================================================================
+class TabbedFormatter : public Formatter {
+public:
+  explicit TabbedFormatter(std::ostream &out) : Formatter(out) { }
+  virtual ~TabbedFormatter(void) { }
+
+  virtual void
+  write_row(void) override {
+    if (!_values.empty()) {
+      for (size_t i = 0; i != _values.size(); ++i) {
+        if (i != 0)
+          _out << '\t';
+        _out << _values[i];
+      }
+      _out << std::endl;
+    }
+    _values.clear();
+  }
+};
+
+
+// ============================================================================
+// Processor
+// ============================================================================
+Processor::Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, int every, Formatting formatting, const std::string &doc_id, bool no_header, bool no_footer, bool no_ndocs) :
+    _out(out),
+    _all_stores(all_stores),
+    _count_bytes(count_bytes),
+    _cumulative(cumulative),
+    _no_header(no_header || !store.empty()),
+    _no_footer(no_footer),
+    _no_ndocs(no_ndocs || !store.empty()),
+    _every(every),
+    _formatting(formatting),
+    _store(store),
+    _doc_id(doc_id)
+  {
+  // Construct the appropriate row formatter.
+  if (_formatting == Formatting::ALIGNED)
+    _formatter = new AlignedFormatter(_out);
+  else
+    _formatter = new TabbedFormatter(_out);
+
+  // Compile the doc ID query.
+  if (_every == 1 && !_doc_id.empty())
+    _interpreter.compile(_doc_id);
+}
+
+Processor::~Processor(void) {
+  delete _formatter;
+}
+
+
 std::string
-Processor::Impl::_get_doc_id(const dr::Doc &doc) const {
-  const dq::Value v = _interpreter(doc, _ndocs - 1);
+Processor::_get_doc_id(const dr::Doc &doc) const {
+  const dq::Value v = _interpreter(doc, _counts[0] - 1);
   switch (v.type) {
   case dq::TYPE_STRING: return v.via._str;
-  case dq::TYPE_INTEGER: return _int_to_str(v);
+  case dq::TYPE_INTEGER: return to_str(v.via._int);
   default: return std::string("<") + dq::valuetype_name(v.type) + ">";
   }
 }
 
 
 void
-Processor::Impl::process_doc(const dr::Doc &doc, const std::string &) {
+Processor::process_doc(const dr::Doc &doc, const std::string &) {
   const dr::RTManager &rt = *(doc.rt());
   const dr::RTSchema &schema = *(rt.doc);
 
-  // Initialise state.
-  if (_ndocs == 0) {
-    if (!_doc_id.empty())
-      _doc_id_width = std::max(MIN_WIDTH, _get_doc_id(doc).size());
+  // If we have not processed any documents yet, initialise the column names.
+  if (_counts.empty()) {
+    // Work out which of the stores we should be outputting.
+    _output_stores.clear();
+    for (auto &store : schema.stores) {
+      bool keep = _all_stores;
+      if (!_store.empty())
+        keep = store->serial == _store;
+      _output_stores.push_back(keep);
+    }
 
-    if (_all_stores || !_store.empty()) {
-      // Calculate the widths per column.
-      for (auto &store : schema.stores) {
-        bool keep = true;
-        if (!_store.empty())
-          keep = store->serial == _store;
-        if (keep)
-          _widths[store->serial] = std::max(MIN_WIDTH, store->serial.size());
-      }
-    }
-  }
+    // Maybe add the doc_id column.
+    if (output_doc_id())
+      _formatter->add_column("doc_id");
+    // Maybe add the ndocs column.
+    if (output_ndocs())
+      _formatter->add_column("ndocs");
+    // Maybe add each store as a column.
+    for (size_t i = 0; i != schema.stores.size(); ++i)
+      if (output_store(i))
+        _formatter->add_column(schema.stores[i]->serial);
 
-  // Output the column headings.
-  if (_ndocs == 0 && !_widths.empty()) {
-    if (_formatting == Formatting::ALIGNED) {
-      if (!_doc_id.empty())
-        _out << std::setw(_doc_id_width) << "doc-id ";
-      _out << std::setw(NDOCS_WIDTH) << "ndocs";
-      for (auto &pair : _widths)
-        _out << ' ' << std::setw(pair.second) << pair.first;
-      _out << std::endl;
-    }
-    else {
-      if (!_doc_id.empty())
-        _out << "doc-id\t";
-      _out << "ndocs";
-      for (auto &pair : _widths)
-        _out << '\t' << pair.first;
-      _out << std::endl;
-    }
+    // Reset the counts.
+    _counts.resize(schema.stores.size() + 1);
+    _local_counts.resize(_counts.size());
+
+    // Output the header row if not suppressed.
+    if (output_header())
+      _formatter->write_header();
   }
 
   // Increment the number of docs processed.
-  ++_ndocs;
+  ++_counts[0];
+  ++_local_counts[0];
 
-  // Output the doc_id if per doc.
-  if (_per_doc && !_doc_id.empty()) {
-    const std::string doc_id = _get_doc_id(doc);
-    if (_formatting == Formatting::ALIGNED)
-      _out << std::setw(_doc_id_width) << doc_id << ' ';
-    else
-      _out << doc_id << '\t';
+  // Update the counts for each store.
+  for (size_t i = 0; i != schema.stores.size(); ++i) {
+    const auto &store = *schema.stores[i];
+    const uint32_t count = _count_bytes ? store.lazy_nbytes : store.lazy_nelem;
+    _counts[i + 1] += count;
+    _local_counts[i + 1] += count;
   }
 
-  // Output the document count if per_doc.
-  if (_per_doc && !_widths.empty()) {
-    const uint32_t count = _cumulative ? _ndocs : 1;
-    if (_formatting == Formatting::ALIGNED)
-      _out << std::setw(NDOCS_WIDTH) << count;
-    else
-      _out << count;
-  }
-
-  // For each store, add its counts to the stream counts.
-  _local_counts.clear();
-  for (auto &store : schema.stores) {
-    const uint32_t count = _count_bytes ? store->lazy_nbytes : store->lazy_nelem;
-    _counts[store->serial] += count;
-    _local_counts[store->serial] = count;
-  }
-
-  // Output the counts per store.
-  if (_per_doc && !_widths.empty()) {
-    for (auto &pair : _widths) {
-      const uint64_t count = _cumulative ? _counts[pair.first] : _local_counts[pair.first];
-      if (_formatting == Formatting::ALIGNED)
-        _out << ' ' << std::setw(pair.second) << count;
-      else
-        _out << '\t' << count;
+  // If we want to output every N documents, and we're at a multiple of N.
+  if (_every != -1 && _local_counts[0] % _every == 0) {
+    // Add the doc_id column value to the row.
+    if (output_doc_id()) {
+      const std::string doc_id = _get_doc_id(doc);
+      _formatter->add_value(doc_id);
     }
-  }
-  if (_per_doc)
-    _out << std::endl;
-}
 
-
-void
-Processor::Impl::finalise(void) {
-  // Output the doc_id.
-  if (!_doc_id.empty()) {
-    if (_formatting == Formatting::ALIGNED)
-      _out << std::setw(_doc_id_width) << "" << ' ';
-    else
-      _out << '\t';
-  }
-
-  // Output the document count.
-  if (_all_stores) {
-    if (_formatting == Formatting::ALIGNED)
-      _out << std::setw(NDOCS_WIDTH) << _ndocs;
-    else
-      _out << _ndocs;
-  }
-  else
-    _out << _ndocs;
-
-  // Output the counts per store.
-  if (_all_stores) {
-    for (auto &pair : _widths) {
-      const uint64_t count = _counts[pair.first];
-      if (_formatting == Formatting::ALIGNED)
-        _out << ' ' << std::setw(pair.second) << count;
-      else
-        _out << '\t' << count;
+    // Add the ndocs column value to the row.
+    if (output_ndocs()) {
+      const uint64_t count = _cumulative ? _counts[0] : _local_counts[0];
+      _formatter->add_value(count);
     }
+
+    // Add each of the store counts to the row.
+    for (size_t i = 0; i != schema.stores.size(); ++i) {
+      if (output_store(i)) {
+        const uint64_t count = _cumulative ? _counts[i + 1] : _local_counts[i + 1];
+        _formatter->add_value(count);
+      }
+    }
+
+    // Write out the row.
+    _formatter->write_row();
+
+    // Reset the local counts.
+    std::fill(_local_counts.begin(), _local_counts.end(), 0);
   }
-  _out << std::endl;
 }
 
-
-// ============================================================================
-// Processor
-// ============================================================================
-Processor::Processor(std::ostream &out, bool all_stores, const std::string &store, bool count_bytes, bool cumulative, bool per_doc, Formatting formatting, const std::string &doc_id) : _impl(new Processor::Impl(out, all_stores, store, count_bytes, cumulative, per_doc, formatting, doc_id)) { }
-
-Processor::~Processor(void) {
-  delete _impl;
-}
-
-void
-Processor::process_doc(const dr::Doc &doc, const std::string &path) {
-  _impl->process_doc(doc, path);
-}
 
 void
 Processor::finalise(void) {
-  _impl->finalise();
+  // Skip the footer row?
+  if (!output_footer())
+    return;
+
+  // Add the doc_id column value to the row.
+  if (output_doc_id())
+    _formatter->add_value("");
+
+  // Add the ndocs column value to the row.
+  if (output_ndocs())
+    _formatter->add_value(_counts[0]);
+
+  // Add each of the store counts to the row.
+  for (size_t i = 0; i != _counts.size() - 1; ++i)
+    if (output_store(i))
+      _formatter->add_value(_counts[i + 1]);
+
+  // Write out the row.
+  _formatter->write_row();
+}
+
+
+void
+Processor::reset(void) {
+  _formatter->reset();
+  _counts.clear();
+  _local_counts.clear();
 }
 
 }  // namespace dr_count

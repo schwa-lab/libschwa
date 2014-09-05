@@ -1,5 +1,4 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <config.h>
 #include <schwa/io/paths.h>
 
 #include <cerrno>

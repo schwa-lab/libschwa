@@ -85,6 +85,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/macros.h \
 		schwa/mpl/if.h \
 		schwa/msgpack/dynamic.h \
+		schwa/msgpack/dynamic_impl.h \
 		schwa/msgpack/enums.h \
 		schwa/msgpack/exception.h \
 		schwa/msgpack/wire.h \
@@ -137,9 +138,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/learn/extract.cc \
 		schwa/learn/features.cc \
 		schwa/msgpack/dynamic.cc \
-		schwa/msgpack/enums.cc \
 		schwa/msgpack/exception.cc \
-		schwa/msgpack/wire.cc \
 		schwa/port.cc \
 		schwa/tokenizer/debug_text_stream.cc \
 		schwa/tokenizer/docrep_stream.cc \

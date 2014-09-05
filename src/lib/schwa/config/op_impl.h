@@ -18,6 +18,12 @@ namespace schwa {
     // ========================================================================
     template <typename T>
     inline bool
+    Op<T>::is_flag(void) const {
+      return Option::is_flag();
+    }
+
+    template <typename T>
+    inline bool
     Op<T>::requires_assignment(void) const {
       return Option::requires_assignment();
     }
@@ -61,6 +67,12 @@ namespace schwa {
     Op<bool>::_validate(const Main &) {
       if (_was_mentioned && !_was_assigned)
         _value = true;
+      return true;
+    }
+
+    template <>
+    inline bool
+    Op<bool>::is_flag(void) const {
       return true;
     }
 

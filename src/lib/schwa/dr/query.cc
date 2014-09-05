@@ -250,9 +250,14 @@ protected:
       return Value::as_int(value.via._int64);
     else if (mp::is_uint(value.type))
       return Value::as_int(static_cast<int64_t>(value.via._uint64));
-    else if (mp::is_raw(value.type)) {
-      const mp::Raw &raw = *value.via._raw;
-      char *const str = ctx.create_str(raw.value(), raw.size());
+    else if (mp::is_bin(value.type)) {
+      const mp::Bin &obj = *value.via._bin;
+      char *const str = ctx.create_str(obj.data(), obj.nbytes());
+      return Value::as_str(str);
+    }
+    else if (mp::is_str(value.type)) {
+      const mp::Str &obj = *value.via._str;
+      char *const str = ctx.create_str(obj.data(), obj.nbytes());
       return Value::as_str(str);
     }
     else {

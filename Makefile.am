@@ -8,7 +8,7 @@ SUBDIRS = src/third-party src/lib src/apps
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dist/libschwa.pc
 
-EXTRA_DIST = LICENCE doc src/ragel src/third-party/cityhash src/third-party/re2
+EXTRA_DIST = CHANGELOG LICENCE doc src/ragel src/third-party/cityhash src/third-party/re2
 dist-hook: clean-docs
 
 
@@ -27,5 +27,5 @@ clean-docs:
 
 wc:
 	for d in src/lib src/apps; do \
-		find $${d} \( -name "*.cc" -or -name "*.h" \) | egrep -v '_(gen|test)\.cc' | xargs wc -l; \
+		find $${d} \( -name "*.cc" -or -name "*.h" \) | egrep -v '_(gen|test)\.cc' | grep -vF /third-party/ | xargs wc -l; \
 	done
