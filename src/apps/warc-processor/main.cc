@@ -89,16 +89,16 @@ WARCHTMLParser::_record_end(void) {
   // Parse the HTTP message.
   success = _http_parser.run(_block_buffer, _block_nbytes_consumed);
   if (!success) {
-    std::cerr << "[" << warc_trec_id() << "][0] failed to parse HTTP headers" << std::endl;
-    std::cerr.write(reinterpret_cast<const char *>(_block_buffer), std::min(_block_nbytes_consumed, static_cast<size_t>(512)));
-    std::cerr << std::endl;
+    //std::cerr << "[" << warc_trec_id() << "][0] failed to parse HTTP headers" << std::endl;
+    //std::cerr.write(reinterpret_cast<const char *>(_block_buffer), std::min(_block_nbytes_consumed, static_cast<size_t>(512)));
+    //std::cerr << std::endl;
     ++_nskipped;
     return;
   }
 
   // Reject the reqponse if it was not a success status or if it's not a HTML response.
   if (_http_parser.status_code() != 200 || _http_parser.content_type() != "text/html") {
-    std::cerr << "[" << warc_trec_id() << "][0] " << _http_parser.status_code() << " '" << _http_parser.content_type() << "'" << std::endl;
+    //std::cerr << "[" << warc_trec_id() << "][0] " << _http_parser.status_code() << " '" << _http_parser.content_type() << "'" << std::endl;
     ++_nskipped;
     return;
   }
@@ -129,8 +129,14 @@ WARCHTMLParser::_record_end(void) {
   success = _html_lexer.run(_encoding_result);
   if (success)
     ++_nsuccess;
-  else
+  else {
+    std::ostringstream path;
+    path << "/tmp/html/" << warc_trec_id() << ".html";
+    std::ofstream f(path.str());
+    f.write(reinterpret_cast<const char *>(_http_parser.message()), _http_parser.message_nbytes());
+    std::cerr << "[" << warc_trec_id() << "]" << std::endl;
    ++_nfail;
+  }
 }
 
 
@@ -162,6 +168,7 @@ main(int argc, char **argv) {
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
   cf::Op<size_t> warc_buffer(cfg, "warc-buffer", "WARC lexer input buffer size (bytes)", fm::WARCParser::DEFAULT_BUFFER_SIZE);
   cf::Op<bool> html(cfg, "html", "Lex HTML only", false);
+  cf::Op<std::string> html_encoding(cfg, "encoding", "Encoding of HTML file", "UTF-8");
 
   bool success = true;
   SCHWA_MAIN(cfg, [&] {
@@ -178,7 +185,10 @@ main(int argc, char **argv) {
       input.read(buf.get(), nbytes);
       assert(input.gcount() < static_cast<ssize_t>(nbytes));
 
-      success = lexer.run(reinterpret_cast<const uint8_t *>(buf.get()), nbytes);
+      const schwa::Encoding encoding = schwa::get_encoding(html_encoding());
+      schwa::EncodingResult er;
+      schwa::to_utf8(encoding, reinterpret_cast<const uint8_t *>(buf.get()), input.gcount(), er);
+      success = lexer.run(er);
     }
     else {
       fm::WARCHTMLParser lexer;

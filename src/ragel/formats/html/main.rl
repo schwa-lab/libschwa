@@ -6,19 +6,16 @@
 
   include "html.rl";
 
-  main := |*
-    comment => { _debug("comment", ts, te); } ;
-    cdata => { _debug("cdata", ts, te); } ;
-    doctype => { _debug("doctype", ts, te); } ;
+  action do_try_recover {
+    fhold; fgoto try_recover;
+  }
 
-    tag => { _debug("tag", ts, te); } ;
-    text+ => { _debug("text", ts, te); } ;
-  *|;
-
+  try_recover := [^>]* '>' @{ fgoto main; } ;
+  main := ( ( comment | cdata | doctype | tag | text+ ) $err(do_try_recover) )** ;
 }%%
 
 #include <schwa/formats/html.h>
-
+#include <iostream>
 
 namespace schwa {
 namespace formats {
@@ -28,16 +25,16 @@ namespace formats {
 bool
 HTMLLexer::_run(const uint8_t *const input, const size_t nbytes) {
   (void)html_en_main;  // Shoosh compiler warning about unused variable.
+  (void)html_en_try_recover;  // Shoosh compiler warning about unused variable.
   const uint8_t *p = input, *pe = p + nbytes, *eof = pe;
-  const uint8_t *te = nullptr, *ts = nullptr;
-  int cs = 0, act = 0;
-
-  _begin_document();
+  int cs;
 
   %% write init;
-  %% write exec;
 
+  _begin_document();
+  %% write exec;
   _end_document();
+
   return cs != %%{ write error; }%%;
 }
 
