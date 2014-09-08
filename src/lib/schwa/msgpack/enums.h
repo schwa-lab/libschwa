@@ -93,7 +93,7 @@ namespace schwa {
 
     inline bool
     is_int(const WireType type) {
-      return is_uint(type) || is_int(type);
+      return is_uint(type) || is_sint(type);
     }
 
   }
