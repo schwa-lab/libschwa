@@ -132,6 +132,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/utils/enums.h \
 		schwa/utils/hash.h \
 		schwa/utils/shlex.h \
+		schwa/utils/string.h \
 		schwa/version.h
 
 LIBSCHWA_SOURCE_FILES = \

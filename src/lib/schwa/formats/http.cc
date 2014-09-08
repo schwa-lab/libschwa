@@ -4,6 +4,8 @@
 #include <cctype>
 #include <iostream>
 
+#include <schwa/utils/string.h>
+
 
 namespace schwa {
 namespace formats {
@@ -90,6 +92,7 @@ HTTPParser::_content_type_param_val_end(const uint8_t *const fpc) {
     const char c = std::toupper(*reinterpret_cast<const char *>(p));
     if (c != '"')
       _content_type_charset.push_back(c);
+    trim(_content_type_charset);
   }
 }
 

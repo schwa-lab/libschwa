@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <schwa/encoding.h>
+#include <schwa/utils/string.h>
 
 
 namespace schwa {
@@ -365,7 +366,7 @@ HTMLCharsetSniffer::_attribute_value_end(const uint8_t *const fpc) {
   else if (_current_key == "content")
     _content_type = value;
   else if (_current_key == "charset")
-    _charset = value;
+    _charset = trim(value);
 }
 
 
@@ -396,6 +397,7 @@ HTMLCharsetSniffer::_content_type_param_val_end(const uint8_t *const fpc) {
     const char c = std::toupper(*reinterpret_cast<const char *>(p));
     if (c != '"')
       _charset.push_back(c);
+    trim(_charset);
   }
 }
 
