@@ -8,9 +8,6 @@
 /schwa_msgpack_tests
 /schwa_utils_tests
 
-# cityhash unit tests
-/cityhash_tests
-
 # re2 unit tests
 /libre2_charclass_test
 /libre2_compile_test
@@ -26,3 +23,6 @@
 /libre2_set_test
 /libre2_simplify_test
 /libre2_string_generator_test
+
+# xxhash unit tests
+/xxhash_tests

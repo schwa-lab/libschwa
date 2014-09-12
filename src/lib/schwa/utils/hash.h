@@ -5,7 +5,7 @@
 #include <cstring>
 #include <functional>
 
-#include <schwa/third-party/cityhash/city.h>
+#include <schwa/third-party/xxhash/xxhash.h>
 
 
 namespace schwa {
@@ -25,7 +25,7 @@ namespace schwa {
   struct _cstr_hash<8> : public std::unary_function<const char *, uint64_t> {
     inline uint64_t
     operator ()(const char *str) const {
-      return third_party::cityhash::CityHash64(str, std::strlen(str));
+      return third_party::xxhash::XXH64(str, std::strlen(str), 0);
     }
   };
 
@@ -33,7 +33,7 @@ namespace schwa {
   struct _cstr_hash<4> : public std::unary_function<const char *, uint32_t> {
     inline uint32_t
     operator ()(const char *str) const {
-      return third_party::cityhash::CityHash32(str, std::strlen(str));
+      return third_party::xxhash::XXH32(str, std::strlen(str), 0);
     }
   };
 

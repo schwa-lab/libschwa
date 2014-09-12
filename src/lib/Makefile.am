@@ -5,15 +5,15 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(SIMD_FLAGS)
 
 lib_LTLIBRARIES = libschwa.la
-noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+noinst_LTLIBRARIES = libschwa_thirdparty_re2.la libschwa_thirdparty_xxhash.la
 nobase_library_include_HEADERS =
 
 check_LIBRARIES =
 check_PROGRAMS =
 
 libschwa_la_LDFLAGS = -no-undefined -version-info $(libschwa_la_version_info)
-libschwa_thirdparty_cityhash_la_LDFLAGS = -no-undefined -version-info 4:0:0
 libschwa_thirdparty_re2_la_LDFLAGS = -no-undefined -version-info 1:0:0
+libschwa_thirdparty_xxhash_la_LDFLAGS = -no-undefined -version-info 36:0:0
 
 # =============================================================================
 # Ragel
@@ -169,7 +169,7 @@ endif
 # libschwa Automake
 # =============================================================================
 libschwa_la_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS)
-libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_xxhash.la libschwa_thirdparty_re2.la
 libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
@@ -249,21 +249,22 @@ schwa_utils_tests_SOURCES = \
 
 
 # =============================================================================
-# libschwa_thirdparty_cityhash Automake
+# libschwa_thirdparty_xxhash Automake
 # =============================================================================
-CITYHASH_HEADER_FILES = \
-		schwa/third-party/cityhash/city.h
+XXHASH_HEADER_FILES = \
+		schwa/third-party/xxhash/xxhash.h
 
-CITYHASH_SOURCE_FILES = \
-		schwa/third-party/cityhash/city.cc
+XXHASH_SOURCE_FILES = \
+		schwa/third-party/xxhash/xxhash.cc
 
-libschwa_thirdparty_cityhash_la_SOURCES = $(CITYHASH_HEADER_FILES) $(CITYHASH_SOURCE_FILES)
-nobase_library_include_HEADERS += $(CITYHASH_HEADER_FILES)
+libschwa_thirdparty_xxhash_la_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS)
+libschwa_thirdparty_xxhash_la_SOURCES = $(XXHASH_HEADER_FILES) $(XXHASH_SOURCE_FILES)
+nobase_library_include_HEADERS += $(XXHASH_HEADER_FILES)
 
-check_PROGRAMS += cityhash_tests
+check_PROGRAMS += xxhash_tests
 
-cityhash_tests_LDADD = libschwa_thirdparty_cityhash.la
-cityhash_tests_SOURCES = schwa/third-party/cityhash/city_test.cc
+xxhash_tests_LDADD = libschwa_thirdparty_xxhash.la
+xxhash_tests_SOURCES = schwa/third-party/xxhash/bench_test.cc
 
 # =============================================================================
 # libschwa_thirdparty_re2 Automake

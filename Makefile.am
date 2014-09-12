@@ -8,7 +8,7 @@ SUBDIRS = src/third-party src/lib src/apps
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dist/libschwa.pc
 
-EXTRA_DIST = CHANGELOG LICENCE doc src/ragel src/third-party/cityhash src/third-party/re2
+EXTRA_DIST = CHANGELOG LICENCE doc src/ragel src/third-party/re2 src/third-party/xxhash
 dist-hook: clean-docs
 
 
