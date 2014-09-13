@@ -2,7 +2,6 @@
 #ifndef SCHWA_HASHTABLE_H_
 #define SCHWA_HASHTABLE_H_
 
-#include <iomanip>
 #include <iterator>
 #include <memory>
 #include <stdexcept>
@@ -100,7 +99,7 @@ namespace schwa {
       inline bool operator !=(const _iterator &o) const { return _ended != o._ended || _initialised != o._initialised || _ht != o._ht || _index != o._index; }
 
       inline reference operator *(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } return _ht->_table[_index]; }
-      inline pointer operator ->(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } return &_ht->_table[_index]; }
+      inline pointer operator ->(void) { return &(*this); }
 
       _iterator &operator ++(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } _increment(); return *this; }
       _iterator operator ++(int) { iterator it(*this); ++(*this); return it; }
@@ -145,7 +144,7 @@ namespace schwa {
     }
 
     iterator
-    _find(const KEY &key, uint64_t &masked_hash, bool &exists) {
+    _find(const key_type &key, uint64_t &masked_hash, bool &exists) {
       const uint64_t hash = _hasher(key);
       masked_hash = hash & VALUE_HASH_MASK;
       const size_t start_index = hash & TABLE_INDEX_MASK;
@@ -175,7 +174,7 @@ namespace schwa {
     }
 
     const_iterator
-    _find(const KEY &key) const {
+    _find(const key_type &key) const {
       const uint64_t hash = _hasher(key);
       const uint64_t masked_hash = hash & VALUE_HASH_MASK;
       const size_t start_index = hash & TABLE_INDEX_MASK;
@@ -235,9 +234,12 @@ namespace schwa {
     inline allocator_type get_allocator(void) const noexcept { return _allocator; }
     inline hasher hash_function(void) const { return _hasher; }
 
+    // Hash policy
+    inline float load_factor(void) const noexcept { return _size / static_cast<float>(TABLE_SIZE); }
+
     // Element lookup
     inline iterator
-    find(const KEY &key) {
+    find(const key_type &key) {
       uint64_t masked_hash;
       bool exists;
       iterator it = _find(key, masked_hash, exists);
@@ -245,13 +247,13 @@ namespace schwa {
     }
 
     inline const_iterator
-    find(const KEY &key) const {
+    find(const key_type &key) const {
       return _find(key);
     }
 
     // Element access
     reference
-    operator [](const KEY &key) {
+    operator [](const key_type &key) {
       uint64_t masked_hash;
       bool exists;
       iterator it = _find(key, masked_hash, exists);
@@ -264,7 +266,7 @@ namespace schwa {
     }
 
     const_reference
-    operator [](const KEY &key) const {
+    operator [](const key_type &key) const {
       const_iterator it = _find(key);
       if (SCHWA_UNLIKELY(it == end()))
         throw std::out_of_range("The entry does not exist in the table.");
