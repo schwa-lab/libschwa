@@ -64,6 +64,9 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/dr-dist/worker_main.h \
 		schwa/enums.h \
 		schwa/exception.h \
+		schwa/hash.h \
+		schwa/hash_impl.h \
+		schwa/hashtable.h \
 		schwa/io/array_reader.h \
 		schwa/io/enums.h \
 		schwa/io/file_source.h \
@@ -190,6 +193,8 @@ schwa_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
 schwa_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_tests_SOURCES = \
 		schwa/unittest_main.cc \
+		schwa/hash_test.cc  \
+		schwa/hashtable_test.cc  \
 		schwa/pool_test.cc  \
 		schwa/port_test.cc  \
 		schwa/unicode_test.cc
