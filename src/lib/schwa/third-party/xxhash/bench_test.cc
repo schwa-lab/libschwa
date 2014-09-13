@@ -85,8 +85,8 @@ typedef uint64_t U64;
 #define AUTHOR "Yann Collet"
 #define WELCOME_MESSAGE "*** %s %i-bits %s, by %s (%s) ***\n", PROGRAM_NAME, (int)(sizeof(void*)*8), PROGRAM_VERSION, AUTHOR, COMPILED
 
-#define NBLOOPS    3           // Default number of benchmark iterations
-#define TIMELOOP   2500        // Minimum timing per iteration
+#define NBLOOPS    1           // Default number of benchmark iterations
+#define TIMELOOP   2000        // Minimum timing per iteration
 
 #define KB *(1U<<10)
 #define MB *(1U<<20)
