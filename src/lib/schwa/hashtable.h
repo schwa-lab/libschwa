@@ -50,11 +50,12 @@ namespace schwa {
     template <typename TABLE>
     class _iterator : public std::iterator<std::forward_iterator_tag, typename TABLE::mapped_type> {
     public:
-      using difference_type = typename std::iterator<std::forward_iterator_tag, typename TABLE::mapped_type>::difference_type;
-      using iterator_category = typename std::iterator<std::forward_iterator_tag, typename TABLE::mapped_type>::iterator_category;
-      using pointer = typename std::iterator<std::forward_iterator_tag, typename TABLE::mapped_type>::pointer;
-      using reference = typename std::iterator<std::forward_iterator_tag, typename TABLE::mapped_type>::reference;
-      using value_type = typename std::iterator<std::forward_iterator_tag, typename TABLE::mapped_type>::value_type;
+      using super_type = std::iterator<std::forward_iterator_tag, typename TABLE::mapped_type>;
+      using difference_type = typename super_type::difference_type;
+      using iterator_category = typename super_type::iterator_category;
+      using pointer = typename super_type::pointer;
+      using reference = typename super_type::reference;
+      using value_type = typename super_type::value_type;
 
     private:
       bool _ended;
@@ -96,10 +97,10 @@ namespace schwa {
       ~_iterator(void) { }
 
       inline bool operator ==(const _iterator &o) const { return _ended == o._ended && _initialised == o._initialised && _ht == o._ht && _index == o._index; }
-      inline bool operator !=(const _iterator &o) const { return _ended != o._ended || _initialised != o._initialised || _ht != o._ht || _index != o._index; }
+      inline bool operator !=(const _iterator &o) const { return !(*this == o); }
 
       inline reference operator *(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } return _ht->_table[_index]; }
-      inline pointer operator ->(void) { return &(*this); }
+      inline pointer operator ->(void) { return &(**this); }
 
       _iterator &operator ++(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } _increment(); return *this; }
       _iterator operator ++(int) { iterator it(*this); ++(*this); return it; }
