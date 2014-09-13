@@ -22,7 +22,7 @@ namespace schwa {
     using Hasher32Base<const char *>::result_type;
 
     inline result_type
-    operator ()(const argument_type &obj) {
+    operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH32(obj, std::strlen(obj), 0);
     }
   };
@@ -37,7 +37,7 @@ namespace schwa {
     using Hasher64Base<const char *>::result_type;
 
     inline result_type
-    operator ()(const argument_type &obj) {
+    operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH64(obj, std::strlen(obj), 0);
     }
   };
@@ -54,7 +54,7 @@ namespace schwa {
     using Hasher32Base<std::string>::result_type;
 
     inline result_type
-    operator ()(const argument_type &obj) {
+    operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH32(obj.c_str(), obj.size(), 0);
     }
   };
@@ -69,7 +69,7 @@ namespace schwa {
     using Hasher64Base<std::string>::result_type;
 
     inline result_type
-    operator ()(const argument_type &obj) {
+    operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH64(obj.c_str(), obj.size(), 0);
     }
   };

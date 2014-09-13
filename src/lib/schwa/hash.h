@@ -27,7 +27,7 @@ namespace schwa {
     using typename Hasher32Base<T>::result_type;
 
     inline result_type
-    operator ()(const argument_type &obj) {
+    operator ()(const argument_type &obj) const {
       return obj.hash32();
     }
   };
@@ -44,7 +44,7 @@ namespace schwa {
     using typename Hasher64Base<T>::result_type;
 
     inline result_type
-    operator ()(const argument_type &obj) {
+    operator ()(const argument_type &obj) const {
       return obj.hash64();
     }
   };
