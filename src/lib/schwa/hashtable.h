@@ -110,6 +110,7 @@ namespace schwa {
         _initialised = o._initialised;
         _ht = o._ht;
         _index = o._index;
+        return *this;
       }
 
       friend inline std::ostream &
@@ -155,13 +156,13 @@ namespace schwa {
         pointer entry = &_table[index];
         const uint64_t masked_entry_hash = _get_masked_entry_hash(entry);
 
-        // If entry the same as the key, return the entry.
+        // If the entry is the same as the key, return an iterator to the entry.
         if (masked_entry_hash == masked_hash) {
           exists = true;
           return iterator(*this, index);
         }
 
-        // If the entry is unoccupied, store the key, increment the population count, and return the entry.
+        // If the entry is unoccupied, return an iterator to the position in the table.
         if (masked_entry_hash == 0) {
           exists = false;
           return iterator(*this, index);
@@ -185,7 +186,7 @@ namespace schwa {
         const_pointer entry = &_table[index];
         const uint64_t masked_entry_hash = _get_masked_entry_hash(entry);
 
-        // If entry the same as the key, return the entry.
+        // If the entry is the same as the key, return the entry.
         if (masked_entry_hash == masked_hash)
           return const_iterator(*this, index);
 
