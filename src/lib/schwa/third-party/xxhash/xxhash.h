@@ -130,13 +130,13 @@ Memory will be freed by XXHnn_digest().
 */
 
 
-int           XXH32_sizeofState(void);
+size_t        XXH32_sizeofState(void);
 XXH_errorcode XXH32_resetState(void* state, uint32_t seed);
 
 #define       SCHWA_THIRD_PARTY_XXHASH_XXH32_SIZEOFSTATE 48
 typedef struct { uint64_t ll[(SCHWA_THIRD_PARTY_XXHASH_XXH32_SIZEOFSTATE+(sizeof(uint64_t)-1))/sizeof(uint64_t)]; } XXH32_stateSpace_t;
 
-int           XXH64_sizeofState(void);
+size_t        XXH64_sizeofState(void);
 XXH_errorcode XXH64_resetState(void* state, uint64_t seed);
 
 #define       SCHWA_THIRD_PARTY_XXHASH_XXH64_SIZEOFSTATE 88

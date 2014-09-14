@@ -439,13 +439,13 @@ struct XXH_state64_t
 };
 
 
-int XXH32_sizeofState(void)
+size_t XXH32_sizeofState(void)
 {
     static_assert(SCHWA_THIRD_PARTY_XXHASH_XXH32_SIZEOFSTATE >= sizeof(struct XXH_state32_t), "XXH32_SIZEOFSTATE is not large enough");
     return sizeof(struct XXH_state32_t);
 }
 
-int XXH64_sizeofState(void)
+size_t XXH64_sizeofState(void)
 {
     static_assert(SCHWA_THIRD_PARTY_XXHASH_XXH64_SIZEOFSTATE >= sizeof(struct XXH_state64_t), "XXH64_SIZEOFSTATE is not large enough");
     return sizeof(struct XXH_state64_t);
