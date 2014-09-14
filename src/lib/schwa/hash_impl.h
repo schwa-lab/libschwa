@@ -7,6 +7,7 @@
 #include <string>
 
 #include <schwa/third-party/xxhash/xxhash.h>
+#include <schwa/unicode.h>
 
 
 namespace schwa {
@@ -45,32 +46,98 @@ namespace schwa {
 
   // ==========================================================================
   /**
-   * Template specialisation of Hasher32 for std::string to use xxhash.
+   * Template specialisation of Hasher32 for char arrays use xxhash.
    * \see third_party::xxhash::XXH32
    **/
-  template <>
-  struct Hasher32<std::string> : public Hasher32Base<std::string> {
-    using Hasher32Base<std::string>::argument_type;
-    using Hasher32Base<std::string>::result_type;
+  template <size_t N>
+  struct Hasher32<char[N]> : public Hasher32Base<char[N]> {
+    using typename Hasher32Base<char[N]>::argument_type;
+    using typename Hasher32Base<char[N]>::result_type;
 
     inline result_type
     operator ()(const argument_type &obj) const {
-      return third_party::xxhash::XXH32(obj.c_str(), obj.size(), 0);
+      return third_party::xxhash::XXH32(obj, N - 1, 0);
     }
   };
 
   /**
-   * Template specialisation of Hasher64 for std::string to use xxhash.
+   * Template specialisation of Hasher64 for char arrays to use xxhash.
    * \see third_party::xxhash::XXH64
    **/
-  template <>
-  struct Hasher64<std::string> : public Hasher64Base<std::string> {
-    using Hasher64Base<std::string>::argument_type;
-    using Hasher64Base<std::string>::result_type;
+  template <size_t N>
+  struct Hasher64<char[N]> : public Hasher64Base<char[N]> {
+    using typename Hasher64Base<char[N]>::argument_type;
+    using typename Hasher64Base<char[N]>::result_type;
 
     inline result_type
     operator ()(const argument_type &obj) const {
-      return third_party::xxhash::XXH64(obj.c_str(), obj.size(), 0);
+      return third_party::xxhash::XXH64(obj, N - 1, 0);
+    }
+  };
+
+
+  // ==========================================================================
+  /**
+   * Template specialisation of Hasher32 for std::basic_string to use xxhash.
+   * \see third_party::xxhash::XXH32
+   **/
+  template <typename charT>
+  struct Hasher32<std::basic_string<charT>> : public Hasher32Base<std::basic_string<charT>> {
+    using typename Hasher32Base<std::basic_string<charT>>::argument_type;
+    using typename Hasher32Base<std::basic_string<charT>>::result_type;
+
+    inline result_type
+    operator ()(const argument_type &obj) const {
+      return third_party::xxhash::XXH32(obj.c_str(), obj.size()*sizeof(charT), 0);
+    }
+  };
+
+  /**
+   * Template specialisation of Hasher64 for std::basic_string to use xxhash.
+   * \see third_party::xxhash::XXH64
+   **/
+  template <typename charT>
+  struct Hasher64<std::basic_string<charT>> : public Hasher64Base<std::basic_string<charT>> {
+    using typename Hasher64Base<std::basic_string<charT>>::argument_type;
+    using typename Hasher64Base<std::basic_string<charT>>::result_type;
+
+    inline result_type
+    operator ()(const argument_type &obj) const {
+      return third_party::xxhash::XXH64(obj.c_str(), obj.size()*sizeof(charT), 0);
+    }
+  };
+
+
+  // ==========================================================================
+  /**
+   * Template specialisation of Hasher32 for UnicodeString to use xxhash over UTF-8 encoded data.
+   * \see third_party::xxhash::XXH32
+   **/
+  template <>
+  struct Hasher32<UnicodeString> : public Hasher32Base<UnicodeString> {
+    using Hasher32Base<UnicodeString>::argument_type;
+    using Hasher32Base<UnicodeString>::result_type;
+
+    inline result_type
+    operator ()(const argument_type &obj) const {
+      const std::string utf8 = obj.to_utf8();
+      return third_party::xxhash::XXH32(utf8.c_str(), utf8.size(), 0);
+    }
+  };
+
+  /**
+   * Template specialisation of Hasher64 for UnicodeString to use xxhash over UTF-8 encoded data.
+   * \see third_party::xxhash::XXH64
+   **/
+  template <>
+  struct Hasher64<UnicodeString> : public Hasher64Base<UnicodeString> {
+    using Hasher64Base<UnicodeString>::argument_type;
+    using Hasher64Base<UnicodeString>::result_type;
+
+    inline result_type
+    operator ()(const argument_type &obj) const {
+      const std::string utf8 = obj.to_utf8();
+      return third_party::xxhash::XXH64(utf8.c_str(), utf8.size(), 0);
     }
   };
 

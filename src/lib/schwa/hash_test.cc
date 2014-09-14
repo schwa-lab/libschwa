@@ -2,6 +2,7 @@
 #include <type_traits>
 
 #include <schwa/hash.h>
+#include <schwa/unicode.h>
 #include <schwa/unittest.h>
 
 
@@ -50,6 +51,28 @@ TEST(test_cstring_hash) {
 
   Hasher32<const char *> h32;
   static_assert(std::is_same<decltype(h32)::argument_type, const char *>::value, "argument_type incorrect");
+  static_assert(std::is_same<decltype(h32)::result_type, uint32_t>::value, "result_type incorrect");
+  CHECK_EQUAL(MEOW_HASH32, h32(meow));
+  CHECK_EQUAL(WOOF_HASH32, h32(woof));
+  CHECK_EQUAL(MEOW_HASH32, hash32(meow));
+  CHECK_EQUAL(WOOF_HASH32, hash32(woof));
+}
+
+
+TEST(test_unicodestring_hash) {
+  const UnicodeString meow("meow");
+  const UnicodeString woof("woof");
+
+  Hasher64<UnicodeString> h64;
+  static_assert(std::is_same<decltype(h64)::argument_type, UnicodeString>::value, "argument_type incorrect");
+  static_assert(std::is_same<decltype(h64)::result_type, uint64_t>::value, "result_type incorrect");
+  CHECK_EQUAL(MEOW_HASH64, h64(meow));
+  CHECK_EQUAL(WOOF_HASH64, h64(woof));
+  CHECK_EQUAL(MEOW_HASH64, hash64(meow));
+  CHECK_EQUAL(WOOF_HASH64, hash64(woof));
+
+  Hasher32<UnicodeString> h32;
+  static_assert(std::is_same<decltype(h32)::argument_type, UnicodeString>::value, "argument_type incorrect");
   static_assert(std::is_same<decltype(h32)::result_type, uint32_t>::value, "result_type incorrect");
   CHECK_EQUAL(MEOW_HASH32, h32(meow));
   CHECK_EQUAL(WOOF_HASH32, h32(woof));
