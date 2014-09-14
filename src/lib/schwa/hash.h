@@ -5,6 +5,7 @@
 #include <functional>
 
 #include <schwa/_base.h>
+#include <schwa/third-party/xxhash/xxhash.h>
 
 
 namespace schwa {
@@ -30,6 +31,11 @@ namespace schwa {
     operator ()(const argument_type &obj) const {
       return obj.hash32();
     }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return obj.xxhash32(state);
+    }
   };
 
 
@@ -46,6 +52,11 @@ namespace schwa {
     inline result_type
     operator ()(const argument_type &obj) const {
       return obj.hash64();
+    }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return obj.xxhash64(state);
     }
   };
 

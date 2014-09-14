@@ -6,7 +6,6 @@
 #include <functional>
 #include <string>
 
-#include <schwa/third-party/xxhash/xxhash.h>
 #include <schwa/unicode.h>
 
 
@@ -26,6 +25,11 @@ namespace schwa {
     operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH32(obj, std::strlen(obj), 0);
     }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH32_update(state, obj, std::strlen(obj));
+    }
   };
 
   /**
@@ -40,6 +44,11 @@ namespace schwa {
     inline result_type
     operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH64(obj, std::strlen(obj), 0);
+    }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH64_update(state, obj, std::strlen(obj));
     }
   };
 
@@ -58,6 +67,11 @@ namespace schwa {
     operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH32(obj, N - 1, 0);
     }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH32_update(state, obj, N - 1);
+    }
   };
 
   /**
@@ -72,6 +86,11 @@ namespace schwa {
     inline result_type
     operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH64(obj, N - 1, 0);
+    }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH64_update(state, obj, N - 1);
     }
   };
 
@@ -90,6 +109,11 @@ namespace schwa {
     operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH32(obj.c_str(), obj.size()*sizeof(charT), 0);
     }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH32_update(state, obj.c_str(), obj.size()*sizeof(charT));
+    }
   };
 
   /**
@@ -104,6 +128,11 @@ namespace schwa {
     inline result_type
     operator ()(const argument_type &obj) const {
       return third_party::xxhash::XXH64(obj.c_str(), obj.size()*sizeof(charT), 0);
+    }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH64_update(state, obj.c_str(), obj.size()*sizeof(charT));
     }
   };
 
@@ -123,6 +152,12 @@ namespace schwa {
       const std::string utf8 = obj.to_utf8();
       return third_party::xxhash::XXH32(utf8.c_str(), utf8.size(), 0);
     }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      const std::string utf8 = obj.to_utf8();
+      return third_party::xxhash::XXH32_update(state, utf8.c_str(), utf8.size());
+    }
   };
 
   /**
@@ -138,6 +173,12 @@ namespace schwa {
     operator ()(const argument_type &obj) const {
       const std::string utf8 = obj.to_utf8();
       return third_party::xxhash::XXH64(utf8.c_str(), utf8.size(), 0);
+    }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      const std::string utf8 = obj.to_utf8();
+      return third_party::xxhash::XXH64_update(state, utf8.c_str(), utf8.size());
     }
   };
 
