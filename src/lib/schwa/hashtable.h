@@ -119,13 +119,13 @@ namespace schwa {
       using value_type = typename super_type::value_type;
 
     private:
-      bool _ended;
-      bool _initialised;
-      TABLE *_ht;
-      size_t _index;
+      mutable bool _ended;
+      mutable bool _initialised;
+      mutable TABLE *_ht;
+      mutable size_t _index;
 
       void
-      _increment(void) {
+      _increment(void) const {
         // Don't do anything if it's at the end.
         if (SCHWA_UNLIKELY(_ended))
           return;
@@ -160,8 +160,8 @@ namespace schwa {
       inline bool operator ==(const _iterator &o) const { return _ended == o._ended && _initialised == o._initialised && _ht == o._ht && _index == o._index; }
       inline bool operator !=(const _iterator &o) const { return !(*this == o); }
 
-      inline reference operator *(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } return _ht->_table[_index]; }
-      inline pointer operator ->(void) { return &(**this); }
+      inline reference operator *(void) const { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } return _ht->_table[_index]; }
+      inline pointer operator ->(void) const { return &(**this); }
 
       _iterator &operator ++(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } _increment(); return *this; }
       _iterator operator ++(int) { iterator it(*this); ++(*this); return it; }
