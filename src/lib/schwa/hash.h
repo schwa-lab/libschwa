@@ -13,17 +13,8 @@ namespace schwa {
   template <typename T>
   using Hasher32Base = std::unary_function<T, uint32_t>;
 
-  template <typename T>
-  using Hasher64Base = std::unary_function<T, uint64_t>;
-
-
-  /**
-   * Template functor for returning a 32-bit hash function for objects. This templated
-   * implementation calls the <tt>.hash32</tt> method on the provided object. This functor can be
-   * specialised to provide type-specific non-method-invocation hashing.
-   **/
-  template <typename T>
-  struct Hasher32 : public Hasher32Base<T> {
+  template <typename T, bool IS_INTEGRAL_OR_FLOAT>
+  struct _Hasher32 : public Hasher32Base<T> {
     using typename Hasher32Base<T>::argument_type;
     using typename Hasher32Base<T>::result_type;
 
@@ -38,14 +29,36 @@ namespace schwa {
     }
   };
 
+  template <typename T>
+  struct _Hasher32<T, true> : public Hasher32Base<T> {
+    using typename Hasher32Base<T>::argument_type;
+    using typename Hasher32Base<T>::result_type;
+
+    inline result_type
+    operator ()(const argument_type &obj) const {
+      return third_party::xxhash::XXH32(&obj, sizeof(T), 0);
+    }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH32_update(state, &obj, sizeof(T));
+    }
+  };
 
   /**
-   * Template functor for returning a 64-bit hash function for objects. This templated
-   * implementation calls the <tt>.hash64</tt> method on the provided object. This functor can be
+   * Template functor for returning a 32-bit hash function for objects. This templated
+   * implementation calls the <tt>.hash32</tt> method on the provided object. This functor can be
    * specialised to provide type-specific non-method-invocation hashing.
    **/
   template <typename T>
-  struct Hasher64 : public Hasher64Base<T> {
+  struct Hasher32 : public _Hasher32<T, std::is_integral<T>::value || std::is_floating_point<T>::value> { };
+
+
+  template <typename T>
+  using Hasher64Base = std::unary_function<T, uint64_t>;
+
+  template <typename T, bool IS_INTEGRAL_OR_FLOAT>
+  struct _Hasher64 : public Hasher64Base<T> {
     using typename Hasher64Base<T>::argument_type;
     using typename Hasher64Base<T>::result_type;
 
@@ -59,6 +72,30 @@ namespace schwa {
       return obj.xxhash64(state);
     }
   };
+
+  template <typename T>
+  struct _Hasher64<T, true> : public Hasher64Base<T> {
+    using typename Hasher64Base<T>::argument_type;
+    using typename Hasher64Base<T>::result_type;
+
+    inline result_type
+    operator ()(const argument_type &obj) const {
+      return third_party::xxhash::XXH64(&obj, sizeof(T), 0);
+    }
+
+    inline third_party::xxhash::XXH_errorcode
+    operator ()(const argument_type &obj, void *state) const {
+      return third_party::xxhash::XXH64_update(state, &obj, sizeof(T));
+    }
+  };
+
+  /**
+   * Template functor for returning a 64-bit hash function for objects. This templated
+   * implementation calls the <tt>.hash64</tt> method on the provided object. This functor can be
+   * specialised to provide type-specific non-method-invocation hashing.
+   **/
+  template <typename T>
+  struct Hasher64 : public _Hasher64<T, std::is_integral<T>::value || std::is_floating_point<T>::value> { };
 
 
   /**
