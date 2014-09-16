@@ -41,15 +41,17 @@ Processor::_write_indent(void) {
 void
 Processor::_write_value(const mp::Value &value, const bool add_description) {
   if (is_bool(value.type)) {
-    *_out << std::boolalpha << value.via._bool << ",";
+    *_out << std::boolalpha << value.via._bool;
+    if (add_description)
+      *_out << SEP << "bool" << port::OFF;
   }
   else if (is_double(value.type)) {
-    *_out << value.via._double << ",";
+    *_out << value.via._double;
     if (add_description)
       *_out << SEP << "double" << port::OFF;
   }
   else if (is_float(value.type)) {
-    *_out << value.via._float << ",";
+    *_out << value.via._float;
     if (add_description)
       *_out << SEP << "float" << port::OFF;
   }
@@ -59,19 +61,19 @@ Processor::_write_value(const mp::Value &value, const bool add_description) {
       *_out << SEP << "nil" << port::OFF;
   }
   else if (is_sint(value.type)) {
-    *_out << "0x" << std::hex << value.via._int64 << std::dec << ",";
+    *_out << "0x" << std::hex << value.via._int64 << std::dec;
     if (add_description)
       *_out << SEP << "int (" << value.via._int64 << ")" << port::OFF;
   }
   else if (is_uint(value.type)) {
-    *_out << "0x" << std::hex << value.via._uint64 << std::dec << ",";
+    *_out << "0x" << std::hex << value.via._uint64 << std::dec;
     if (add_description)
       *_out << SEP << "uint (" << value.via._uint64 << ")" << port::OFF;
   }
   else if (is_str(value.type)) {
     const mp::Str &obj = *value.via._str;
     const UnicodeString s = UnicodeString::from_utf8(obj.data(), obj.nbytes());
-    *_out << "\"" << s << "\",";
+    *_out << "\"" << s << "\"";
     if (add_description)
       *_out << SEP << "str (" << std::dec << obj.nbytes() << "B, " << s.size() << " code point(s))" << port::OFF;
   }
@@ -81,19 +83,19 @@ Processor::_write_value(const mp::Value &value, const bool add_description) {
     for (uint32_t i = 0; i != obj.nbytes(); ++i) {
       const char c = obj.data()[i];
       if (std::isprint(c))
-        *_out << std::dec << c;
+        *_out << c;
       else
-        *_out << "\\x" << std::hex << static_cast<unsigned int>(c);
+        *_out << "\\x" << std::hex << static_cast<unsigned int>(c) << std::dec;
     }
-    *_out << "\",";
+    *_out << "\"";
     if (add_description)
       *_out << SEP << "bin (" << std::dec << obj.nbytes() << "B)" << port::OFF;
   }
   else if (is_array(value.type)) {
     const mp::Array &obj = *value.via._array;
-    _write_indent() << "[";
+    _write_indent() << port::BOLD << "[" << port::OFF;
     if (obj.size() == 0)
-      *_out << "]";
+      *_out << port::BOLD << "]" << port::OFF;
     if (add_description)
       *_out << SEP << "array (" << std::dec << obj.size() << ")" << port::OFF;
     if (obj.size() != 0) {
@@ -105,15 +107,14 @@ Processor::_write_value(const mp::Value &value, const bool add_description) {
         *_out << ",\n";
       }
       --_indent;
-      _write_indent() << "]";
+      _write_indent() << port::BOLD << "]" << port::OFF;
     }
-    *_out << "\n";
   }
   else if (is_map(value.type)) {
     const mp::Map &obj = *value.via._map;
-    _write_indent() << "{";
+    _write_indent() << port::BOLD << "{" << port::OFF;
     if (obj.size() == 0)
-      *_out << "}";
+      *_out << port::BOLD << "}" << port::OFF;
     if (add_description)
       *_out << SEP << "map (" << std::dec << obj.size() << ")" << port::OFF;
     if (obj.size() != 0) {
@@ -123,14 +124,13 @@ Processor::_write_value(const mp::Value &value, const bool add_description) {
         const mp::Map::Pair &pair = obj[i];
         _write_indent();
         _write_value(pair.key, false);
-        *_out << port::DARK_GREY << " : " << port::OFF;
+        *_out << port::BOLD << ": " << port::OFF;
         _write_value(pair.value);
-        *_out << "\n";
+        *_out << ",\n";
       }
       --_indent;
-      _write_indent() << "}";
+      _write_indent() << port::BOLD << "}" << port::OFF;
     }
-    *_out << "\n";
   }
   else if (is_ext(value.type)) {
     const mp::Ext &obj = *value.via._ext;
@@ -142,7 +142,7 @@ Processor::_write_value(const mp::Value &value, const bool add_description) {
       else
         *_out << "\\x" << std::hex << static_cast<unsigned int>(c);
     }
-    *_out << "\",";
+    *_out << "\"";
     if (add_description)
       *_out << SEP << "ext (" << std::dec << obj.nbytes() << "B)" << port::OFF;
   }
@@ -157,11 +157,13 @@ Processor::process(std::istream &in, std::ostream &out) {
   _out = &out;
 
   Pool pool(4096);
-  while (in.good() && !in.eof()) {
+  while (in) {
     // Read in the next MessagePack object.
+    const auto at_byte = in.tellg();
     mp::Value *value = nullptr;
     try {
       value = mp::read_dynamic(in, pool);
+      assert(value != nullptr);
     }
     catch (mp::ReadError &e) {
       *_out << port::RED << "ReadError at byte " << std::dec << in.tellg() << ": " << e.what() << port::OFF << std::endl;
@@ -169,8 +171,9 @@ Processor::process(std::istream &in, std::ostream &out) {
     }
 
     // Pretty-print the object.
-    assert(value != nullptr);
+    *_out << port::DARK_GREY << "# at byte " << at_byte << port::OFF << "\n";
     _write_value(*value);
+    *_out << "\n";
   }
 }
 
