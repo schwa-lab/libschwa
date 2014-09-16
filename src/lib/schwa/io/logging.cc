@@ -62,7 +62,7 @@ pretty_log_header(const LogLevel level, const char *file, const unsigned int lin
   if (len > 35) {
     file += len - 35;
   }
-  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %35s:%-4u] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum);
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %35s:%-4u] ", now_buf, static_cast<ssize_t>(now_tv.tv_usec), loglevel_name(level), file, linenum);
 }
 
 
@@ -87,7 +87,7 @@ pretty_log_header_threaded(const LogLevel level, const char *file, const unsigne
   if (len > 25) {
     file += len - 25;
   }
-  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %25s:%-4u][%-8s] ", now_buf, now_tv.tv_usec, loglevel_name(level), file, linenum, thread_id.c_str());
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %25s:%-4u][%-8s] ", now_buf, static_cast<ssize_t>(now_tv.tv_usec), loglevel_name(level), file, linenum, thread_id.c_str());
 }
 
 
