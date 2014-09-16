@@ -1,3 +1,6 @@
+0.4.1
+* Added `mp-less` app for viewing MessagePack payloads.
+
 0.4.0
 * Don't distribute _config.h (whoops).
 * Added `SCHWA_LIKELY` and `SCHWA_UNLIKELY` macro definitions to wrap around `__builtin_expect`.
