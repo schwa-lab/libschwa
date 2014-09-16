@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_DRUI_PROCESSOR_H_
-#define SCHWA_DRUI_PROCESSOR_H_
+#ifndef SCHWA_DRLESS_PROCESSOR_H_
+#define SCHWA_DRLESS_PROCESSOR_H_
 
 #include <iosfwd>
 #include <vector>
@@ -35,4 +35,4 @@ namespace schwa {
   }
 }
 
-#endif  // SCHWA_DRUI_PROCESSOR_H_
+#endif  // SCHWA_DRLESS_PROCESSOR_H_

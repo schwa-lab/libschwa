@@ -1,4 +1,6 @@
 0.4.1
+* Corrected `dr-count` to work when no documents were processed (#18).
+* Added `mp-less` app for viewing MessagePack payloads.
 * Replaced cityhash with xxhash.
 
 0.4.0
