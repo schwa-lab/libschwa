@@ -357,5 +357,5 @@ Processor::process_doc(const dr::Doc &doc, const uint32_t doc_num) {
   _impl->process_doc(doc, doc_num);
 }
 
-}  // namespace drui
+}  // namespace dr_less
 }  // namespace schwa
