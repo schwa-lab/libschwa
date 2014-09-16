@@ -157,14 +157,32 @@ namespace schwa {
       _iterator(const _iterator &&o) : _ended(o._ended), _initialised(o._initialised), _ht(o._ht), _index(o._index) { }
       ~_iterator(void) { }
 
-      inline bool operator ==(const _iterator &o) const { return _ended == o._ended && _initialised == o._initialised && _ht == o._ht && _index == o._index; }
+      inline bool
+      operator ==(const _iterator &o) const {
+        if (SCHWA_UNLIKELY(!_initialised))
+          _increment();
+        if (SCHWA_UNLIKELY(!o._initialised))
+          o._increment();
+        return _ended == o._ended && _initialised == o._initialised && _ht == o._ht && _index == o._index;
+      }
       inline bool operator !=(const _iterator &o) const { return !(*this == o); }
 
-      inline reference operator *(void) const { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } return _ht->_table[_index]; }
+      inline reference
+      operator *(void) const {
+        if (SCHWA_UNLIKELY(!_initialised))
+          _increment();
+        return _ht->_table[_index];
+      }
       inline pointer operator ->(void) const { return &(**this); }
 
-      _iterator &operator ++(void) { if (SCHWA_UNLIKELY(!_initialised)) { _increment(); } _increment(); return *this; }
-      _iterator operator ++(int) { iterator it(*this); ++(*this); return it; }
+      inline _iterator &
+      operator ++(void) {
+        if (SCHWA_UNLIKELY(!_initialised))
+          _increment();
+        _increment();
+        return *this;
+      }
+      inline _iterator operator ++(int) { iterator it(*this); ++(*this); return it; }
 
       _iterator &
       operator =(const _iterator &o) {
@@ -398,6 +416,7 @@ namespace schwa {
       // Ensure the xxhash state was allocated successfully.
       if (SCHWA_UNLIKELY(_xxhash_state == nullptr))
         throw std::bad_alloc();
+
       // Construct the table objects.
       for (size_t i = 0; i != TABLE_SIZE; ++i)
         _allocator.construct(_table + i);
