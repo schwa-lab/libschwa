@@ -2,10 +2,10 @@
 #ifndef SCHWA_HASHTABLE_H_
 #define SCHWA_HASHTABLE_H_
 
-#include <iomanip>
-
 #include <cstdlib>
 #include <iterator>
+#include <iomanip>
+#include <iostream>
 #include <memory>
 #include <new>
 #include <type_traits>
@@ -14,6 +14,7 @@
 #include <schwa/_base.h>
 #include <schwa/io/logging.h>
 #include <schwa/hash.h>
+#include <schwa/msgpack.h>
 
 
 namespace schwa {
@@ -82,6 +83,11 @@ namespace schwa {
    * - must be a subclass of FeatureHashtableEntryBase
    * - must be default constructable
    * - must not be virtual
+   *
+   * ENTRY classes should define the \p clear, \p deserialise, and \p serialise methods,
+   * accounting for the \p _value member in FeatureHashtableEntryBase. They are non-virtual for
+   * speed reasons.
+   *
    * This class is not thread-safe.
    **/
   template <typename ENTRY, size_t INDEX_BITS=24, typename ALLOC=std::allocator<ENTRY>>
@@ -212,10 +218,10 @@ namespace schwa {
     void *const _xxhash_state;  //<! Array of bytes used to maintain partial xxhash state.
     size_type _size;  //!< The population count; how many entries exist in the table.
 
-
     inline reference
     _create_entry(pointer entry, const uint64_t masked_hash, const Label &label) {
-      ++_size;
+      if (SCHWA_LIKELY(entry->value() == 0))
+        ++_size;
       entry->set_masked_hash(masked_hash);
       entry->set_label(label);
       return *entry;
@@ -227,7 +233,7 @@ namespace schwa {
       const size_t index = (start_index + label) % TABLE_SIZE;
       const pointer entry = &_table[index];
       const uint64_t entry_value = entry->value();
-      LOG(INFO) << "[_locate_dense] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
+      //LOG(INFO) << "[_locate_dense] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
 
       // If the entry is unoccupied, return an iterator to the position in the table.
       if (entry_value == 0) {
@@ -242,8 +248,8 @@ namespace schwa {
       }
 
       // FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?
-      LOG(INFO) << "FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?" << std::endl;
-      exists = true;
+      //LOG(INFO) << "[_locate_dense] FIXME entry_value=0x" << std::hex << entry_value << " value=0x" << std::hex << value << std::endl;
+      exists = false;
       return iterator(*this, index);
     }
 
@@ -253,9 +259,9 @@ namespace schwa {
       for (size_t nmisses = 0; nmisses != TABLE_SIZE; ++nmisses) {
         // Get the next entry and its masked hash.
         const size_t index = (start_index + nmisses*nmisses) % TABLE_SIZE;  // Quadratic probing.
-        const pointer entry = &_table[index];
-        const uint64_t entry_value = entry->value();
-        LOG(INFO) << "[_locate_sparse] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
+        const_reference entry = _table[index];
+        const uint64_t entry_value = entry.value();
+        //LOG(INFO) << "[_locate_sparse] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
 
         // If the entry is unoccupied, return an iterator to the position in the table.
         if (entry_value == 0) {
@@ -280,7 +286,7 @@ namespace schwa {
       masked_hash = FeatureHashtableEntryBase::mask_hash(hash);
       const uint64_t value = FeatureHashtableEntryBase::build_value(masked_hash, label);
       const size_t start_index = hash & TABLE_INDEX_MASK;
-      LOG(INFO) << "[_locate] hash=0x" << std::hex << hash << " masked_hash=0x" << std::hex << masked_hash << " start_index=" << std::dec << start_index << std::endl;
+      //LOG(INFO) << "[_locate] hash=0x" << std::hex << hash << " masked_hash=0x" << std::hex << masked_hash << " start_index=" << std::dec << start_index << std::endl;
 
       // Unless the feature type storage is defined to be DENSE, use sparse features.
       if (type.storage() == FeatureStorage::DENSE)
@@ -293,9 +299,9 @@ namespace schwa {
     const_iterator
     _locate_dense(const size_t start_index, const Label label, const uint64_t value) const {
       const size_t index = (start_index + label) % TABLE_SIZE;
-      const pointer entry = &_table[index];
-      const uint64_t entry_value = entry->value();
-      LOG(INFO) << "[_locate_dense const] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
+      const_reference entry = _table[index];
+      const uint64_t entry_value = entry.value();
+      //LOG(INFO) << "[_locatewdense const] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
 
       // If the entry is unoccupied, return not found.
       if (entry_value == 0)
@@ -306,7 +312,7 @@ namespace schwa {
         return const_iterator(*this, index);
 
       // FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?
-      LOG(INFO) << "FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?" << std::endl;
+      LOG(INFO) << "[_locate_dense const] FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?" << std::endl;
       return const_iterator(*this, index);
     }
 
@@ -318,7 +324,7 @@ namespace schwa {
         const size_t index = (start_index + nmisses*nmisses) % TABLE_SIZE;  // Quadratic probing.
         const pointer entry = &_table[index];
         const uint64_t entry_value = entry->value();
-        LOG(INFO) << "[_locate_sparse const] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
+        //LOG(INFO) << "[_locate_sparse const] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
 
         // If the entry is unoccupied, return not found.
         if (entry_value == 0)
@@ -335,10 +341,10 @@ namespace schwa {
 
     inline const_iterator
     _locate(const FeatureType &type, const uint64_t hash, const Label label) const {
+      const size_t start_index = hash & TABLE_INDEX_MASK;
       const uint64_t masked_hash = FeatureHashtableEntryBase::mask_hash(hash);
       const uint64_t value = FeatureHashtableEntryBase::build_value(masked_hash, label);
-      const size_t start_index = hash & TABLE_INDEX_MASK;
-      LOG(INFO) << "[_locate const] hash=0x" << std::hex << hash << " masked_hash=0x" << std::hex << masked_hash << " start_index=" << std::dec << start_index << std::endl;
+      //LOG(INFO) << "[_locate const] hash=0x" << std::hex << hash << " masked_hash=0x" << std::hex << masked_hash << " start_index=" << std::dec << start_index << std::endl;
 
       // Unless the feature type storage is defined to be DENSE, use sparse features.
       if (type.storage() == FeatureStorage::DENSE)
@@ -348,43 +354,100 @@ namespace schwa {
     }
 
 
+    template <typename FN>
+    void
+    _for_each_label_dense(const size_t start_index, const uint64_t masked_hash, const Label label_begin, const Label label_end, FN &fn) const {
+      size_t index = start_index + label_begin;
+      if (SCHWA_UNLIKELY(index >= TABLE_SIZE))
+        index = 0;
+
+      for (Label label = label_begin; label != label_end; ++label, ++index) {
+        if (SCHWA_UNLIKELY(index == TABLE_SIZE))
+          index = 0;
+        const_reference entry = _table[index];
+        const uint64_t entry_value = entry.value();
+        const uint64_t value = FeatureHashtableEntryBase::build_value(masked_hash, label);
+
+        // FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?
+        if (entry_value == value)
+          fn(label, entry);
+      }
+    }
+
+    template <typename FN>
+    void
+    _for_each_label_sparse(const size_t start_index, const uint64_t masked_hash, const Label label_begin, const Label label_end, FN &fn) const {
+      // Probe the table entries.
+      for (size_t nmisses = 0; nmisses != TABLE_SIZE; ++nmisses) {
+        // Get the next entry and its masked hash.
+        const size_t index = (start_index + nmisses*nmisses) % TABLE_SIZE;  // Quadratic probing.
+        const_reference entry = _table[index];
+        const uint64_t entry_value = entry.value();
+
+        // If the entry is unoccupied, bail.
+        if (entry_value == 0)
+          break;
+
+        // If the masked hash is the same, extract the label.
+        if (entry.masked_hash() == masked_hash) {
+          const Label label = entry.label();
+          if (SCHWA_LIKELY(label >= label_begin && label < label_end))
+            fn(label, entry);
+        }
+      }
+    }
+
+    template <typename FN>
+    void
+    _for_each_label(const FeatureType &type, const uint64_t hash, const Label label_begin, const Label label_end, FN &fn) const {
+      const size_t start_index = hash & TABLE_INDEX_MASK;
+      const uint64_t masked_hash = FeatureHashtableEntryBase::mask_hash(hash);
+
+      // Unless the feature type storage is defined to be DENSE, use sparse features.
+      if (type.storage() == FeatureStorage::DENSE)
+        _for_each_label_dense(start_index, masked_hash, label_begin, label_end, fn);
+      else
+        _for_each_label_sparse(start_index, masked_hash, label_begin, label_end, fn);
+    }
+
+
     /**
      * Hashes together the feature type identifier and the contextual predicate using xxhash's
      * state-based hasher to form a combined digest. Returns the resultant hash.
      **/
-    template <typename CP, typename HASHER>
+    template <typename VALUE, typename HASHER>
     inline uint64_t
-    _hash(const FeatureType &type, const CP &contextual_predicate, const HASHER &hasher) const {
+    _hash(const FeatureType &type, const VALUE &value, const HASHER &hasher) const {
       const FeatureType::id_type type_id = type.id();
       third_party::xxhash::XXH64_resetState(_xxhash_state, 0);
       third_party::xxhash::XXH64_update(_xxhash_state, &type_id, sizeof(decltype(type_id)));
-      hasher(contextual_predicate, _xxhash_state);
+      hasher(value, _xxhash_state);
       return third_party::xxhash::XXH64_intermediateDigest(_xxhash_state);
     }
 
 
     // ============================================================================================
-    template <typename CP, typename HASHER>
+    template <typename VALUE, typename HASHER>
     inline iterator
-    _find(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) {
-      const uint64_t hash = _hash(type, cp, hasher);
+    _find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) {
+      const uint64_t hash = _hash(type, value, hasher);
       uint64_t masked_hash;
       bool exists;
       iterator it = _locate(type, hash, label, masked_hash, exists);
       return exists ? it : iterator();
     }
 
-    template <typename CP, typename HASHER>
+    template <typename VALUE, typename HASHER>
     inline const_iterator
-    _find(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) const {
-      const uint64_t hash = _hash(type, cp, hasher);
+    _find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) const {
+      const uint64_t hash = _hash(type, value, hasher);
       return _locate(type, hash, label);
     }
 
-    template <typename CP, typename HASHER>
+    template <typename VALUE, typename HASHER>
     inline reference
-    _get(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) {
-      const uint64_t hash = _hash(type, cp, hasher);
+    _get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) {
+      const uint64_t hash = _hash(type, value, hasher);
       uint64_t masked_hash;
       bool exists;
       iterator it = _locate(type, hash, label, masked_hash, exists);
@@ -396,10 +459,10 @@ namespace schwa {
         return _create_entry(&(*it), masked_hash, label);
     }
 
-    template <typename CP, typename HASHER>
+    template <typename VALUE, typename HASHER>
     inline const_reference
-    _get(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) const {
-      const uint64_t hash = _hash(type, cp, hasher);
+    _get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) const {
+      const uint64_t hash = _hash(type, value, hasher);
       const_iterator it = _locate(type, hash, label);
       if (SCHWA_UNLIKELY(it == end()))
         throw std::out_of_range("The entry does not exist in the table.");
@@ -453,47 +516,85 @@ namespace schwa {
     inline float load_factor(void) const noexcept { return _size / static_cast<float>(TABLE_SIZE); }
 
     // Element lookup
-    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
+    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
     inline iterator
-    find(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) {
+    find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _find(type, contextual_predicate, label, hasher);
+      return _find(type, value, label, hasher);
     }
 
-    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
+    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
     inline const_iterator
-    find(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) const {
+    find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _find(type, contextual_predicate, label, hasher);
+      return _find(type, value, label, hasher);
     }
 
     // Element access
-    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
+    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
     inline reference
-    get(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) {
+    get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, contextual_predicate, label, hasher);
+      return _get(type, value, label, hasher);
     }
 
-    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
+    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
     inline const_reference
-    get(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) const {
+    get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, contextual_predicate, label, hasher);
+      return _get(type, value, label, hasher);
     }
 
-    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
+    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
     inline reference
-    operator ()(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) {
+    operator ()(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, contextual_predicate, label, hasher);
+      return _get(type, value, label, hasher);
     }
 
-    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
+    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
     inline const_reference
-    operator ()(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) const {
+    operator ()(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, contextual_predicate, label, hasher);
+      return _get(type, value, label, hasher);
+    }
+
+    // Modifiers
+    inline void
+    clear(void) {
+      _size = 0;
+      for (auto &entry : *this)
+        entry.clear();
+    }
+
+    // Serialisation
+    void
+    deserialise(std::istream &in) {
+      _size = msgpack::read_map_size(in);
+      for (size_t n = 0; n != _size; ++n) {
+        const size_t index = msgpack::read_uint(in);
+        _table[index].deserialise(in);
+      }
+    }
+
+    void
+    serialise(std::ostream &out) const {
+      msgpack::write_map_size(out, _size);
+      for (auto &entry : *this) {
+        const size_t index = &entry - _table;
+        msgpack::write_uint(out, index);
+        entry.serialise(out);
+      }
+    }
+
+
+    // Iteration through each label for a particular contextual predicate.
+    template <typename VALUE, typename FN, typename HASHER=schwa::Hasher64<VALUE>>
+    inline void
+    for_each_label(const FeatureType &type, const VALUE &value, const Label label_begin, const Label label_end, FN &fn, const HASHER &hasher=HASHER()) const {
+      static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
+      const uint64_t hash = _hash(type, value, hasher);
+      _for_each_label(type, hash, label_begin, label_end, fn);
     }
 
   private:
