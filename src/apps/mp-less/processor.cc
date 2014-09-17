@@ -163,10 +163,15 @@ Processor::process(std::istream &in, std::ostream &out) {
     mp::Value *value = nullptr;
     try {
       value = mp::read_dynamic(in, pool);
-      assert(value != nullptr);
     }
     catch (mp::ReadError &e) {
       *_out << port::RED << "ReadError at byte " << std::dec << in.tellg() << ": " << e.what() << port::OFF << std::endl;
+      break;
+    }
+
+    // Check for EOF.
+    if (value == nullptr) {
+      assert(in.eof());
       break;
     }
 
