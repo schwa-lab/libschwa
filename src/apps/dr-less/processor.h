@@ -11,15 +11,38 @@
 namespace schwa {
   namespace dr {
     class Doc;
+    class RTFieldDef;
+    class RTSchema;
+    class RTStoreDef;
+  }
+
+  namespace msgpack {
+    class Value;
   }
 
   namespace dr_less {
 
     class Processor {
-    private:
-      class Impl;
+    public:
+      static const std::string SEP;
+      static const std::string REPR_NIL;
+      static const std::string REPR_UNKNOWN;
 
-      Impl *_impl;
+    private:
+      std::ostream &_out;
+      const dr::Doc *_doc;
+      unsigned int _indent;
+
+      void _process_doc_fields(const dr::RTSchema &schema);
+      void _process_store(const dr::RTStoreDef &store);
+
+      std::ostream &_write_indent(void);
+      std::ostream &_write_field(const dr::RTFieldDef &field, const msgpack::Value &value);
+      std::ostream &_write_field(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const msgpack::Value &value);
+
+      void _write_pointer(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const msgpack::Value &value);
+      void _write_primitive(const msgpack::Value &value);
+      void _write_slice(const dr::RTFieldDef &field, const msgpack::Value &value);
 
     public:
       Processor(std::ostream &out);

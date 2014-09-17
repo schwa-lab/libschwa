@@ -24,45 +24,17 @@ namespace mp = schwa::msgpack;
 namespace schwa {
 namespace dr_less {
 
-// ============================================================================
-// Processor::Impl
-// ============================================================================
-class Processor::Impl {
-public:
-  static const std::string SEP;
-  static const std::string REPR_NIL;
-  static const std::string REPR_UNKNOWN;
+const std::string Processor::SEP(std::string("\t") + port::DARK_GREY + "# ");
+const std::string Processor::REPR_NIL("<nil>");
+const std::string Processor::REPR_UNKNOWN("<UNKNOWN VALUE>");
 
-private:
-  std::ostream &_out;
-  const dr::Doc *_doc;
-  unsigned int _indent;
+Processor::Processor(std::ostream &out) : _out(out), _doc(nullptr), _indent(0) { }
 
-  void _process_doc_fields(const dr::RTSchema &schema);
-  void _process_store(const dr::RTStoreDef &store);
-
-  std::ostream &_write_indent(void);
-  std::ostream &_write_field(const dr::RTFieldDef &field, const mp::Value &value);
-  std::ostream &_write_field(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value);
-
-  void _write_pointer(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value);
-  void _write_primitive(const mp::Value &value);
-  void _write_slice(const dr::RTFieldDef &field, const mp::Value &value);
-
-public:
-  Impl(std::ostream &out) : _out(out), _doc(nullptr), _indent(0) { }
-
-  void process_doc(const dr::Doc &doc, uint32_t doc_num);
-};
-
-
-const std::string Processor::Impl::SEP(std::string("\t") + port::DARK_GREY + "# ");
-const std::string Processor::Impl::REPR_NIL("<nil>");
-const std::string Processor::Impl::REPR_UNKNOWN("<UNKNOWN VALUE>");
+Processor::~Processor(void) { }
 
 
 void
-Processor::Impl::process_doc(const dr::Doc &doc, const uint32_t doc_num) {
+Processor::process_doc(const dr::Doc &doc, const uint32_t doc_num) {
   // Reset our state.
   _doc = &doc;
   _indent = 0;
@@ -88,11 +60,11 @@ Processor::Impl::process_doc(const dr::Doc &doc, const uint32_t doc_num) {
 
 
 void
-Processor::Impl::_process_doc_fields(const dr::RTSchema &rtdschema) {
+Processor::_process_doc_fields(const dr::RTSchema &rtdschema) {
   // Iterate through each field name to find the largest name so we can align all of the values
   // when printing out.
   unsigned int max_length = 0;
-  for (const auto& field : rtdschema.fields)
+  for (const auto &field : rtdschema.fields)
     if (field->serial.size() > max_length)
       max_length = field->serial.size();
 
@@ -124,14 +96,14 @@ Processor::Impl::_process_doc_fields(const dr::RTSchema &rtdschema) {
 
 
 void
-Processor::Impl::_process_store(const dr::RTStoreDef &store) {
+Processor::_process_store(const dr::RTStoreDef &store) {
   assert(store.is_lazy());
   const dr::RTSchema &klass = *store.klass;
 
   // Iterate through each field name to find the largest name so we can align
   // all of the values when printing out.
   unsigned int max_length = 0;
-  for (const auto& field : klass.fields)
+  for (const auto &field : klass.fields)
     if (field->serial.size() > max_length)
       max_length = field->serial.size();
 
@@ -178,7 +150,7 @@ Processor::Impl::_process_store(const dr::RTStoreDef &store) {
 
 
 std::ostream &
-Processor::Impl::_write_indent(void) {
+Processor::_write_indent(void) {
   for (unsigned int i = 0; i != _indent; ++i)
     _out << "  ";
   return _out;
@@ -186,7 +158,7 @@ Processor::Impl::_write_indent(void) {
 
 
 std::ostream &
-Processor::Impl::_write_field(const dr::RTFieldDef &field, const mp::Value &value) {
+Processor::_write_field(const dr::RTFieldDef &field, const mp::Value &value) {
   const auto flags = _out.flags();
 
   if (field.is_slice)
@@ -200,7 +172,7 @@ Processor::Impl::_write_field(const dr::RTFieldDef &field, const mp::Value &valu
 
 
 std::ostream &
-Processor::Impl::_write_field(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value) {
+Processor::_write_field(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value) {
   const auto flags = _out.flags();
 
   if (field.is_slice)
@@ -216,7 +188,7 @@ Processor::Impl::_write_field(const dr::RTStoreDef &store, const dr::RTFieldDef 
 
 
 void
-Processor::Impl::_write_slice(const dr::RTFieldDef &field, const mp::Value &value) {
+Processor::_write_slice(const dr::RTFieldDef &field, const mp::Value &value) {
   assert(is_array(value.type));
   const auto &array = *value.via._array;
   assert(array.size() == 2);
@@ -236,7 +208,7 @@ Processor::Impl::_write_slice(const dr::RTFieldDef &field, const mp::Value &valu
 
 
 void
-Processor::Impl::_write_pointer(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value) {
+Processor::_write_pointer(const dr::RTStoreDef &store, const dr::RTFieldDef &field, const mp::Value &value) {
   if (field.is_collection) {
     assert(is_array(value.type));
     const mp::Array &array = *value.via._array;
@@ -277,7 +249,7 @@ Processor::Impl::_write_pointer(const dr::RTStoreDef &store, const dr::RTFieldDe
 
 
 void
-Processor::Impl::_write_primitive(const mp::Value &value) {
+Processor::_write_primitive(const mp::Value &value) {
   if (is_bool(value.type)) {
     _out << std::boolalpha << value.via._bool << ",";
   }
@@ -340,21 +312,6 @@ Processor::Impl::_write_primitive(const mp::Value &value) {
   }
   else
     _out << port::RED << REPR_UNKNOWN << port::OFF;
-}
-
-
-// ============================================================================
-// Processor
-// ============================================================================
-Processor::Processor(std::ostream &out) : _impl(new Processor::Impl(out)) { }
-
-Processor::~Processor(void) {
-  delete _impl;
-}
-
-void
-Processor::process_doc(const dr::Doc &doc, const uint32_t doc_num) {
-  _impl->process_doc(doc, doc_num);
 }
 
 }  // namespace dr_less
