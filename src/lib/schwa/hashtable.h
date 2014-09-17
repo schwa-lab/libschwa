@@ -248,7 +248,7 @@ namespace schwa {
       }
 
       // FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?
-      //LOG(INFO) << "[_locate_dense] FIXME entry_value=0x" << std::hex << entry_value << " value=0x" << std::hex << value << std::endl;
+      //LOG(INFO) << "[_locate_dense] FIXME entry_value=0x" << std::hex << entry_value << " value=0x" << std::hex << value << std::dec << std::endl;
       exists = false;
       return iterator(*this, index);
     }
@@ -415,39 +415,39 @@ namespace schwa {
      * Hashes together the feature type identifier and the contextual predicate using xxhash's
      * state-based hasher to form a combined digest. Returns the resultant hash.
      **/
-    template <typename VALUE, typename HASHER>
+    template <typename CP, typename HASHER>
     inline uint64_t
-    _hash(const FeatureType &type, const VALUE &value, const HASHER &hasher) const {
+    _hash(const FeatureType &type, const CP &cp, const HASHER &hasher) const {
       const FeatureType::id_type type_id = type.id();
       third_party::xxhash::XXH64_resetState(_xxhash_state, 0);
       third_party::xxhash::XXH64_update(_xxhash_state, &type_id, sizeof(decltype(type_id)));
-      hasher(value, _xxhash_state);
+      hasher(cp, _xxhash_state);
       return third_party::xxhash::XXH64_intermediateDigest(_xxhash_state);
     }
 
 
     // ============================================================================================
-    template <typename VALUE, typename HASHER>
+    template <typename CP, typename HASHER>
     inline iterator
-    _find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) {
-      const uint64_t hash = _hash(type, value, hasher);
+    _find(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) {
+      const uint64_t hash = _hash(type, cp, hasher);
       uint64_t masked_hash;
       bool exists;
       iterator it = _locate(type, hash, label, masked_hash, exists);
       return exists ? it : iterator();
     }
 
-    template <typename VALUE, typename HASHER>
+    template <typename CP, typename HASHER>
     inline const_iterator
-    _find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) const {
-      const uint64_t hash = _hash(type, value, hasher);
+    _find(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) const {
+      const uint64_t hash = _hash(type, cp, hasher);
       return _locate(type, hash, label);
     }
 
-    template <typename VALUE, typename HASHER>
+    template <typename CP, typename HASHER>
     inline reference
-    _get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) {
-      const uint64_t hash = _hash(type, value, hasher);
+    _get(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) {
+      const uint64_t hash = _hash(type, cp, hasher);
       uint64_t masked_hash;
       bool exists;
       iterator it = _locate(type, hash, label, masked_hash, exists);
@@ -459,10 +459,10 @@ namespace schwa {
         return _create_entry(&(*it), masked_hash, label);
     }
 
-    template <typename VALUE, typename HASHER>
+    template <typename CP, typename HASHER>
     inline const_reference
-    _get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher) const {
-      const uint64_t hash = _hash(type, value, hasher);
+    _get(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) const {
+      const uint64_t hash = _hash(type, cp, hasher);
       const_iterator it = _locate(type, hash, label);
       if (SCHWA_UNLIKELY(it == end()))
         throw std::out_of_range("The entry does not exist in the table.");
@@ -516,47 +516,47 @@ namespace schwa {
     inline float load_factor(void) const noexcept { return _size / static_cast<float>(TABLE_SIZE); }
 
     // Element lookup
-    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
+    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
     inline iterator
-    find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) {
+    find(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _find(type, value, label, hasher);
+      return _find(type, contextual_predicate, label, hasher);
     }
 
-    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
+    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
     inline const_iterator
-    find(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) const {
+    find(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _find(type, value, label, hasher);
+      return _find(type, contextual_predicate, label, hasher);
     }
 
     // Element access
-    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
+    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
     inline reference
-    get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) {
+    get(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, value, label, hasher);
+      return _get(type, contextual_predicate, label, hasher);
     }
 
-    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
+    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
     inline const_reference
-    get(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) const {
+    get(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, value, label, hasher);
+      return _get(type, contextual_predicate, label, hasher);
     }
 
-    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
+    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
     inline reference
-    operator ()(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) {
+    operator ()(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, value, label, hasher);
+      return _get(type, contextual_predicate, label, hasher);
     }
 
-    template <typename VALUE, typename HASHER=schwa::Hasher64<VALUE>>
+    template <typename CP, typename HASHER=schwa::Hasher64<CP>>
     inline const_reference
-    operator ()(const FeatureType &type, const VALUE &value, const Label label, const HASHER &hasher=HASHER()) const {
+    operator ()(const FeatureType &type, const CP &contextual_predicate, const Label label, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      return _get(type, value, label, hasher);
+      return _get(type, contextual_predicate, label, hasher);
     }
 
     // Modifiers
@@ -589,11 +589,11 @@ namespace schwa {
 
 
     // Iteration through each label for a particular contextual predicate.
-    template <typename VALUE, typename FN, typename HASHER=schwa::Hasher64<VALUE>>
+    template <typename CP, typename FN, typename HASHER=schwa::Hasher64<CP>>
     inline void
-    for_each_label(const FeatureType &type, const VALUE &value, const Label label_begin, const Label label_end, FN &fn, const HASHER &hasher=HASHER()) const {
+    for_each_label(const FeatureType &type, const CP &contextual_predicate, const Label label_begin, const Label label_end, FN &fn, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-      const uint64_t hash = _hash(type, value, hasher);
+      const uint64_t hash = _hash(type, contextual_predicate, hasher);
       _for_each_label(type, hash, label_begin, label_end, fn);
     }
 
