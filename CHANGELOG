@@ -1,6 +1,7 @@
 0.4.1
 * Corrected `dr-count` to work when no documents were processed (#18).
 * Added `mp-less` app for viewing MessagePack payloads.
+* Allow `dr-count` to output the `ndocs` column when specifying a store (#20).
 
 0.4.0
 * Don't distribute _config.h (whoops).
