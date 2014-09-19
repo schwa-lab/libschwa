@@ -19,12 +19,12 @@ namespace schwa {
 namespace mp_less {
 
 static void
-main(const std::vector<std::string> &input_paths, io::OutputStream &out) {
+main(const std::vector<std::string> &input_paths, io::OutputStream &out, const bool annotations, const bool colour) {
   // Make the output stream invoke ${PAGER} if it's a stdout tty.
   port::make_stdout_pager(out);
 
   // Construct the processor functor to produce the pretty output.
-  Processor processor;
+  Processor processor(annotations, colour);
 
   // Open each of the input paths and process them in turn.
   for (const std::string &input_path : input_paths) {
@@ -43,6 +43,8 @@ main(int argc, char **argv) {
   cf::Main cfg("mp-less", "A visualiser for MessagePack payloads.");
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
   cf::Op<std::string> output_path(cfg, "output", 'o', "The output path", io::STDOUT_STRING);
+  cf::Op<bool> annotations(cfg, "annotations", 'a', "Add MessagePack type annotations", true);
+  cf::Op<bool> colour(cfg, "colour", 'c', "Colourful output", true);
   cfg.allow_unclaimed_args("[input-path...]");
 
   SCHWA_MAIN(cfg, [&] {
@@ -60,7 +62,7 @@ main(int argc, char **argv) {
     io::OutputStream out(output_path());
 
     // Dispatch to main function.
-    schwa::mp_less::main(input_paths, out);
+    schwa::mp_less::main(input_paths, out, annotations(), colour());
   })
   return 0;
 }

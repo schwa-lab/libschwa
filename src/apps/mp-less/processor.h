@@ -16,12 +16,16 @@ namespace schwa {
   namespace mp_less {
 
     class Processor {
-    public:
-      static const std::string SEP;
-      static const std::string REPR_NIL;
-      static const std::string REPR_UNKNOWN;
-
     private:
+      const std::string COLOUR_BOLD;
+      const std::string COLOUR_DARK_GREY;
+      const std::string COLOUR_OFF;
+      const std::string COLOUR_RED;
+      const std::string REPR_NIL;
+      const std::string REPR_UNKNOWN;
+      const std::string SEP;
+      const bool _annotations;
+
       unsigned int _indent;
       std::ostream *_out;
 
@@ -29,7 +33,7 @@ namespace schwa {
       void _write_value(const msgpack::Value &value, bool add_description=true);
 
     public:
-      Processor(void);
+      Processor(bool annotations, bool colour);
       ~Processor(void);
 
       void process(std::istream &in, std::ostream &out);
