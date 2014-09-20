@@ -118,6 +118,25 @@ namespace schwa {
     return schwa::Hasher64<T>()(obj);
   }
 
+  /**
+   * Convenience function for invoking the 32-bit hash-mixing function given a pointer to the
+   * xxhash state object.
+   **/
+  template <typename T>
+  inline third_party::xxhash::XXH_errorcode
+  xxhash32(const T &obj, void *state) {
+    return schwa::Hasher32<T>()(obj, state);
+  }
+
+  /**
+   * Convenience function for invoking the 64-bit hash-mixing function given a pointer to the
+   * xxhash state object.
+   **/
+  template <typename T>
+  inline third_party::xxhash::XXH_errorcode
+  xxhash64(const T &obj, void *state) {
+    return schwa::Hasher64<T>()(obj, state);
+  }
 }
 
 #include <schwa/hash_impl.h>

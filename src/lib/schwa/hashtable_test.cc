@@ -1,6 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <cstring>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <set>
 #include <type_traits>
@@ -11,20 +12,40 @@
 
 namespace schwa {
 
+struct Entry : public FeatureHashtableEntryBase {
+  uint32_t last_iteration;
+  uint32_t current;
+  uint32_t total;
+
+  Entry(void) : FeatureHashtableEntryBase(), last_iteration(0), current(0), total(0) { }
+  Entry(const Entry &o) : FeatureHashtableEntryBase(o), last_iteration(o.last_iteration), current(o.current), total(o.total) { }
+  Entry(const Entry &&o) : FeatureHashtableEntryBase(o), last_iteration(o.last_iteration), current(o.current), total(o.total) { }
+
+  Entry &
+  operator =(const Entry &o) {
+    FeatureHashtableEntryBase::operator =(o);
+    last_iteration = o.last_iteration;
+    current = o.current;
+    total = o.total;
+    return *this;
+  }
+
+  inline void
+  clear(void) {
+    std::memset(this, 0, sizeof(Entry));
+  }
+
+  friend std::ostream &operator <<(std::ostream &out, const Entry &entry);
+};
+
+inline std::ostream &
+operator <<(std::ostream &out, const Entry &e) {
+  return out << "Entry(value=" << e._value << " last_iteration=" << e.last_iteration << " current=" << e.current << " total=" << e.total << ")";
+}
+
 SUITE(schwa__hashtable) {
 
 TEST(fasthashtable_test) {
-  struct Entry : public FeatureHashtableEntryBase {
-    uint32_t last_iteration;
-    uint32_t current;
-    uint32_t total;
-
-    Entry(void) : FeatureHashtableEntryBase(), last_iteration(0), current(0), total(0) { }
-
-  private:
-    SCHWA_DISALLOW_COPY_AND_ASSIGN(Entry);
-  };
-
   const FeatureType FT_ZERO(0);
   const FeatureType FT_ONE(1);
   const Label L_ZERO = 0;
