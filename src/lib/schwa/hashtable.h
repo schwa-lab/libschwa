@@ -2,6 +2,8 @@
 #ifndef SCHWA_HASHTABLE_H_
 #define SCHWA_HASHTABLE_H_
 
+#include <map>
+
 #include <cstdlib>
 #include <iterator>
 #include <iomanip>
@@ -123,9 +125,9 @@ namespace schwa {
 
     static constexpr const size_t TABLE_INDEX_BITS = INDEX_BITS;  //!< Number of bits from the hash to use as the index into the table.
     static constexpr const uint64_t TABLE_INDEX_MASK = (static_cast<uint64_t>(1) << TABLE_INDEX_BITS) - static_cast<uint64_t>(1);
-    static constexpr const size_t TABLE_SIZE = 1 << TABLE_INDEX_BITS;
+    static constexpr const size_t TABLE_SIZE = static_cast<size_t>(1) << TABLE_INDEX_BITS;
 
-    static constexpr const uint64_t PROBING_PRIME = 941;
+    //static constexpr const uint64_t PROBING_PRIME = 941;
 
   private:
     template <typename TABLE>
@@ -231,10 +233,11 @@ namespace schwa {
     allocator_type _allocator;  //!< Allocator instance.
     mapped_type *const _table;  //!< The underlying table. No chaining as collisions are accepted.
     size_type _size;  //!< The population count; how many entries exist in the table.
+    //mutable std::map<uint32_t, uint64_t> _bins[3];
 
     inline reference
     _create_entry(reference entry, const uint64_t value) {
-      LOG(INFO) << "[_create_entry] creating entry=" << entry << std::endl;
+      //LOG(INFO) << "[_create_entry] creating entry=" << entry << std::endl;
       ++_size;
       entry.set_value(value);
       return entry;
@@ -243,9 +246,7 @@ namespace schwa {
 
     iterator
     _locate_or_create_dense(const size_t start_index, const Label label, const uint64_t value) {
-      size_t index = start_index + label;
-      if (SCHWA_UNLIKELY(index >= TABLE_SIZE))
-        index %= TABLE_SIZE;
+      const size_t index = (start_index + label) & TABLE_INDEX_MASK;
       reference entry = _table[index];
       const uint64_t entry_value = entry.value();
 
@@ -259,31 +260,29 @@ namespace schwa {
       if (entry_value == value)
         return iterator(*this, index);
 
-      // The expected slot has been filled by another feature.
-      size_t sparse_start_index = index + PROBING_PRIME;
-      if (SCHWA_UNLIKELY(sparse_start_index >= TABLE_SIZE))
-        sparse_start_index %= TABLE_SIZE;
+      // The expected slot has been filled by another feature. Quadratic probing.
+      size_t sparse_start_index = (index + 2*1 + 1) & TABLE_INDEX_MASK;
 
       if (entry.is_dense()) {
-        LOG(INFO) << "[_locate_or_create_dense] not relocating existing DENSE entry entry_value=0x" << std::hex << entry_value << ". relocating self value=0x" << std::hex << value << " instead." << std::dec << std::endl;
+        //LOG(INFO) << "[_locate_or_create_dense] not relocating existing DENSE entry entry_value=0x" << std::hex << entry_value << ". relocating self value=0x" << std::hex << value << " instead." << std::dec << std::endl;
         // This feature will have to be stored sparse since another dense feature got here first.
-        return _locate_or_create_sparse(sparse_start_index, value);
+        return _locate_or_create_sparse(sparse_start_index, value, 1);
       }
       else {
-        LOG(INFO) << "[_locate_or_create_dense] relocating existing SPARSE entry entry_value=0x" << std::hex << entry_value << " value=0x" << std::hex << value << " entry=" << entry << std::dec << std::endl;
+        //LOG(INFO) << "[_locate_or_create_dense] relocating existing SPARSE entry entry_value=0x" << std::hex << entry_value << " value=0x" << std::hex << value << " entry=" << entry << std::dec << std::endl;
         // Make a temporary copy of the existing entry ands et the value of the entry to be not zero and not the existing value so that the following _locate_sparse call does not yield it.
         mapped_type tmp = entry;
         entry.set_value(value);
 
         bool sparse_exists = false;
-        iterator sparse_it = _locate_sparse(sparse_start_index, tmp.value(), sparse_exists);
+        iterator sparse_it = _locate_sparse(sparse_start_index, tmp.value(), sparse_exists, 1);
         if (SCHWA_UNLIKELY(sparse_exists))
-          throw std::runtime_error("This should not ever happen");
+          throw std::runtime_error("[_locate_or_create_dense] This should not ever happen");
         if (SCHWA_UNLIKELY(sparse_it == end()))
           return sparse_it;
-        //LOG(INFO) << "[locate_or_create_dense] before=" << *sparse_it << std::endl;
+        //LOG(INFO) << "[_locate_or_create_dense] before=" << *sparse_it << std::endl;
         *sparse_it = tmp;
-        //LOG(INFO) << "[locate_or_create_dense] after=" << *sparse_it << std::endl;
+        //LOG(INFO) << "[_locate_or_create_dense] after=" << *sparse_it << std::endl;
 
         // FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?
         entry.clear();
@@ -293,10 +292,10 @@ namespace schwa {
     }
 
     iterator
-    _locate_or_create_sparse(const size_t start_index, const uint64_t value) {
+    _locate_or_create_sparse(const size_t start_index, const uint64_t value, const size_t existing_misses=0) {
       // Probe the table entries.
       size_t index = start_index;
-      for (size_t nmisses = 1; nmisses != TABLE_SIZE; ++nmisses) {
+      for (size_t nmisses = existing_misses + 1; nmisses != TABLE_SIZE; ++nmisses) {
         // Get the next entry and its masked hash.
         reference entry = _table[index];
         const uint64_t entry_value = entry.value();
@@ -312,12 +311,7 @@ namespace schwa {
           return iterator(*this, index);
 
         // Quadratic probing.
-        if (entry.masked_hash() != FeatureHashtableEntryBase::mask_hash(value))
-          LOG(INFO) << "[_locate_or_create_sparse] nmisses=" << std::dec << nmisses << " index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::dec << std::endl;
-        //index += 2*nmisses + 1;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1
-        index += PROBING_PRIME;
-        if (SCHWA_UNLIKELY(index >= TABLE_SIZE))
-          index %= TABLE_SIZE;
+        index = (index + 2*nmisses + 1) & TABLE_INDEX_MASK;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1 = 2*j + 1
       }
 
       // The table is full and the entry does not exist.
@@ -361,16 +355,15 @@ namespace schwa {
       }
 
       // The expected slot has been filled by another feature.
-      LOG(INFO) << "[_locate_dense] relocating existing entry entry_value=0x" << std::hex << entry_value << " value=0x" << std::hex << value << " entry=" << entry << std::dec << std::endl;
+      //LOG(INFO) << "[_locate_dense] relocating existing entry entry_value=0x" << std::hex << entry_value << " value=0x" << std::hex << value << " entry=" << entry << std::dec << std::endl;
       mapped_type tmp = entry;  // Make a temporary copy of the existing entry.
       entry.set_value(value);  // Set the value of the entry to be not zero and not the existing value so that the following _locate_sparse call does not yield it.
 
-      size_t sparse_start_index = index + PROBING_PRIME;
-      if (SCHWA_UNLIKELY(sparse_start_index >= TABLE_SIZE))
-        sparse_start_index %= TABLE_SIZE;
-      iterator sparse_it = _locate_sparse(sparse_start_index, tmp.value(), exists);
+      // Quadratic probing
+      const size_t sparse_start_index = (index + 2*1 + 1) & TABLE_INDEX_MASK;
+      iterator sparse_it = _locate_sparse(sparse_start_index, tmp.value(), exists, 1);
       if (SCHWA_UNLIKELY(exists))
-        throw std::runtime_error("This should not ever happen");
+        throw std::runtime_error("[_locate_dense] This should not ever happen");
       if (SCHWA_UNLIKELY(sparse_it == end())) {
         exists = false;
         return sparse_it;
@@ -387,10 +380,10 @@ namespace schwa {
     }
 
     iterator
-    _locate_sparse(const size_t start_index, const uint64_t value, bool &exists) {
+    _locate_sparse(const size_t start_index, const uint64_t value, bool &exists, const size_t existing_misses=0) {
       // Probe the table entries.
       size_t index = start_index;
-      for (size_t nmisses = 1; nmisses != TABLE_SIZE; ++nmisses) {
+      for (size_t nmisses = existing_misses + 1; nmisses != TABLE_SIZE; ++nmisses) {
         // Get the next entry and its masked hash.
         const_reference entry = _table[index];
         const uint64_t entry_value = entry.value();
@@ -408,11 +401,8 @@ namespace schwa {
         }
 
         // Quadratic probing.
-        LOG(INFO) << "[_locate_sparse] nmisses=" << std::dec << nmisses << " index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
-        //index += 2*nmisses + 1;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1
-        index += PROBING_PRIME;
-        if (SCHWA_UNLIKELY(index >= TABLE_SIZE))
-          index %= TABLE_SIZE;
+        //LOG(INFO) << "[_locate_sparse] nmisses=" << std::dec << nmisses << " index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
+        index = (index + 2*nmisses + 1) & TABLE_INDEX_MASK;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1 = 2*j + 1
       }
 
       // The table is full and the entry does not exist.
@@ -475,10 +465,7 @@ namespace schwa {
 
         // Quadratic probing.
         //LOG(INFO) << "[_locate_sparse const] index=" << std::dec << index << " entry_value=0x" << std::hex << entry_value << std::endl;
-        //index += 2*nmisses + 1;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1
-        index += PROBING_PRIME;
-        if (SCHWA_UNLIKELY(index >= TABLE_SIZE))
-          index %= TABLE_SIZE;
+        index = (index + 2*nmisses + 1) & TABLE_INDEX_MASK;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1
       }
 
       // The entry does not exist.
@@ -503,12 +490,10 @@ namespace schwa {
 
     template <typename FN>
     void
-    _for_each_label_dense(const size_t start_index, const uint64_t masked_hash, const Label label_begin, const Label label_end, FN &fn) const {
-      size_t index = start_index + label_begin;
-      if (SCHWA_UNLIKELY(index >= TABLE_SIZE))
-        index %= TABLE_SIZE;
+    _for_each_label_dense(const size_t start_index, const uint64_t masked_hash, const Label label_begin, const Label label_end, FN &fn, uint32_t &nprobes, uint32_t &nsparse) const {
+      size_t index = (start_index + label_begin) & TABLE_INDEX_MASK;
 
-      for (Label label = label_begin; label != label_end; ++label, ++index) {
+      for (Label label = label_begin; label != label_end; ++label, ++index, ++nprobes) {
         if (SCHWA_UNLIKELY(index == TABLE_SIZE))
           index = 0;
         const_reference entry = _table[index];
@@ -516,26 +501,49 @@ namespace schwa {
 
         if (masked_entry_hash == masked_hash)
           fn(label, entry);
-        else if (masked_entry_hash == 0) {
-          // Do nothing.
-        }
-        else if (entry.is_dense()) {
+        else if (masked_entry_hash != 0 && entry.is_dense()) {
+          ++nsparse;
+          ++nprobes;
           // FIXME what should we do if a dense feature index doesn't have the correct hash in the entry?
           //LOG(INFO) << "[_for_each_label_dense] unexpected situation! index=" << std::dec << index << " masked_entry_hash=0x" << std::hex << masked_entry_hash << " masked_hash=0x" << std::hex << masked_hash << std::dec << std::endl;
-          size_t sparse_start_index = index + PROBING_PRIME;
-          if (SCHWA_UNLIKELY(sparse_start_index >= TABLE_SIZE))
-            sparse_start_index %= TABLE_SIZE;
-          _for_each_label_sparse(sparse_start_index, masked_hash, label, label + 1, fn);
+          // Quadratic probing.
+          const size_t sparse_start_index = (index + 2*1 + 1) & TABLE_INDEX_MASK;
+          _for_each_label_sparse(sparse_start_index, masked_hash, label, fn, nprobes);
         }
       }
     }
 
     template <typename FN>
     void
-    _for_each_label_sparse(const size_t start_index, const uint64_t masked_hash, const Label label_begin, const Label label_end, FN &fn) const {
+    _for_each_label_sparse(const size_t start_index, const uint64_t masked_hash, const Label label, FN &fn, uint32_t &nprobes) const {
       // Probe the table entries.
       size_t index = start_index;
-      for (size_t nmisses = 1; nmisses != TABLE_SIZE; ++nmisses) {
+      for (size_t nmisses = 2; nmisses != TABLE_SIZE; ++nmisses, ++nprobes) {
+        // Get the next entry and its masked hash.
+        const_reference entry = _table[index];
+        const uint64_t masked_entry_hash = entry.masked_hash();
+
+        // If the entry is unoccupied, bail.
+        if (masked_entry_hash == 0)
+          break;
+
+        // If the masked hash is the same, extract the label.
+        if (masked_entry_hash == masked_hash) {
+          fn(label, entry);
+          break;
+        }
+
+        // Quadratic probing.
+        index = (index + 2*nmisses + 1) & TABLE_INDEX_MASK;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1 = 2*j + 1
+      }
+    }
+
+    template <typename FN>
+    void
+    _for_each_label_sparse(const size_t start_index, const uint64_t masked_hash, const Label label_begin, const Label label_end, FN &fn, uint32_t &nprobes) const {
+      // Probe the table entries.
+      size_t index = start_index;
+      for (size_t nmisses = 1; nmisses != TABLE_SIZE; ++nmisses, ++nprobes) {
         // Get the next entry and its masked hash.
         const_reference entry = _table[index];
         const uint64_t masked_entry_hash = entry.masked_hash();
@@ -552,24 +560,29 @@ namespace schwa {
         }
 
         // Quadratic probing.
-        //index += 2*nmisses + 1;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1
-        index += PROBING_PRIME;
-        if (SCHWA_UNLIKELY(index >= TABLE_SIZE))
-          index %= TABLE_SIZE;
+        index = (index + 2*nmisses + 1) & TABLE_INDEX_MASK;  // (s + (j + 1)^2) - (s + j^2) = 2j + 1
       }
     }
 
     template <typename FN>
-    void
+    uint32_t
     _for_each_label(const FeatureType &type, const uint64_t hash, const Label label_begin, const Label label_end, FN &fn) const {
       const size_t start_index = hash & TABLE_INDEX_MASK;
       const uint64_t masked_hash = FeatureHashtableEntryBase::mask_hash(hash);
+      uint32_t nprobes = 0, nsparse = 0;
 
       // Unless the feature type storage is defined to be DENSE, use sparse features.
-      if (type.storage() == FeatureStorage::DENSE)
-        _for_each_label_dense(start_index, masked_hash, label_begin, label_end, fn);
-      else
-        _for_each_label_sparse(start_index, masked_hash, label_begin, label_end, fn);
+      if (type.storage() == FeatureStorage::DENSE) {
+        _for_each_label_dense(start_index, masked_hash, label_begin, label_end, fn, nprobes, nsparse);
+        //_bins[0][nprobes] += 1;
+        //_bins[2][nsparse] += 1;
+        return nsparse;
+      }
+      else {
+        _for_each_label_sparse(start_index, masked_hash, label_begin, label_end, fn, nprobes);
+        //_bins[1][nprobes] += 1;
+        return 0;
+      }
     }
 
 
@@ -583,7 +596,7 @@ namespace schwa {
       //const FeatureType::id_type type_id = type.id();
       //third_party::xxhash::XXH64_resetState(&_xxhash_state, 0);
       //schwa::Hasher64<decltype(type_id)>()(type_id, &_xxhash_state);
-      third_party::xxhash::XXH64_resetState(&_xxhash_state, type.id());
+      third_party::xxhash::XXH64_resetState(&_xxhash_state, static_cast<uint64_t>(982451653)*static_cast<uint64_t>(type.id()));
       hasher(cp, &_xxhash_state);
       return third_party::xxhash::XXH64_intermediateDigest(&_xxhash_state);
     }
@@ -611,7 +624,7 @@ namespace schwa {
     inline reference
     _get(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) {
       const uint64_t hash = _hash(type, cp, hasher);
-      LOG(INFO) << "[_get] type.id=" << static_cast<unsigned int>(type.id()) << " type.is_dense?=" << (type.storage() == FeatureStorage::DENSE) << " label=" << label << " hash=0x" << std::hex << hash << std::dec << " cp=" << cp << std::endl;
+      //LOG(INFO) << "[_get] type.id=" << static_cast<unsigned int>(type.id()) << " type.is_dense?=" << (type.storage() == FeatureStorage::DENSE) << " label=" << label << " hash=0x" << std::hex << hash << std::dec << " cp=" << cp << std::endl;
       iterator it = _locate_or_create(type, hash, label);
       if (SCHWA_UNLIKELY(it == end()))
         throw std::out_of_range("The table is full and the entry does not already exist in the table.");
@@ -716,6 +729,8 @@ namespace schwa {
       _size = 0;
       for (auto &entry : *this)
         entry.clear();
+      //for (unsigned int i = 0; i != 3; ++i)
+        //_bins[i].clear();
     }
 
     // Serialisation
@@ -732,7 +747,7 @@ namespace schwa {
     serialise(std::ostream &out) const {
       msgpack::write_map_size(out, _size);
       size_type count = 0;
-      for (auto &entry : *this) {
+      for (const auto &entry : *this) {
         const size_t index = &entry - _table;
         msgpack::write_uint(out, index);
         entry.serialise(out);
@@ -741,6 +756,28 @@ namespace schwa {
       LOG(INFO) << "FeatureHashtable::serialise count=" << std::dec << count << " _size=" << _size << std::endl;
       if (SCHWA_UNLIKELY(count != _size))
         throw std::runtime_error("Serialised count != expected count");
+
+      //double total;
+      //LOG(INFO) << "nprobes DENSE" << std::endl;
+      //total = 0;
+      //for (const auto &pair : _bins[0])
+        //total += pair.second;
+      //for (const auto &pair : _bins[0])
+        //LOG(INFO) << " " <<  pair.first << " => " << pair.second << " (" << ((100.0 * pair.second) / total) << ")" << std::endl;
+
+      //LOG(INFO) << "nprobes SPARSE" << std::endl;
+      //total = 0;
+      //for (const auto &pair : _bins[1])
+        //total += pair.second;
+      //for (const auto &pair : _bins[1])
+        //LOG(INFO) << " " << pair.first << " => " << pair.second << " (" << ((100.0 * pair.second) / total) << ")" << std::endl;
+
+      //LOG(INFO) << "nsparse DENSE" << std::endl;
+      //total = 0;
+      //for (const auto &pair : _bins[2])
+        //total += pair.second;
+      //for (const auto &pair : _bins[2])
+        //LOG(INFO) << " " <<  pair.first << " => " << pair.second << " (" << ((100.0 * pair.second) / total) << ")" << std::endl;
     }
 
 
@@ -750,7 +787,11 @@ namespace schwa {
     for_each_label(const FeatureType &type, const CP &contextual_predicate, const Label label_begin, const Label label_end, FN &fn, const HASHER &hasher=HASHER()) const {
       static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
       const uint64_t hash = _hash(type, contextual_predicate, hasher);
-      _for_each_label(type, hash, label_begin, label_end, fn);
+      const uint32_t nsparse = _for_each_label(type, hash, label_begin, label_end, fn);
+      (void)nsparse;
+      if (nsparse >= 60) {
+        LOG(INFO) << "[_for_each_label] type.id=" << static_cast<unsigned int>(type.id()) << " nsparse=" << std::dec << nsparse << " hash=0x" << std::hex << hash << std::dec << " cp=" << contextual_predicate << std::endl;
+      }
     }
 
   private:
