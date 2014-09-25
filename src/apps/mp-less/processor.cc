@@ -165,10 +165,10 @@ Processor::process(std::istream &in, std::ostream &out) {
   _indent = 0;
   _out = &out;
 
-  Pool pool(4096);
   while (in) {
     // Read in the next MessagePack object.
     const auto at_byte = in.tellg();
+    Pool pool(4096);
     mp::Value *value = nullptr;
     try {
       value = mp::read_dynamic(in, pool);
