@@ -194,7 +194,6 @@ schwa_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_tests_SOURCES = \
 		schwa/unittest_main.cc \
 		schwa/hash_test.cc  \
-		schwa/hashtable_test.cc  \
 		schwa/pool_test.cc  \
 		schwa/port_test.cc  \
 		schwa/unicode_test.cc

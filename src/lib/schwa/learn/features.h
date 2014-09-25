@@ -14,6 +14,36 @@
 namespace schwa {
   namespace learn {
 
+    enum class FeatureStorage : uint8_t {
+      UNSPECIFIED, DENSE, SPARSE,
+    };
+
+
+    class FeatureType {
+    private:
+      const uint8_t _id;
+      FeatureStorage _storage;
+
+    public:
+      explicit FeatureType(uint8_t id, FeatureStorage storage=FeatureStorage::UNSPECIFIED) : _id(id), _storage(storage) { }
+
+      inline uint8_t id(void) const { return _id; }
+      inline FeatureStorage storage(void) const { return _storage; }
+
+      inline void set_storage(FeatureStorage storage) { _storage = storage; }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(FeatureType);
+    };
+
+
+    using Label = uint16_t;
+
+
+    template <typename ENTRY, size_t INDEX_BITS>
+    class FeatureHashtable;
+
+
     void dump_crfsuite_feature(const std::string &feature, std::ostream &out);
 
 

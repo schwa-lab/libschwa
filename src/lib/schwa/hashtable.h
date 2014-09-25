@@ -21,6 +21,7 @@
 
 namespace schwa {
 
+#if 0
   enum class FeatureStorage : uint8_t {
     UNSPECIFIED, DENSE, SPARSE,
   };
@@ -797,6 +798,8 @@ namespace schwa {
   private:
     SCHWA_DISALLOW_COPY_AND_ASSIGN(FeatureHashtable);
   };
+
+#endif
 
 }
 
