@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 
+#include <schwa/io/logging.h>
 #include <schwa/learn.h>
 
 
@@ -21,15 +22,19 @@ struct Entry {
   uint32_t current;
   uint32_t total;
 
-  Entry(void) : last_iteration(0), current(0), total(0) { }
-  ~Entry(void) { }
+  Entry(void) : last_iteration(0), current(0), total(0) {
+    LOG(INFO) << "[Entry::Entry|" << this << "]" << std::endl;
+  }
+  ~Entry(void) {
+    LOG(INFO) << "[Entry::~Entry|" << this << "]" << std::endl;
+  }
 
   friend std::ostream &operator <<(std::ostream &out, const Entry &entry);
 };
 
 inline std::ostream &
 operator <<(std::ostream &out, const Entry &e) {
-  return out << "Entry(last_iteration=" << e.last_iteration << " current=" << e.current << " total=" << e.total << ")";
+  return out << "Entry(this=" << &e << " last_iteration=" << e.last_iteration << " current=" << e.current << " total=" << e.total << ")";
 }
 
 
@@ -43,22 +48,31 @@ TEST(featurehashtable_test) {
   FeatureHashtable<Entry> table(3);
   CHECK(table.empty());
   CHECK_EQUAL(0, table.size());
+  table.pprint(std::cout);
 
   Entry &e0_0 = table.get(FT_ZERO, "meow", L_ZERO);
   CHECK(!table.empty());
   CHECK_EQUAL(1, table.size());
+  table.pprint(std::cout);
 
   Entry &e0_1 = table.get(FT_ZERO, "meow", L_ONE);
   CHECK(!table.empty());
   CHECK_EQUAL(2, table.size());
+  table.pprint(std::cout);
+  table.get(FT_ZERO, "meow", L_ONE);
+  CHECK(!table.empty());
+  CHECK_EQUAL(2, table.size());
+  table.pprint(std::cout);
 
   Entry &e1_2 = table.get(FT_ONE, "meow", L_TWO);
   CHECK(!table.empty());
   CHECK_EQUAL(3, table.size());
+  table.pprint(std::cout);
 
   Entry &e1_1 = table.get(FT_ONE, "meow", L_ONE);
   CHECK(!table.empty());
   CHECK_EQUAL(4, table.size());
+  table.pprint(std::cout);
 
   CHECK(&e0_0 != &e0_1);
   CHECK(&e0_0 != &e1_2);
@@ -70,10 +84,13 @@ TEST(featurehashtable_test) {
   Entry &e1 = table.get(FT_ZERO, std::string("meow"), L_ZERO);
   CHECK_EQUAL(4, table.size());
   CHECK_EQUAL(&e0_0, &e1);
+  table.pprint(std::cout);
 
   Entry &e2 = table.get(FT_ZERO, std::string("woof"), L_ZERO);
   CHECK(!table.empty());
   CHECK_EQUAL(5, table.size());
+  table.pprint(std::cout);
+
   CHECK(&e0_0 != &e2);
   CHECK(&e0_1 != &e2);
   CHECK(&e1_2 != &e2);
@@ -89,15 +106,23 @@ TEST(featurehashtable_test) {
   CHECK_EQUAL(table.end(), table.end());
   CHECK_EQUAL(table.cbegin(), table.cbegin());
   CHECK_EQUAL(table.cend(), table.cend());
+  CHECK_EQUAL(5, table.size());
+  table.pprint(std::cout);
 
   const std::set<Entry *> entries = {&e0_0, &e0_1, &e1_2, &e1_1, &e2};
+  std::set<Entry *> entries_seen;
+  CHECK_EQUAL(table.size(), entries.size());
   for (size_t i = 0; i != entries.size(); ++i) {
     CHECK(it != table.end());
-    std::cout << it << " " << *it << std::endl;
-    CHECK(entries.count(&(*it)) == 1);
+    std::cout << "(" << i << ") " << it << " " << *it << std::endl;
+    Entry *const ptr = &(*it);
+    entries_seen.insert(ptr);
+    CHECK(entries.count(ptr) == 1);
     ++it;
   }
-  CHECK_EQUAL(it, table.end());
+  std::cout << "(end) " << it << std::endl;
+  CHECK_EQUAL(table.end(), it);
+  CHECK_EQUAL(table.size(), entries.size());
 
   CHECK(table.find(FT_ZERO, "meow", L_ZERO) != table.end());
   CHECK(table.find(FT_ZERO, "woof", L_ZERO) != table.end());

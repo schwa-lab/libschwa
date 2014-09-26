@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <new>
 #include <stdexcept>
@@ -51,9 +52,11 @@ namespace schwa {
 
       public:
         SparseEntry(Label label, Pool &pool) : _label(label), _entry(pool.alloc<pointer>(sizeof(mapped_type))) {
+          LOG(INFO) << "[SparseEntry::SparseEntry|" << this << "]" << std::endl;
           new (_entry) mapped_type();
         }
         ~SparseEntry(void) {
+          LOG(INFO) << "[SparseEntry::~SparseEntry|" << this << "]" << std::endl;
           _entry->~mapped_type();
         }
 
@@ -67,14 +70,14 @@ namespace schwa {
 
       class ChainItem {
       public:
-        static constexpr const uint16_t BLOCK_ALLOC_ITEMS_SPARSE = 4*sizeof(SparseEntry);
+        static constexpr const uint16_t BLOCK_ALLOC_ITEMS_SPARSE = 4;
 
       private:
         const uint64_t _hash;
         const uint8_t _ft_id;
         const bool _is_dense;
-        uint16_t _nallocd;
-        uint16_t _nused;
+        volatile uint16_t _nallocd;
+        volatile uint16_t _nused;
         union Entries {
           pointer dense;
           SparseEntry *sparse;
@@ -86,7 +89,7 @@ namespace schwa {
         _create(const Label label, const uint16_t index, Pool &pool) {
           // Allocate more space if needed, doubling the number of entries allocated each time.
           if (SCHWA_UNLIKELY(_nused == _nallocd)) {
-            LOG(INFO) << "[ChainItem::create] allocating _nused=" << _nused << " _nallocd=" << _nallocd << " label=" << label << std::endl;
+            LOG(INFO) << "[ChainItem::create|" << this << "] allocating _nused=" << _nused << " _nallocd=" << _nallocd << " label=" << label << std::endl;
             void *const data = std::malloc(2*_nallocd*sizeof(SparseEntry));
             if (SCHWA_UNLIKELY(data == nullptr))
               throw std::bad_alloc();
@@ -97,12 +100,12 @@ namespace schwa {
           }
 
           // Move objects down if needed.
-          LOG(INFO) << "[ChainItem::create] creating _nused=" << _nused << " _nallocd=" << _nallocd << " label=" << label << " index=" << index << std::endl;
           if (index != _nused)
             std::memmove(_entries.sparse + index + 1, _entries.sparse + index, (_nused - index)*sizeof(SparseEntry));
 
           // Construct and return the object.
           ++_nused;
+          LOG(INFO) << "[ChainItem::create|" << this << "] created _nused=" << _nused << " _nallocd=" << _nallocd << " label=" << label << " index=" << index << std::endl;
           new (_entries.sparse + index) SparseEntry(label, pool);
           return _entries.sparse[index];
         }
@@ -116,6 +119,7 @@ namespace schwa {
             _nused(is_dense ? nlabels : 0),
             _entries(is_dense ? pool.alloc<pointer>(_nallocd*sizeof(mapped_type)) : std::malloc(_nallocd*sizeof(SparseEntry)))
           {
+          LOG(INFO) << "[ChainItem::ChainItem|" << this << "]" << std::endl;
           if (SCHWA_UNLIKELY(_entries.typeless == nullptr))
             throw std::bad_alloc();
           // Construct dense objects.
@@ -126,6 +130,7 @@ namespace schwa {
         }
 
         ~ChainItem(void) {
+          LOG(INFO) << "[ChainItem::~ChainItem|" << this << "]" << std::endl;
           // Call the destructors.
           for (uint16_t i = 0; i != _nused; ++i) {
             if (_is_dense)
@@ -139,17 +144,23 @@ namespace schwa {
         }
 
         // Capacity
+        inline bool allocd(void) const { return _nallocd; }
         inline bool empty(void) const { return _nused == 0; }
+        inline uint8_t ft_id(void) const { return _ft_id; }
         inline uint64_t hash(void) const { return _hash; }
         inline bool is_dense(void) const { return _is_dense; }
         inline bool size(void) const { return _nused; }
 
         // Element access
-        inline reference operator [](const uint16_t index) { return _is_dense ? _entries.dense[index] : _entries.sparse[index].entry(); }
+        inline reference operator [](const uint16_t index) {
+          LOG(INFO) << "[ChainItem::operator []|" << this << "] index=" << index << " hash=0x" << std::hex << _hash << std::dec << " _nused=" << _nused << " _nallocd=" << _nallocd << " is_dense=" << _is_dense << " ft_id=" << static_cast<unsigned int>(_ft_id) << std::endl; // FIXME
+          return _is_dense ? _entries.dense[index] : _entries.sparse[index].entry();
+        }
         inline const_reference operator [](const uint16_t index) const { return _is_dense ? _entries.dense[index] : _entries.sparse[index].entry(); }
 
         reference
         get(const Label label, Pool &pool, bool &created) {
+          LOG(INFO) << "[ChainItem::get|" << this << "] label=" << label << " hash=0x" << std::hex << _hash << std::dec << " _nused=" << _nused << " _nallocd=" << _nallocd << " is_dense=" << _is_dense << " ft_id=" << static_cast<unsigned int>(_ft_id) << std::endl;
           // Dense is preallocated. Simple array index.
           if (_is_dense)
             return _entries.dense[label];
@@ -222,7 +233,7 @@ namespace schwa {
         _create(const uint64_t hash, const uint8_t ft_id, const bool is_dense, const Label nlabels, Pool &pool) {
           // Allocate more space if needed.
           if (SCHWA_UNLIKELY(_nused == _nallocd)) {
-            LOG(INFO) << "[Chain::create] allocating _nused=" << _nused << " _nallocd=" << _nallocd << std::endl;
+            LOG(INFO) << "[Chain::create|" << this << "] allocating _nused=" << _nused << " _nallocd=" << _nallocd << std::endl;
             void *const data = std::malloc((_nallocd + BLOCK_ALLOC_ITEMS)*sizeof(ChainItem));  // FIXME this should be aligned to a 4096 boundary, if possible.
             if (SCHWA_UNLIKELY(data == nullptr))
               throw std::bad_alloc();
@@ -251,11 +262,15 @@ namespace schwa {
         inline bool size(void) const { return _nused; }
 
         // Element access
-        inline ChainItem &operator [](const uint32_t index) { return _items[index]; }
+        inline ChainItem &operator [](const uint32_t index) {
+          LOG(INFO) << "[Chain:operator []|" << this << "] index=" << index << " _nused=" << _nused << " _nallocd=" << _nallocd << std::endl; // FIXME
+          return _items[index];
+        }
         inline const ChainItem &operator [](const uint32_t index) const { return _items[index]; }
 
         inline ChainItem &
         get(const uint64_t hash, const uint8_t ft_id, const bool is_dense, const uint16_t nlabels, Pool &pool, bool &created) {
+          LOG(INFO) << "[Chain::get|" << this << "] hash=0x" << std::hex << hash << std::dec << " ft_id=" << static_cast<unsigned int>(ft_id) << " is_dense=" << is_dense << " nlabels=" << nlabels << std::endl;
           for (uint32_t i = 0; i != _nused; ++i)
             if (_items[i].hash() == hash)
               return _items[i];
@@ -306,30 +321,39 @@ namespace schwa {
 
         void
         _increment(void) const {
+          LOG(INFO) << "[Iterator::_increment|" << this << "] ended=" << _ended << " initialised=" << _initialised << std::endl;
           // Don't do anything if it's at the end.
           if (SCHWA_UNLIKELY(_ended))
             return;
 
           if (SCHWA_LIKELY(_initialised)) {
             // Do we still have entries left in the current ChainItem?
-            if (_entry_index != _ht->_table[_table_index][_item_index].size()) {
-              ++_entry_index;
+            ++_entry_index;
+            LOG(INFO) << "[Iterator::_increment|" << this << "] entry_index=" << _entry_index << " " << _ht->_table[_table_index][_item_index].size() << std::endl;
+            if (_entry_index != _ht->_table[_table_index][_item_index].size())
               return;
-            }
             _entry_index = 0;
 
             // Do we still have items left in the current Chain?
-            if (_item_index != _ht->_table[_table_index].size()) {
-              ++_item_index;
+            ++_item_index;
+            LOG(INFO) << "[Iterator::_increment|" << this << "] item_index=" << _item_index << " " << _ht->_table[_table_index].size() << std::endl;
+            if (_item_index != _ht->_table[_table_index].size())
               return;
-            }
             _item_index = 0;
+
+            // Start at the next index in the table.
+            ++_table_index;
+          }
+          else {
+            // We're now initialised.
+            _initialised = true;
           }
 
           // Find the next non-empty chain.
           for ( ; _table_index != TABLE_SIZE; ++_table_index)
             if (!_ht->_table[_table_index].empty())
               break;
+          LOG(INFO) << "[Iterator::_increment|" << this << "] table_index=" << _table_index << " table_size=" << TABLE_SIZE << std::endl;
 
           // If the table is empty, become and end iterator.
           if (_table_index == TABLE_SIZE) {
@@ -337,9 +361,6 @@ namespace schwa {
             _table_index = 0;
             _ended = true;
           }
-
-          // We're now initialised.
-          _initialised = true;
         }
 
       public:
@@ -385,7 +406,9 @@ namespace schwa {
 
         friend inline std::ostream &
         operator <<(std::ostream &out, const Iterator &it) {
-          return out << "[" << it._ended << " " << it._initialised << " " << it._ht << " " << it._table_index << " " << it._item_index << " " << it._entry_index << "]";
+          if (SCHWA_UNLIKELY(!it._initialised))
+            it._increment();
+          return out << "[Iterator::operator <<|" << &it << "] " << it._ht << " " << it._table_index << " " << it._item_index << " " << it._entry_index << " " << it._initialised << " " << it._ended << "]";
         }
       };
 
@@ -536,6 +559,24 @@ namespace schwa {
         static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
         return _get(type, contextual_predicate, label, hasher);
       }
+
+
+      std::ostream &
+      pprint(std::ostream &out) const {
+        out << "<FeatureHashtable size=" << _size << ">\n";
+        for (size_t table_index = 0; table_index != TABLE_SIZE; ++table_index) {
+          const Chain &chain = _table[table_index];
+          if (chain.empty())
+            continue;
+          out << table_index << " => (" << chain.size() << ")";
+          for (uint32_t item_index = 0; item_index != chain.size(); ++item_index) {
+            const ChainItem &item = chain[item_index];
+            out << " [" << &item << " hash=0x" << std::hex << item.hash() << std::dec << " is_dense=" << item.is_dense() << " nused=" << item.size() << " nallocd=" << item.allocd() << " ft_id=" << static_cast<unsigned int>(item.ft_id()) << "]";
+          }
+          out << "\n";
+        }
+        return out << "</FeatureHashtable>" << std::endl;
+    }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(FeatureHashtable);
