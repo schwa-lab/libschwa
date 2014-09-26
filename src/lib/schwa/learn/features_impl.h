@@ -456,7 +456,7 @@ namespace schwa {
         bool created = false;
         reference entry = _table[table_index].get(hash, type.id(), is_dense, _nlabels, _pool, created).get(label, _pool, created);
         if (created)
-          ++_size;
+          _size += is_dense ? _nlabels : 1;
         return entry;
       }
 
