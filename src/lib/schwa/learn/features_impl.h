@@ -42,38 +42,35 @@ namespace schwa {
       static constexpr const uint64_t TABLE_INDEX_MASK = (static_cast<uint64_t>(1) << TABLE_INDEX_BITS) - static_cast<uint64_t>(1);
       static constexpr const size_t TABLE_SIZE = static_cast<size_t>(1) << TABLE_INDEX_BITS;
 
+      static constexpr const size_t DEFAULT_POOL_BLOCK_SIZE = 4 * 1024 * 1024;
       static constexpr const uint64_t TYPE_ID_HASH_MIXER = 982451653ULL;
 
     private:
       class SparseEntry {
-      private:
-        Label _label;
-        pointer _entry;
-
       public:
-        SparseEntry(Label label, Pool &pool) : _label(label), _entry(pool.alloc<pointer>(sizeof(mapped_type))) {
-          new (_entry) mapped_type();
-        }
-        SparseEntry(std::istream &in, Pool &pool) {
+        Label label;
+        mapped_type entry;
+        SparseEntry *next;
+
+        SparseEntry(void) : label(0), next(nullptr) { }
+        explicit SparseEntry(const Label label) : label(label), next(nullptr) { }
+        ~SparseEntry(void) { }
+
+        inline Label size(Label count=0) const { return next == nullptr ? count + 1 : next->size(count + 1); }
+
+        inline void
+        deserialise(std::istream &in) {
           const uint32_t nitems = msgpack::read_array_size(in);
           assert(nitems == 2); (void)nitems;
-          _label = msgpack::read_uint(in);
-          _entry = pool.alloc<pointer>(sizeof(mapped_type));
-          new (_entry) mapped_type();
-          _entry->deserialise(in);
-        }
-        ~SparseEntry(void) {
-          _entry->~mapped_type();
+          label = msgpack::read_uint(in);
+          entry.deserialise(in);
         }
 
-        inline reference entry(void) const { return *_entry; }
-        inline Label label(void) const { return _label; }
-
-        void
+        inline void
         serialise(std::ostream &out) const {
           msgpack::write_array_size(out, 2);
-          msgpack::write_uint(out, _label);
-          _entry->serialise(out);
+          msgpack::write_uint(out, label);
+          entry.serialise(out);
         }
 
       private:
@@ -81,314 +78,212 @@ namespace schwa {
       };
 
 
-      class ChainItem {
+      class Chain {
       public:
-        static constexpr const uint16_t BLOCK_ALLOC_ITEMS_SPARSE = 4;
+        static constexpr const uint64_t HASH_MASK = ~static_cast<uint64_t>(1);
+        static constexpr const uint64_t IS_DENSE_MASK = static_cast<uint64_t>(1);
 
       private:
-        uint64_t _hash;
-        uint8_t _ft_id;
-        bool _is_dense;
-        uint16_t _nallocd;
-        uint16_t _nused;
+        uint64_t _value;  //<! Top 63 bits are for the hash. The bottom bit is for `is_dense`.
         union Entries {
           pointer dense;
           SparseEntry *sparse;
           void *typeless;
           Entries(void *ptr) : typeless(ptr) { }
         } _entries;
+        Chain *_next;
 
         SparseEntry &
-        _create(const Label label, const uint16_t index, Pool &pool) {
-          // Allocate more space if needed, doubling the number of entries allocated each time.
-          if (SCHWA_UNLIKELY(_nused == _nallocd)) {
-            void *const data = std::malloc(2*_nallocd*sizeof(SparseEntry));
-            if (SCHWA_UNLIKELY(data == nullptr))
-              throw std::bad_alloc();
-            std::memcpy(data, _entries.typeless, _nallocd*sizeof(SparseEntry));
-            std::free(_entries.typeless);
-            _entries.typeless = data;
-            _nallocd *= 2;
+        _create(const Label label, SparseEntry *const prev, Pool &pool) {
+          // Construct the object.
+          SparseEntry *const se = pool.alloc<SparseEntry *>(sizeof(SparseEntry));
+          new (se) SparseEntry(label);
+
+          // Insert in the appropriate place in the linked list to keep it ordered by label.
+          if (prev == nullptr) {
+            se->next = _entries.sparse;
+            _entries.sparse = se;
+          }
+          else {
+            se->next = prev->next;
+            prev->next = se;
           }
 
-          // Move objects down if needed.
-          if (index != _nused)
-            std::memmove(_entries.sparse + index + 1, _entries.sparse + index, (_nused - index)*sizeof(SparseEntry));
-
-          // Construct and return the object.
-          ++_nused;
-          new (_entries.sparse + index) SparseEntry(label, pool);
-          return _entries.sparse[index];
+          return *se;
         }
 
       public:
-        ChainItem(const uint64_t hash, const uint8_t ft_id, const bool is_dense, const Label nlabels, Pool &pool) :
-            _hash(hash),
-            _ft_id(ft_id),
-            _is_dense(is_dense),
-            _nallocd(is_dense ? nlabels : BLOCK_ALLOC_ITEMS_SPARSE),
-            _nused(is_dense ? nlabels : 0),
-            _entries(is_dense ? pool.alloc<pointer>(_nallocd*sizeof(mapped_type)) : std::malloc(_nallocd*sizeof(SparseEntry)))
+        Chain(void) : _value(0), _entries(nullptr), _next(nullptr) { }
+        Chain(const uint64_t hash, const bool is_dense, const Label label, const Label nlabels, Pool &pool, size_t &size) :
+            _value(Chain::build_value(hash, is_dense)),
+            _entries(is_dense ? pool.alloc(nlabels*sizeof(mapped_type)) : pool.alloc(sizeof(SparseEntry))),
+            _next(nullptr)
           {
           if (SCHWA_UNLIKELY(_entries.typeless == nullptr))
             throw std::bad_alloc();
-          // Construct dense objects.
-          if (_is_dense) {
-            for (uint16_t i = 0; i != _nused; ++i)
-              new (_entries.dense + i) mapped_type();
-          }
-        }
 
-        ChainItem(std::istream &in, Pool &pool) : _entries(nullptr) {
-          const uint32_t nitems = msgpack::read_array_size(in);
-          assert(nitems == 5); (void)nitems;
-          _hash = msgpack::read_uint(in);
-          _ft_id = msgpack::read_uint8(in);
-          _is_dense = msgpack::read_bool(in);
-          _nallocd = msgpack::read_uint16(in);
-          _nused = msgpack::read_array_size(in);
-          // Construct and deserialise the objects.
-          if (_is_dense) {
-            _entries = pool.alloc<pointer>(_nallocd*sizeof(mapped_type));
-            for (uint16_t i = 0; i != _nused; ++i) {
-              new (_entries.dense + i) mapped_type();
-              _entries.dense[i].deserialise(in);
-            }
+          if (is_dense) {
+            size += nlabels;
+            for (Label l = 0; l != nlabels; ++l)
+              new (_entries.dense + l) mapped_type();
           }
           else {
-            _entries = std::malloc(_nallocd*sizeof(SparseEntry));
-            for (uint16_t i = 0; i != _nused; ++i)
-              new (_entries.sparse + i) SparseEntry(in, pool);
+            size += 1;
+            new (_entries.sparse) SparseEntry(label);
           }
         }
+        ~Chain(void) { }
 
-        ~ChainItem(void) {
-          // Call the destructors.
-          for (uint16_t i = 0; i != _nused; ++i) {
-            if (_is_dense)
-              _entries.dense[i].~mapped_type();
-            else
-              _entries.sparse[i].~SparseEntry();
-          }
-          // Don't free up dense objects as they were allocated in the pool.
-          if (!_is_dense)
-            std::free(_entries.typeless);
-        }
+        inline pointer get_dense(void) const { return _entries.dense; }
+        inline SparseEntry *get_sparse(void) const { return _entries.sparse; }
+        inline void *get_typeless(void) const { return _entries.typeless; }
+        inline bool is_dense(void) const { return _value & IS_DENSE_MASK; }
+        inline uint64_t masked_hash(void) const { return _value & HASH_MASK; }
+        inline Chain *next(void) const { return _next; }
+        inline size_t size(size_t count=0) const { return _next == nullptr ? count + 1 : _next->size(count + 1); }
+        inline uint64_t value(void) const { return _value; }
 
-        // Capacity
-        inline uint16_t allocd(void) const { return _nallocd; }
-        inline bool empty(void) const { return _nused == 0; }
-        inline uint8_t ft_id(void) const { return _ft_id; }
-        inline uint64_t hash(void) const { return _hash; }
-        inline bool is_dense(void) const { return _is_dense; }
-        inline uint16_t size(void) const { return _nused; }
-
-        // Element access
-        inline reference operator [](const uint16_t index) { return _is_dense ? _entries.dense[index] : _entries.sparse[index].entry(); }
-        inline const_reference operator [](const uint16_t index) const { return _is_dense ? _entries.dense[index] : _entries.sparse[index].entry(); }
+        inline void set_next(Chain *next) { _next = next; }
 
         reference
         get(const Label label, Pool &pool, bool &created) {
           // Dense is preallocated. Simple array index.
-          if (_is_dense)
+          if (is_dense())
             return _entries.dense[label];
 
-          // Locate or create within the ordered array.
-          uint16_t i;
-          for (i = 0; i != _nused; ++i) {
-            SparseEntry &e = _entries.sparse[i];
-            if (label == e.label())
-              return e.entry();
-            else if (label > e.label())
+          // Locate or create within the ordered linked list.
+          SparseEntry *prev = nullptr;
+          for (SparseEntry *se = _entries.sparse; se != nullptr; se = se->next) {
+            if (label == se->label)
+              return se->entry;
+            else if (label > se->label)
               break;
+            prev = se;
           }
           created = true;
-          return _create(label, i, pool).entry();
+          return _create(label, prev, pool).entry;
+        }
+
+        reference
+        get(const Label label) {
+          // Dense is preallocated. Simple array index.
+          if (is_dense())
+            return _entries.dense[label];
+
+          // Locate within the ordered linked list.
+          for (SparseEntry *se = _entries.sparse; se != nullptr; se = se->next) {
+            if (label == se->label)
+              return se->entry;
+            else if (label > se->label)
+              break;
+          }
+          throw std::out_of_range("SparseEntry with that label value does not exist");
         }
 
         const_reference
         get(const Label label) const {
           // Dense is preallocated. Simple array index.
-          if (_is_dense)
+          if (is_dense())
             return _entries.dense[label];
 
-          // Locate within the ordered array.
-          uint16_t i;
-          for (i = 0; i != _nused; ++i) {
-            const SparseEntry &e = _entries.sparse[i];
-            if (label == e.label())
-              return e.entry();
-            else if (label > e.label())
+          // Locate within the ordered linked list.
+          for (SparseEntry *se = _entries.sparse; se != nullptr; se = se->next) {
+            if (label == se->label)
+              return se->entry;
+            else if (label > se->label)
               break;
           }
           throw std::out_of_range("SparseEntry with that label value does not exist");
         }
 
         // Element lookup
-        inline ssize_t
-        index(const Label label) const {
-          // Dense is preallocated. Simple array index.
-          if (_is_dense)
-            return label;
+        pointer
+        find_dense(const Label label) {
+          return _entries.dense + label;
+        }
 
-          // Locate within the ordered array.
-          for (uint16_t i = 0; i != _nused; ++i) {
-            SparseEntry &e = _entries.sparse[i];
-            if (label == e.label())
-              return i;
-            else if (label > e.label())
+        SparseEntry *
+        find_sparse(const Label label) const {
+          for (SparseEntry *se = _entries.sparse; se != nullptr; se = se->next) {
+            if (label == se->label)
+              return se;
+            else if (label > se->label)
               break;
           }
-          return -1;
+          return nullptr;
         }
 
         void
-        serialise(std::ostream &out) const {
-          msgpack::write_array_size(out, 5);
-          msgpack::write_uint(out, _hash);
-          msgpack::write_uint8(out, _ft_id);
-          msgpack::write_bool(out, _is_dense);
-          msgpack::write_uint16(out, _nallocd);
-          msgpack::write_array_size(out, _nused);
-          for (uint16_t i = 0; i != _nused; ++i) {
-            if (_is_dense)
-              _entries.dense[i].serialise(out);
-            else
-              _entries.sparse[i].serialise(out);
+        deserialise(std::istream &in, const Label nlabels, Pool &pool, size_t &size) {
+          const uint32_t nitems = msgpack::read_array_size(in);
+          assert(nitems == 2); (void)nitems;
+          _value = msgpack::read_uint(in);
+          if (is_dense()) {
+            const uint32_t nitems = msgpack::read_array_size(in);
+            assert(nitems == nlabels); (void)nitems;
+            _entries = pool.alloc<pointer>(nlabels*sizeof(mapped_type));
+            for (Label l = 0; l != nlabels; ++l, ++size) {
+              new (_entries.dense + l) mapped_type();
+              _entries.dense[l].deserialise(in);
+            }
+          }
+          else {
+            const uint32_t nitems = msgpack::read_array_size(in);
+            assert(nitems != 0 && nitems < nlabels);
+            SparseEntry *prev = nullptr;
+            for (Label l = 0; l != nitems; ++l, ++size) {
+              SparseEntry *se = pool.alloc<SparseEntry *>(sizeof(SparseEntry));
+              new (se) SparseEntry();
+              se->deserialise(in);
+              if (prev == nullptr)
+                _entries.sparse = se;
+              else
+                prev->next = se;
+              prev = se;
+            }
+          }
+        }
+
+        void
+        serialise(std::ostream &out, const Label nlabels) const {
+          msgpack::write_array_size(out, 2);
+          msgpack::write_uint(out, _value);
+          if (is_dense()) {
+            msgpack::write_array_size(out, nlabels);
+            for (Label l = 0; l != nlabels; ++l)
+              _entries.dense[l].serialise(out);
+          }
+          else {
+            const Label size = _entries.sparse->size();
+            msgpack::write_array_size(out, size);
+            for (const SparseEntry *se = _entries.sparse; se != nullptr; se = se->next)
+              se->serialise(out);
           }
         }
 
         template <typename FN>
-        inline void
+        void
         for_each_label(const Label label_begin, const Label label_end, FN &fn) const {
-          if (_is_dense) {
-            for (uint16_t i = label_begin; i != label_end; ++i)
-              fn(i, _entries.dense[i]);
+          if (is_dense()) {
+            for (Label l = label_begin; l != label_end; ++l)
+              fn(l, _entries.dense[l]);
           }
           else {
-            for (uint16_t i = 0; i != _nused; ++i) {
-              const SparseEntry &e = _entries.sparse[i];
-              if (e.label() >= label_begin)
-                fn(e.label(), e.entry());
-              else if (e.label() >= label_end)
+            for (const SparseEntry *se = _entries.sparse; se != nullptr; se = se->next) {
+              if (se->label >= label_begin)
+                fn(se->label, se->entry);
+              else if (se->label >= label_end)
                 break;
             }
           }
         }
 
-      private:
-        SCHWA_DISALLOW_COPY_AND_ASSIGN(ChainItem);
-      };
-      static_assert(sizeof(ChainItem) == 24, "Unexpected sizeof(ChainItem)");
-
-
-      class Chain {
-      public:
-        static constexpr const uint32_t BLOCK_ALLOC_ITEMS = 4096/sizeof(ChainItem);
-
-      private:
-        uint32_t _nallocd;
-        uint32_t _nused;
-        ChainItem *_items;
-
-        ChainItem &
-        _create(const uint64_t hash, const uint8_t ft_id, const bool is_dense, const Label nlabels, Pool &pool) {
-          // Allocate more space if needed.
-          if (SCHWA_UNLIKELY(_nused == _nallocd)) {
-            void *const data = std::malloc((_nallocd + BLOCK_ALLOC_ITEMS)*sizeof(ChainItem));
-            if (SCHWA_UNLIKELY(data == nullptr))
-              throw std::bad_alloc();
-            std::memcpy(data, _items, _nallocd*sizeof(ChainItem));
-            std::free(_items);
-            _items = reinterpret_cast<ChainItem *>(data);
-            _nallocd += BLOCK_ALLOC_ITEMS;
-          }
-
-          // Construct and return the object.
-          new (_items + _nused) ChainItem(hash, ft_id, is_dense, nlabels, pool);
-          return _items[_nused++];
-        }
-
-      public:
-        Chain(void) : _nallocd(0), _nused(0), _items(nullptr) { }
-        ~Chain(void) {
-          for (uint32_t i = 0; i != _nused; ++i)
-            _items[i].~ChainItem();
-          std::free(_items);
-        }
-
-        // Capacity
-        inline uint32_t allocd(void) const { return _nallocd; }
-        inline bool empty(void) const { return _nused == 0; }
-        inline uint32_t size(void) const { return _nused; }
-
-        // Element access
-        inline ChainItem &operator [](const uint32_t index) { return _items[index]; }
-        inline const ChainItem &operator [](const uint32_t index) const { return _items[index]; }
-
-        inline ChainItem &
-        get(const uint64_t hash, const uint8_t ft_id, const bool is_dense, const uint16_t nlabels, Pool &pool, bool &created) {
-          for (uint32_t i = 0; i != _nused; ++i)
-            if (_items[i].hash() == hash)
-              return _items[i];
-          created = true;
-          return _create(hash, ft_id, is_dense, nlabels, pool);
-        }
-
-        inline const ChainItem &
-        get(const uint64_t hash) const {
-          for (uint32_t i = 0; i != _nused; ++i)
-            if (_items[i].hash() == hash)
-              return _items[i];
-          throw std::out_of_range("ChainItem with that hash value does not exist");
-        }
-
-        // Element lookup
-        inline ssize_t
-        index(const uint64_t hash) const {
-          for (uint32_t i = 0; i != _nused; ++i)
-            if (_items[i].hash() == hash)
-              return i;
-          return -1;
-        }
-
-        template <typename FN>
-        inline void
-        for_each_label(const uint64_t hash, const Label label_begin, const Label label_end, FN &fn) const {
-          for (uint32_t i = 0; i != _nused; ++i) {
-            if (_items[i].hash() == hash) {
-              _items[i].for_each_label(label_begin, label_end, fn);
-              return;
-            }
-          }
-        }
-
-        void
-        deserialise(std::istream &in, Pool &pool) {
-          const uint32_t nitems = msgpack::read_array_size(in);
-          assert(nitems == 2); (void)nitems;
-          _nallocd = msgpack::read_uint(in);
-          _nused = msgpack::read_array_size(in);
-          _items = reinterpret_cast<ChainItem *>(std::malloc(_nallocd*sizeof(ChainItem)));
-          if (SCHWA_UNLIKELY(_items == nullptr))
-            throw std::bad_alloc();
-          for (uint32_t i = 0; i != _nused; ++i)
-            new (_items + i) ChainItem(in, pool);
-        }
-
-        void
-        serialise(std::ostream &out) const {
-          msgpack::write_array_size(out, 2);
-          msgpack::write_uint(out, _nallocd);
-          msgpack::write_array_size(out, _nused);
-          for (uint32_t i = 0; i != _nused; ++i)
-            _items[i].serialise(out);
-        }
+        static uint64_t build_value(uint64_t hash, bool is_dense) { return (hash & HASH_MASK) | static_cast<uint64_t>(is_dense); }
 
       private:
         SCHWA_DISALLOW_COPY_AND_ASSIGN(Chain);
       };
-      static_assert(sizeof(Chain) == 16, "Unexpected sizeof(Chain)");
+      static_assert(sizeof(Chain) == 24, "Unexpected sizeof(Chain)");
 
 
       template <typename TABLE>
@@ -404,8 +299,8 @@ namespace schwa {
       private:
         mutable TABLE *_ht;
         mutable size_t _table_index;
-        mutable uint32_t _item_index;
-        mutable uint16_t _entry_index;
+        mutable Chain *_item;
+        mutable void *_entry;
         mutable bool _initialised;
         mutable bool _ended;
 
@@ -416,17 +311,29 @@ namespace schwa {
             return;
 
           if (SCHWA_LIKELY(_initialised)) {
-            // Do we still have entries left in the current ChainItem?
-            ++_entry_index;
-            if (_entry_index != _ht->_table[_table_index][_item_index].size())
-              return;
-            _entry_index = 0;
+            // Do we still have entries left within the current Chain?
+            if (_item->is_dense()) {
+              const pointer e = static_cast<pointer>(_entry) + 1;
+              if (e != _item->get_dense() + _ht->_nlabels) {
+                _entry = e;
+                return;
+              }
+            }
+            else {
+              SparseEntry *se = static_cast<SparseEntry *>(_entry)->next;
+              if (se != nullptr) {
+                _entry = static_cast<void *>(se);
+                return;
+              }
+            }
+            _entry = nullptr;
 
             // Do we still have items left in the current Chain?
-            ++_item_index;
-            if (_item_index != _ht->_table[_table_index].size())
+            _item = _item->next();
+            if (_item != nullptr) {
+              _entry = _item->get_typeless();
               return;
-            _item_index = 0;
+            }
 
             // Start at the next index in the table.
             ++_table_index;
@@ -438,7 +345,7 @@ namespace schwa {
 
           // Find the next non-empty chain.
           for ( ; _table_index != TABLE_SIZE; ++_table_index)
-            if (!_ht->_table[_table_index].empty())
+            if (_ht->_table[_table_index] != nullptr)
               break;
 
           // If the table is empty, become and end iterator.
@@ -447,14 +354,18 @@ namespace schwa {
             _table_index = 0;
             _ended = true;
           }
+          else {
+            _item = _ht->_table[_table_index];
+            _entry = _item->get_typeless();
+          }
         }
 
       public:
-        Iterator(void) : _ht(nullptr), _table_index(0), _item_index(0), _entry_index(0), _initialised(true), _ended(true) { }
-        explicit Iterator(TABLE &ht) : _ht(&ht), _table_index(0), _item_index(0), _entry_index(0), _initialised(false), _ended(false) { }
-        Iterator(TABLE &ht, size_t table_index, uint32_t item_index, uint16_t entry_index) : _ht(&ht), _table_index(table_index), _item_index(item_index), _entry_index(entry_index), _initialised(true), _ended(false) { }
-        Iterator(const Iterator &o) : _ht(o._ht), _table_index(o._table_index), _item_index(o._item_index), _entry_index(o._entry_index), _initialised(o._initialised), _ended(o._ended) { }
-        Iterator(const Iterator &&o) : _ht(o._ht), _table_index(o._table_index), _item_index(o._item_index), _entry_index(o._entry_index), _initialised(o._initialised), _ended(o._ended) { }
+        Iterator(void) : _ht(nullptr), _table_index(0), _item(nullptr), _entry(nullptr), _initialised(true), _ended(true) { }
+        explicit Iterator(TABLE &ht) : _ht(&ht), _table_index(0), _item(nullptr), _entry(nullptr), _initialised(false), _ended(false) { }
+        Iterator(TABLE &ht, size_t table_index, Chain *item, void *entry) : _ht(&ht), _table_index(table_index), _item(item), _entry(entry), _initialised(true), _ended(false) { }
+        Iterator(const Iterator &o) : _ht(o._ht), _table_index(o._table_index), _item(o._item), _entry(o._entry), _initialised(o._initialised), _ended(o._ended) { }
+        Iterator(const Iterator &&o) : _ht(o._ht), _table_index(o._table_index), _item(o._item), _entry(o._entry), _initialised(o._initialised), _ended(o._ended) { }
         ~Iterator(void) { }
 
         inline bool
@@ -463,7 +374,7 @@ namespace schwa {
             _increment();
           if (SCHWA_UNLIKELY(!o._initialised))
             o._increment();
-          return _ended == o._ended && _ht == o._ht && _table_index == o._table_index && _item_index == o._item_index && _entry_index == o._entry_index;
+          return _ended == o._ended && _ht == o._ht && _table_index == o._table_index && _item == o._item && _entry == o._entry && _initialised == o._initialised;
         }
         inline bool operator !=(const Iterator &o) const { return !(*this == o); }
 
@@ -471,7 +382,7 @@ namespace schwa {
         operator *(void) const {
           if (SCHWA_UNLIKELY(!_initialised))
             _increment();
-          return _ht->_table[_table_index][_item_index][_entry_index];
+          return _item->is_dense() ? *static_cast<pointer>(_entry) : static_cast<SparseEntry *>(_entry)->entry;
         }
         inline pointer operator ->(void) const { return &(**this); }
 
@@ -494,7 +405,7 @@ namespace schwa {
         operator <<(std::ostream &out, const Iterator &it) {
           if (SCHWA_UNLIKELY(!it._initialised))
             it._increment();
-          return out << "[Iterator::operator <<|" << &it << "] " << it._ht << " " << it._table_index << " " << it._item_index << " " << it._entry_index << " " << it._initialised << " " << it._ended << "]";
+          return out << "[Iterator::operator <<|" << &it << "] " << it._ht << " " << it._table_index << " " << it._item << " " << it._entry << " " << it._initialised << " " << it._ended << "]";
         }
       };
 
@@ -521,66 +432,103 @@ namespace schwa {
       inline iterator
       _find(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) {
         const uint64_t hash = _hash(type, cp, hasher);
-        const size_t table_index = hash & TABLE_INDEX_MASK;
-        const Chain &chain = _table[table_index];
-        if (chain.empty())
-          return end();
-        const ssize_t item_index = chain.index(hash);
-        if (item_index == -1)
-          return end();
-        const ssize_t entry_index = chain[item_index].index(label);
-        if (entry_index == -1)
-          return end();
-        return iterator(*this, table_index, static_cast<uint32_t>(item_index), static_cast<uint16_t>(entry_index));
+        const uint64_t value = Chain::build_value(hash, type.is_dense());
+        const size_t index = hash & TABLE_INDEX_MASK;
+
+        for (Chain *chain = _table[index]; chain != nullptr; chain = chain->next()) {
+          if (chain->value() == value) {
+            void *ptr = chain->is_dense() ? static_cast<void *>(chain->find_dense(label)) : static_cast<void *>(chain->find_sparse(label));
+            return ptr == nullptr ? end() : iterator(*this, index, chain, ptr);
+          }
+        }
+        return end();
       }
 
       template <typename CP, typename HASHER>
       inline const_iterator
       _find(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) const {
         const uint64_t hash = _hash(type, cp, hasher);
-        const size_t table_index = hash & TABLE_INDEX_MASK;
-        const Chain &chain = _table[table_index];
-        if (chain.empty())
-          return end();
-        const ssize_t item_index = chain.index(hash);
-        if (item_index == -1)
-          return end();
-        const ssize_t entry_index = chain[item_index].index(label);
-        if (entry_index == -1)
-          return end();
-        return const_iterator(*this, table_index, static_cast<uint32_t>(item_index), static_cast<uint16_t>(entry_index));
+        const uint64_t value = Chain::build_value(hash, type.is_dense());
+        const size_t index = hash & TABLE_INDEX_MASK;
+
+        for (Chain *chain = _table[index]; chain != nullptr; chain = chain->next()) {
+          if (chain->value() == value) {
+            void *ptr = chain->is_dense() ? static_cast<void *>(chain->find_dense(label)) : static_cast<void *>(chain->find_sparse(label));
+            return ptr == nullptr ? end() : const_iterator(*this, index, chain, ptr);
+          }
+        }
+        return end();
       }
 
       template <typename CP, typename HASHER>
       inline reference
       _get(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) {
         const uint64_t hash = _hash(type, cp, hasher);
-        const size_t table_index = hash & TABLE_INDEX_MASK;
-        const bool is_dense = type.storage() == FeatureStorage::DENSE;
-        bool created = false;
-        reference entry = _table[table_index].get(hash, type.id(), is_dense, _nlabels, _pool, created).get(label, _pool, created);
-        if (created)
-          _size += is_dense ? _nlabels : 1;
-        return entry;
+        const uint64_t value = Chain::build_value(hash, type.is_dense());
+        const size_t index = hash & TABLE_INDEX_MASK;
+
+        Chain *prev = nullptr, *chain;
+        for (chain = _table[index]; chain != nullptr; chain = chain->next()) {
+          if (chain->value() == value) {
+            bool created = false;
+            reference r = chain->get(label, _pool, created);
+            if (created)
+              ++_size;
+            return r;
+          }
+          prev = chain;
+        }
+
+        // Create the new chain item and insert it appropriately.
+        chain = _pool.alloc<Chain *>(sizeof(Chain));
+        new (chain) Chain(hash, type.is_dense(), label, _nlabels, _pool, _size);
+        if (prev == nullptr)
+          _table[index] = chain;
+        else
+          prev->set_next(chain);
+
+        return chain->get(label);
       }
 
       template <typename CP, typename HASHER>
       inline const_reference
       _get(const FeatureType &type, const CP &cp, const Label label, const HASHER &hasher) const {
         const uint64_t hash = _hash(type, cp, hasher);
-        const size_t table_index = hash & TABLE_INDEX_MASK;
-        return _table[table_index].get(hash).get(label);
+        const uint64_t value = Chain::build_value(hash, type.is_dense());
+        const size_t index = hash & TABLE_INDEX_MASK;
+
+        for (Chain *chain = _table[index]; chain != nullptr; chain = chain->next())
+          if (chain->value() == value)
+            return chain->get(label);
+        throw std::out_of_range("Entry does not exist in the table");
+      }
+
+      template <typename CP, typename HASHER, typename FN>
+      inline void
+      _for_each_label(const FeatureType &type, const CP &cp, const HASHER &hasher, const Label label_begin, const Label label_end, FN &fn) const {
+        const uint64_t hash = _hash(type, cp, hasher);
+        const uint64_t value = Chain::build_value(hash, type.is_dense());
+        const size_t index = hash & TABLE_INDEX_MASK;
+
+        for (const Chain *chain = _table[index]; chain != nullptr; chain = chain->next()) {
+          if (chain->value() == value) {
+            chain->for_each_label(label_begin, label_end, fn);
+            return;
+          }
+        }
       }
 
     private:
       Pool _pool;
-      Chain *const _table;
+      Chain **const _table;
       size_type _size;
       mutable third_party::xxhash::XXH64_stateSpace_t _xxhash_state;  //<! State object to maintain partial xxhash state.
       const uint16_t _nlabels;
 
     public:
-      explicit FeatureHashtable(uint16_t nlabels, size_t pool_block_size=4*4096) : _pool(pool_block_size), _table(new Chain[TABLE_SIZE]), _size(0), _nlabels(nlabels) { }
+      explicit FeatureHashtable(uint16_t nlabels, size_t pool_block_size=DEFAULT_POOL_BLOCK_SIZE) : _pool(pool_block_size), _table(new Chain *[TABLE_SIZE]), _size(0), _nlabels(nlabels) {
+        std::memset(_table, 0, TABLE_SIZE*sizeof(Chain *));
+      }
       ~FeatureHashtable(void) {
         delete [] _table;
       }
@@ -645,6 +593,14 @@ namespace schwa {
         return _get(type, contextual_predicate, label, hasher);
       }
 
+      // Iteration through each label for a particular contextual predicate.
+      template <typename CP, typename FN, typename HASHER=schwa::Hasher64<CP>>
+      inline void
+      for_each_label(const FeatureType &type, const CP &contextual_predicate, const Label label_begin, const Label label_end, FN &fn, const HASHER &hasher=HASHER()) const {
+        static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
+        _for_each_label(type, contextual_predicate, hasher, label_begin, label_end, fn);
+      }
+
 
       void
       deserialise(std::istream &in) {
@@ -655,26 +611,27 @@ namespace schwa {
         if (nlabels != _nlabels)
           throw std::runtime_error("nlabels on the table != nlabels on the model");
 
-        _size = msgpack::read_map_size(in);
-        for (size_t n = 0; n != _size; ++n) {
-          const size_t table_index = msgpack::read_uint(in);
-          _table[table_index].deserialise(in, _pool);
+        const uint32_t nkeys = msgpack::read_map_size(in);
+        for (size_t n = 0; n != nkeys; ++n) {
+          const size_t index = msgpack::read_uint(in);
+          Chain *chain = _table[index] = _pool.alloc<Chain *>(sizeof(Chain));
+          new (chain) Chain();
+          chain->deserialise(in, _nlabels, _pool, _size);
         }
       }
 
       void
       serialise(std::ostream &out) const {
-        size_t nitems = 0;
-        for (size_t table_index = 0; table_index != TABLE_SIZE; ++table_index)
-          if (!_table[table_index].empty())
-            ++nitems;
+        size_t nkeys = 0;
+        for (size_t index = 0; index != TABLE_SIZE; ++index)
+          if (_table[index] != nullptr)
+            ++nkeys;
         msgpack::write_uint16(out, _nlabels);
-        msgpack::write_map_size(out, nitems);
-        for (size_t table_index = 0; table_index != TABLE_SIZE; ++table_index) {
-          const Chain &chain = _table[table_index];
-          if (!chain.empty()) {
-            msgpack::write_uint(out, table_index);
-            chain.serialise(out);
+        msgpack::write_map_size(out, nkeys);
+        for (size_t index = 0; index != TABLE_SIZE; ++index) {
+          if (_table[index] != nullptr) {
+            msgpack::write_uint(out, index);
+            _table[index]->serialise(out, _nlabels);
           }
         }
       }
@@ -682,29 +639,18 @@ namespace schwa {
       std::ostream &
       pprint(std::ostream &out) const {
         out << "<FeatureHashtable size=" << _size << ">\n";
-        for (size_t table_index = 0; table_index != TABLE_SIZE; ++table_index) {
-          const Chain &chain = _table[table_index];
-          if (chain.empty())
+        for (size_t index = 0; index != TABLE_SIZE; ++index) {
+          const Chain *chain = _table[index];
+          if (chain == nullptr)
             continue;
-          out << table_index << " => (" << chain.size() << ")";
-          for (uint32_t item_index = 0; item_index != chain.size(); ++item_index) {
-            const ChainItem &item = chain[item_index];
-            out << " [" << &item << " hash=0x" << std::hex << item.hash() << std::dec << " is_dense=" << item.is_dense() << " nused=" << item.size() << " nallocd=" << item.allocd() << " ft_id=" << static_cast<unsigned int>(item.ft_id()) << "]";
-          }
+          out << index << " => (" << chain->size() << ")";
+          for ( ; chain != nullptr; chain = chain->next())
+            out << " [" << chain << " masked_hash=0x" << std::hex << chain->masked_hash() << std::dec << " is_dense=" << chain->is_dense() << "]";
           out << "\n";
         }
         return out << "</FeatureHashtable>" << std::endl;
-    }
-
-      // Iteration through each label for a particular contextual predicate.
-      template <typename CP, typename FN, typename HASHER=schwa::Hasher64<CP>>
-      inline void
-      for_each_label(const FeatureType &type, const CP &contextual_predicate, const Label label_begin, const Label label_end, FN &fn, const HASHER &hasher=HASHER()) const {
-        static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
-        const uint64_t hash = _hash(type, contextual_predicate, hasher);
-        const size_t table_index = hash & TABLE_INDEX_MASK;
-        _table[table_index].for_each_label(hash, label_begin, label_end, fn);
       }
+
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(FeatureHashtable);

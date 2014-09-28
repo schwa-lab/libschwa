@@ -29,6 +29,23 @@ struct Entry {
     LOG(INFO) << "[Entry::~Entry|" << this << "]" << std::endl;
   }
 
+  inline void
+  deserialise(std::istream &in) {
+    const uint32_t nitems = msgpack::read_array_size(in);
+    assert(nitems == 3); (void)nitems;
+    last_iteration = msgpack::read_uint(in);
+    current = msgpack::read_uint(in);
+    total = msgpack::read_uint(in);
+  }
+
+  inline void
+  serialise(std::ostream &out) const {
+    msgpack::write_array_size(out, 3);
+    msgpack::write_uint(out, last_iteration);
+    msgpack::write_uint(out, current);
+    msgpack::write_uint(out, total);
+  }
+
   friend std::ostream &operator <<(std::ostream &out, const Entry &entry);
 };
 
@@ -167,6 +184,15 @@ TEST(featurehashtable_test) {
   seen.clear();
   table.for_each_label(FT_ONE, "chicken", L_ZERO, L_TWO + 1, visitor);
   CHECK_EQUAL(0, seen.size());
+
+  {
+    std::ostringstream out;
+    table.serialise(out);
+    std::istringstream in(out.str());
+    FeatureHashtable<Entry> table2(3);
+    table2.deserialise(in);
+    CHECK_EQUAL(table.size(), table2.size());
+  }
 }
 
 

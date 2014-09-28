@@ -28,6 +28,9 @@ namespace schwa {
       explicit FeatureType(uint8_t id, FeatureStorage storage=FeatureStorage::UNSPECIFIED) : _id(id), _storage(storage) { }
 
       inline uint8_t id(void) const { return _id; }
+      inline bool is_dense(void) const { return _storage == FeatureStorage::DENSE; }
+      inline bool is_sparse(void) const { return _storage == FeatureStorage::SPARSE; }
+      inline bool is_unspecified(void) const { return _storage == FeatureStorage::UNSPECIFIED; }
       inline FeatureStorage storage(void) const { return _storage; }
 
       inline void set_storage(FeatureStorage storage) { _storage = storage; }
