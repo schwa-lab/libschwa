@@ -140,7 +140,7 @@ TEST(featurehashtable_test) {
   e1_2.last_iteration = 3;
   e1_1.last_iteration = 4;
   e2.last_iteration = 5;
-#if 0
+
   std::map<Label, uint32_t> seen;
   const auto &visitor = [&seen](const Label l, const Entry &e) {
     seen[l] = e.last_iteration;
@@ -167,7 +167,6 @@ TEST(featurehashtable_test) {
   seen.clear();
   table.for_each_label(FT_ONE, "chicken", L_ZERO, L_TWO + 1, visitor);
   CHECK_EQUAL(0, seen.size());
-#endif
 }
 
 

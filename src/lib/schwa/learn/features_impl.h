@@ -14,7 +14,7 @@
 
 #include <schwa/_base.h>
 #include <schwa/hash.h>
-#include <schwa/io/logging.h>
+#include <schwa/msgpack.h>
 #include <schwa/pool.h>
 
 
@@ -54,12 +54,27 @@ namespace schwa {
         SparseEntry(Label label, Pool &pool) : _label(label), _entry(pool.alloc<pointer>(sizeof(mapped_type))) {
           new (_entry) mapped_type();
         }
+        SparseEntry(std::istream &in, Pool &pool) {
+          const uint32_t nitems = msgpack::read_array_size(in);
+          assert(nitems == 2); (void)nitems;
+          _label = msgpack::read_uint(in);
+          _entry = pool.alloc<pointer>(sizeof(mapped_type));
+          new (_entry) mapped_type();
+          _entry->deserialise(in);
+        }
         ~SparseEntry(void) {
           _entry->~mapped_type();
         }
 
         inline reference entry(void) const { return *_entry; }
         inline Label label(void) const { return _label; }
+
+        void
+        serialise(std::ostream &out) const {
+          msgpack::write_array_size(out, 2);
+          msgpack::write_uint(out, _label);
+          _entry->serialise(out);
+        }
 
       private:
         SCHWA_DISALLOW_COPY_AND_ASSIGN(SparseEntry);
@@ -71,9 +86,9 @@ namespace schwa {
         static constexpr const uint16_t BLOCK_ALLOC_ITEMS_SPARSE = 4;
 
       private:
-        const uint64_t _hash;
-        const uint8_t _ft_id;
-        const bool _is_dense;
+        uint64_t _hash;
+        uint8_t _ft_id;
+        bool _is_dense;
         uint16_t _nallocd;
         uint16_t _nused;
         union Entries {
@@ -121,6 +136,29 @@ namespace schwa {
           if (_is_dense) {
             for (uint16_t i = 0; i != _nused; ++i)
               new (_entries.dense + i) mapped_type();
+          }
+        }
+
+        ChainItem(std::istream &in, Pool &pool) : _entries(nullptr) {
+          const uint32_t nitems = msgpack::read_array_size(in);
+          assert(nitems == 5); (void)nitems;
+          _hash = msgpack::read_uint(in);
+          _ft_id = msgpack::read_uint8(in);
+          _is_dense = msgpack::read_bool(in);
+          _nallocd = msgpack::read_uint16(in);
+          _nused = msgpack::read_array_size(in);
+          // Construct and deserialise the objects.
+          if (_is_dense) {
+            _entries = pool.alloc<pointer>(_nallocd*sizeof(mapped_type));
+            for (uint16_t i = 0; i != _nused; ++i) {
+              new (_entries.dense + i) mapped_type();
+              _entries.dense[i].deserialise(in);
+            }
+          }
+          else {
+            _entries = std::malloc(_nallocd*sizeof(SparseEntry));
+            for (uint16_t i = 0; i != _nused; ++i)
+              new (_entries.sparse + i) SparseEntry(in, pool);
           }
         }
 
@@ -204,6 +242,40 @@ namespace schwa {
           return -1;
         }
 
+        void
+        serialise(std::ostream &out) const {
+          msgpack::write_array_size(out, 5);
+          msgpack::write_uint(out, _hash);
+          msgpack::write_uint8(out, _ft_id);
+          msgpack::write_bool(out, _is_dense);
+          msgpack::write_uint16(out, _nallocd);
+          msgpack::write_array_size(out, _nused);
+          for (uint16_t i = 0; i != _nused; ++i) {
+            if (_is_dense)
+              _entries.dense[i].serialise(out);
+            else
+              _entries.sparse[i].serialise(out);
+          }
+        }
+
+        template <typename FN>
+        inline void
+        for_each_label(const Label label_begin, const Label label_end, FN &fn) const {
+          if (_is_dense) {
+            for (uint16_t i = label_begin; i != label_end; ++i)
+              fn(i, _entries.dense[i]);
+          }
+          else {
+            for (uint16_t i = 0; i != _nused; ++i) {
+              const SparseEntry &e = _entries.sparse[i];
+              if (e.label() >= label_begin)
+                fn(e.label(), e.entry());
+              else if (e.label() >= label_end)
+                break;
+            }
+          }
+        }
+
       private:
         SCHWA_DISALLOW_COPY_AND_ASSIGN(ChainItem);
       };
@@ -239,7 +311,6 @@ namespace schwa {
 
       public:
         Chain(void) : _nallocd(0), _nused(0), _items(nullptr) { }
-
         ~Chain(void) {
           for (uint32_t i = 0; i != _nused; ++i)
             _items[i].~ChainItem();
@@ -279,6 +350,39 @@ namespace schwa {
             if (_items[i].hash() == hash)
               return i;
           return -1;
+        }
+
+        template <typename FN>
+        inline void
+        for_each_label(const uint64_t hash, const Label label_begin, const Label label_end, FN &fn) const {
+          for (uint32_t i = 0; i != _nused; ++i) {
+            if (_items[i].hash() == hash) {
+              _items[i].for_each_label(label_begin, label_end, fn);
+              return;
+            }
+          }
+        }
+
+        void
+        deserialise(std::istream &in, Pool &pool) {
+          const uint32_t nitems = msgpack::read_array_size(in);
+          assert(nitems == 2); (void)nitems;
+          _nallocd = msgpack::read_uint(in);
+          _nused = msgpack::read_array_size(in);
+          _items = reinterpret_cast<ChainItem *>(std::malloc(_nallocd*sizeof(ChainItem)));
+          if (SCHWA_UNLIKELY(_items == nullptr))
+            throw std::bad_alloc();
+          for (uint32_t i = 0; i != _nused; ++i)
+            new (_items + i) ChainItem(in, pool);
+        }
+
+        void
+        serialise(std::ostream &out) const {
+          msgpack::write_array_size(out, 2);
+          msgpack::write_uint(out, _nallocd);
+          msgpack::write_array_size(out, _nused);
+          for (uint32_t i = 0; i != _nused; ++i)
+            _items[i].serialise(out);
         }
 
       private:
@@ -477,7 +581,6 @@ namespace schwa {
 
     public:
       explicit FeatureHashtable(uint16_t nlabels, size_t pool_block_size=4*4096) : _pool(pool_block_size), _table(new Chain[TABLE_SIZE]), _size(0), _nlabels(nlabels) { }
-
       ~FeatureHashtable(void) {
         delete [] _table;
       }
@@ -543,6 +646,39 @@ namespace schwa {
       }
 
 
+      void
+      deserialise(std::istream &in) {
+        if (!empty())
+          throw std::logic_error("Cannot deserialise a non-empty table");
+
+        const uint16_t nlabels = msgpack::read_uint16(in);
+        if (nlabels != _nlabels)
+          throw std::runtime_error("nlabels on the table != nlabels on the model");
+
+        _size = msgpack::read_map_size(in);
+        for (size_t n = 0; n != _size; ++n) {
+          const size_t table_index = msgpack::read_uint(in);
+          _table[table_index].deserialise(in, _pool);
+        }
+      }
+
+      void
+      serialise(std::ostream &out) const {
+        size_t nitems = 0;
+        for (size_t table_index = 0; table_index != TABLE_SIZE; ++table_index)
+          if (!_table[table_index].empty())
+            ++nitems;
+        msgpack::write_uint16(out, _nlabels);
+        msgpack::write_map_size(out, nitems);
+        for (size_t table_index = 0; table_index != TABLE_SIZE; ++table_index) {
+          const Chain &chain = _table[table_index];
+          if (!chain.empty()) {
+            msgpack::write_uint(out, table_index);
+            chain.serialise(out);
+          }
+        }
+      }
+
       std::ostream &
       pprint(std::ostream &out) const {
         out << "<FeatureHashtable size=" << _size << ">\n";
@@ -559,6 +695,16 @@ namespace schwa {
         }
         return out << "</FeatureHashtable>" << std::endl;
     }
+
+      // Iteration through each label for a particular contextual predicate.
+      template <typename CP, typename FN, typename HASHER=schwa::Hasher64<CP>>
+      inline void
+      for_each_label(const FeatureType &type, const CP &contextual_predicate, const Label label_begin, const Label label_end, FN &fn, const HASHER &hasher=HASHER()) const {
+        static_assert(sizeof(typename HASHER::result_type) == 8, "64-bit hash function required");
+        const uint64_t hash = _hash(type, contextual_predicate, hasher);
+        const size_t table_index = hash & TABLE_INDEX_MASK;
+        _table[table_index].for_each_label(hash, label_begin, label_end, fn);
+      }
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(FeatureHashtable);
