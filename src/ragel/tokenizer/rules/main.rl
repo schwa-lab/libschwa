@@ -3,6 +3,7 @@
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
   action ignore {}
   action word { _word(WORD, dest, s); }
@@ -37,7 +38,9 @@
 
     full_stop => { _terminator(dest, s, "."); };
     question_mark => { _terminator(dest, s, "?"); };
+    inverted_question_mark => { _terminator(dest, s, u8"¿"); };
     exclamation_mark => { _terminator(dest, s, "!"); };
+    inverted_exclamation_mark => { _terminator(dest, s, u8"¡"); };
     ellipsis => { _terminator(dest, s, "..."); };
 
     dash => { _dash_or_item(dest, s); };

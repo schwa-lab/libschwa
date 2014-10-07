@@ -3,9 +3,9 @@
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
   access s.;
-  action FAIRFAX { true }
 
   include "actions.rl";
   include "rules/quotes.rl";
@@ -22,6 +22,7 @@
   include "rules/default.rl";
   include "rules/main.rl";
 }%%
+
 
 #include <cstring>
 #include <memory>
