@@ -48,7 +48,9 @@ SGMLishNode::add_child(SGMLishNode &node) {
 
 
 std::ostream &
-SGMLishNode::pprint(std::ostream &out) const {
+SGMLishNode::_pprint(std::ostream &out, const unsigned int indent) const {
+  for (unsigned int i = 0; i != indent; ++i)
+    out << "  ";
   out << "<{" << this << "}";
   switch (_type) {
   case SGMLishNodeType::START_TAG: out << "START_TAG"; break;
@@ -70,7 +72,48 @@ SGMLishNode::pprint(std::ostream &out) const {
     break;
   }
 
+  for (SGMLishAttribute *attr = _attribute; attr != nullptr; attr = attr->next()) {
+    out << " ";
+    attr->pprint(out);
+  }
+
+  if (_type == SGMLishNodeType::EMPTY_TAG)
+    out << "/";
+  out << ">\n";
+
+  if (_type == SGMLishNodeType::TEXT) {
+    for (unsigned int i = 0; i != indent + 1; ++i)
+      out << "  ";
+    out << reinterpret_cast<const char *>(_data) << "\n";
+  }
+  else {
+    for (SGMLishNode *child = _child; child != nullptr; child = child->sibling())
+      child->_pprint(out, indent + 1);
+  }
+
+  for (unsigned int i = 0; i != indent; ++i)
+    out << "  ";
+  out << "</";
+  switch (_type) {
+  case SGMLishNodeType::START_TAG:
+  case SGMLishNodeType::EMPTY_TAG:
+  case SGMLishNodeType::END_TAG:
+    out << reinterpret_cast<const char *>(_data);
+    break;
+  case SGMLishNodeType::TEXT:
+    out << "TEXT";
+  default:
+    break;
+  }
+  out << ">\n";
+
   return out;
+}
+
+
+std::ostream &
+SGMLishNode::pprint(std::ostream &out) const {
+  return _pprint(out, 0);
 }
 
 
@@ -354,6 +397,8 @@ SGMLishParser::parse(Pool &pool) {
     switch (node->type()) {
     case SGMLishNodeType::START_TAG:
       // Push the node to the stack of opened tags, and promote it to root if necessary.
+      if (!stack.empty())
+        stack.top()->add_child(*node);
       stack.push(node);
       if (_root == nullptr)
         _root = node;

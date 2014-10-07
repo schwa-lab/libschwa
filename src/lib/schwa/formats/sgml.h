@@ -12,7 +12,6 @@
 
 
 namespace schwa {
-
   namespace formats {
 
     class SGMLishAttribute {
@@ -50,6 +49,7 @@ namespace schwa {
       SGMLishNode *_sibling;
       SGMLishAttribute *_attribute;
 
+      std::ostream &_pprint(std::ostream &out, unsigned int indent) const;
       inline void _set_sibling(SGMLishNode &node) { _sibling = &node; }
 
     public:

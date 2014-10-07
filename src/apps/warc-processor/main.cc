@@ -193,7 +193,7 @@ main(int argc, char **argv) {
       success = lexer.run(er);
     }
     if (sgml()) {
-      const size_t nbytes = 4 * 1024 * 1024;
+      const size_t nbytes = 64 * 1024 * 1024;
       std::unique_ptr<char []> buf(new char[nbytes]);
       std::istream &input = in;
       input.read(buf.get(), nbytes);
