@@ -13,6 +13,7 @@
 #include <schwa/io/logging.h>
 #include <schwa/formats/html.h>
 #include <schwa/formats/http.h>
+#include <schwa/formats/sgml.h>
 #include <schwa/formats/warc.h>
 
 namespace cf = schwa::config;
@@ -168,6 +169,7 @@ main(int argc, char **argv) {
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
   cf::Op<size_t> warc_buffer(cfg, "warc-buffer", "WARC lexer input buffer size (bytes)", fm::WARCParser::DEFAULT_BUFFER_SIZE);
   cf::Op<bool> html(cfg, "html", "Lex HTML only", false);
+  cf::Op<bool> sgml(cfg, "sgml", "Lex SGML only", false);
   cf::Op<std::string> html_encoding(cfg, "encoding", "Encoding of HTML file", "UTF-8");
 
   bool success = true;
@@ -189,6 +191,26 @@ main(int argc, char **argv) {
       schwa::EncodingResult er;
       schwa::to_utf8(encoding, reinterpret_cast<const uint8_t *>(buf.get()), input.gcount(), er);
       success = lexer.run(er);
+    }
+    if (sgml()) {
+      const size_t nbytes = 4 * 1024 * 1024;
+      std::unique_ptr<char []> buf(new char[nbytes]);
+      std::istream &input = in;
+      input.read(buf.get(), nbytes);
+      assert(input.gcount() < static_cast<ssize_t>(nbytes));
+
+      const schwa::Encoding encoding = schwa::get_encoding(html_encoding());
+      schwa::EncodingResult er;
+      schwa::to_utf8(encoding, reinterpret_cast<const uint8_t *>(buf.get()), input.gcount(), er);
+
+      schwa::Pool pool(4 * 1024 * 1024);
+      fm::SGMLishParser parser(er);
+      for (fm::SGMLishNode *root = nullptr; (root = parser.parse(pool)) != nullptr; ) {
+        std::cout << "root=" << root << std::endl;
+        root->pprint(std::cout);
+      }
+      if (!parser.eof())
+        throw std::runtime_error("Parser stopped parsing but did not hit EOF");
     }
     else {
       fm::WARCHTMLParser lexer;
