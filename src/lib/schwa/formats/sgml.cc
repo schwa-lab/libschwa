@@ -123,13 +123,7 @@ SGMLishNode::pprint(std::ostream &out) const {
 SGMLishLexer::SGMLishLexer(const EncodingResult &er) :
     _encoding_result(er),
     _pool(nullptr),
-    p(er.utf8()),
-    pe(p + er.nbytes()),
-    eof(pe),
-    ts(nullptr),
-    te(nullptr),
-    act(0),
-    cs(0),
+    _state(er.utf8(), er.nbytes()),
     _attr_name_buffer(64),
     _tag_name_buffer(64),
     _text_buffer(DEFAULT_BUFFER_GROW_SIZE),
@@ -251,9 +245,10 @@ SGMLishLexer::_create_cdata_node(void) {
   std::cout << "[SGMLishLexer::_create_cdata_node]" << std::endl;
 
   // Clone tag contents into pool memory.
-  uint8_t *const data = _pool->alloc<uint8_t *>((te - ts) + 1);
-  std::memcpy(data, ts, te - ts);
-  data[te - ts] = 0;
+  const size_t nbytes = _state.te - _state.ts;
+  uint8_t *const data = _pool->alloc<uint8_t *>(nbytes + 1);
+  std::memcpy(data, _state.ts, nbytes);
+  data[nbytes] = 0;
 
   // Create node object in pool memory.
   _node = _pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
@@ -266,9 +261,10 @@ SGMLishLexer::_create_comment_node(void) {
   std::cout << "[SGMLishLexer::_create_comment_node]" << std::endl;
 
   // Clone tag contents into pool memory.
-  uint8_t *const data = _pool->alloc<uint8_t *>((te - ts) + 1);
-  std::memcpy(data, ts, te - ts);
-  data[te - ts] = 0;
+  const size_t nbytes = _state.te - _state.ts;
+  uint8_t *const data = _pool->alloc<uint8_t *>(nbytes + 1);
+  std::memcpy(data, _state.ts, nbytes);
+  data[nbytes] = 0;
 
   // Create node object in pool memory.
   _node = _pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));

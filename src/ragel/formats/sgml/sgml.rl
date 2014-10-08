@@ -3,7 +3,11 @@
 
 %%{
   machine sgml;
+  access _state.;
   alphtype unsigned char;
+  variable eof _state.eof;
+  variable p _state.p;
+  variable pe _state.pe;
 
   action attribute_name_start { _attr_name_start(fpc); }
   action attribute_name_end { _attr_name_end(fpc); }
@@ -83,12 +87,12 @@ SGMLishLexer::_init(void) {
 SGMLishNode *
 SGMLishLexer::lex(Pool &pool) {
   _pool = &pool;
-  std::cout << "[SGMLishLexer::lex] begin p=" << static_cast<const void *>(p) << " pe=" << static_cast<const void *>(pe) << std::endl;
+  std::cout << "[SGMLishLexer::lex] begin p=" << static_cast<const void *>(_state.p) << " pe=" << static_cast<const void *>(_state.pe) << std::endl;
   // Don't attempt to lex if we're at EOF.
-  if (p == pe)
+  if (_state.at_eof())
     return nullptr;
   %% write exec;
-  return cs == %%{ write error; }%% ? nullptr : _node;
+  return _state.cs == %%{ write error; }%% ? nullptr : _node;
 }
 
 }  // namespace formats
