@@ -1,66 +1,278 @@
+// vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
-  acron1 = alpha ("." alpha) ".";
-  acron2 = upper /[bcdfghj-np-tvxz]+\./;
-  acron3 = upper (upper | "&")* upper+;
-
+  acronym1 = alpha ('.' alpha) '.';
+  acronym2 = upper /[bcdfghj-np-tvxz]+\./;
+  acronym3 = upper (upper | '&')* upper+;
   initial = /[A-Z]\./;
+  acronym = acronym1 | acronym2 | acronym3 | initial;
 
-  acron = acron1 | acron2 | acron3 | initial;
+  month_abbrev = 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Sept' | 'Oct' | 'Nov' | 'Dec' ;
+  day_abbrev = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Thurs' | 'Fri' | 'Sat' | 'Sun' ;
+  date_abbrev = ( month_abbrev | day_abbrev ) '.' ;
 
-  month_abbrev = ("Jan"|"Feb"|"Mar"|"Apr"|"Jun"|"Jul"|"Aug"|"Sep"|"Sept"|"Oct"|"Nov"|"Dec") ".";
-  day_abbrev = ("Mon"|"Tue"|"Wed"|"Thurs"|"Fri"|"Sat"|"Sun") ".";
+  title_prefix =
+      'Amb'
+    | 'Adm'
+    | 'Atty'
+    | 'Br'
+    | 'Brig'
+    | 'Capt'
+    | 'Cdr'
+    | 'Cmdr'
+    | 'Col'
+    | 'Cpl'
+    | 'Crpl'
+    | 'Dr'
+    | 'Drs'
+    | 'Ed'
+    | 'Fr'
+    | 'Gen'
+    | 'Gov'
+    | 'Hon'
+    | 'Lt'
+    | 'Maj'
+    | 'Md'
+    | 'Mr'
+    | 'Mrs'
+    | 'Ms'
+    | 'Msgr'
+    | 'Mssr'
+    | 'Mssrs'
+    | 'Ofc'
+    | 'Pres'
+    | 'Prof'
+    | 'Pvt'
+    | 'Rep'
+    | 'Rev'
+    | 'Rt'
+    | 'Rtd'
+    | 'Sec'
+    | 'Sen'
+    | 'Sgt'
+    | 'Sr'
+    | 'Supt'
+    | 'Treas'
+    ;
+  title_suffix =
+      'Bros'
+    | 'Esq'
+    | 'Hon'
+    | 'Jnr'
+    | 'Jr'
+    | 'Snr'
+    | 'Sr'
+    ;
+  title = ( title_prefix | title_suffix ) '.' ;
 
-  date_abbrev = month_abbrev | day_abbrev;
+  # https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations
+  us_state_1 =
+      'Ala'
+    | 'Alas'
+    | 'Ariz' | 'Az'
+    | 'Ark'
+    | 'Calif' | 'Ca' | 'Cal'
+    | 'Colo' | 'Col'
+    | 'Conn' | 'Ct'
+    | 'Del' | 'De'
+    | 'Fla' | 'Fl' | 'Flor'
+    | 'Ga'
+    | 'Id' | 'Ida'
+    | 'Ill' | 'Il' | 'Ills'
+    | 'Ind' | 'In'
+    | 'Ia' | 'Ioa'
+    | 'Kans' | 'Kan' | 'Ka' | 'Ks'
+    | 'Ky' | 'Ken' | 'Kent'
+    | 'La'
+    | 'Me'
+    | 'Md'
+    | 'Mass'
+    | 'Mich'
+    | 'Minn' | 'Mn'
+    | 'Miss'
+    | 'Mo'
+    | 'Mont'
+    | 'Nebr' | 'Neb'
+    | 'Nev' | 'Nv'
+    | 'Mex'
+    | 'Car'
+    | 'Dak'
+    | 'O' | 'Oh'
+    | 'Okla' | 'Ok'
+    | 'Oreg' | 'Ore' | 'Or'
+    | 'Pa' | 'Penn' | 'Penna'
+    | 'Tenn'
+    | 'Tex' | 'Tx'
+    | 'Ut'
+    | 'Vt'
+    | 'Va' | 'Virg'
+    | 'Wash' | 'Wa' | 'Wn'
+    | 'Va' | 'Virg'
+    | 'Wis' | 'Wi' | 'Wisc'
+    | 'Wyo' | 'Wy'
+    ;
+  us_state_2 = 'N' | 'S' | 'W' ;
+  canada_state =
+      'Alta'
+    | 'Man'
+    | 'Nfld'
+    | 'Nun' | 'Nvt'
+    | 'Ont'
+    | 'Que'
+    | 'Sask'
+    | 'Yuk'
+    ;
+  administrative_division = 'Prov' ;
+  state = ( us_state_1 | us_state_2 | canada_state | administrative_division ) '.' ;
 
-  title0 = ("Mr"|"Mrs"|"Ms"|"Dr"|"Drs"|"Fr"|"Sr"|"Br"|"Rev"|"Prof"|"Mssr"|"Mssrs") ".";
-  title1 = ("Sr"|"Snr"|"Jr"|"Jnr"|"Hon"|"Bros"|"Esq") ".";
-  title2 = ("Rep"|"Sen"|"Gov"|"Pres"|"Adm"|"Capt"|"Crpl"|"Gen"|"Lt"|"Maj"|"Sgt") ".";
-  title3 = ("Brig"|"Cmdr"|"Cdr"|"Sec"|"Rtd"|"Rt") ".";
-  title4 = ("Ed"|"Md") ".";
+  # https://www.usps.com/send/official-abbreviations.htm#2
+  street_suffix =
+      'Aly'
+    | 'Anx'
+    | 'Arc'
+    | 'Av' | 'Ave' | 'Avn'
+    | 'Bch'
+    | 'Bg' | 'Bgs'
+    | 'Blf' | 'Blfs'
+    | 'Blvd' | 'Boul' | 'Boulv'
+    | 'Bnd'
+    | 'Bot' | 'Btm'
+    | 'Br'
+    | 'Brg'
+    | 'Brk'
+    | 'Byp'
+    | 'Byu'
+    | 'Cct'
+    | 'Cir'
+    | 'Cmn'
+    | 'Cp'
+    | 'Cpe'
+    | 'Cr'
+    | 'Crcl'
+    | 'Crk'
+    | 'Cres'
+    | 'Cswy'
+    | 'Ct'
+    | 'Ctr'
+    | 'Cts'
+    | 'Cyn'
+    | 'Dr'
+    | 'Drv'
+    | 'Hbr'
+    | 'Hgts'
+    | 'Hts'
+    | 'Hwy'
+    | 'Is'
+    | 'Isl'
+    | 'Jctn'
+    | 'La'
+    | 'Lks'
+    | 'Ln'
+    | 'Lndg'
+    | 'Mnr'
+    | 'Mdw'
+    | 'Mdws'
+    | 'Mls'
+    | 'Mt'
+    | 'Mtn'
+    | 'Mnt'
+    | 'Mntn'
+    | 'Mntns'
+    | 'Pk'
+    | 'Pkwy'
+    | 'Pl'
+    | 'Pln'
+    | 'Plns'
+    | 'Plz'
+    | 'Rd'
+    | 'Rds'
+    | 'St'
+    | 'Sta'
+    | 'Stn'
+    | 'Str'
+    | 'Te'
+    | 'Tr'
+    | 'Trk'
+    | 'Trl'
+    | 'Tpk'
+    | 'Tpke'
+    | 'Trpk'
+    | 'Vl'
+    | 'Vlg'
+    | 'Vly'
+    | 'Via'
+    | 'Vdct'
+    | 'Wl'
+    | 'Wls'
+    ;
+  building_suffix =
+      'Apt'
+    | 'Bldg'
+    | 'Bsmt'
+    | 'Dept'
+    | 'Fl'
+    | 'Frnt'
+    | 'Hngr'
+    | 'Lbby'
+    | 'Lowr'
+    | 'Lvl'
+    | 'Ofc'
+    | 'Ph'
+    | 'Rm'
+    | 'Spc'
+    | 'Ste'
+    | 'Trlr'
+    | 'Uppr'
+    ;
+  address_suffix = ( street_suffix | building_suffix ) '.' ;
 
-  title = title0 | title1 | title2 | title3 | title4;
+  # Business/organisation names.
+  corp = 'Co' | 'Corp' | 'Coop' | 'Co-op' | 'Inc' | 'Ltd' | 'Plc' | 'Pty' ;
+  biz0 = 'Admin' | 'Dept' | 'Ind' | 'Mkts' | 'Est' | 'est' ;
+  biz1 = 'Manufac' | 'Svcs' ;
+  group = 'Assn' | 'Assoc' | 'Assocs' | 'Educ' | 'Dist' | 'Twp' | 'Govt' | 'Int' | 'Intl' | 'Uni' | 'Univ' ;
+  org = ( corp | biz0 | biz1 | group ) '.' ;
 
-  usstate0 = ("Ala"|"Ariz"|"Ark"|"Ca"|"Calif"|"Colo"|"Conn"|"Del"|"Fla"|"Ga"|"Ill") ".";
-  usstate1 = ("Ind"|"Kan"|"Ky"|"La"|"Mass"|"Md"|"Mich"|"Minn"|"Miss"|"Mo"|"Mont") ".";
-  usstate2 = ("Neb"|"Nev"|"Okla"|"Ore"|"Pa"|"Penn"|"Penna"|"Tenn"|"Tex"|"Va") ".";
-  usstate3 = ("Vt"|"Wash"|"Wis"|"Wisc"|"Wyo") ".";
-  usstate4 = (/[SN]\./ | /[SN]o\./) space+ ("Carol."|"Dak.") | "W." space+ "Va.";
-
-  canada1 = ("Manit"|"Ont"|"Que") ".";
-  places1 = ("Prov") ".";
-
-  state = usstate0 | usstate1 | usstate2 | usstate3 | usstate4 | canada1 | places1;
-
-  addr0 = ("Aly"|"Av"|"Ave"|"Bch"|"Blvd"|"Boul") ".";
-  addr1 = ("Cct"|"Cmn"|"Ct"|"Cts"|"Cr"|"Crk"|"Cres"|"Dr"|"Drv") ".";
-  addr2 = ("Hbr"|"Hgts"|"Hts"|"Hwy"|"Is"|"Jctn"|"La"|"Lks"|"Ln"|"Lndg") ".";
-  addr3 = ("Mnr"|"Mdw"|"Mdws"|"Mls"|"Mt"|"Mtn"|"Mnt"|"Mntn"|"Mntns") ".";
-  addr4 = ("Pk"|"Pkwy"|"Pl"|"Pln"|"Plns"|"Plz"|"Rd"|"Rds") ".";
-  addr5 = ("St"|"Sta"|"Stn"|"Str"|"Te"|"Tr"|"Trk"|"Trl"|"Tpk"|"Tpke"|"Trpk") ".";
-  addr6 = ("Vl"|"Vlg"|"Vly"|"Via"|"Vdct"|"Wl"|"Wls") ".";
-
-  building = ("Apt"|"Bsmt"|"Bldg"|"Lbby"|"Lvl"|"Rm"|"Fl") ".";
-
-  addr = addr0 | addr1 | addr2 | addr3 | addr4 | addr5 | addr6 | building;
-
-  corp = ("Co"|"Corp"|"Coop"|"Co-op"|"Inc"|"Ltd"|"Pty"|"Plc") ".";
-  biz0 = ("Admin"|"Dept"|"Ind"|"Mkts"|"Est"|"est") ".";
-  biz1 = ("Manufac"|"Svcs") ".";
-  group = ("Assn"|"Assoc"|"Assocs"|"Educ"|"Dist"|"Twp"|"Govt"|"Int"|"Intl"|"Uni"|"Univ") ".";
-
-  org = corp | biz0 | biz1 | group;
-
-  # problem cases: "cent" (per cent appears often at the end of a sentence)
-
-  abbrev0 = ("ed"|"eg"|"e.g"|"etc"|"cf"|"i.e"|"ie"|"viz"|"vol") ".";
-  abbrev1 = ("eds"|"repr"|"trans"|"vols"|"rev"|"pell") ".";
-  abbrev2 = ("accd"|"amort"|"approx"|"avg"|"cert"|"cont"|"devel"|"disc"|"discont"|"equiv") ".";
-  abbrev3 = ("excl"|"expell"|"fin"|"imp"|"incl"|"ins"|"inv"|"invest"|"ord") ".";
-
-  abbrev = abbrev0 | abbrev1 | abbrev2 | abbrev3;
+  # problem cases: 'cent' (per cent appears often at the end of a sentence)
+  abbreviation = (
+        'accd'
+      | 'amort'
+      | 'approx'
+      | 'avg'
+      | 'cert'
+      | 'cf'
+      | 'cont'
+      | 'devel'
+      | 'disc'
+      | 'discont'
+      | 'e.g'
+      | 'ed'
+      | 'eds'
+      | 'eg'
+      | 'equiv'
+      | 'etc'
+      | 'excl'
+      | 'expell'
+      | 'fin'
+      | 'i.e'
+      | 'ie'
+      | 'imp'
+      | 'incl'
+      | 'ins'
+      | 'inv'
+      | 'invest'
+      | 'ord'
+      | 'pell'
+      | 'repr'
+      | 'rev'
+      | 'trans'
+      | 'viz'
+      | 'vol'
+      | 'vols'
+   ) '.' ;
 
 }%%

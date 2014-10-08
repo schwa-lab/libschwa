@@ -79,14 +79,13 @@
 
     "and/or" | "AND/OR" => word;
 
-    cont_misc | acron | title => word;
+    cont_misc | acronym | title => word;
     symbols => punct;
-    unicode_symbols => punct;
     end_punct => end;
 #    emoticon => punct;
-    date_abbrev | state | addr => word;
+    date_abbrev | state | address_suffix => word;
 
-    org | abbrev | lines | dollars | numbers | date_time => word;
+    org | abbreviation | lines | dollars | numbers | date_time => word;
     uri | host_name | email_address | twitter_username | hash_tag => word;
     default => word;
 

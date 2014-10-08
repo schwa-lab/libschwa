@@ -1,7 +1,9 @@
+// vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
   cont_misc_lc = "cont'd" @{n1="continued";} | "ma'am" @{n1="madame";} | "o'clock" | "w'end" @{n1="weekend";} | "gov't" @{n1="government";} | "int'l" @{n1="international";} | "qur'an" | "y'all" | "nat'l" @{n1="national";} | "req'd" @{n1="required";} | "c'mon" | "ya'll" | "o'er" @{n1="over";}|"y'know"|"add'l"|"dep't"|"rock'n'roll"|"'tis"|"readin'";
   cont_misc_tc = "Cont'd"|"Ma'am"|"O'clock"|"O'Clock"|"W'end"|"Gov't"|"Int'l"|"Qur'an"|"Y'all"|"Hawai'i"|"Nat'l"|"Req'd"|"C'mon"|"Ya'll"|"O'er"|"Y'know"|"Add'l"|"Dep't";
@@ -46,4 +48,5 @@
   neg_uc_error = vb_aux_uc error_NOT;
 
   neg_error = neg_lc_tc_error | neg_uc_error;
+
 }%%

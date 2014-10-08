@@ -7,20 +7,20 @@
 
   access s.;
 
-  include "actions.rl";
-  include "rules/quotes.rl";
-  include "rules/punctuation.rl";
-  include "rules/contractions.rl";
-  include "rules/abbreviations.rl";
-  include "rules/numbers.rl";
-  include "rules/date_time.rl";
-  include "rules/units.rl";
-  include "rules/web.rl";
-  include "rules/html.rl";
-  include "rules/emoticons.rl";
-  include "rules/unicode.rl";
-  include "rules/default.rl";
-  include "rules/main.rl";
+  include 'actions.rl';
+  include 'rules/quotes.rl';
+  include 'rules/punctuation.rl';
+  include 'rules/contractions.rl';
+  include 'rules/abbreviations.rl';
+  include 'rules/numbers.rl';
+  include 'rules/date_time.rl';
+  include 'rules/units.rl';
+  include 'rules/web.rl';
+  include 'rules/html.rl';
+  include 'rules/emoticons.rl';
+  include 'rules/unicode.rl';
+  include 'rules/default.rl';
+  include 'rules/main.rl';
 }%%
 
 
