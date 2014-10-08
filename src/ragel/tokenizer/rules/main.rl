@@ -36,33 +36,18 @@
     open_double_quote => { _open_double_quote(dest, s); };
     close_double_quote => { _close_double_quote(dest, s); };
 
-    full_stop => { _terminator(dest, s, "."); };
-    question_mark => { _terminator(dest, s, "?"); };
-    inverted_question_mark => { _terminator(dest, s, u8"¿"); };
-    exclamation_mark => { _terminator(dest, s, "!"); };
-    inverted_exclamation_mark => { _terminator(dest, s, u8"¡"); };
-    ellipsis => { _terminator(dest, s, "..."); };
+    full_stop => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8".")); };
+    question_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"?")); };
+    inverted_question_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"¿")); };
+    exclamation_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"!")); };
+    inverted_exclamation_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"¡")); };
+    ellipsis => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"...")); };
 
     dash => { _dash_or_item(dest, s); };
 #    [1-9][0-9]* "." => { _number_or_item(dest, s); };
 
-    (space - newline | other_ws)+ | newline => ignore;
-    newline{2,} => { _sep_text_paragraph(dest, s); };
-
-    open_p_tag => { _begin_html_paragraph(dest, s); };
-    close_p_tag => { _end_html_paragraph(dest, s); };
-    sep_p_tag => { _sep_html_paragraph(dest, s); };
-
-    open_h_tag => { _begin_html_heading(dest, s); };
-    close_h_tag => { _end_html_heading(dest, s); };
-
-    open_ul_tag | open_ol_tag => { _begin_html_list(dest, s); };
-    close_ul_tag | close_ol_tag => { _end_html_list(dest, s); };
-
-    open_li_tag => { _begin_html_item(dest, s); };
-    close_li_tag => { _end_html_item(dest, s); };
-
-    html_tag | html_comment | script_tag | style_tag => ignore;
+    unicode_space+ | unicode_line_space => ignore;
+    unicode_line_space{2,} | unicode_paragraph_space => { _sep_text_paragraph(dest, s); };
 
     neg => contraction;
     neg_error => contraction;
@@ -82,11 +67,11 @@
     cont_misc | acronym | title => word;
     symbols => punct;
     end_punct => end;
-#    emoticon => punct;
+    emoticon => punct;
     date_abbrev | state | address_suffix => word;
 
-    org | abbreviation | lines | dollars | numbers | date_time => word;
-    uri | host_name | email_address | twitter_username | hash_tag => word;
+    org | abbreviation | lines | currency_symbol | numbers | date_time => word;
+#    uri | host_name | email_address | twitter_username | hash_tag => word;
     default => word;
 
     any => catchall;

@@ -16,8 +16,8 @@ namespace schwa {
     public:
       virtual ~Stream(void) { }
 
-      virtual void add(Type type, const char *raw, size_t begin, size_t len, const char *norm=nullptr) = 0;
-      virtual void error(const char *raw, size_t begin, size_t len) = 0;
+      virtual void add(Type type, const uint8_t *raw, size_t begin, size_t len, const uint8_t *norm=nullptr) = 0;
+      virtual void error(const uint8_t *raw, size_t begin, size_t len) = 0;
 
       virtual void begin_sentence(void) { }
       virtual void end_sentence(void) { }

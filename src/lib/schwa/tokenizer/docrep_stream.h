@@ -125,8 +125,8 @@ namespace schwa {
       DocrepStream(std::ostream &out, Doc::Schema &dschema, bool normalise=true);
       virtual ~DocrepStream(void);
 
-      void add(Type, const char *raw, size_t begin, size_t len, const char *norm=nullptr) override;
-      void error(const char *raw, size_t begin, size_t len);
+      void add(Type, const uint8_t *raw, size_t begin, size_t len, const uint8_t *norm=nullptr) override;
+      void error(const uint8_t *raw, size_t begin, size_t len);
 
       void begin_sentence(void) override;
       void end_sentence(void) override;

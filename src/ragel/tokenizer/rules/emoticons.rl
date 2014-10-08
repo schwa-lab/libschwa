@@ -1,81 +1,333 @@
+// vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
-  # from list on Wikipedia: http://en.wikipedia.org/wiki/List_of_emoticons
+  # From list on Wikipedia: http://en.wikipedia.org/wiki/List_of_emoticons
   # with additions from:
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_2.htm
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_3.htm
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_4.htm
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_5.htm
+  emoticon_smile =
+      '8)'
+    | ':)'
+    | ':-)'
+    | ':->'
+    | ':-{)'
+    | ':-{)}'
+    | ':-}'
+    | ':3'
+    | ':>'
+    | ':]'
+    | ':^)'
+    | ':c)'
+    | ':o)'
+    | ':}'
+    | '=)'
+    | '=]'
+    | '>:]'
+    ;
+  emoticon_laugh =
+      '8-D'
+    | '8D'
+    | ':))'
+    | ':-D'
+    | ':D'
+    | ':^D'
+    | '=))'
+    | '=-3'
+    | '=-D'
+    | '=3'
+    | '=D'
+    | '=^D'
+    | '>:D'
+    | 'X-D'
+    | 'XD'
+    | '^^^'
+    | 'x-D'
+    | 'xD'
+    ;
+  emoticon_cry =
+      ":'("
+    | ":\'"
+    | ":\'("
+    | ":\'-("
+    | ':(('
+    | ':,('
+    | ':.('
+    | ':~-('
+    | ';*('
+    | 'T.T'
+    | 'T_T'
+    | 'Y.Y'
+    | 'Y_Y'
+    ;
+  emoticon_frown =
+      ':('
+    | ':-('
+    | ':-<'
+    | ':-['
+    | ':-c'
+    | ':<'
+    | ':['
+    | ':^('
+    | ':c'
+    | ':{'
+    | '<.<'
+    | '>.<'
+    | '>.>'
+    | '>:['
+    ;
+  emoticon_sad =
+      "D-':"
+    | ':e'
+    | '=('
+    | 'D8'
+    | 'D:'
+    | 'D:<'
+    | 'D;'
+    | 'D='
+    | 'DX'
+    | 'v.v'
+    ;
+  emoticon_lick = ':-9' ;
+  emoticon_wink =
+      '*)'
+    | '*-)'
+    | ';)'
+    | ';-)'
+    | ';-D'
+    | ';-]'
+    | ';;)'
+    | ';D'
+    | ';]'
+    | '>;->'
+    | '>;]'
+    | '`:-)'
+    ;
+  emoticon_tongue =
+      '8-p'i
+    | ':-b'
+    | ':-p'i
+    | ':-r'
+    | ':-Þ'
+    | ':^P'i
+    | ':b'
+    | ':p'i
+    | ':Þ'
+    | ';p'i
+    | '=p'i
+    | '>:p'i
+    | 'x-p'i
+    | 'xp'i
+    ;
+  emoticon_surprise =
+      '8-o'i
+    | ':-o'i
+    | ':C'
+    | ':o'i
+    | '=O'
+    | '>:o'i
+    | '°o°'i
+    ;
+  emoticon_skeptical =
+      ':-.'
+    | ':-/'
+    | ':/'
+    | ':S'
+    | ':\\'
+    | '=/'
+    | '=\\'
+    | '>:/'
+    | '>:\\'
+    ;
+  emoticon_straight =
+      ':-|'
+    | ':|'
+    ;
+  emoticon_drool =
+      ':)~'
+    | ':-)>.' '.'+
+    | ':p~~'
+    | '=F'
+    ;
+  emoticon_sealed =
+      ':#'
+    | ':$'
+    | ':-#'
+    | ':-&'
+    | ':-x'i
+    | ':x'i
+    | '=X'
+    | '>:x'i
+    ;
+  emoticon_angel =
+      '0:-3'
+    | '0:3'
+    | 'O:)'
+    | 'O:-)'
+    | 'O:-)'
+    ;
+  emoticon_evil =
+      '>:)'
+    | '>:-)'
+    | '>;)'
+    ;
+  emoticon_shades =
+      '8)'
+    | '8-)'
+    | '>B]'
+    | 'B)'
+    | 'B-)'
+    | 'B^P'
+    ;
+  emoticon_high5 =
+      '^5'
+    | 'o/\o'
+    ;
+  emoticon_rose = "@}-;-'---" ;
+  emoticon_cap =
+      'd:-)'
+    | 'qB-)'
+    ;
+  emoticon_angry =
+      ':-@[1]'
+    | ':-Q'
+    | ':-|'
+    | ';('
+    | '>:('
+    | '>:-('
+    | '>:-C'
+    | '>:C'
+    | '>:O'
+    | 'D-:<'
+    | 'D:<'
+    | 'D<'
+    | '`_´'
+    | 'x('i
+    | '~ :-('
+    ;
+  emoticon_kiss =
+      ':*'
+    | ':-*'
+    | ':-><'
+    | ':-{}'
+    | '=^*'
+    | '|-<>'
+    ;
+  emoticon_heart =
+      '</3'
+    | '<3'
+    | '<3' '3'+
+    | '=(('
+    ;
+  emoticon_wave =
+      '*\o/*'
+    | '\^_^/'
+    | '\o'
+    | '\o/'
+    | 'o/'
+    ;
+  emoticon_brain =
+      '%*}'
+    | '%+\\'
+    | '%-)'
+    | '%-/'
+    | '%-6'
+    | '%-|'
+    ;
+  emoticon_confused =
+      '%-('
+    | '%-)'
+    | ':-S'
+    | ':-s'
+    | ':>'
+    | ':@'
+    | ':~/'
+    ;
+  emoticon_sleep =
+      '|-('
+    | '|-O'
+    | '|-|'
+    | '|^o'
+    ;
+  emoticon_flame =
+      '~:-('
+    | '~='
+    | '~=='
+    | '~~:-('
+    | '~~:['
+    ;
+  emoticon_misc =
+      ":\'>"
+    | '#:-S'
+    | '*-)'
+    | ':&'
+    | ':-B'
+    | ':-SS'
+    | ':-V'
+    | ':-Y'
+    | ':3'
+    | ':u'
+    | '>.<'
+    | '?('
+    | '?-('
+    | 'X_X'
+    | ']:-)'
+    | ']:->'
+    | '~:o'
+    ;
 
-  # still need to add more from:
-  # http://messenger.yahoo.com/features/emoticons/
+  # List of Unicode pages which contain emoji from https://en.wikipedia.org/wiki/Emoji
 
-  emo_smile = ">:]"|":-)"|":)"|":o)"|":]"|":3"|":c)"|":>"|"=]"|"8)"|"=)"|":}"|":^)"|":-{)"|":-{)}"|":-}"|":->";
-  emo_laugh = ">:D"|":-D"|":D"|"8-D"|"8D"|"x-D"|"xD"|"X-D"|"XD"|"=-D"|"=D"|"=-3"|"=3"|":^D"|"=^D"|"^^^"|":))"|"=))";
-  emo_cry = ":'("|";*("|"T.T"|"T_T"|"Y.Y"|"Y_Y"|":~-("|":\'"|":\'("|":\'-("|":.("|":,("|":((";
-  emo_frown = ">:["|":-("|":("|":^("|":-c"|":c"|":-<"|":<"|":-["|":["|":{"|">.>"|"<.<"|">.<";
-  emo_sad = "D:<"|"D:"|"D8"|"D;"|"D="|"DX"|"v.v"|"D-':"|"=("|":e";
-  emo_lick = ":-9";
-  # includes raised eyebrow and batting eyelashes
-  emo_wink = ">;]"|";-)"|";)"|"*-)"|"*)"|";-]"|";]"|";D"|">;->"|";-D"|"`:-)"|";;)";
-  emo_tongue = ">:p"i|":-p"i|":^P"i|":p"i|"x-p"i|"xp"i|"=p"i|":-Þ"|":Þ"|":-b"|":b"|":-r"|";p"i|"8-p"i;
-  emo_surprise = ">:o"i|":-o"i|":o"i|"°o°"i|"8-o"i|"=O"|":C";
-  emo_skeptical = ">:\\"|">:/"|":-/"|":-."|":/"|":\\"|"=/"|"=\\"|":S";
-  emo_straight = ":|"|":-|";
-  emo_drool = ":)~"|":-)>." "."+|"=F"|":p~~";
-  # includes tongue tied
-  emo_sealed = ">:x"i|":-x"i|":x"i|":-#"|":#"|":$"|"=X"|":-&";
-  emo_angel = "O:-)"|"0:-3"|"0:3"|"O:-)"|"O:)";
-  emo_evil = ">:)"|">;)"|">:-)";
-  emo_shades = ">B]"|"B)"|"B-)"|"8)"|"8-)"|"B^P";
-  emo_high5 = "o/\o"|"^5";
-  emo_rose = "@}-;-'---";
-  emo_cap = "d:-)"|"qB-)";
-  emo_angry = "D:<"|">:("|">:-C"|">:C"|">:O"|"D-:<"|">:-("|":-@[1]"|";("|"`_´"|"D<"|":-||"|":-Q"|"~ :-("|"x("i;
-  emo_kiss = ":-*"|":*"|":-{}"|"=^*"|"|-<>"|":-><";
-  # includes broken hearts
-  emo_heart = "</3"|"<3"|"<3" "3"+|"=((";
-  # includes joy etc
-  emo_wave = "\o/"|"*\o/*"|"\o"|"o/"|"\^_^/";
-  # includes drunk etc
-  emo_brain = "%-)"|"%*}"|"%+\\"|"%-6"|"%-/"|"%-|";
-  emo_confused = ":-s"|":-S"|":~/"|":>"|":@"|"%-)"|"%-(";
-  # includes bored, yawning
-  emo_sleep = "|-("|"|-O"|"|-|"|"|^o";
-  emo_flame = "~:-("|"~="|"~=="|"~~:-("|"~~:[";
-  emo_misc = ":&"|":u"|":3"|">.<"|":-V"|":-Y"|"?("|"?-("|"]:->"|"]:-)"|"~:o"|"*-)"|":\">"|"#:-S"|":-B"|"X_X"|":-SS";
+  # Miscellaneous Symbols Unicode page (U+2600 - U+26FF).
+  unicode_miscellaneous_symbols_page = 0xe2 0x98..0x9b 0x80..0xbf ;
 
-  emo0 = emo_smile | emo_laugh | emo_cry | emo_frown | emo_sad | emo_lick;
-  emo1 = emo_wink | emo_tongue | emo_surprise | emo_skeptical | emo_straight;
-  emo2 = emo_drool | emo_sealed | emo_angel | emo_evil | emo_shades | emo_high5;
-  emo3 = emo_rose | emo_cap | emo_angry | emo_kiss | emo_heart | emo_wave;
-  emo4 = emo_brain | emo_confused | emo_sleep | emo_flame | emo_misc;
+  # Miscellaneous Symbols and Pictographs Unicode page (U+1F300 - U+1F5FF)
+  unicode_miscellaneous_symbols_pictographs_page = 0xf0 0x9f 0x8c..0x97 0x80..0xbf ;
 
-  # unicode U+2639 white frowning face
-  # unicode U+263a white smiling face
-  # unicode U+263b black smiling face
-  unicode_2639 = 0xe2 0x98 0xb9 | "&#9785;" | "&#x2639;"i;
-  unicode_263a = 0xe2 0x98 0xba | "&#9786;" | "&#x263a;"i;
-  unicode_263b = 0xe2 0x98 0xbb | "&#9787;" | "&#x263b;"i;
+  # Emoticons Unicode page (U+1F600 - U+1F64F)
+  unicode_emoticons_page = ( 0xf0 0x9f 0x98 0x80..0xbf ) | 0xf0 0x9f 0x99 0x80..0x8f ;
 
-  # unicode U+1F601 grinning face with smiling eyes
-  # unicode U+1F602 face with tears of joy
-  # unicode U+1F603 smiling face with open mouth
-  # unicode U+1F604 smiling face with open mouth and smiling eyes
-  # unicode U+1F605 smiling face with open mouth and cold sweat
-  # unicode U+1F606 smiling face with open mouth and tightly-closed eyes
-  unicode_1f601 = 0xf0 0x9f 0x98 0x81 | "&#128513;" | "&#x1f601;"i;
-  unicode_1f602 = 0xf0 0x9f 0x98 0x82 | "&#128514;" | "&#x1f602;"i;
-  unicode_1f603 = 0xf0 0x9f 0x98 0x83 | "&#128515;" | "&#x1f603;"i;
-  unicode_1f604 = 0xf0 0x9f 0x98 0x84 | "&#128516;" | "&#x1f604;"i;
-  unicode_1f605 = 0xf0 0x9f 0x98 0x85 | "&#128517;" | "&#x1f605;"i;
-  unicode_1f606 = 0xf0 0x9f 0x98 0x86 | "&#128518;" | "&#x1f606;"i;
+  # Transport and Map Symbols Unicode page (U+1F680 - U+1F6ff)
+  unicode_transport_and_map_symbols_page = 0xf0 0x9f 0x9a..0x9b 0x80..0xbf ;
 
-  emo_unicode = unicode_2639 | unicode_263a | unicode_263b;
-
-  emoticon = emo0 | emo1 | emo2 | emo3 | emo4 | emo_unicode;
+  emoticon =
+      emoticon_smile
+    | emoticon_laugh
+    | emoticon_cry
+    | emoticon_frown
+    | emoticon_sad
+    | emoticon_lick
+    | emoticon_wink
+    | emoticon_tongue
+    | emoticon_surprise
+    | emoticon_skeptical
+    | emoticon_straight
+    | emoticon_drool
+    | emoticon_sealed
+    | emoticon_angel
+    | emoticon_evil
+    | emoticon_shades
+    | emoticon_high5
+    | emoticon_rose
+    | emoticon_cap
+    | emoticon_angry
+    | emoticon_kiss
+    | emoticon_heart
+    | emoticon_wave
+    | emoticon_brain
+    | emoticon_confused
+    | emoticon_sleep
+    | emoticon_flame
+    | emoticon_misc
+    | unicode_miscellaneous_symbols_page
+    | unicode_miscellaneous_symbols_pictographs_page
+    | unicode_emoticons_page
+    | unicode_transport_and_map_symbols_page
+    ;
 
 }%%

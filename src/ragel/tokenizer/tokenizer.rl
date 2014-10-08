@@ -3,23 +3,24 @@
 
 %%{
   machine tokenizer;
+  access s.;
   alphtype unsigned char;
 
-  access s.;
-
+  # All of these rules assume the input byte stream is UTF-8.
   include 'actions.rl';
-  include 'rules/quotes.rl';
+
+  include 'rules/unicode.rl';
+  include 'rules/numbers.rl';
   include 'rules/punctuation.rl';
+  include 'rules/quotes.rl';
+  include 'rules/default.rl';
+
   include 'rules/contractions.rl';
   include 'rules/abbreviations.rl';
-  include 'rules/numbers.rl';
   include 'rules/date_time.rl';
   include 'rules/units.rl';
-  include 'rules/web.rl';
-  include 'rules/html.rl';
+  # include 'rules/web.rl';  FIXME this needs to be fixed
   include 'rules/emoticons.rl';
-  include 'rules/unicode.rl';
-  include 'rules/default.rl';
   include 'rules/main.rl';
 }%%
 
@@ -38,7 +39,7 @@ namespace tokenizer {
 %% write data noerror nofinal;
 
 bool
-Tokenizer::_tokenize(Stream &dest, State &s, const char *&n1, const char *&n2, const char *p, const char *pe, const char *eof, OnError onerror) const {
+Tokenizer::_tokenize(Stream &dest, State &s, const uint8_t *&n1, const uint8_t *&n2, const uint8_t *p, const uint8_t *pe, const uint8_t *eof, OnError onerror) const {
   static_cast<void>(eof);
 
   %% write exec;
@@ -50,14 +51,14 @@ Tokenizer::_tokenize(Stream &dest, State &s, const char *&n1, const char *&n2, c
 
 
 bool
-Tokenizer::tokenize(Stream &dest, const char *data, const size_t len, OnError onerror) const {
+Tokenizer::tokenize(Stream &dest, const uint8_t *data, const size_t len, OnError onerror) const {
   State s;
 
   %% write init;
 
-  const char *p = data;
-  const char *pe = data + len;
-  const char *eof = pe;
+  const uint8_t *p = data;
+  const uint8_t *pe = data + len;
+  const uint8_t *eof = pe;
 
   s.offset = p;
   s.begin_document(dest);
@@ -76,8 +77,8 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, const size_t buffer_size, con
 
   %% write init;
 
-  std::unique_ptr<char[]> scoped_buffer(new char[buffer_size]);
-  char *buffer = scoped_buffer.get();
+  std::unique_ptr<uint8_t[]> scoped_buffer(new uint8_t[buffer_size]);
+  uint8_t *buffer = scoped_buffer.get();
   s.offset = buffer;
   s.begin_document(dest);
 
@@ -91,11 +92,11 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, const size_t buffer_size, con
       throw TokenError(msg.str());
     }
 
-    char *p = buffer + have;
-    size_t nread = src.read(p, space);
-    char *pe = p + nread;
+    uint8_t *p = buffer + have;
+    size_t nread = src.read(reinterpret_cast<char *>(p), space);
+    uint8_t *pe = p + nread;
 
-    char *eof = 0;
+    uint8_t *eof = nullptr;
     if (nread < space) {
       eof = pe;
       done = true;
@@ -104,7 +105,7 @@ Tokenizer::tokenize(Stream &dest, io::Source &src, const size_t buffer_size, con
     if (!_tokenize(dest, s, s.n1, s.n2, p, pe, eof, onerror))
       return false;
 
-    if (s.ts == 0)
+    if (s.ts == nullptr)
       have = 0;
     else {
       have = pe - s.ts;

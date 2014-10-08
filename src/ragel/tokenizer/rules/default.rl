@@ -1,16 +1,20 @@
+// vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
-  newline = "\r\n"|"\n";
+  letter =
+      unicode_alpha
+    | unicode_digit
+    | ( unicode_upper '&' unicode_upper )
+    | hyphen
+    | ( unicode_alpha ( single_quote | close_single_quote ) unicode_alpha )
+    | ( unicode_alpha '.' unicode_alpha )
+    ;
 
-  # unicode U+00A0: no-break space
-  unicode_00a0 = 0xc2 0xa0 | "&nbsp;";
-  other_ws = unicode_00a0;
-
-  letter = alpha | digit | "&amp;" | (upper "&" upper) | "-" | (alpha (single_quote | close_single_quote) alpha) | (alpha "." alpha);
-
-  default = (letter | (unicode - unicode_punct))+ - (any* "--" | "--" any*);
+  # default = (letter | (unicode - unicode_punct))+ - (any* '--' | '--' any*);
+  default = ( letter | (unicode - unicode_punct) )+ ;
 
 }%%

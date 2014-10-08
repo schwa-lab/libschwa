@@ -1,7 +1,9 @@
+// vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
   action s1 { s.suffix++; }
   action s2 { s.suffix += 2; }

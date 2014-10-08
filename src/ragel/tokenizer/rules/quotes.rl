@@ -8,11 +8,11 @@
   # https://en.wikipedia.org/wiki/Quotation_mark_glyphs
   # https://en.wikipedia.org/wiki/International_variation_in_quotation_marks
 
-  # ASCII single quote characters are ambiguous.
+  # Straight single quote characters are ambiguous.
   unicode_ff07 = 0xef 0xbc 0x87 ;  # U+ff07 fullwidth apostrophe (＇)
   single_quote = "'" | unicode_ff07 ;
 
-  # ASCII double quote characters are ambiguous.
+  # Straight double quote characters are ambiguous.
   unicode_ff02 = 0xef 0xbc 0x82 ;  # U+ff02 fullwidth quotation mark (＂)
   double_quote = '"' | "''" | unicode_ff02 ;
 
@@ -50,16 +50,8 @@
 
   # FIXME
   possessive = (
-    "'s"i @s2 |
-    "&#39;s"i @s6 |
-    "&apos;" "s"i @s7 |
-    0xe2 0x80 0x99 "s"i @s4 |
-    "&#8217;" "s"i @s8 |
-    "&#x2019;s"i @s9 |
-    "&rsquo;" "s"i @s8 |
-    0x91 "s"i @s2 |
-    0x92 "s"i @s2 |
-    0x19 "s"i @s2
-  ) @{ n2 = "'s" ; } ;
+      single_quote 's'i @s2
+    | close_single_quote 's'i @s4
+  ) @{ n2 = reinterpret_cast<const uint8_t *>(u8"'s") ; } ;
 
 }%%

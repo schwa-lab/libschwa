@@ -59,16 +59,16 @@ DocrepStream::~DocrepStream(void) {
 
 
 void
-DocrepStream::add(Type, const char *raw, size_t begin, size_t len, const char *norm) {
-  TmpToken t = {begin, begin + len, std::string(raw, len), ""};
+DocrepStream::add(Type, const uint8_t *raw, size_t begin, size_t len, const uint8_t *norm) {
+  TmpToken t = {begin, begin + len, std::string(reinterpret_cast<const char *>(raw), len), ""};
   if (norm)
-    t.norm = norm;
+    t.norm = reinterpret_cast<const char *>(norm);
   _tokens.push_back(t);
 }
 
 
 void
-DocrepStream::error(const char *, size_t, size_t) { }
+DocrepStream::error(const uint8_t *, size_t, size_t) { }
 
 
 void

@@ -1,7 +1,9 @@
+// vim: ft=ragel:
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 
 %%{
   machine tokenizer;
+  alphtype unsigned char;
 
   # gTLDs from http://www.iana.org/domains/root/db
 

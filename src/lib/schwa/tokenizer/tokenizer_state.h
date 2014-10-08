@@ -13,14 +13,14 @@ namespace schwa {
     struct Tokenizer::State {
     public:
       int cs;              //!< Current state of the FSA.
-      const char *ts;      //!< Beginning of the current match (first character).
-      const char *te;      //!< End of the current match (one past last char).
+      const uint8_t *ts;      //!< Beginning of the current match (first character).
+      const uint8_t *te;      //!< End of the current match (one past last char).
       int act;             //!< last pattern matched (for back tracking)
 
-      const char *offset;  //!< Beginning of the current buffer + bytes consumed.
+      const uint8_t *offset;  //!< Beginning of the current buffer + bytes consumed.
 
-      const char *n1;
-      const char *n2;
+      const uint8_t *n1;
+      const uint8_t *n2;
       int suffix;
 
       bool in_document;
@@ -36,7 +36,7 @@ namespace schwa {
 
       size_t sentence_length = 0;  //!< Used to track word count so we can split on long sentences.
 
-      State(void) : cs(0), ts(0), te(0), act(0), offset(0), n1(0), n2(0), suffix(0), in_document(false), in_heading(false), in_paragraph(false), in_list(false), in_item(false), in_sentence(false), seen_terminator(false), in_double_quotes(false), in_single_quotes(false) { }
+      State(void) : cs(0), ts(nullptr), te(nullptr), act(0), offset(0), n1(nullptr), n2(nullptr), suffix(0), in_document(false), in_heading(false), in_paragraph(false), in_list(false), in_item(false), in_sentence(false), seen_terminator(false), in_double_quotes(false), in_single_quotes(false) { }
 
       void
       error(Stream &dest) {
@@ -54,21 +54,21 @@ namespace schwa {
       }
 
       void
-      add(Type type, Stream &dest, const char *norm=nullptr) {
+      add(Type type, Stream &dest, const uint8_t *norm=nullptr) {
         dest.add(type, ts, ts - offset, te - ts, norm ? norm : n1);
         check_sentence_length(dest);
-        n1 = n2 = 0;
+        n1 = n2 = nullptr;
         suffix = 0;
       }
 
       void
-      split(Type type1, Type type2, Stream &dest, const char *norm1=nullptr, const char *norm2=nullptr) {
-        const char *split = te - suffix;
+      split(Type type1, Type type2, Stream &dest, const uint8_t *norm1=nullptr, const uint8_t *norm2=nullptr) {
+        const uint8_t *split = te - suffix;
         dest.add(type1, ts, ts - offset, split - ts, norm1 ? norm1 : n1);
         check_sentence_length(dest);
         dest.add(type2, split, split - offset, te - split, norm2 ? norm2 : n2);
         check_sentence_length(dest);
-        n1 = n2 = 0;
+        n1 = n2 = nullptr;
         suffix = 0;
       }
 

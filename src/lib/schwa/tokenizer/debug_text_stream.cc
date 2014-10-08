@@ -22,7 +22,7 @@ DebugTextStream::DebugTextStream(std::ostream &out) :
   { }
 
 void
-DebugTextStream::add(Type, const char *raw, size_t, size_t len, const char *norm) {
+DebugTextStream::add(Type, const uint8_t *raw, size_t, size_t len, const uint8_t *norm) {
   if (!_new_sentence)
     _out << ' ';
   _new_sentence = false;
@@ -30,15 +30,15 @@ DebugTextStream::add(Type, const char *raw, size_t, size_t len, const char *norm
   if (norm)
     _out << COLOURS[_colour] << norm << OFF;
   else
-    (_out << COLOURS[_colour]).write(raw, len) << OFF;
+    (_out << COLOURS[_colour]).write(reinterpret_cast<const char *>(raw), len) << OFF;
   _colour = (_colour + 1) % COLOURS.size();
 }
 
 void
-DebugTextStream::error(const char *raw, size_t, size_t len) {
+DebugTextStream::error(const uint8_t *raw, size_t, size_t len) {
   if (!_new_sentence)
     _out << ' ';
-  (_out << "<error>").write(raw, len) << "</error>";
+  (_out << "<error>").write(reinterpret_cast<const char *>(raw), len) << "</error>";
 }
 
 void

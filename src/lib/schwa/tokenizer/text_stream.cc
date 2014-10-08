@@ -15,7 +15,7 @@ TextStream::TextStream(std::ostream &out, bool normalise) :
   { }
 
 void
-TextStream::add(Type, const char *raw, size_t, size_t len, const char *norm) {
+TextStream::add(Type, const uint8_t *raw, size_t, size_t len, const uint8_t *norm) {
   if (!_new_sentence)
     _out << ' ';
   _new_sentence = false;
@@ -23,11 +23,11 @@ TextStream::add(Type, const char *raw, size_t, size_t len, const char *norm) {
   if (norm && _normalise)
     _out << norm;
   else
-    _out.write(raw, len);
+    _out.write(reinterpret_cast<const char *>(raw), len);
 }
 
 void
-TextStream::error(const char *, size_t, size_t) { }
+TextStream::error(const uint8_t *, size_t, size_t) { }
 
 void
 TextStream::begin_sentence(void) {

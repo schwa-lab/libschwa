@@ -26,8 +26,8 @@ namespace schwa {
       DebugTextStream(std::ostream &out);
       virtual ~DebugTextStream(void) { }
 
-      virtual void add(Type, const char *raw, size_t begin, size_t len, const char *norm=nullptr) override;
-      virtual void error(const char *raw, size_t begin, size_t len) override;
+      virtual void add(Type, const uint8_t *raw, size_t begin, size_t len, const uint8_t *norm=nullptr) override;
+      virtual void error(const uint8_t *raw, size_t begin, size_t len) override;
 
       virtual void begin_sentence(void) override;
       virtual void end_sentence(void) override;
