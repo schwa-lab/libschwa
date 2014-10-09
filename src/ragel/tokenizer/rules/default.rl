@@ -6,15 +6,14 @@
   alphtype unsigned char;
 
   letter =
-      unicode_alpha
+      unicode_letter
     | unicode_digit
-    | ( unicode_upper '&' unicode_upper )
+    | ( unicode_letter_uppercase '&' unicode_letter_uppercase )
     | hyphen
-    | ( unicode_alpha ( single_quote | close_single_quote ) unicode_alpha )
-    | ( unicode_alpha '.' unicode_alpha )
+    | ( unicode_letter ( single_quote | close_single_quote ) unicode_letter )
+    | ( unicode_letter '.' unicode_letter )
     ;
 
-  # default = (letter | (unicode - unicode_punct))+ - (any* '--' | '--' any*);
-  default = ( letter | (unicode - unicode_punct) )+ ;
+  default = ( letter | ( unicode - unicode_punct - unicode_space - unicode_line_space - unicode_paragraph_space ) )+ ;
 
 }%%

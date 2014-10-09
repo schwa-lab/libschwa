@@ -38,9 +38,9 @@
 
     full_stop => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8".")); };
     question_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"?")); };
-    inverted_question_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"¿")); };
+    inverted_question_mark => { _punct(PUNCTUATION, dest, s, reinterpret_cast<const uint8_t *>(u8"¿")); };
     exclamation_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"!")); };
-    inverted_exclamation_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"¡")); };
+    inverted_exclamation_mark => { _punct(PUNCTUATION, dest, s, reinterpret_cast<const uint8_t *>(u8"¡")); };
     ellipsis => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"...")); };
 
     dash => { _dash_or_item(dest, s); };
@@ -74,7 +74,7 @@
 #    uri | host_name | email_address | twitter_username | hash_tag => word;
     default => word;
 
-    any => catchall;
+    unicode => catchall;
   *|;
 
 }%%

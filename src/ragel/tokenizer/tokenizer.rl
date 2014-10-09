@@ -41,6 +41,7 @@ namespace tokenizer {
 bool
 Tokenizer::_tokenize(Stream &dest, State &s, const uint8_t *&n1, const uint8_t *&n2, const uint8_t *p, const uint8_t *pe, const uint8_t *eof, OnError onerror) const {
   static_cast<void>(eof);
+  (void)onerror;
 
   %% write exec;
 

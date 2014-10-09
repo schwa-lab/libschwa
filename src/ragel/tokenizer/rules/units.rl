@@ -85,44 +85,10 @@
     | weight
     ;
 
-  # Any currency sumbol.
-  unicode_00a3 = 0xc2 0xa3 ;       # U+00a3 pound sign (£)
-  unicode_00a5 = 0xc2 0xa5 ;       # U+00a5 yen sign (¥)
-  unicode_20a0 = 0xe2 0x82 0xa0 ;  # U+20a0 euro-currency sign (₠)
-  unicode_20a1 = 0xe2 0x82 0xa1 ;  # U+20a1 colon sign (₡)
-  unicode_20a2 = 0xe2 0x82 0xa2 ;  # U+20a2 cruzeiro sign (₢)
-  unicode_20a3 = 0xe2 0x82 0xa3 ;  # U+20a3 french franc sign (₣)
-  unicode_20a4 = 0xe2 0x82 0xa4 ;  # U+20a4 lira sign (₤)
-  unicode_20a5 = 0xe2 0x82 0xa5 ;  # U+20a5 mill sign (₥)
-  unicode_20a6 = 0xe2 0x82 0xa6 ;  # U+20a6 naira sign (₦)
-  unicode_20a7 = 0xe2 0x82 0xa7 ;  # U+20a7 peseta sign (₧)
-  unicode_20a8 = 0xe2 0x82 0xa8 ;  # U+20a8 rupee sign (₨)
-  unicode_20a9 = 0xe2 0x82 0xa9 ;  # U+20a9 won sign (₩)
-  unicode_20aa = 0xe2 0x82 0xaa ;  # U+20aa new sheqel sign (₪)
-  unicode_20ab = 0xe2 0x82 0xab ;  # U+20ab dong sign (₫)
-  unicode_20ac = 0xe2 0x82 0xac ;  # U+20ac euro sign (€)
-  unicode_20ad = 0xe2 0x82 0xad ;  # U+20ad kip sign (₭)
-  unicode_20ae = 0xe2 0x82 0xae ;  # U+20ae tugrik sign (₮)
-  unicode_20af = 0xe2 0x82 0xaf ;  # U+20af drachma sign (₯)
-  unicode_20b0 = 0xe2 0x82 0xb0 ;  # U+20b0 german penny sign (₰)
-  unicode_20b1 = 0xe2 0x82 0xb1 ;  # U+20b1 peso sign (₱)
-  unicode_20b2 = 0xe2 0x82 0xb2 ;  # U+20b2 guarani sign (₲)
-  unicode_20b3 = 0xe2 0x82 0xb3 ;  # U+20b3 austral sign (₳)
-  unicode_20b4 = 0xe2 0x82 0xb4 ;  # U+20b4 hryvnia sign (₴)
-  unicode_20b5 = 0xe2 0x82 0xb5 ;  # U+20b5 cedi sign (₵)
-  unicode_20b6 = 0xe2 0x82 0xb6 ;  # U+20b6 livre tournois sign (₶)
-  unicode_20b7 = 0xe2 0x82 0xb7 ;  # U+20b7 spesmilo sign (₷)
-  unicode_20b8 = 0xe2 0x82 0xb8 ;  # U+20b8 tenge sign (₸)
-  unicode_20b9 = 0xe2 0x82 0xb9 ;  # U+20b9 indian rupee sign (₹)
-  unicode_20ba = 0xe2 0x82 0xba ;  # U+20ba turkish lira sign (₺)
-  unicode_20bb = 0xe2 0x82 0xbb ;  # U+20bb  (₻)
-  unicode_20bc = 0xe2 0x82 0xbc ;  # U+20bc  (₼)
-  unicode_20bd = 0xe2 0x82 0xbd ;  # U+20bd  (₽)
   currency_symbol =
-      '$'
-    | [A-Z]+ '$'
+      [A-Z]+ '$'
     | '$' [A-Z]+
-    | unicode_00a2 | unicode_00a3 | unicode_00a5 | unicode_20a0 | unicode_20a1 | unicode_20a2 | unicode_20a3 | unicode_20a4 | unicode_20a5 | unicode_20a6 | unicode_20a7 | unicode_20a8 | unicode_20a9 | unicode_20aa | unicode_20ab | unicode_20ac | unicode_20ad | unicode_20ae | unicode_20af | unicode_20b0 | unicode_20b1 | unicode_20b2 | unicode_20b3 | unicode_20b4 | unicode_20b5 | unicode_20b6 | unicode_20b7 | unicode_20b8 | unicode_20b9 | unicode_20ba | unicode_20bb | unicode_20bc | unicode_20bd
+    | unicode_symbol_currency
     ;
 
 }%%

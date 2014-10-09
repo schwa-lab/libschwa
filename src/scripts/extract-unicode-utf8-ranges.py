@@ -78,6 +78,6 @@ if __name__ == '__main__':
           assert isinstance(parent[b], dict)
         parent = parent[b]
 
-  print('# Unicode categories: {} ({} code points)'.format(', '.join(CATEGORIES), len(code_points)))
+  print('# Unicode categories: {} ({} code points)'.format(', '.join(sorted(CATEGORIES)), len(code_points)))
   wrote = output(tree, [])
   assert len(code_points) == wrote
