@@ -23,20 +23,15 @@
   abbrev_year = single_quote digit{2} ;
   abbrev_decade = century? decade single_quote 's' | (century | single_quote) decade 's' ;
 
-  illegal_30th = '0'? '2' ;
-  illegal_31st = '0'? [469] | '11' ;
-
   date_uk_slash = day_digits '/' month_digits '/' year_modern_digits ;
   date_uk_dash = day_digits '-' month_digits '-' year_modern_digits ;
   date_uk_dot = day_digits '.' month_digits '.' year_modern_digits ;
-  illegal_uk_dates = ('30' any illegal_30th | '31' any illegal_31st) any* ;
-  date_uk = (date_uk_slash | date_uk_dash | date_uk_dot) - illegal_uk_dates ;
+  date_uk = date_uk_slash | date_uk_dash | date_uk_dot ;
 
   date_us_slash = month_digits '/' day_digits '/' year_modern_digits ;
   date_us_dash = month_digits '-' day_digits '-' year_modern_digits ;
   date_us_dot = month_digits '.' day_digits '.' year_modern_digits ;
-  illegal_us_dates = (illegal_30th any '30' | illegal_31st any '31') any* ;
-  date_us = (date_us_slash | date_us_dash | date_us_dot) - illegal_us_dates ;
+  date_us = date_us_slash | date_us_dash | date_us_dot ;
 
   # ISO 8601 dates only the full YYYY-MM-DD form
   #   http://en.wikipedia.org/wiki/ISO_8601
@@ -44,8 +39,7 @@
   # the dash is the only valid separator, but slash appears common too
   date_iso_slash = year_modern '/' month_2digits '/' day_2digits ;
   date_iso_dash = year_modern '-' month_2digits '-' day_2digits ;
-  illegal_iso_dates = year_modern any (illegal_30th any '30' | illegal_31st any '31') ;
-  date_iso = (date_iso_dash | date_iso_slash) - illegal_iso_dates ;
+  date_iso = date_iso_dash | date_iso_slash ;
 
   date = date_uk | date_us | date_iso | abbrev_year | abbrev_decade ;
 
