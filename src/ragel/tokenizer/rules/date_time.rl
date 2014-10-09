@@ -18,6 +18,7 @@
 
   year = century digit{2} ;
   year_modern = century_modern digit{2} ;
+  year_modern_digits = digit{2} | year_modern ;
 
   abbrev_year = single_quote digit{2} ;
   abbrev_decade = century? decade single_quote 's' | (century | single_quote) decade 's' ;
@@ -25,15 +26,15 @@
   illegal_30th = '0'? '2' ;
   illegal_31st = '0'? [469] | '11' ;
 
-  date_uk_slash = day_digits '/' month_digits '/' year_modern ;
-  date_uk_dash = day_digits '-' month_digits '-' year_modern ;
-  date_uk_dot = day_digits '.' month_digits '.' year_modern ;
+  date_uk_slash = day_digits '/' month_digits '/' year_modern_digits ;
+  date_uk_dash = day_digits '-' month_digits '-' year_modern_digits ;
+  date_uk_dot = day_digits '.' month_digits '.' year_modern_digits ;
   illegal_uk_dates = ('30' any illegal_30th | '31' any illegal_31st) any* ;
   date_uk = (date_uk_slash | date_uk_dash | date_uk_dot) - illegal_uk_dates ;
 
-  date_us_slash = month_digits '/' day_digits '/' year_modern ;
-  date_us_dash = month_digits '-' day_digits '-' year_modern ;
-  date_us_dot = month_digits '.' day_digits '.' year_modern ;
+  date_us_slash = month_digits '/' day_digits '/' year_modern_digits ;
+  date_us_dash = month_digits '-' day_digits '-' year_modern_digits ;
+  date_us_dot = month_digits '.' day_digits '.' year_modern_digits ;
   illegal_us_dates = (illegal_30th any '30' | illegal_31st any '31') any* ;
   date_us = (date_us_slash | date_us_dash | date_us_dot) - illegal_us_dates ;
 
@@ -52,8 +53,8 @@
   hour_24 = '0'? [1-9] | '1' [0-9] | '2' [0-4] ;
   min_60 = [0-5][0-9] ;
   sec_60 = [0-5][0-9] ;
-  time_colon = hour_12 | hour_24 ':' min_60 ;
-  time_ambiguous = time_colon | hour_24 '.' min_60 ;
+  time_colon = ( hour_12 | hour_24 ) ':' min_60 ( ':' sec_60 )? ;
+  time_ambiguous = time_colon | hour_24 '.' min_60 ( '.' sec_60 )? ;
 
   ante_meridian = ( ('am'|'AM') @s2 | ('a.m.'|'A.M.') @s4 ) @{ n2=reinterpret_cast<const uint8_t *>(u8"am"); } ;
   post_meridian = ( ('pm'|'PM') @s2 | ('p.m.'|'P.M.') @s4 ) @{ n2=reinterpret_cast<const uint8_t *>(u8"pm"); } ;
