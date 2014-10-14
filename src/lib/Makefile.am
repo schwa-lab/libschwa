@@ -65,6 +65,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/containers/block_vector.h \
 		schwa/containers/block_vector_impl.h \
 		schwa/containers.h \
+		schwa/corpora/tipster.h \
 		schwa/dr/config.h \
 		schwa/dr/exception.h \
 		schwa/dr/field_defs.h \
@@ -146,6 +147,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/config/main.cc \
 		schwa/config/op.cc \
 		schwa/config/serialisation.cc \
+		schwa/corpora/tipster.cc \
 		schwa/dr/config.cc \
 		schwa/dr/field_defs.cc \
 		schwa/dr/query.cc \
