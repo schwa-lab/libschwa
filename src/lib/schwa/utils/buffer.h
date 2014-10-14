@@ -3,8 +3,7 @@
 #define SCHWA_UTILS_BUFFER_H_
 
 #include <cstdlib>
-#include <cstring>
-#include <stdexcept>
+#include <iosfwd>
 
 #include <schwa/_base.h>
 
@@ -22,21 +21,7 @@ namespace schwa {
     size_t _used;
     uint8_t *_buffer;
 
-    inline void
-    _write(const uint8_t *const data, const size_t nbytes) {
-      if (SCHWA_UNLIKELY(_used + nbytes > _allocd)) {
-        void *b;
-        const int ret = ::posix_memalign(&b, _alignment, _allocd + _grow);
-        if (SCHWA_UNLIKELY(ret != 0))
-          throw std::bad_alloc();
-        std::memcpy(b, _buffer, _used);
-        std::free(_buffer);
-        _buffer = static_cast<uint8_t *>(b);
-        _allocd += _grow;
-      }
-      std::memcpy(_buffer + _used, data, nbytes);
-      _used += nbytes;
-    }
+    void _write(const uint8_t *const data, const size_t nbytes);
 
   public:
     explicit Buffer(size_t grow_nbytes, size_t alignment=DEFAULT_ALIGNMENT) : _alignment(alignment), _grow(grow_nbytes), _allocd(0), _used(0), _buffer(nullptr) { }
@@ -51,6 +36,8 @@ namespace schwa {
 
     inline void clear(void) { _used = 0; }
     inline bool empty(void) const { return _used == 0; }
+
+    void consume(std::istream &in);
 
     inline void write(const uint8_t byte) { _write(&byte, 1); }
     inline void write(const uint8_t *const data, const size_t nbytes) { _write(data, nbytes); }

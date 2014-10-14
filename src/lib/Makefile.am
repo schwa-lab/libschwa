@@ -191,6 +191,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/unicode.cc \
 		schwa/unicode_gen.cc \
+		schwa/utils/buffer.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 
