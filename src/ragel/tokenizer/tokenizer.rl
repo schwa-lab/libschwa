@@ -19,7 +19,7 @@
   include 'rules/abbreviations.rl';
   include 'rules/date_time.rl';
   include 'rules/units.rl';
-  # include 'rules/web.rl';  FIXME this needs to be fixed
+  include 'rules/web.rl';
   include 'rules/emoticons.rl';
   include 'rules/main.rl';
 }%%

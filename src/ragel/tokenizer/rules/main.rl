@@ -71,7 +71,7 @@
     date_abbrev | state | address_suffix => word;
 
     org | abbreviation | lines | currency_symbol | numbers | date_time => word;
-#    uri | host_name | email_address | twitter_username | hash_tag => word;
+    uri | email_address | twitter_username | hash_tag => word;
     default => word;
 
     unicode => catchall;
