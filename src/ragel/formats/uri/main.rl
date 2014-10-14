@@ -19,10 +19,19 @@ namespace formats {
 %% write data noerror nofinal;
 
 bool
-URILexer::_run(const uint8_t *const input, const size_t nbytes) {
+URILexer::matches(const uint8_t *const input, const size_t nbytes) const {
+  URI uri;
+  return matches(input, nbytes, uri);
+}
+
+
+bool
+URILexer::matches(const uint8_t *const input, const size_t nbytes, URI &uri) const {
   (void)uri_en_main;  // Shoosh compiler warning about unused variable.
   const uint8_t *p = input, *pe = p + nbytes;
   int cs = 0;
+
+  uri.clear();
 
   %% write init;
   %% write exec;
