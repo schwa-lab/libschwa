@@ -24,8 +24,10 @@ InputStream::InputStream(const char *const path, const std::ios_base::openmode m
     _path = STDIN_STRING;
 
   // Attempt to open the input stream location.
-  if (_path == STDIN_STRING)
+  if (_path == STDIN_STRING) {
     _stream = &std::cin;
+    _nbytes = -1;
+  }
   else {
     std::ifstream *const in = new std::ifstream(path, mode);
     if (!*in) {
@@ -33,6 +35,11 @@ InputStream::InputStream(const char *const path, const std::ios_base::openmode m
       throw IOException("Could not open file for reading", _path);
     }
     _stream = in;
+
+    // Count how many bytes are in the file.
+    in->seekg(0, in->end);
+    _nbytes = in->tellg();
+    in->seekg(0, in->beg);
   }
 }
 
