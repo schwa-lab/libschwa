@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include <schwa/utils/buffer.h>
 #include <schwa/utils/enums.h>
 
 
@@ -262,15 +263,21 @@ get_encoding(const std::string &name) {
 }
 
 
-inline void
+void
 to_utf8(Encoding encoding, const char *encoded_bytes, EncodingResult &result) {
   to_utf8(encoding, reinterpret_cast<const uint8_t *>(encoded_bytes), std::strlen(encoded_bytes), result);
 }
 
 
-inline void
+void
 to_utf8(Encoding encoding, const std::string &encoded_bytes, EncodingResult &result) {
   to_utf8(encoding, reinterpret_cast<const uint8_t *>(encoded_bytes.c_str()), encoded_bytes.size(), result);
+}
+
+
+void
+to_utf8(Encoding encoding, Buffer &encoded_bytes, EncodingResult &result) {
+  to_utf8(encoding, encoded_bytes.buffer(), encoded_bytes.used(), result);
 }
 
 

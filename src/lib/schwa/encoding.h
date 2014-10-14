@@ -12,6 +12,8 @@
 
 namespace schwa {
 
+  class Buffer;
+
   /**
    * Enum class of character set encoding types that we know how to convert to UTF-8.
    **/
@@ -128,6 +130,7 @@ namespace schwa {
 
   void to_utf8(Encoding encoding, const char *encoded_bytes, EncodingResult &result);
   void to_utf8(Encoding encoding, const std::string &encoded_bytes, EncodingResult &result);
+  void to_utf8(Encoding encoding, Buffer &encoded_bytes, EncodingResult &result);
   void to_utf8(Encoding encoding, const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
 
 
