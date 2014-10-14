@@ -62,6 +62,16 @@ namespace schwa {
       inline const uint8_t *text(void) const { return _data; }
       inline SGMLishNodeType type(void) const { return _type; }
 
+      inline bool is_cdata(void) const { return _type == SGMLishNodeType::CDATA; }
+      inline bool is_comment(void) const { return _type == SGMLishNodeType::COMMENT; }
+      inline bool is_empty_tag(void) const { return _type == SGMLishNodeType::EMPTY_TAG; }
+      inline bool is_end_tag(void) const { return _type == SGMLishNodeType::END_TAG; }
+      inline bool is_start_tag(void) const { return _type == SGMLishNodeType::START_TAG; }
+      inline bool is_text(void) const { return _type == SGMLishNodeType::TEXT; }
+      inline bool is_xml_decl(void) const { return _type == SGMLishNodeType::XML_DECL; }
+
+      inline bool has_name(const std::string &name) const { return std::strcmp(reinterpret_cast<const char *>(_data), name.c_str()) == 0; }
+
       void add_child(SGMLishNode &node);
 
       std::ostream &pprint(std::ostream &out) const;
