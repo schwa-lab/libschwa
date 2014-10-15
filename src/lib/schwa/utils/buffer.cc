@@ -30,7 +30,6 @@ Buffer::consume(std::istream &in) {
   while (true) {
     in.read(reinterpret_cast<char *>(buf), sizeof(buf));
     const auto nbytes = in.gcount();
-    std::cout << "read in " << nbytes << " bytes" << std::endl;
     if (nbytes < 1)
       break;
     write(buf, nbytes);
