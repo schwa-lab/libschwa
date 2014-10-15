@@ -12,6 +12,9 @@ namespace schwa {
   namespace corpora {
     namespace tipster {
 
+      // ======================================================================
+      // docrep models
+      // ======================================================================
       class Token : public dr::Ann {
       public:
         dr::Slice<uint64_t> span;
@@ -23,7 +26,7 @@ namespace schwa {
 
       class Sentence : public dr::Ann {
       public:
-        dr::Slice<Token> span;
+        dr::Slice<Token *> span;
 
         class Schema;
       };
@@ -31,7 +34,7 @@ namespace schwa {
 
       class Paragraph : public dr::Ann {
       public:
-        dr::Slice<Sentence> span;
+        dr::Slice<Sentence *> span;
 
         class Schema;
       };
@@ -40,8 +43,9 @@ namespace schwa {
       class Doc : public dr::Doc {
       public:
         std::string doc_id;  //!< The contents of the `DOCNO` element.
-        std::string story_date;  //!< ISO 8601 date representation of the contents of the `DD` element.
+        std::string story_date;  //!< ISO-8601 date representation of the contents of the `DD` element.
         std::string dateline;
+        dr::Pointer<Sentence> headline;
 
         dr::Store<Token> tokens;
         dr::Store<Sentence> sentences;
@@ -51,6 +55,53 @@ namespace schwa {
       };
 
 
+      class Token::Schema : public dr::Ann::Schema<Token> {
+      public:
+        DR_FIELD(&Token::span) span;
+        DR_FIELD(&Token::raw) raw;
+
+        Schema(void);
+        virtual ~Schema(void);
+      };
+
+
+      class Sentence::Schema : public dr::Ann::Schema<Sentence> {
+      public:
+        DR_POINTER(&Sentence::span, &Doc::tokens) span;
+
+        Schema(void);
+        virtual ~Schema(void);
+      };
+
+
+      class Paragraph::Schema : public dr::Ann::Schema<Paragraph> {
+      public:
+        DR_POINTER(&Paragraph::span, &Doc::sentences) span;
+
+        Schema(void);
+        virtual ~Schema(void);
+      };
+
+
+      class Doc::Schema : public dr::Doc::Schema<Doc> {
+      public:
+        DR_FIELD(&Doc::doc_id) doc_id;
+        DR_FIELD(&Doc::story_date) story_date;
+        DR_FIELD(&Doc::dateline) dateline;
+        DR_POINTER(&Doc::headline, &Doc::sentences) headline;
+
+        DR_STORE(&Doc::tokens) tokens;
+        DR_STORE(&Doc::sentences) sentences;
+        DR_STORE(&Doc::paragraphs) paragraphs;
+
+        Schema(void);
+        virtual ~Schema(void);
+      };
+
+
+      // ======================================================================
+      // Importer
+      // ======================================================================
       class Importer {
       private:
         class Impl;
