@@ -23,8 +23,27 @@ namespace schwa {
   constexpr const unicode_t MAX_CODE_POINT = 0x110000;
 
 
+  /**
+   * Reads a single Unicode code point from the UTF-8 stream pointed to by \p *data. If the input
+   * stream has no more data to read (\p *data equals \p end), then a ValueException is thrown. If
+   * a code point cannot be decoded from the UTF-8 stream, a UnicodeException is thrown. If a code
+   * point is successfully read, \p *data is incremented the appropriate number of bytes and the
+   * code point is returned.
+   **/
   unicode_t read_utf8(const uint8_t **data, const uint8_t *end);
+
+  /**
+   * Same as read_utf8(const uint8_t **, const uint8_t *), but the read code point is re-encoded
+   * into \p utf8 and the number of bytes used to encode the code point into UTF-8 is returned.
+   **/
+  size_t read_utf8(const uint8_t **data, const uint8_t *end, uint8_t utf8[4]);
+
+  /**
+   * Same as read_utf8(const uint8_t **, const uint8_t *), but the data stream is read in reverse
+   * (i.e. reading code points in reverse order than what they were written to the stream).
+   **/
   unicode_t read_utf8_backwards(const uint8_t **data, const uint8_t *end);
+
   size_t write_utf8(unicode_t code_point, uint8_t utf8[4]);
   size_t write_utf8(unicode_t code_point, std::ostream &out);
   size_t write_utf8(const UnicodeString &s, std::ostream &out);

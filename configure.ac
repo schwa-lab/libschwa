@@ -141,6 +141,10 @@ dnl Check for SIMD extensions.
 dnl Defines: HAVE_MMX, HAVE_SSE, HAVE_SSE2, HAVE_SSE3, HAVE_SSSE3, HAVE_SSE4.1, HAVE_SSE4.2, HAVE_AVX, SIMD_FLAGS
 AX_EXT
 
+dnl Check for posix_memalign
+dnl Defines: HAVE_POSIX_MEMALIGN
+AX_FUNC_POSIX_MEMALIGN
+
 dnl Check for __builtin_expect.
 AC_MSG_CHECKING([if the compiler supports __builtin_expect])
 AC_COMPILE_IFELSE(

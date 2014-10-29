@@ -101,40 +101,51 @@ namespace schwa {
 
 
   /**
-   * A std::allocator conforming class for use with a Pool. The deallocate
-   * method does not free up any resources.
+   * A std::allocator conforming class for use with a Pool. The \p deallocate method does not free
+   * up any resources since it is backed by a Pool.
    **/
-  template <class T>
-  struct PoolAllocator {
+  template <typename T>
+  class PoolAllocator {
+  public:
     using const_pointer = const T *;
     using const_reference = const T &;
-    using difference_type = std::ptrdiff_t;
+    using difference_type = ptrdiff_t;
     using pointer = T *;
     using reference = T &;
-    using size_type = std::size_t;
+    using size_type = size_t;
     using value_type = T;
-    template <class U> struct rebind { using other = PoolAllocator<U>; };
+    template <typename U> struct rebind { using other = PoolAllocator<U>; };
 
-    Pool &pool;
+  private:
+    Pool &_pool;
 
-    explicit PoolAllocator(schwa::Pool &pool) noexcept : pool(pool) { }
-    template <typename U> PoolAllocator(const PoolAllocator<U> &o) : pool(o.pool) { }
+    template <typename U> friend class PoolAllocator;
 
-    inline T *
-    allocate(const std::size_t n) {
-      return pool.alloc<T *>(n * sizeof(T));
+  public:
+    explicit PoolAllocator(schwa::Pool &pool) noexcept : _pool(pool) { }
+    template <typename U> PoolAllocator(const PoolAllocator<U> &o) : _pool(o._pool) { }
+
+    pointer address(reference x) const noexcept { return &x; }
+    const_pointer address(const_reference x) const noexcept { return &x; }
+    Pool &pool(void) const { return _pool; }
+
+    inline pointer
+    allocate(size_type n) {
+      return _pool.alloc<T *>(n*sizeof(T));
     }
 
-    template <class U, class... Args>
+    template <typename U, typename... Args>
     inline void
     construct (U* p, Args&&... args) {
       new (p) U(args...);
     }
 
     inline void
-    deallocate(T *, std::size_t) { }
+    deallocate(pointer, size_type) {
+      // Do nothing.
+    }
 
-    template <class U>
+    template <typename U>
     inline void
     destroy (U* p) {
       p->~U();

@@ -85,9 +85,8 @@ SGMLishLexer::_init(void) {
 
 
 SGMLishNode *
-SGMLishLexer::lex(Pool &pool) {
-  _pool = &pool;
-  std::cout << "[SGMLishLexer::lex] begin p=" << static_cast<const void *>(_state.p) << " pe=" << static_cast<const void *>(_state.pe) << std::endl;
+SGMLishLexer::lex(void) {
+  // std::cout << "[SGMLishLexer::lex] begin p=" << static_cast<const void *>(_state.p) << " pe=" << static_cast<const void *>(_state.pe) << std::endl;
   // Don't attempt to lex if we're at EOF.
   if (_state.at_eof())
     return nullptr;

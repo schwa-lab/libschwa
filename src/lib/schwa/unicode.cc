@@ -180,6 +180,13 @@ read_utf8(const uint8_t **ptr, const uint8_t *const end) {
 }
 
 
+size_t
+read_utf8(const uint8_t **data, const uint8_t *end, uint8_t utf8[4]) {
+  const unicode_t code_point = read_utf8(data, end);
+  return write_utf8(code_point, utf8);
+}
+
+
 unicode_t
 read_utf8_backwards(const uint8_t **ptr, const uint8_t *const end) {
   const uint8_t *const data = *ptr;

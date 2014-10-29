@@ -15,6 +15,8 @@ namespace schwa {
       // ======================================================================
       // docrep models
       // ======================================================================
+      class List;
+
       class Token : public dr::Ann {
       public:
         dr::Slice<uint64_t> span;
@@ -40,6 +42,34 @@ namespace schwa {
       };
 
 
+      class Heading : public dr::Ann {
+      public:
+        dr::Pointer<Sentence> sentence;
+        unsigned int level;
+
+        Heading(void);
+
+        class Schema;
+      };
+
+
+      class ListItem : public dr::Ann {
+      public:
+        dr::Pointer<Sentence> sentence;  //!< One of ListItem::sentence or ListItem::list will be not null, depending on what kind of list item it is.
+        dr::Pointer<List> list;          //!< One of ListItem::sentence or ListItem::list will be not null, depending on what kind of list item it is.
+
+        class Schema;
+      };
+
+
+      class List : public dr::Ann {
+      public:
+        dr::Slice<ListItem *> items;
+
+        class Schema;
+      };
+
+
       class Doc : public dr::Doc {
       public:
         std::string doc_id;  //!< The contents of the `DOCNO` element.
@@ -50,6 +80,8 @@ namespace schwa {
         dr::Store<Token> tokens;
         dr::Store<Sentence> sentences;
         dr::Store<Paragraph> paragraphs;
+        dr::Store<Heading> headings;
+        dr::Store<List> lists;
 
         class Schema;
       };

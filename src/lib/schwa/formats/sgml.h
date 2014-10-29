@@ -8,6 +8,7 @@
 #include <schwa/_base.h>
 #include <schwa/encoding.h>
 #include <schwa/pool.h>
+#include <schwa/unicode.h>
 #include <schwa/utils/buffer.h>
 
 
@@ -15,13 +16,16 @@ namespace schwa {
   namespace formats {
 
     class SGMLishAttribute {
+    public:
+      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+
     private:
       const uint8_t *const _name;
       const uint8_t *const _value;
       SGMLishAttribute *_next;
 
     public:
-      SGMLishAttribute(const uint8_t *name, const uint8_t *value, SGMLishAttribute *next=nullptr) : _name(name), _value(value), _next(next) { }
+      SGMLishAttribute(const uint8_t *name, const uint8_t *value, SGMLishAttribute *next=nullptr);
 
       inline const uint8_t *name(void) const { return _name; }
       inline SGMLishAttribute *next(void) const { return _next; }
@@ -30,6 +34,9 @@ namespace schwa {
       inline void set_next(SGMLishAttribute *next) { _next = next; }
 
       std::ostream &pprint(std::ostream &out) const;
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(SGMLishAttribute);
     };
 
 
@@ -42,9 +49,13 @@ namespace schwa {
 
 
     class SGMLishNode {
+    public:
+      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+
     private:
       const SGMLishNodeType _type;
-      const uint8_t *const _data;
+      const PooledOffsetBuffer *_name;
+      const PooledOffsetBuffer *_text;
       SGMLishNode *_child;
       SGMLishNode *_sibling;
       SGMLishAttribute *_attribute;
@@ -53,13 +64,13 @@ namespace schwa {
       inline void _set_sibling(SGMLishNode &node) { _sibling = &node; }
 
     public:
-      SGMLishNode(SGMLishNodeType type, const uint8_t *data, SGMLishAttribute *attribute=nullptr);
+      SGMLishNode(SGMLishNodeType type, const PooledOffsetBuffer *name, const PooledOffsetBuffer *text, SGMLishAttribute *attribute);
 
       inline SGMLishAttribute *attribute(void) const { return _attribute; }
       inline SGMLishNode *child(void) const { return _child; }
-      inline const uint8_t *name(void) const { return _data; }
+      inline const PooledOffsetBuffer *name(void) const { return _name; }
       inline SGMLishNode *sibling(void) const { return _sibling; }
-      inline const uint8_t *text(void) const { return _data; }
+      inline const PooledOffsetBuffer *text(void) const { return _text; }
       inline SGMLishNodeType type(void) const { return _type; }
 
       inline bool is_cdata(void) const { return _type == SGMLishNodeType::CDATA; }
@@ -70,7 +81,12 @@ namespace schwa {
       inline bool is_text(void) const { return _type == SGMLishNodeType::TEXT; }
       inline bool is_xml_decl(void) const { return _type == SGMLishNodeType::XML_DECL; }
 
-      inline bool has_name(const std::string &name) const { return std::strcmp(reinterpret_cast<const char *>(_data), name.c_str()) == 0; }
+      inline bool
+      has_name(const std::string &name) const {
+        if (_name == nullptr)
+          return false;
+        return std::strncmp(name.c_str(), reinterpret_cast<const char *>(_name->bytes()), _name->nitems_used()) == 0;
+      }
 
       void add_child(SGMLishNode &node);
 
@@ -83,6 +99,8 @@ namespace schwa {
 
     class SGMLishLexer {
     public:
+      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+
       static constexpr const size_t DEFAULT_BUFFER_GROW_SIZE = 4 * 1024 * 1024;  //!< Default amount the internal buffer grows by.
 
       class RagelState {
@@ -105,20 +123,27 @@ namespace schwa {
             cs(0)
           { }
 
-      inline bool at_eof(void) const { return p == pe; }
+        inline bool at_eof(void) const { return p == pe; }
 
       private:
         SCHWA_DISALLOW_COPY_AND_ASSIGN(RagelState);
       };
 
-    protected:
+    private:
       class LexBuffer {
       private:
         const uint8_t *_start;
-        Buffer _buffer;
+        PooledOffsetBuffer _buffer;
 
       public:
-        explicit LexBuffer(const size_t buffer_grow) : _start(nullptr), _buffer(buffer_grow) { }
+        LexBuffer(const size_t buffer_grow, Pool &pool) :
+            _start(nullptr),
+            _buffer(buffer_grow, 0, PoolAllocator<uint8_t>(pool))
+          { }
+
+        inline const PooledOffsetBuffer &buffer(void) const { return _buffer; }
+        inline bool empty(void) const { return _buffer.empty(); }
+        inline const uint8_t *start(void) const { return _start; }
 
         inline void
         clear(void) {
@@ -126,40 +151,42 @@ namespace schwa {
           _buffer.clear();
         }
 
-        inline const Buffer &buffer(void) const { return _buffer; }
-        inline bool empty(void) const { return _buffer.empty(); }
-        inline const uint8_t *start(void) const { return _start; }
-
-        inline std::ostream &
-        output(std::ostream &out) const {
-          out.write(reinterpret_cast<const char *>(_buffer.buffer()), _buffer.used());
-          return out;
-        }
-
-        inline std::ostream &
-        output(std::ostream &out, const uint8_t *const fpc) const {
-          out.write(reinterpret_cast<const char *>(_start), fpc - _start);
-          return out;
-        }
-
-        inline void set_end(const uint8_t *const fpc) { _buffer.write(_start, fpc); }
-        inline void set_start(const uint8_t *const fpc) { _start = fpc; }
-
         inline void
-        write(const uint8_t c) {
-          _buffer.write(c);
+        set_end(const uint8_t *const fpc) {
+          uint8_t utf8[4];
+          for (const uint8_t *start = _start; start != fpc; ) {
+            const size_t nbytes = read_utf8(&start, fpc, utf8);
+            write(utf8, nbytes, nbytes);
+          }
           _start = nullptr;
         }
 
         inline void
-        write(const uint8_t *data, const size_t nbytes) {
-          _buffer.write(data, nbytes);
+        set_start(const uint8_t *const begin, const uint8_t *const fpc) {
+          _start = fpc;
+          _buffer.set_initial_offset(fpc - begin);
+        }
+
+        inline void
+        write(const unicode_t code_point, const uint32_t offset) {
+          uint8_t utf8[4];
+          const size_t nbytes = write_utf8(code_point, utf8);
+          write(utf8, nbytes, offset);
+        }
+
+        inline void
+        write(const uint8_t utf8[4], const size_t nbytes, const uint32_t offset) {
+          for (size_t i = 0; i != nbytes; ++i)
+            _buffer.write(utf8[i], (i == 0) ? offset : 0);
           _start = nullptr;
         }
+
+      private:
+        SCHWA_DISALLOW_COPY_AND_ASSIGN(LexBuffer);
       };
 
       const EncodingResult &_encoding_result;
-      Pool *_pool;
+      Pool &_pool;
 
       RagelState _state;
 
@@ -171,11 +198,11 @@ namespace schwa {
       SGMLishNode *_node;
 
       inline void _attr_name_end(const uint8_t *fpc) { _attr_name_buffer.set_end(fpc); }
-      inline void _attr_name_start(const uint8_t *fpc) { _attr_name_buffer.set_start(fpc); }
+      inline void _attr_name_start(const uint8_t *fpc) { _attr_name_buffer.set_start(_encoding_result.utf8(), fpc); }
       inline void _character_end(const uint8_t *fpc) { _text_buffer.set_end(fpc); }
-      inline void _character_start(const uint8_t *fpc) { _text_buffer.set_start(fpc); }
+      inline void _character_start(const uint8_t *fpc) { _text_buffer.set_start(_encoding_result.utf8(), fpc); }
       inline void _tag_name_end(const uint8_t *fpc) { _tag_name_buffer.set_end(fpc); }
-      inline void _tag_name_start(const uint8_t *fpc) { _tag_name_buffer.set_start(fpc); }
+      inline void _tag_name_start(const uint8_t *fpc) { _tag_name_buffer.set_start(_encoding_result.utf8(), fpc); }
 
       void _character_reference_decimal(const uint8_t *const fpc);
       void _character_reference_hex(const uint8_t *const fpc);
@@ -183,7 +210,7 @@ namespace schwa {
 
       void _init(void);
 
-      uint8_t *_create_poold_tag_name(void);
+      PooledOffsetBuffer *_create_poold_tag_name(void);
 
       void _create_attr(void);
       void _create_cdata_node(void);
@@ -195,14 +222,14 @@ namespace schwa {
       void _create_xml_decl_node(void);
 
     public:
-      const SGMLishLexer(const EncodingResult &er);
+      SGMLishLexer(const EncodingResult &er, Pool &pool);
 
       inline bool at_eof(void) const { return _state.at_eof(); }
       inline const uint8_t *get_p(void) const { return _state.p; }
       inline const uint8_t *get_pe(void) const { return _state.pe; }
       inline const RagelState &get_state(void) const { return _state; }
 
-      SGMLishNode *lex(Pool &pool);
+      SGMLishNode *lex(void);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(SGMLishLexer);
@@ -212,8 +239,8 @@ namespace schwa {
     /**
      * \code{.cpp}
        Pool pool(...);
-       SGMLishParser parser(...);
-       for (SGMLishNode *root = nullptr; (root = parser.parse(pool)) != nullptr; ) {
+       SGMLishParser parser(..., pool);
+       for (SGMLishNode *root = nullptr; (root = parser.parse()) != nullptr; ) {
          ...
          pool.clear();  // NOTE: once the pool is cleared, all SGMLishNode objects and their data (recursively) become invalid.
        }
@@ -223,19 +250,22 @@ namespace schwa {
      * \endcode
      **/
     class SGMLishParser {
+    public:
+      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+
     private:
       SGMLishLexer _lexer;
       SGMLishNode *_root;
 
     public:
-      explicit SGMLishParser(const EncodingResult &er);
+      SGMLishParser(const EncodingResult &er, Pool &pool);
 
       inline bool eof(void) const { return _lexer.at_eof(); }
       inline const uint8_t *get_p(void) const { return _lexer.get_p(); }
       inline const uint8_t *get_pe(void) const { return _lexer.get_pe(); }
       inline SGMLishNode *root(void) const { return _root; }
 
-      SGMLishNode *parse(Pool &pool);
+      SGMLishNode *parse(void);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(SGMLishParser);

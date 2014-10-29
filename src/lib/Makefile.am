@@ -33,6 +33,9 @@ schwa/formats/html_charset_sniff_content_type_gen.cc: $(srcdir)/../ragel/formats
 schwa/formats/http_gen.cc: $(srcdir)/../ragel/formats/http/main.rl $(srcdir)/../ragel/formats/http/http.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
+schwa/formats/plain-text_gen.cc: $(srcdir)/../ragel/formats/plain-text/plain-text.rl
+	ragel -C -G2 -o $@ $<
+
 schwa/formats/sgml_gen.cc: $(srcdir)/../ragel/formats/sgml/sgml.rl
 	ragel -C -G2 -o $@ $<
 
@@ -90,6 +93,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/exception.h \
 		schwa/formats/html.h \
 		schwa/formats/http.h \
+		schwa/formats/plain-text.h \
 		schwa/formats/sgml.h \
 		schwa/formats/warc.h \
 		schwa/formats/uri.h \
@@ -112,6 +116,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/features.h \
 		schwa/learn/features_impl.h \
 		schwa/macros.h \
+		schwa/memory.h \
 		schwa/mpl/if.h \
 		schwa/msgpack/dynamic.h \
 		schwa/msgpack/dynamic_impl.h \
@@ -134,6 +139,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/unicode.h \
 		schwa/unicode_gen.h \
 		schwa/utils/buffer.h \
+		schwa/utils/buffer_impl.h \
 		schwa/utils/counter.h \
 		schwa/utils/enums.h \
 		schwa/utils/hash.h \
@@ -166,6 +172,8 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/formats/html_named_character_references_gen.cc \
 		schwa/formats/http.cc \
 		schwa/formats/http_gen.cc \
+		schwa/formats/plain-text.cc \
+		schwa/formats/plain-text_gen.cc \
 		schwa/formats/sgml.cc \
 		schwa/formats/sgml_gen.cc \
 		schwa/formats/warc.cc \
@@ -193,7 +201,6 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/unicode.cc \
 		schwa/unicode_gen.cc \
-		schwa/utils/buffer.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 

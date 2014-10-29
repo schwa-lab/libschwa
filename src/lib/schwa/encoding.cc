@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include <schwa/utils/buffer.h>
 #include <schwa/utils/enums.h>
 
 
@@ -142,6 +141,9 @@ operator <<(std::ostream &out, const Encoding encoding) {
 }
 
 
+// ================================================================================================
+// EncodingResult
+// ================================================================================================
 EncodingResult::EncodingResult(const Encoding from_encoding) :
     _utf8(nullptr),
     _deltas(nullptr),
@@ -233,6 +235,9 @@ EncodingResult::write(const unicode_t code_point, const uint8_t nbytes_consumed,
 }
 
 
+// ================================================================================================
+// Functions.
+// ================================================================================================
 const std::string &
 encoding_name(const Encoding encoding) {
   const auto &it = ENCODING_NAMES.find(encoding);
@@ -272,12 +277,6 @@ to_utf8(Encoding encoding, const char *encoded_bytes, EncodingResult &result) {
 void
 to_utf8(Encoding encoding, const std::string &encoded_bytes, EncodingResult &result) {
   to_utf8(encoding, reinterpret_cast<const uint8_t *>(encoded_bytes.c_str()), encoded_bytes.size(), result);
-}
-
-
-void
-to_utf8(Encoding encoding, Buffer &encoded_bytes, EncodingResult &result) {
-  to_utf8(encoding, encoded_bytes.buffer(), encoded_bytes.used(), result);
 }
 
 
