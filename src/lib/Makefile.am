@@ -45,7 +45,7 @@ schwa/formats/warc_gen.cc: $(srcdir)/../ragel/formats/warc/warc.rl
 schwa/formats/uri_gen.cc: $(srcdir)/../ragel/formats/uri/main.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
-schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
+schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/actions.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
 	ragel -C -G2 -o $@ $<
 
 # =============================================================================
@@ -125,6 +125,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/msgpack/wire.h \
 		schwa/msgpack/wire_impl.h \
 		schwa/msgpack.h \
+		schwa/new-tokenizer/tokenizer.h \
+		schwa/new-tokenizer/tokenizer_impl.h \
 		schwa/pool.h \
 		schwa/port.h \
 		schwa/tokenizer/common.h \
@@ -143,6 +145,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/utils/counter.h \
 		schwa/utils/enums.h \
 		schwa/utils/hash.h \
+		schwa/utils/ragel.h \
 		schwa/utils/shlex.h \
 		schwa/utils/string.h \
 		schwa/version.h
@@ -193,6 +196,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/learn/features.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/exception.cc \
+		schwa/new-tokenizer/tokenizer.cc \
 		schwa/port.cc \
 		schwa/tokenizer/debug_text_stream.cc \
 		schwa/tokenizer/docrep_stream.cc \

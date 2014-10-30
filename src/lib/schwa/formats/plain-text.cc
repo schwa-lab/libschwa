@@ -7,10 +7,8 @@ namespace formats {
 
 PlainTextLexer::PlainTextLexer(const EncodingResult &er) :
     _encoding_result(er),
-    _state(er.utf8(), er.nbytes())
-  {
-  _init();
-}
+    _state(er.utf8(), er.utf8() + er.nbytes())
+  { }
 
 
 void

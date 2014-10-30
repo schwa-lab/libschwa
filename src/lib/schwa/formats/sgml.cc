@@ -133,7 +133,7 @@ SGMLishNode::pprint(std::ostream &out) const {
 SGMLishLexer::SGMLishLexer(const EncodingResult &er, Pool &pool) :
     _encoding_result(er),
     _pool(pool),
-    _state(er.utf8(), er.nbytes()),
+    _state(er.utf8(), er.utf8() + er.nbytes()),
     _attr_name_buffer(64, _pool),
     _tag_name_buffer(64, _pool),
     _text_buffer(DEFAULT_BUFFER_GROW_SIZE, _pool),

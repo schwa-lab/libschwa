@@ -10,6 +10,7 @@
 #include <schwa/pool.h>
 #include <schwa/unicode.h>
 #include <schwa/utils/buffer.h>
+#include <schwa/utils/ragel.h>
 
 
 namespace schwa {
@@ -103,32 +104,6 @@ namespace schwa {
 
       static constexpr const size_t DEFAULT_BUFFER_GROW_SIZE = 4 * 1024 * 1024;  //!< Default amount the internal buffer grows by.
 
-      class RagelState {
-      public:
-        const uint8_t *p;
-        const uint8_t *pe;
-        const uint8_t *eof;
-        const uint8_t *ts;
-        const uint8_t *te;
-        int act;
-        int cs;
-
-        RagelState(const uint8_t *const data, const size_t nbytes) :
-            p(data),
-            pe(data + nbytes),
-            eof(pe),
-            ts(nullptr),
-            te(nullptr),
-            act(0),
-            cs(0)
-          { }
-
-        inline bool at_eof(void) const { return p == pe; }
-
-      private:
-        SCHWA_DISALLOW_COPY_AND_ASSIGN(RagelState);
-      };
-
     private:
       class LexBuffer {
       private:
@@ -188,7 +163,7 @@ namespace schwa {
       const EncodingResult &_encoding_result;
       Pool &_pool;
 
-      RagelState _state;
+      RagelState<> _state;
 
       LexBuffer _attr_name_buffer;
       LexBuffer _tag_name_buffer;
@@ -227,7 +202,7 @@ namespace schwa {
       inline bool at_eof(void) const { return _state.at_eof(); }
       inline const uint8_t *get_p(void) const { return _state.p; }
       inline const uint8_t *get_pe(void) const { return _state.pe; }
-      inline const RagelState &get_state(void) const { return _state; }
+      inline const RagelState<> &get_state(void) const { return _state; }
 
       SGMLishNode *lex(void);
 
