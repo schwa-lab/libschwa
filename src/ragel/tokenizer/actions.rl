@@ -5,15 +5,15 @@
   machine tokenizer;
   alphtype unsigned char;
 
-  action s1 { s.suffix++; }
-  action s2 { s.suffix += 2; }
-  action s3 { s.suffix += 3; }
-  action s4 { s.suffix += 4; }
-  action s5 { s.suffix += 5; }
-  action s6 { s.suffix += 6; }
-  action s7 { s.suffix += 7; }
-  action s8 { s.suffix += 8; }
-  action s9 { s.suffix += 9; }
-  action s10 { s.suffix += 10; }
+  action s1 { _state.suffix += 1; }
+  action s2 { _state.suffix += 2; }
+  action s3 { _state.suffix += 3; }
+  action s4 { _state.suffix += 4; }
+  action s5 { _state.suffix += 5; }
+  action s6 { _state.suffix += 6; }
+  action s7 { _state.suffix += 7; }
+  action s8 { _state.suffix += 8; }
+  action s9 { _state.suffix += 9; }
+  action s10 { _state.suffix += 10; }
 
 }%%

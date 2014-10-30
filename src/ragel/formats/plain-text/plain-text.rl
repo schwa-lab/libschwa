@@ -60,17 +60,12 @@ namespace formats {
 
 %% write data noerror nofinal;
 
-void
-PlainTextLexer::_init(void) {
-  (void)plain_text_en_main;
-  %% write init;
-}
-
-
 bool
 PlainTextLexer::lex(void) {
+  (void)plain_text_en_main;
+  %% write init;
   %% write exec;
-  return _state.cs == %%{ write error; }%%;
+  return _state.cs != %%{ write error; }%%;
 }
 
 }  // namespace formats

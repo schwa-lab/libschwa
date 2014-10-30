@@ -5,90 +5,170 @@
   machine tokenizer;
   alphtype unsigned char;
 
-  # we must subtract byte counts for units with prefixes since they get counted twice
-  # one letter prefixes are 'ckmsCFKMT'
-  # 'm' (metres)
-  # 's' (seconds)
-  # 'c' (cents)
-  # 'C', 'F', 'K' (Celsius, Fahrenheit and Kelvin)
-  # 'T' (tonne)
-  # 'K', 'k', 'M' (kilo, mega, scalar multipliers)
+  # Metric prefixes (https://en.wikipedia.org/wiki/Metric_prefix)
+  unicode_00b5 = 0xc2 0xb5 ;  # U+00b5 micro sign (µ)
+  unicode_03bc = 0xce 0xbc ;  # U+03bc greek small letter mu (μ)
+  metric_prefix_big = [hkMGTPEZY] ;
+  metric_prefix_small = [dcmunpfazy] | unicode_00b5 | unicode_03bc ;
+  metric_prefix = metric_prefix_big | metric_prefix_small ;
 
-  # Length.
   unicode_212b = 0xe2 0x84 0xab ;  # U+212b angstrom sign (Å)
-  length1 = 'm' @s1 ;
-  length2 = ('in'|'ft'|'yd') @s2 | ('mi'|'mm'|'cm'|'km') @s1 ;
-  length3 = unicode_212b ;
-  length = length1 | length2 | length3 ;
+  length_unit =
+      'mm' %s2
+    | 'cm' %s2
+    | 'm' %s1
+    | 'km' %s2
+    | 'in' %s2
+    | 'ft' %s2
+    | 'yd' %s2
+    | 'mi' %s2
+    | unicode_212b %s1
+    ;
 
-  # Area/volume.
-  area_vol0 = length (('2'|'3') @s1 | ('^2'|'^3') @s2);
-  area_vol1 = ('sq ' @s2 |'cu ' @s3) length;
-  area_vol2 = ('sq. ' @s3 |'cu. ' @s4) length;
-  area_vol3 = 'cc' @s1;
+  size_unit =
+      length_unit
+    | length_unit ('2'|'3') %s1
+    | length_unit ('^2'|'^3') %s2
+    ;
 
-  size = length | area_vol0 | area_vol1 | area_vol2 | area_vol3;
+  speed_unit =
+      'm/s' %s3
+    | 'ms-1' %s4
+    | 'kmh' %s3
+    | 'km/h' %s4
+    | 'kmph' %s4
+    | 'km/hr' %s5
+    | 'kmh-1' %s5
+    | 'mih' %s3
+    | 'mph' %s3
+    | 'mi/h' %s4
+    | 'mi/hr' %s5
+    | 'mih-1' %s5
+    ;
 
-  # Speed.
-  speed_ms = 'm/s' @s2 | 'ms-1' @s2;
-  speed_kmh = ('kmh'|'km/hr') @s1 | ('km/h'|'kmph'|'kmh-1') @s2;
-  speed_mih = ('mih'|'mi/hr') @s1 | 'mi/h' @s2 | 'mph' @s2 | 'mih-1' @s2;
-  speed = speed_ms | speed_kmh | speed_mih;
+  volume_unit =
+      'L' %s1
+    | 'fl oz' %s5
+    | 'gal' %s4
+    | 'mL' %s2
+    | 'mil' %s3
+    | 'pt' %s2
+    | 'qt' %s2
+    ;
 
-  vol = ('L'|'mL'|'mil') @s1 | ('pt'|'qt') @s2 | 'gal' @s2 |'fl oz' @s5;
-  weight = ('g'|'T'|'mg'|'lbs'|'dr'|'kg') @s1 | ('cwt'|'lb'|'oz') @s2 | 'ton' @s3;
+  weight_unit =
+      'T' %s1
+    | 'cwt' %s3
+    | 'dr' %s2
+    | 'g' %s1
+    | 'kg' %s2
+    | 'lb' %s2
+    | 'lbs' %s3
+    | 'mg' %s2
+    | 'oz' %s2
+    | 'ton' %s3
+    ;
 
-  computer_size = ('kb'|'kB'|'KB'|'mb'|'Mb'|'MB'|'gb'|'TB'|'Tb') @s1 | ('kbit'|'mbit'|'Mbit'|'MBit'|'Gb'|'GB'|'gbit'|'Gbit'|'GBit') @s2;
-  computer_rate = computer_size '/s' @s2 | ('bps'|'dpi') @s3;
-  computer = computer_size | computer_rate;
+  computer_size_unit =
+      'B' %s1
+    | metric_prefix_big 'B' %s2
+    | metric_prefix_big 'Bit' %s4
+    | [MGTPEZY] 'b' %s2
+    | [MGTPEZY] 'bit' %s4
+    | [kmgtpezy] 'b' %s2
+    | [kmgtpezy] 'bit' %s4
+    | [KMGTPEZY] 'iB' %s3
+    | [KMGTPEZY] 'iBit' %s5
+    ;
 
-  # Temperature.
+  computer_rate_unit =
+      computer_size_unit '/s' %s2
+    | 'bps' %s3
+    | 'dpi' %s3
+    ;
+
   unicode_00b0 = 0xc2 0xb0 ;       # U+00b0 degree sign (°)
   unicode_2103 = 0xe2 0x84 0x83 ;  # U+2103 degree celsius (℃)
   unicode_2109 = 0xe2 0x84 0x89 ;  # U+2109 degree fahrenheit (℉)
   unicode_212a = 0xe2 0x84 0xaa ;  # U+212a kelvin sign (K)
-  temperature =
-      ( 'C' | 'F' | 'K' | unicode_2103 | unicode_2109 | unicode_212a ) @s1
-    | unicode_00b0 ( 'C' | 'F' ) @s1
+  temperature_unit =
+      ( 'C' | 'F' | 'K' | unicode_2103 | unicode_2109 | unicode_212a ) %s1
+    | unicode_00b0 ( 'C' | 'F' ) %s2
     ;
 
-  frequency = ('Hz'|'kHz'|'KHz'|'MHz') @s2 | 'GHz' @s3;
-  pressure = ('Pa'|'kPa'|'hPa') @s2 | 'psi' @s3;
-  other = ('db'|'dB') @s2 | ('rpm'|'RPM') @s3;
+  frequency_unit =
+      'Hz' %s2
+    | metric_prefix 'Hz' %s3
+    ;
 
-  period_si = ('s'|'ms'|'min'|'h') @s1 | ('us'|'ns') @s2 | (0xce 0xbc 's') @s3;
-  period_expanded = 'nanosec' @s7 | ('microsec'|'millisec') @s8;
-  period_non_si = 'hr' @s1 | ('yr'|'sec'|'mth') @s2 | 'mnth' @s3;
-  period_non_si_plural = period_non_si 's' @s1 | 'mins' @s1;
-  period = period_si | period_expanded | period_non_si | period_non_si_plural;
+  pressure_unit =
+      'Pa' %s2
+    | metric_prefix 'Pa' %s3
+    | 'psi'
+    ;
 
-  scalars = ('k'|'M') @s1;
+  other_unit =
+      'db'
+    | 'dB'
+    | 'rpm'
+    | 'RPM'
+    ;
 
-  # Cents.
+  # Time.
+  period_unit_si =
+      's' %s1
+    | ('m' | 'u' | unicode_00b5 | unicode_03bc | 'n' ) 's' %s2
+    | 'min' %s3
+    | 'h'
+    ;
+  period_unit_expanded =
+      'millisec' %s8
+    | 'microsec' %s8
+    | 'nanosec' %s7
+    ;
+  period_unit_non_si =
+      'hr' %s2
+    | 'mth' %s3
+    | 'mnth' %s4
+    | 'sec' %s3
+    | 'yr' %s2
+    ;
+  period_unit_non_si_plural =
+      period_unit_non_si 's' %s1
+    | 'mins' %s4
+    ;
+  period_unit = period_unit_si | period_unit_expanded | period_unit_non_si | period_unit_non_si_plural ;
+
+  post_integer_scalar = [kMB] %s1 ;
+
   unicode_00a2 = 0xc2 0xa2 ;  # U+00a2 cent sign (¢)
-  cents = 'c' @s1 | unicode_00a2;
-  post_currency = cents;
-
-  # Any units that may appear after a number.
-  units =
-      computer
-    | frequency
-    | other
-    | period
-    | post_currency
-    | pressure
-    | scalars
-    | size
-    | speed
-    | temperature
-    | vol
-    | weight
+  cents_unit =
+      'c' %s1
+    | unicode_00a2
     ;
 
   currency_symbol =
       [A-Z]+ '$'
     | '$' [A-Z]+
     | unicode_symbol_currency
+    ;
+  post_currency_unit = cents_unit;
+
+  # Any units that may appear after a number.
+  units =
+      computer_rate_unit
+    | computer_size_unit
+    | frequency_unit
+    | other_unit
+    | period_unit
+    | post_currency_unit
+    | post_integer_scalar
+    | pressure_unit
+    | speed_unit
+    | size_unit
+    | temperature_unit
+    | volume_unit
+    | weight_unit
     ;
 
 }%%

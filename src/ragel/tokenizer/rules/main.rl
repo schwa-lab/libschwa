@@ -5,68 +5,52 @@
   machine tokenizer;
   alphtype unsigned char;
 
-  action ignore {}
-  action word { _word(WORD, dest, s); }
-  action punct { _punct(PUNCTUATION, dest, s); }
-  action end { _end(PUNCTUATION, dest, s); }
-  action contraction { _split(WORD, CONTRACTION, dest, s); }
-  action catchall {
-    switch (onerror) {
-      case OnError::SKIP:
-        break;
-      case OnError::CALL:
-        _error(dest, s);
-        break;
-      case OnError::THROW: {
-          std::ostringstream msg;
-          msg << "stuck on character " << (int)*p << " at offset " << (p - s.offset);
-          throw TokenError(msg.str());
-        }
-        break;
-    }
-  }
+  action ignore { }
+  action word { _word(TokenType::WORD); }
+  action punct { _punct(TokenType::PUNCTUATION); }
+  action end { _end(TokenType::PUNCTUATION); }
+  action contraction { _split(TokenType::WORD, TokenType::CONTRACTION); }
+  action catchall { throw std::runtime_error("Stuck :("); }
 
   main := |*
-    single_quote => { _single_quote(dest, s, eof); };
-    double_quote => { _double_quote(dest, s, eof); };
+    single_quote => { _single_quote(); };
+    double_quote => { _double_quote(); };
 
-    open_single_quote => { _open_single_quote(dest, s); };
-    close_single_quote => { _close_single_quote(dest, s); };
+    open_single_quote => { _open_single_quote(); };
+    close_single_quote => { _close_single_quote(); };
 
-    open_double_quote => { _open_double_quote(dest, s); };
-    close_double_quote => { _close_double_quote(dest, s); };
+    open_double_quote => { _open_double_quote(); };
+    close_double_quote => { _close_double_quote(); };
 
-    full_stop => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8".")); };
-    question_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"?")); };
-    inverted_question_mark => { _punct(PUNCTUATION, dest, s, reinterpret_cast<const uint8_t *>(u8"¿")); };
-    exclamation_mark => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"!")); };
-    inverted_exclamation_mark => { _punct(PUNCTUATION, dest, s, reinterpret_cast<const uint8_t *>(u8"¡")); };
-    ellipsis => { _terminator(dest, s, reinterpret_cast<const uint8_t *>(u8"...")); };
+    full_stop => { _terminator(reinterpret_cast<const uint8_t *>(u8".")); };
+    question_mark => { _terminator(reinterpret_cast<const uint8_t *>(u8"?")); };
+    inverted_question_mark => { _punct(TokenType::PUNCTUATION, reinterpret_cast<const uint8_t *>(u8"¿")); };
+    exclamation_mark => { _terminator(reinterpret_cast<const uint8_t *>(u8"!")); };
+    inverted_exclamation_mark => { _punct(TokenType::PUNCTUATION, reinterpret_cast<const uint8_t *>(u8"¡")); };
+    ellipsis => { _terminator(reinterpret_cast<const uint8_t *>(u8"...")); };
 
-    dash => { _dash_or_item(dest, s); };
-#    [1-9][0-9]* "." => { _number_or_item(dest, s); };
+    dash => { _punct(TokenType::DASH, reinterpret_cast<const uint8_t *>(u8"--")); };
 
     unicode_space+ | unicode_line_space => ignore;
-    unicode_line_space{2,} | unicode_paragraph_space => { _sep_text_paragraph(dest, s); };
+    # unicode_line_space{2,} | unicode_paragraph_space => { _sep_text_paragraph(); };
 
-    neg => contraction;
-    neg_error => contraction;
-    letter+ cont_suffix => contraction;
+    contractions_neg => contraction;
+    contractions_neg_error => contraction;
+    letter+ contractions_suffix => contraction;
 
-    (letter+ "."? possessive) - abbrev_decade => { _split(WORD, POSSESSIVE, dest, s); };
-    possessive => { _word(POSSESSIVE, dest, s); }; # always capture 's
+    (letter+ "."? possessive) - abbrev_decade => { _split(TokenType::WORD, TokenType::POSSESSIVE); };
+    possessive => { _word(TokenType::POSSESSIVE); }; # always capture 's
 
-    (numbers units) - abbrev_decade => { _split(NUMBER, UNIT, dest, s); };
-    time_ambiguous meridian => { _split(NUMBER, UNIT, dest, s); };
+    (numbers units) - abbrev_decade => { _split(TokenType::NUMBER, TokenType::UNIT); };
+    time_ambiguous meridian => { _split(TokenType::NUMBER, TokenType::UNIT); };
     meridian_token | date_time => word;
 
     (integer | float) "-" alpha+ ("-" alpha+)* => word;
 
     "and/or" | "AND/OR" => word;
 
-    cont_misc | acronym | title => word;
+    contractions_misc | acronym | title => word;
     symbols => punct;
-    end_punct => end;
     emoticon => punct;
     date_abbrev | state | address_suffix => word;
 
