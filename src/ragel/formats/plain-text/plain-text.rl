@@ -61,7 +61,7 @@ namespace formats {
 %% write data noerror nofinal;
 
 bool
-PlainTextLexer::lex(void) {
+PlainTextLexer::_lex(void) {
   (void)plain_text_en_main;
   %% write init;
   %% write exec;

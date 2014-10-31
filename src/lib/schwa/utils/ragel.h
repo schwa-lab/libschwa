@@ -3,6 +3,7 @@
 #define SCHWA_UTILS_RAGEL_H_
 
 #include <schwa/_base.h>
+#include <schwa/exception.h>
 
 
 namespace schwa {
@@ -10,6 +11,8 @@ namespace schwa {
   template <typename IT=const uint8_t *>
   class RagelState {
   public:
+    using iterator = IT;
+
     IT p;
     IT pe;
     IT eof;
@@ -19,7 +22,7 @@ namespace schwa {
     int cs;
 
     RagelState(void) { }
-    RagelState(IT start, IT end) : p(start), pe(end), eof(pe) { }
+    RagelState(iterator start, iterator end) : p(start), pe(end), eof(pe) { }
     ~RagelState(void) { }
 
     inline bool
@@ -28,7 +31,7 @@ namespace schwa {
     }
 
     void
-    reset(IT start, IT end) {
+    reset(iterator start, iterator end) {
       p = start;
       pe = end;
       eof = pe;
@@ -36,6 +39,14 @@ namespace schwa {
 
   private:
     SCHWA_DISALLOW_COPY_AND_ASSIGN(RagelState);
+  };
+
+
+  class RagelException : public Exception {
+  public:
+    explicit RagelException(const std::string &msg) : Exception(msg) { }
+    RagelException(const RagelException &o) : Exception(o) { }
+    virtual ~RagelException(void) throw() { }
   };
 
 }  // namespace schwa

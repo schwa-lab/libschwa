@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <iosfwd>
+#include <numeric>
 
 #include <schwa/_base.h>
 #include <schwa/memory.h>
@@ -49,19 +50,189 @@ namespace schwa {
   };
 
 
-  template <typename ALLOC=schwa::AlignedAllocator<uint8_t>>
-  class OffsetBuffer {
-  public:
-    using allocator_type = ALLOC;
+  class BaseOffsetBuffer {
+  protected:
+    class Iterator {
+    private:
+      const BaseOffsetBuffer *_buffer;
+      size_t _index;
 
-  private:
-    allocator_type _allocator;
+    public:
+      Iterator(void) : _buffer(nullptr), _index(0) { }
+      Iterator(const BaseOffsetBuffer &buffer, const size_t index) : _buffer(&buffer), _index(index) { }
+      Iterator(const Iterator &o) : _buffer(o._buffer), _index(o._index) { }
+      Iterator(const Iterator &&o) : _buffer(o._buffer), _index(o._index) { }
+      ~Iterator(void) { }
+
+      inline Iterator &
+      operator =(const Iterator &o) {
+        _buffer = o._buffer;
+        _index = o._index;
+        return *this;
+      }
+
+      inline Iterator &
+      operator =(int) {  // Needed for Ragel-generated code (state.ts = 0).
+        _buffer = nullptr;
+        _index = 0;
+        return *this;
+      }
+
+      inline Iterator &
+      operator ++(void) {
+        ++_index;
+        return *this;
+      }
+
+      inline Iterator
+      operator ++(int) {
+        Iterator it(*this);
+        ++(*this);
+        return it;
+      }
+
+      inline Iterator &
+      operator +=(const size_t delta) {
+        _index += delta;
+        return *this;
+      }
+
+      inline Iterator &
+      operator --(void) {
+        --_index;
+        return *this;
+      }
+
+      inline Iterator
+      operator --(int) {
+        Iterator it(*this);
+        --(*this);
+        return it;
+      }
+
+      inline Iterator &
+      operator -=(const size_t delta) {
+        _index -= delta;
+        return *this;
+      }
+
+      inline Iterator
+      operator +(const size_t delta) const {
+        Iterator it(*this);
+        it += delta;
+        return it;
+      }
+
+      inline Iterator
+      operator -(const size_t delta) const {
+        Iterator it(*this);
+        it -= delta;
+        return it;
+      }
+
+      inline ssize_t
+      operator -(const Iterator &o) const {
+        return _index - o._index;
+      }
+
+      inline uint8_t
+      operator *(void) const {
+        return get_byte();
+      }
+
+      inline bool
+      operator ==(const Iterator &o) const {
+        return _buffer == o._buffer && _index == o._index;
+      }
+
+      inline bool
+      operator !=(const Iterator &o) const {
+        return _buffer != o._buffer || _index != o._index;
+      }
+
+      inline uint8_t
+      get_byte(void) const {
+        if (SCHWA_UNLIKELY(_buffer == nullptr))
+          return 0;
+        return _buffer->bytes()[_index];
+      }
+
+      inline uint8_t *
+      get_bytes(void) const {
+        if (SCHWA_UNLIKELY(_buffer == nullptr))
+          return nullptr;
+        return _buffer->bytes() + _index;
+      }
+
+      inline size_t
+      get_index(void) const {
+        return _index;
+      }
+
+      inline uint32_t
+      get_offset(void) const {
+        if (SCHWA_UNLIKELY(_buffer == nullptr))
+          return 0;
+        return _buffer->offsets()[_index];
+      }
+
+      inline uint32_t *
+      get_offsets(void) const {
+        if (SCHWA_UNLIKELY(_buffer == nullptr))
+          return nullptr;
+        return _buffer->offsets() + _index;
+      }
+
+      inline size_t
+      get_summed_offset(void) const {
+        if (SCHWA_UNLIKELY(_buffer == nullptr))
+          return 0;
+        return _buffer->get_summed_offset(_index);
+      }
+    };
+
+  public:
+    using iterator = Iterator;
+
+  protected:
     const size_t _nitems_grow;
     size_t _nitems_allocd;
     size_t _nitems_used;
     size_t _initial_offset;
     uint8_t *_bytes;
     uint32_t *_offsets;
+
+  public:
+    explicit BaseOffsetBuffer(size_t nitems_grow, size_t initial_offset=0);
+    BaseOffsetBuffer(const BaseOffsetBuffer &o);
+    ~BaseOffsetBuffer(void) { }
+
+    inline uint8_t *bytes(void) const { return _bytes; }
+    inline bool empty(void) const { return _nitems_used == 0; }
+    inline size_t initial_offset(void) const { return _initial_offset; }
+    inline size_t nitems_allocd(void) const { return _nitems_allocd; }
+    inline size_t nitems_grow(void) const { return _nitems_grow; }
+    inline size_t nitems_used(void) const { return _nitems_used; }
+    inline uint32_t *offsets(void) const { return _offsets; }
+
+    inline iterator begin(void) const { return iterator(*this, 0); }
+    inline iterator end(void) const { return iterator(*this, _nitems_used); }
+
+    inline size_t get_summed_offset(const size_t index) const { return std::accumulate(_offsets, _offsets + index, _initial_offset); }
+
+    inline void clear(void) { _nitems_used = 0; }
+    inline void set_initial_offset(const size_t initial_offset) { _initial_offset = initial_offset; }
+  };
+
+
+  template <typename ALLOC=schwa::AlignedAllocator<uint8_t>>
+  class OffsetBuffer : public BaseOffsetBuffer {
+  public:
+    using allocator_type = ALLOC;
+    using iterator = BaseOffsetBuffer::iterator;
+
+  private:
+    allocator_type _allocator;
 
     template <typename U> friend class OffsetBuffer;
 
@@ -71,17 +242,6 @@ namespace schwa {
     ~OffsetBuffer(void);
 
     inline allocator_type &allocator(void) const { return _allocator; }
-    inline uint8_t *bytes(void) const { return _bytes; }
-    inline bool empty(void) const { return _nitems_used == 0; }
-    inline size_t initial_offset(void) const { return _initial_offset; }
-    inline size_t nitems_allocd(void) const { return _nitems_allocd; }
-    inline size_t nitems_grow(void) const { return _nitems_grow; }
-    inline size_t nitems_used(void) const { return _nitems_used; }
-    inline uint32_t *offsets(void) const { return _offsets; }
-
-    inline void clear(void) { _nitems_used = 0; }
-    inline void set_initial_offset(const size_t initial_offset) { _initial_offset = initial_offset; }
-
     void write(uint8_t byte, uint32_t offset);
   };
 

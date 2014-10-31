@@ -88,6 +88,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/dr-dist/server.h \
 		schwa/dr-dist/worker_main.h \
 		schwa/encoding.h \
+		schwa/encoding_impl.h \
 		schwa/encoding_gen.h \
 		schwa/enums.h \
 		schwa/exception.h \
@@ -205,6 +206,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/unicode.cc \
 		schwa/unicode_gen.cc \
+		schwa/utils/buffer.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 

@@ -9,8 +9,10 @@
 
 #include <schwa/encoding.h>
 #include <schwa/exception.h>
+#include <schwa/formats/plain-text.h>
 #include <schwa/formats/sgml.h>
 #include <schwa/io/streams.h>
+#include <schwa/new-tokenizer/tokenizer.h>
 #include <schwa/pool.h>
 #include <schwa/unicode.h>
 #include <schwa/utils/buffer.h>
@@ -19,6 +21,7 @@
 
 
 namespace fm = ::schwa::formats;
+namespace tk = ::schwa::new_tokenizer;
 using ::schwa::third_party::re2::RE2;
 
 namespace schwa {
@@ -77,10 +80,12 @@ private:
   EncodingResult _er;
   Pool _pool;
   Doc *_doc;
-  fm::SGMLishParser *_parser;
+  fm::SGMLishParser *_sgml_parser;
+  fm::PlainTextLexer _plain_text_lexer;
+  tk::Tokenizer _tokenizer;
 
   void
-  _process_tree(const fm::SGMLishNode &node) const {
+  _process_tree(const fm::SGMLishNode &node) {
     // If we're at a <DOCNO>...</DOCNO> node, extract the document number.
     if (node.is_start_tag() && node.has_name("docno")) {
       const fm::SGMLishNode *child = node.child();
@@ -131,6 +136,7 @@ private:
       if (child != nullptr && child->is_text()) {
         std::string hl = std::string(reinterpret_cast<const char *>(child->text()->bytes()), child->text()->nitems_used());
         std::cout << "HL='" << hl << "'" << std::endl;
+        _plain_text_lexer.lex(*child->text());
       }
     }
 
@@ -140,6 +146,18 @@ private:
       if (child != nullptr && child->is_text()) {
         std::string text = std::string(reinterpret_cast<const char *>(child->text()->bytes()), child->text()->nitems_used());
         std::cout << "TEXT='" << text << "'" << std::endl;
+        _plain_text_lexer.lex(*child->text());
+
+        const auto child_text_begin_it = child->text()->begin();
+        for (const auto &pair : _plain_text_lexer.paragraph_indexes()) {
+          // Copy the subset of the OffsetBuffer that belongs to the current paragraph into a tokenizer offset input stream.
+          tk::OffsetInputStream<> ois(pair.second - pair.first);
+          ois.write(child_text_begin_it + pair.first, child_text_begin_it + pair.second);
+
+          // Tokenize the paragraph.
+          _tokenizer.tokenize(ois);
+          // TODO
+        }
       }
     }
 
@@ -155,9 +173,9 @@ private:
     delete _doc;
 
     // Read in and parse the next SGML document.
-    fm::SGMLishNode *const root = _parser->parse();
+    fm::SGMLishNode *const root = _sgml_parser->parse();
     if (root == nullptr) {
-      if (!_parser->eof())
+      if (!_sgml_parser->eof())
         throw schwa::Exception("Failed to parse");
       _doc = nullptr;
       return _doc;
@@ -173,7 +191,7 @@ public:
   explicit Impl(const std::string &path) :
       _pool(4 * 1024 * 1024),
       _doc(nullptr),
-      _parser(nullptr)
+      _sgml_parser(nullptr)
     {
     // Read in all of the raw data.
     io::InputStream in(path);
@@ -184,12 +202,12 @@ public:
     to_utf8(Encoding::ASCII, encoded_bytes, _er);
 
     // Construct a SGML parser around the decoded data.
-    _parser = new fm::SGMLishParser(_er, _pool);
+    _sgml_parser = new fm::SGMLishParser(_er, _pool);
   }
 
   ~Impl(void) {
     delete _doc;
-    delete _parser;
+    delete _sgml_parser;
   }
 
   Doc *

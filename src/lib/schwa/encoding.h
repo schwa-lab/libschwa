@@ -110,6 +110,9 @@ namespace schwa {
     size_t write(unicode_t code_point, uint8_t nbytes_consumed);
     size_t write(unicode_t code_point, uint8_t nbytes_consumed, uint8_t utf8_nbytes_needed);
 
+    template <typename ALLOC>
+    void copy_to(OffsetBuffer<ALLOC> &buffer);
+
   private:
     SCHWA_DISALLOW_COPY_AND_ASSIGN(EncodingResult);
   };
@@ -172,5 +175,7 @@ namespace schwa {
   void windows_1258_to_utf8(const uint8_t *encoded_bytes, size_t encoded_nbytes, EncodingResult &result);
 
 }  // namespace schwa
+
+#include <schwa/encoding_impl.h>
 
 #endif  // SCHWA_ENCODING_H_

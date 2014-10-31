@@ -60,24 +60,14 @@ namespace schwa {
   // ============================================================================
   template <typename ALLOC>
   OffsetBuffer<ALLOC>::OffsetBuffer(const size_t nitems_grow, const size_t initial_offset, const allocator_type &allocator) :
-      _allocator(allocator),
-      _nitems_grow(nitems_grow),
-      _nitems_allocd(0),
-      _nitems_used(0),
-      _initial_offset(initial_offset),
-      _bytes(nullptr),
-      _offsets(nullptr)
+      BaseOffsetBuffer(nitems_grow, initial_offset),
+      _allocator(allocator)
     { }
 
   template <typename ALLOC>
   OffsetBuffer<ALLOC>::OffsetBuffer(const OffsetBuffer &o) :
-      _allocator(o._allocator),
-      _nitems_grow(o._nitems_grow),
-      _nitems_allocd(o._nitems_allocd),
-      _nitems_used(o._nitems_used),
-      _initial_offset(o._initial_offset),
-      _bytes(nullptr),
-      _offsets(nullptr)
+      BaseOffsetBuffer(o),
+      _allocator(o._allocator)
     {
     _bytes = _allocator.allocate(_nitems_allocd*sizeof(uint8_t));
     _offsets = reinterpret_cast<uint32_t *>(_allocator.allocate(_nitems_allocd*sizeof(uint32_t)));

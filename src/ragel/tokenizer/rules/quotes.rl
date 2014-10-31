@@ -48,10 +48,10 @@
   unicode_300d = 0xe3 0x80 0x8d ;  # U+300d right corner bracket (」)
   close_double_quote = unicode_00bb | unicode_201d | unicode_275e | unicode_300d ;
 
-  # FIXME
-  possessive = (
-      single_quote 's'i @s2
-    | close_single_quote 's'i @s4
-  ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"'s"); } ;
+  # Possessive 's.
+  possessive =
+      ( close_single_quote | single_quote ) 's' @s2 @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"'s"); }
+    | ( close_single_quote | single_quote ) 'S' @s2 @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"'S"); }
+    ;
 
 }%%

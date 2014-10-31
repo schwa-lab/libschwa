@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include <schwa/config.h>
+#include <schwa/corpora/tipster.h>
 #include <schwa/encoding.h>
 #include <schwa/exception.h>
 #include <schwa/io/logging.h>
@@ -16,9 +17,10 @@
 #include <schwa/formats/sgml.h>
 #include <schwa/formats/warc.h>
 
-namespace cf = schwa::config;
-namespace fm = schwa::formats;
-namespace io = schwa::io;
+namespace cf = ::schwa::config;
+namespace fm = ::schwa::formats;
+namespace io = ::schwa::io;
+namespace tp = ::schwa::corpora::tipster;
 
 
 namespace schwa {
@@ -170,6 +172,7 @@ main(int argc, char **argv) {
   cf::Op<size_t> warc_buffer(cfg, "warc-buffer", "WARC lexer input buffer size (bytes)", fm::WARCParser::DEFAULT_BUFFER_SIZE);
   cf::Op<bool> html(cfg, "html", "Lex HTML only", false);
   cf::Op<bool> sgml(cfg, "sgml", "Lex SGML only", false);
+  cf::Op<bool> tipster(cfg, "tipster", "Process a file from the Tipster corpus.", false);
   cf::Op<std::string> html_encoding(cfg, "encoding", "Encoding of HTML file", "UTF-8");
 
   bool success = true;
@@ -192,7 +195,7 @@ main(int argc, char **argv) {
       schwa::to_utf8(encoding, reinterpret_cast<const uint8_t *>(buf.get()), input.gcount(), er);
       success = lexer.run(er);
     }
-    if (sgml()) {
+    else if (sgml()) {
       const size_t nbytes = 64 * 1024 * 1024;
       std::unique_ptr<char []> buf(new char[nbytes]);
       std::istream &input = in;
@@ -204,13 +207,19 @@ main(int argc, char **argv) {
       schwa::to_utf8(encoding, reinterpret_cast<const uint8_t *>(buf.get()), input.gcount(), er);
 
       schwa::Pool pool(4 * 1024 * 1024);
-      fm::SGMLishParser parser(er);
-      for (fm::SGMLishNode *root = nullptr; (root = parser.parse(pool)) != nullptr; ) {
+      fm::SGMLishParser parser(er, pool);
+      for (fm::SGMLishNode *root = nullptr; (root = parser.parse()) != nullptr; ) {
         std::cout << "root=" << root << std::endl;
         root->pprint(std::cout);
       }
       if (!parser.eof())
         throw std::runtime_error("Parser stopped parsing but did not hit EOF");
+    }
+    else if (tipster()) {
+      tp::Importer importer(input_path());
+      for (tp::Doc *doc = nullptr; (doc = importer.import()) != nullptr; ) {
+        std::cout << "Read in doc '" << doc->doc_id << "' date='" << doc->story_date << "' dateline='" << doc->dateline << "'" << std::endl;
+      }
     }
     else {
       fm::WARCHTMLParser lexer;

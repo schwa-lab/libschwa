@@ -215,5 +215,22 @@ Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, OnError oner
   return tokenize(dest, reinterpret_cast<const uint8_t *>(src.data()), src.size(), onerror);
 }
 
+
+
+bool
+Tokenizer::_tokenize(Stream &, State &, const uint8_t *&, const uint8_t *&, const uint8_t *, const uint8_t *, const uint8_t *, OnError) const {
+  return false;
+}
+
+bool
+Tokenizer::tokenize(Stream &, const uint8_t *, const size_t, OnError) const {
+  return false;
+}
+
+bool
+Tokenizer::tokenize(Stream &, io::Source &, const size_t, const OnError) const {
+  return false;
+}
+
 }  // namespace tokenizer
 }  // namespace schwa

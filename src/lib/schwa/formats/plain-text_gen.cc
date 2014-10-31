@@ -24,7 +24,7 @@ static const int plain_text_en_main = 23;
 #line 62 "../ragel/formats/plain-text/plain-text.rl"
 
 bool
-PlainTextLexer::lex(void) {
+PlainTextLexer::_lex(void) {
   (void)plain_text_en_main;
   
 #line 31 "schwa/formats/plain-text_gen.cc"

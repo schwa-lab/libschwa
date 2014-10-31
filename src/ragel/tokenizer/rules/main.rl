@@ -7,7 +7,7 @@
 
   action ignore { }
   action word { _word(TokenType::WORD); }
-  action punct { _punct(TokenType::PUNCTUATION); }
+  action punctuation { _punct(TokenType::PUNCTUATION); }
   action end { _end(TokenType::PUNCTUATION); }
   action contraction { _split(TokenType::WORD, TokenType::CONTRACTION); }
   action catchall { throw std::runtime_error("Stuck :("); }
@@ -38,20 +38,20 @@
     contractions_neg_error => contraction;
     letter+ contractions_suffix => contraction;
 
-    (letter+ "."? possessive) - abbrev_decade => { _split(TokenType::WORD, TokenType::POSSESSIVE); };
-    possessive => { _word(TokenType::POSSESSIVE); }; # always capture 's
+    (letter+ '.'? possessive) - abbrev_decade => { _split(TokenType::WORD, TokenType::POSSESSIVE); };
+    # possessive => { _word(TokenType::POSSESSIVE); }; # always capture 's
 
     (numbers units) - abbrev_decade => { _split(TokenType::NUMBER, TokenType::UNIT); };
     time_ambiguous meridian => { _split(TokenType::NUMBER, TokenType::UNIT); };
     meridian_token | date_time => word;
 
-    (integer | float) "-" alpha+ ("-" alpha+)* => word;
+    (integer | float) '-' alpha+ ('-' alpha+)* => word;
 
-    "and/or" | "AND/OR" => word;
+    'and/or' | 'AND/OR' => word;
 
     contractions_misc | acronym | title => word;
-    symbols => punct;
-    emoticon => punct;
+    symbols => punctuation;
+    emoticon => punctuation;
     date_abbrev | state | address_suffix => word;
 
     org | abbreviation | lines | currency_symbol | numbers | date_time => word;
