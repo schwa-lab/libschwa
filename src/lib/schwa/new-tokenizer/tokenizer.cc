@@ -53,7 +53,7 @@ Tokenizer::State::dump(std::ostream &out) const {
   out << "{p=" << p.get_index() << " pe=" << pe.get_index() << " t='";
   for (iterator it = ts; it != te; ++it)
     out << *it;
-  out << "'}";
+  out << "' suffix=" << suffix << "}";
   return out;
 }
 
@@ -132,6 +132,7 @@ Tokenizer::_split(TokenType type1, TokenType type2) {
   (void)type1;
   (void)type2;
   std::cout << "[_split] type1=" << type1 << " type2=" << type2 << " state=" << _state << std::endl;
+  _state.suffix = 0;
 }
 
 
