@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 
+#
 #include <schwa/config.h>
 #include <schwa/corpora/tipster.h>
 #include <schwa/encoding.h>
@@ -18,9 +19,10 @@
 #include <schwa/formats/warc.h>
 
 namespace cf = ::schwa::config;
+namespace cp = ::schwa::corpora;
+namespace cs = ::schwa::canonical_schema;
 namespace fm = ::schwa::formats;
 namespace io = ::schwa::io;
-namespace tp = ::schwa::corpora::tipster;
 
 
 namespace schwa {
@@ -216,8 +218,8 @@ main(int argc, char **argv) {
         throw std::runtime_error("Parser stopped parsing but did not hit EOF");
     }
     else if (tipster()) {
-      tp::Importer importer(input_path());
-      for (tp::Doc *doc = nullptr; (doc = importer.import()) != nullptr; ) {
+      cp::TipsterImporter importer(input_path());
+      for (cs::Doc *doc = nullptr; (doc = importer.import()) != nullptr; ) {
         std::cout << "Read in doc '" << doc->doc_id << "' date='" << doc->story_date << "' dateline='" << doc->dateline << "'" << std::endl;
       }
     }

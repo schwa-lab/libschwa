@@ -20,13 +20,13 @@
 #include <schwa/third-party/re2/re2.h>
 
 
+namespace cs = ::schwa::canonical_schema;
 namespace fm = ::schwa::formats;
 namespace tk = ::schwa::new_tokenizer;
 using ::schwa::third_party::re2::RE2;
 
 namespace schwa {
 namespace corpora {
-namespace tipster {
 
 //!< Regex for matching surrounding whitespace. Useful for stripping.
 static const RE2 RE_SURROUNDING_WHITESPACE("^\\s+|\\s+$");
@@ -35,51 +35,13 @@ static const RE2 RE_US_SHORT_DATE("^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/(
 
 
 // ================================================================================================
-// docrep schemas
+// TipsterImporter::Impl
 // ================================================================================================
-Token::Schema::Schema(void) :
-    dr::Ann::Schema<Token>("Token", "The token class"),
-    span(*this, "span", "The beginning and end byte offsets of the token", dr::FieldMode::READ_WRITE),
-    raw(*this, "raw", "The raw token", dr::FieldMode::READ_WRITE)
-  { }
-Token::Schema::~Schema(void) { }
-
-
-Sentence::Schema::Schema(void) :
-    dr::Ann::Schema<Sentence>("Sentence", "The sentence class"),
-    span(*this, "span", "The beginning and end token offsets of the sentence", dr::FieldMode::READ_WRITE)
-  { }
-Sentence::Schema::~Schema(void) { }
-
-
-Paragraph::Schema::Schema(void) :
-    dr::Ann::Schema<Paragraph>("Paragraph", "The paragraph class"),
-    span(*this, "span", "The beginning and end sentence offsets of the paragraph", dr::FieldMode::READ_WRITE)
-  { }
-Paragraph::Schema::~Schema(void) { }
-
-
-Doc::Schema::Schema(void) :
-    dr::Doc::Schema<Doc>("Doc", "The document class"),
-    doc_id(*this, "doc_id", "The ID of the document (from <DOCNO>)", dr::FieldMode::READ_WRITE),
-    story_date(*this, "story_date", "The ISO-8601 representation of the date of publication (from <DD>)", dr::FieldMode::READ_WRITE),
-    dateline(*this, "dateline", "The dateline of the document (<DATELINE>)", dr::FieldMode::READ_WRITE),
-    headline(*this, "headline", "The headline of the document (<HEADLINE>)", dr::FieldMode::READ_WRITE),
-    tokens(*this, "tokens", "The store for the tokens", dr::FieldMode::READ_WRITE),
-    sentences(*this, "sentences", "The store for the sentences", dr::FieldMode::READ_WRITE),
-    paragraphs(*this, "paragraphs", "The store for the paragraphs", dr::FieldMode::READ_WRITE)
-  { }
-Doc::Schema::~Schema(void) { }
-
-
-// ================================================================================================
-// Importer::Impl
-// ================================================================================================
-class Importer::Impl {
+class TipsterImporter::Impl {
 private:
   EncodingResult _er;
   Pool _pool;
-  Doc *_doc;
+  cs::Doc *_doc;
   fm::SGMLishParser *_sgml_parser;
   fm::PlainTextLexer _plain_text_lexer;
   tk::Tokenizer _tokenizer;
@@ -168,7 +130,7 @@ private:
       _process_tree(*node.sibling());
   }
 
-  Doc *
+  cs::Doc *
   _read_doc(void) {
     delete _doc;
 
@@ -182,7 +144,8 @@ private:
     }
 
     // Process the SGML tree, extracting the necesary information.
-    _doc = new Doc();
+    _doc = new cs::Doc();
+    _doc->encoding = encoding_name(_er.encoding());
     _process_tree(*root);
     return _doc;
   }
@@ -210,7 +173,7 @@ public:
     delete _sgml_parser;
   }
 
-  Doc *
+  cs::Doc *
   import(void) {
     // Read the next document from the input stream.
     return _read_doc();
@@ -219,19 +182,18 @@ public:
 
 
 // ================================================================================================
-// Importer
+// TipsterImporter
 // ================================================================================================
-Importer::Importer(const std::string &path) : _impl(new Impl(path)) { }
+TipsterImporter::TipsterImporter(const std::string &path) : _impl(new Impl(path)) { }
 
-Importer::~Importer(void) {
+TipsterImporter::~TipsterImporter(void) {
   delete _impl;
 }
 
-Doc *
-Importer::import(void) const {
+cs::Doc *
+TipsterImporter::import(void) const {
   return _impl->import();
 }
 
-}  // namespace tipster
-}  // namesapce formats
+}  // namesapce corpora
 }  // namespace schwa

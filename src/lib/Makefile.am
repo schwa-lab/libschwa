@@ -56,6 +56,7 @@ libschwa_la_SOURCES =
 
 LIBSCHWA_HEADER_FILES = \
 		schwa/_base.h \
+		schwa/canonical-schema.h \
 		schwa/config/base.h \
 		schwa/config/group.h \
 		schwa/config/main.h \
@@ -152,6 +153,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/version.h
 
 LIBSCHWA_SOURCE_FILES = \
+		schwa/canonical-schema.cc \
 		schwa/config/base.cc \
 		schwa/config/group.cc \
 		schwa/config/main.cc \
