@@ -98,7 +98,7 @@ namespace schwa {
 
     inline size_t allocated(void) const { return _allocated; }
     inline const uint8_t *deltas(void) const { return _deltas; }
-    inline Encoding from_encoding(void) const { return _from_encoding; }
+    inline Encoding encoding(void) const { return _from_encoding; }
     inline size_t nbytes(void) const { return _consumed; }
     inline size_t remaining(void) const { return _allocated - _consumed; }
     inline const uint8_t *utf8(void) const { return _utf8; }
