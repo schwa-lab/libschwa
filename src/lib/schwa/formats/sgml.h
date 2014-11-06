@@ -7,6 +7,7 @@
 
 #include <schwa/_base.h>
 #include <schwa/encoding.h>
+#include <schwa/formats/exception.h>
 #include <schwa/pool.h>
 #include <schwa/unicode.h>
 #include <schwa/utils/buffer.h>
@@ -227,6 +228,13 @@ namespace schwa {
     class SGMLishParser {
     public:
       using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+
+      class ParseError : public formats::ParseError {
+      public:
+        explicit ParseError(const std::string &msg);
+        ParseError(const ParseError &other);
+        virtual ~ParseError(void) throw();
+      };
 
     private:
       SGMLishLexer _lexer;

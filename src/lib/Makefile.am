@@ -93,6 +93,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/encoding_gen.h \
 		schwa/enums.h \
 		schwa/exception.h \
+		schwa/formats/exception.h \
 		schwa/formats/html.h \
 		schwa/formats/http.h \
 		schwa/formats/plain-text.h \
@@ -171,6 +172,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/dr/writer.cc \
 		schwa/encoding.cc \
 		schwa/exception.cc \
+		schwa/formats/exception.cc \
 		schwa/formats/html.cc \
 		schwa/formats/html_gen.cc \
 		schwa/formats/html_charset_sniff_gen.cc \

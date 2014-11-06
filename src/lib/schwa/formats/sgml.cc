@@ -146,8 +146,6 @@ SGMLishLexer::SGMLishLexer(const EncodingResult &er, Pool &pool) :
 
 void
 SGMLishLexer::_character_reference_decimal(const uint8_t *const fpc) {
-  std::cout << "[SGMLishLexer::_character_reference_decimal]" << std::endl;
-
   // Convert the textual decimal number into a base-10 code point.
   unicode_t code_point = 0;
   for (const uint8_t *p = _text_buffer.start() + 2; *p != ';'; ++p) {
@@ -163,8 +161,6 @@ SGMLishLexer::_character_reference_decimal(const uint8_t *const fpc) {
 
 void
 SGMLishLexer::_character_reference_hex(const uint8_t *const fpc) {
-  std::cout << "[SGMLishLexer::_character_reference_hex]" << std::endl;
-
   // Convert the textual hex  number into a base-10 code point.
   unicode_t code_point = 0;
   for (const uint8_t *p = _text_buffer.start() + 3; *p != ';'; ++p) {
@@ -185,8 +181,6 @@ SGMLishLexer::_character_reference_hex(const uint8_t *const fpc) {
 
 void
 SGMLishLexer::_character_reference_named(const uint8_t *const fpc) {
-  std::cout << "[SGMLishLexer::_character_reference_named]" << std::endl;
-
   // Convert the named reference to lowercase.
   const char *const start = reinterpret_cast<const char *>(_text_buffer.start()) + 1;
   size_t i;
@@ -221,7 +215,6 @@ void
 SGMLishLexer::_create_attr(void) {
   if (_text_buffer.empty())
     return;
-  //std::cout << "[SGMLishLexer::_create_attr]" << std::endl;
 
   const uint8_t *bytes;
   size_t nbytes;
@@ -253,8 +246,6 @@ SGMLishLexer::_create_attr(void) {
 
 void
 SGMLishLexer::_create_cdata_node(void) {
-  //std::cout << "[SGMLishLexer::_create_cdata_node]" << std::endl;
-
   // Clone tag contents into pool memory.
   const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
   PooledOffsetBuffer *contents = _pool.alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
@@ -274,8 +265,6 @@ SGMLishLexer::_create_cdata_node(void) {
 
 void
 SGMLishLexer::_create_comment_node(void) {
-  //std::cout << "[SGMLishLexer::_create_comment_node]" << std::endl;
-
   // Clone tag contents into pool memory.
   const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
   PooledOffsetBuffer *contents = _pool.alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
@@ -321,8 +310,6 @@ SGMLishLexer::_create_poold_tag_name(void) {
 
 void
 SGMLishLexer::_create_empty_tag_node(void) {
-  //std::cout << "[SGMLishLexer::_create_empty_tag_node]" << std::endl;
-
   // Clone tag name into pool memory.
   PooledOffsetBuffer *const name = _create_poold_tag_name();
 
@@ -338,8 +325,6 @@ SGMLishLexer::_create_empty_tag_node(void) {
 
 void
 SGMLishLexer::_create_end_tag_node(void) {
-  //std::cout << "[SGMLishLexer::_create_end_tag_node]" << std::endl;
-
   // Clone tag name into pool memory.
   PooledOffsetBuffer *const name = _create_poold_tag_name();
 
@@ -355,8 +340,6 @@ SGMLishLexer::_create_end_tag_node(void) {
 
 void
 SGMLishLexer::_create_start_tag_node(void) {
-  //std::cout << "[SGMLishLexer::_create_start_tag_node]" << std::endl;
-
   // Clone tag name into pool memory.
   PooledOffsetBuffer *const name = _create_poold_tag_name();
 
@@ -372,8 +355,6 @@ SGMLishLexer::_create_start_tag_node(void) {
 
 void
 SGMLishLexer::_create_text_node(void) {
-  //std::cout << "[SGMLishLexer::_create_text_node]" << std::endl;
-
   // Clone text content into pool memory.
   PooledOffsetBuffer *text = _pool.alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
   new (text) PooledOffsetBuffer(_text_buffer.buffer());
@@ -390,8 +371,6 @@ SGMLishLexer::_create_text_node(void) {
 
 void
 SGMLishLexer::_create_xml_decl_node(void) {
-  //std::cout << "[SGMLishLexer::_create_xml_decl_node]" << std::endl;
-
   // Create node object in pool memory.
   _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::XML_DECL, nullptr, nullptr, _attribute);
@@ -400,6 +379,16 @@ SGMLishLexer::_create_xml_decl_node(void) {
   _text_buffer.clear();
   _attribute = nullptr;
 }
+
+
+// ================================================================================================
+// SGMLishParser::ParseError
+// ================================================================================================
+SGMLishParser::ParseError::ParseError(const std::string &msg) : formats::ParseError(msg) { }
+
+SGMLishParser::ParseError::ParseError(const ParseError &other) : formats::ParseError(other) { }
+
+SGMLishParser::ParseError::~ParseError(void) throw() { }
 
 
 // ================================================================================================
@@ -434,12 +423,12 @@ SGMLishParser::parse(void) {
     case SGMLishNodeType::END_TAG:
       // Can't close a tag if there are no currently opened tags.
       if (stack.empty())
-        throw std::runtime_error("ParseError: encountered an end tag but the stack is empty");
+        throw ParseError("Encountered an end tag but the parsing stack is empty");
       // Ensure the tag we're closing is the same tag as what's top-most on the stack of open tags.
       name0 = stack.top()->name();
       name1 = node->name();
       if (name0->nitems_used() != name1->nitems_used() || std::memcmp(name0->bytes(), name1->bytes(), name0->nitems_used()) != 0)
-        throw std::runtime_error("ParseError: encountered an end tag whose name does not match the top of the stack");
+        throw ParseError("Encountered an end tag whose name does not match the top of the stack");
       // Close the top-most opened tag.
       stack.pop();
       break;
@@ -467,8 +456,14 @@ SGMLishParser::parse(void) {
       break;
   }
 
-  if (!stack.empty())
-    throw std::runtime_error("ParseError: EOF hit but the stack is not empty");
+  // If the stack isn't empty, something went wrong.
+  if (!stack.empty()) {
+    if (_lexer.at_eof())
+      throw ParseError("EOF hit but the parse stack is not empty. Probably malformed SGML.");
+    else
+      throw ParseError("SGMLishLexer failed to lex. Probably invalid SGML (unescaped &).");
+  }
+
   return _root;
 }
 
