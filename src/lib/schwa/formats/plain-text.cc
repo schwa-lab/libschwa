@@ -10,7 +10,6 @@ PlainTextLexer::PlainTextLexer(void) { }
 
 void
 PlainTextLexer::_create_paragraph(void) {
-  std::cout << "PlainTextLexer::_create_paragraph ts=" << _state.ts.get_index() << " te=" << _state.te.get_index() << std::endl;
   _create_paragraph(_par_start_index, _state.ts.get_index());
   _par_start_index = _state.te.get_index();
 }
@@ -37,11 +36,6 @@ PlainTextLexer::lex(const BaseOffsetBuffer &buffer) {
   // Add the final paragraph.
   if (_par_start_index != buffer.nitems_used())
     _create_paragraph(_par_start_index, buffer.nitems_used());
-
-  std::cout << "[PlainTextLexer::lex] paragraphs=";
-  for (const auto &pair : _paragraphs)
-    std::cout << " (" << pair.first << "," << pair.second << ")";
-  std::cout << std::endl;
 }
 
 }  // namesapce formats
