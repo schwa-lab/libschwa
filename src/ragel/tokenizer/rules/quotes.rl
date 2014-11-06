@@ -23,7 +23,7 @@
   unicode_2039 = 0xe2 0x80 0xb9 ;  # U+2939 single left-pointing angle quotation mark (‹)
   unicode_275b = 0xe2 0x9d 0x9b ;  # U+275b heavy single turned comma quotation mark ornament (❛)
   unicode_300e = 0xe3 0x80 0x8e ;  # U+300e left white corner bracket (『)
-  open_single_quote = "`" | unicode_2018 | unicode_201a | unicode_201b | unicode_2039 | unicode_275b | unicode_300e ;
+  open_single_quote = '`' | unicode_2018 | unicode_201a | unicode_201b | unicode_2039 | unicode_275b | unicode_300e ;
 
   # Close single quotation marks.
   unicode_2019 = 0xe2 0x80 0x99 ;  # U+2019 right single quotation mark (’)
@@ -39,7 +39,7 @@
   unicode_201f = 0xe2 0x80 0x9f ;  # U+201f double high-reversed-9 quotation mark (‟)
   unicode_275d = 0xe2 0x9d 0x9d ;  # U+275d heavy double turned comma quotation mark ornament (❝)
   unicode_300c = 0xe3 0x80 0x8c ;  # U+300c left corner bracket (「)
-  open_double_quote = "``" | unicode_00ab | unicode_201c | unicode_201e | unicode_201f | unicode_275d | unicode_300c;
+  open_double_quote = '``' | unicode_00ab | unicode_201c | unicode_201e | unicode_201f | unicode_275d | unicode_300c;
 
   # Close double quotation marks.
   unicode_00bb = 0xc2 0xbb ;       # U+00ab right-pointing double angle quotation mark (»)

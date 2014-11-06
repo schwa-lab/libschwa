@@ -75,7 +75,6 @@ namespace schwa {
     inline void
     OffsetInputStream<ALLOC>::write(const BaseOffsetBuffer::iterator &begin, const BaseOffsetBuffer::iterator &end) {
       // Copy across the bytes and their corresponding offsets.
-      std::cout << "[OffsetInputStream::write] begin=" << begin.get_index() << " end=" << end.get_index() << std::endl;
       const size_t nitems_incoming = end - begin;
       const size_t nitems_free = _nitems_allocd - _nitems_used;
       if (nitems_free < nitems_incoming)
@@ -92,7 +91,6 @@ namespace schwa {
 
       // Update the number of items we contain.
       _nitems_used += nitems_incoming;
-      std::cout << "[OffsetInputStream::write] nitems_incoming=" << nitems_incoming << " nitems_used=" << _nitems_used << std::endl;
     }
 
 

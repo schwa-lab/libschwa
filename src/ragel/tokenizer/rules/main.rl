@@ -6,10 +6,9 @@
   alphtype unsigned char;
 
   action ignore { }
-  action word { _word(TokenType::WORD); }
-  action punctuation { _punct(TokenType::PUNCTUATION); }
-  action end { _end(TokenType::PUNCTUATION); }
-  action contraction { _split(TokenType::WORD, TokenType::CONTRACTION); }
+  action word { _word(); }
+  action punctuation { _punctuation(); }
+  action contraction { _contraction(); }
   action catchall { throw std::runtime_error("Stuck :("); }
 
   main := |*
@@ -24,12 +23,12 @@
 
     full_stop => { _terminator(reinterpret_cast<const uint8_t *>(u8".")); };
     question_mark => { _terminator(reinterpret_cast<const uint8_t *>(u8"?")); };
-    inverted_question_mark => { _punct(TokenType::PUNCTUATION, reinterpret_cast<const uint8_t *>(u8"¿")); };
+    inverted_question_mark => { _punctuation(reinterpret_cast<const uint8_t *>(u8"¿")); };
     exclamation_mark => { _terminator(reinterpret_cast<const uint8_t *>(u8"!")); };
-    inverted_exclamation_mark => { _punct(TokenType::PUNCTUATION, reinterpret_cast<const uint8_t *>(u8"¡")); };
+    inverted_exclamation_mark => { _punctuation(reinterpret_cast<const uint8_t *>(u8"¡")); };
     ellipsis => { _terminator(reinterpret_cast<const uint8_t *>(u8"...")); };
 
-    dash => { _punct(TokenType::DASH, reinterpret_cast<const uint8_t *>(u8"--")); };
+    dash => { _punctuation(reinterpret_cast<const uint8_t *>(u8"--")); };
 
     unicode_space+ | unicode_line_space => ignore;
     # unicode_line_space{2,} | unicode_paragraph_space => { _sep_text_paragraph(); };
@@ -38,11 +37,11 @@
     contractions_neg_error => contraction;
     letter+ contractions_suffix => contraction;
 
-    (letter+ '.'? possessive) - abbrev_decade => { _split(TokenType::WORD, TokenType::POSSESSIVE); };
-    # possessive => { _word(TokenType::POSSESSIVE); }; # always capture 's
+    (letter+ '.'? possessive) - abbrev_decade => { _split(); };
+    # possessive => { _word(); }; # always capture 's
 
-    (numbers units) - abbrev_decade => { _split(TokenType::NUMBER, TokenType::UNIT); };
-    time_ambiguous meridian => { _split(TokenType::NUMBER, TokenType::UNIT); };
+    (numbers units) - abbrev_decade => { _split(); };
+    time_ambiguous meridian => { _split(); };
     meridian_token | date_time => word;
 
     (integer | float) '-' alpha+ ('-' alpha+)* => word;

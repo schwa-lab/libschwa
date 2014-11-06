@@ -6,6 +6,7 @@
 #include <string>
 
 #include <schwa/_base.h>
+#include <schwa/canonical-schema.h>
 #include <schwa/memory.h>
 #include <schwa/utils/buffer.h>
 #include <schwa/utils/ragel.h>
@@ -123,6 +124,13 @@ namespace schwa {
           return _ois->bytes()[_index];
         }
 
+        inline uint8_t *
+        get_bytes(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return nullptr;
+          return _ois->bytes() + _index;
+        }
+
         inline BreakFlag
         get_flag(void) const {
           if (SCHWA_UNLIKELY(_ois == nullptr))
@@ -192,27 +200,6 @@ namespace schwa {
     };
 
 
-    enum class TokenType : uint8_t {
-      ABBREVIATION,
-      CONTRACTION,
-      DASH,
-      NUMBER,
-      POSSESSIVE,
-      PUNCTUATION,
-      QUOTE,
-      TERMINATOR,
-      UNIT,
-      WORD,
-    };
-
-    std::string tokentype_name(TokenType type);
-
-    inline std::ostream &
-    operator <<(std::ostream &out, const TokenType type) {
-      return out << tokentype_name(type);
-    }
-
-
     class Tokenizer {
     public:
       class State : public RagelState<OffsetInputStream<>::iterator> {
@@ -222,11 +209,11 @@ namespace schwa {
         unsigned int suffix;
         const uint8_t *n1;
         const uint8_t *n2;
-        bool is_contraction;
 
         State(void);
 
         std::ostream &dump(std::ostream &out) const;
+        void reset(void);
         void reset(iterator start, iterator end);
 
       private:
@@ -235,26 +222,34 @@ namespace schwa {
 
     private:
       State _state;
+      OffsetInputStream<> *_ois;
+      canonical_schema::Doc *_doc;
+      size_t _ntokens_before;
+      bool _seen_terminator;
 
       bool _tokenize(void);
 
+      void _create_sentence(void);
+      void _create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *norm);
+      void _flush_sentence(void);
+
       void _close_double_quote(void);
       void _close_single_quote(void);
+      void _contraction(void);
       void _double_quote(void);
-      void _end(TokenType type);
       void _open_double_quote(void);
       void _open_single_quote(void);
-      void _punct(TokenType type, const uint8_t *norm=nullptr);
+      void _punctuation(const uint8_t *norm=nullptr);
       void _single_quote(void);
-      void _split(TokenType type1, TokenType type2);
-      void _terminator(const uint8_t *norm);
-      void _word(TokenType type);
+      void _split(void);
+      void _terminator(const uint8_t *norm=nullptr);
+      void _word(void);
 
     public:
       Tokenizer(void);
       ~Tokenizer(void);
 
-      void tokenize(OffsetInputStream<> &ois);
+      void tokenize(OffsetInputStream<> &ois, canonical_schema::Doc &doc);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Tokenizer);
