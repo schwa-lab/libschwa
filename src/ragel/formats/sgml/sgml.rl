@@ -36,8 +36,9 @@
   character_text        = ( utf8_character -- [<&] )  >character_start %character_end ;
   character_text_dquote = ( utf8_character -- [<&"] ) >character_start %character_end ;
   character_text_squote = ( utf8_character -- [<&'] ) >character_start %character_end ;
+  unescaped_ampersand = '& ' >character_start %character_end ;  # Stupid broken real world.
 
-  text = character_reference_decimal | character_reference_hex | character_reference_named | character_text ;
+  text = character_reference_decimal | character_reference_hex | character_reference_named | character_text | unescaped_ampersand ;
   name = ( utf8_character -- [<&!?/=>] -- ws_character )+ ;
   ws = ws_character ;
 
@@ -86,12 +87,20 @@ SGMLishLexer::_init(void) {
 
 SGMLishNode *
 SGMLishLexer::lex(void) {
-  // std::cout << "[SGMLishLexer::lex] begin p=" << static_cast<const void *>(_state.p) << " pe=" << static_cast<const void *>(_state.pe) << std::endl;
   // Don't attempt to lex if we're at EOF.
   if (_state.at_eof())
     return nullptr;
+  const auto p_before = _state.p;
+
   %% write exec;
-  return _state.cs == %%{ write error; }%% ? nullptr : _node;
+
+  // Fail if we ended up in an error state or we didn't consume any input.
+  if (_state.cs == %%{ write error; }%%)
+    return nullptr;
+  else if (_state.p == p_before)
+    return nullptr;
+  else
+    return _node;
 }
 
 }  // namespace formats
