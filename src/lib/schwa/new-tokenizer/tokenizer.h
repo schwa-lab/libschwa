@@ -3,6 +3,7 @@
 #define SCHWA_NEW_TOKENIZER_TOKENIZER_H_
 
 #include <iostream>
+#include <numeric>
 #include <string>
 
 #include <schwa/_base.h>
@@ -149,6 +150,20 @@ namespace schwa {
             return 0;
           return _ois->offsets()[_index];
         }
+
+        inline uint32_t *
+        get_offsets(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return 0;
+          return _ois->offsets() + _index;
+        }
+
+        inline size_t
+        get_summed_offset(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return 0;
+          return _ois->get_summed_offset(_index);
+        }
       };
 
     public:
@@ -189,6 +204,8 @@ namespace schwa {
 
       inline iterator begin(void) const { return iterator(*this, 0); }
       inline iterator end(void) const { return iterator(*this, _nitems_used); }
+
+    inline size_t get_summed_offset(const size_t index) const { return std::accumulate(_offsets, _offsets + index, _initial_offset); }
 
       template <typename A>
       void write(const OffsetBuffer<A> &buffer);

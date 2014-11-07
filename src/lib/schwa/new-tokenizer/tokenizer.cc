@@ -78,8 +78,8 @@ void
 Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *const norm) {
   // Create the Token object and add it to the document.
   cs::Token token;
-  token.span.start = ts.get_index();
-  token.span.stop = te.get_index();
+  token.span.start = ts.get_summed_offset();
+  token.span.stop = te.get_summed_offset();
   token.raw = std::string(reinterpret_cast<const char *>(ts.get_bytes()), reinterpret_cast<const char *>(te.get_bytes()));
   if (norm != nullptr)
     token.norm = std::string(reinterpret_cast<const char *>(norm));
