@@ -7,9 +7,10 @@
 #include <string>
 #include <sstream>
 
-#
+#include <schwa/canonical-schema.h>
 #include <schwa/config.h>
 #include <schwa/corpora/tipster.h>
+#include <schwa/dr.h>
 #include <schwa/encoding.h>
 #include <schwa/exception.h>
 #include <schwa/io/logging.h>
@@ -21,6 +22,7 @@
 namespace cf = ::schwa::config;
 namespace cp = ::schwa::corpora;
 namespace cs = ::schwa::canonical_schema;
+namespace dr = ::schwa::dr;
 namespace fm = ::schwa::formats;
 namespace io = ::schwa::io;
 
@@ -171,6 +173,7 @@ main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("warc-processor", "Test WARC file processor.");
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
+  cf::Op<std::string> output_path(cfg, "output", 'o', "The output path", io::STDOUT_STRING);
   cf::Op<size_t> warc_buffer(cfg, "warc-buffer", "WARC lexer input buffer size (bytes)", fm::WARCParser::DEFAULT_BUFFER_SIZE);
   cf::Op<bool> html(cfg, "html", "Lex HTML only", false);
   cf::Op<bool> sgml(cfg, "sgml", "Lex SGML only", false);
@@ -219,8 +222,14 @@ main(int argc, char **argv) {
     }
     else if (tipster()) {
       cp::TipsterImporter importer(input_path());
+
+      io::OutputStream out(output_path());
+      cs::Doc::Schema schema;
+      dr::Writer writer(out, schema);
+
       for (cs::Doc *doc = nullptr; (doc = importer.import()) != nullptr; ) {
-        std::cout << "Read in doc '" << doc->doc_id << "' date='" << doc->story_date << "' dateline='" << doc->dateline << "'" << std::endl;
+        std::cerr << "Read in doc '" << doc->doc_id << "' date='" << doc->story_date << "' dateline='" << doc->dateline << "'" << std::endl;
+        writer << *doc;
       }
     }
     else {
