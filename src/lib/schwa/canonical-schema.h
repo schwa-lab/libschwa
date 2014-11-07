@@ -129,6 +129,7 @@ namespace schwa {
       public:
         DR_FIELD(&Token::span) span;
         DR_FIELD(&Token::raw) raw;
+        DR_FIELD(&Token::norm) norm;
 
         Schema(void);
         virtual ~Schema(void);
