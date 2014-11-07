@@ -53,6 +53,7 @@ private:
   void _handle_text(const fm::SGMLishNode &node);
 
   void _process_tree(const fm::SGMLishNode &node);
+  void _unswizzle_pointers(void);
 
   cs::Doc *_read_doc(void);
 
@@ -204,6 +205,20 @@ TipsterImporter::Impl::_process_tree(const fm::SGMLishNode &node) {
 }
 
 
+void
+TipsterImporter::Impl::_unswizzle_pointers(void) {
+  for (auto &sentence : _doc->sentences) {
+    sentence.span.start = &_doc->tokens[reinterpret_cast<size_t>(sentence.span.start)];
+    sentence.span.stop = &_doc->tokens[reinterpret_cast<size_t>(sentence.span.stop)];
+  }
+
+  for (auto &paragraph : _doc->paragraphs) {
+    paragraph.span.start = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.start)];
+    paragraph.span.stop = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.stop)];
+  }
+}
+
+
 cs::Doc *
 TipsterImporter::Impl::_read_doc(void) {
   delete _doc;
@@ -217,10 +232,15 @@ TipsterImporter::Impl::_read_doc(void) {
     return _doc;
   }
 
-  // Process the SGML tree, extracting the necesary information.
+  // Create the document object.
   _doc = new cs::Doc();
   _doc->encoding = encoding_name(_er.encoding());
+
+  // Process the SGML tree, extracting the necesary information.
   _process_tree(*root);
+
+  // Unswizzle the docrep pointers and return the document.
+  _unswizzle_pointers();
   return _doc;
 }
 
