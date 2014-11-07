@@ -226,6 +226,7 @@ namespace schwa {
       canonical_schema::Doc *_doc;
       size_t _ntokens_before;
       bool _seen_terminator;
+      bool _in_double_quotes;
 
       bool _tokenize(void);
 

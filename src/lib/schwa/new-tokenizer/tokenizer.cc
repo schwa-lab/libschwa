@@ -111,6 +111,7 @@ void
 Tokenizer::_close_double_quote(void) {
   _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"”"));
   _state.reset();
+  _in_double_quotes = false;
 }
 
 
@@ -124,7 +125,14 @@ Tokenizer::_close_single_quote(void) {
 void
 Tokenizer::_double_quote(void) {
   _flush_sentence();
-  _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"\""));
+  if (_in_double_quotes) {
+    _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"”"));
+    _in_double_quotes = false;
+  }
+  else {
+    _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"“"));
+    _in_double_quotes = true;
+  }
   _state.reset();
 }
 
@@ -134,6 +142,7 @@ Tokenizer::_open_double_quote(void) {
   _flush_sentence();
   _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"“"));
   _state.reset();
+  _in_double_quotes = true;
 }
 
 
@@ -193,6 +202,7 @@ Tokenizer::tokenize(OffsetInputStream<> &ois, cs::Doc &doc) {
   _doc = &doc;
   _ntokens_before = doc.tokens.size();
   _seen_terminator = false;
+  _in_double_quotes = false;
 
   // Run the Ragel-generated tokenizer.
   const bool success = _tokenize();
