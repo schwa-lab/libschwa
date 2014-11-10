@@ -87,7 +87,10 @@ namespace schwa {
       has_name(const std::string &name) const {
         if (_name == nullptr)
           return false;
-        return std::strncmp(name.c_str(), reinterpret_cast<const char *>(_name->bytes()), _name->nitems_used()) == 0;
+        else if (_name->nitems_used() != name.size())
+          return false;
+        else
+          return std::strncmp(name.c_str(), reinterpret_cast<const char *>(_name->bytes()), _name->nitems_used()) == 0;
       }
 
       void add_child(SGMLishNode &node);
