@@ -48,7 +48,7 @@ schwa/formats/warc_gen.cc: $(srcdir)/../ragel/formats/warc/warc.rl
 schwa/formats/uri_gen.cc: $(srcdir)/../ragel/formats/uri/main.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
-schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/actions.rl $(srcdir)/../ragel/tokenizer/rules/*.rl
+schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/actions.rl $(srcdir)/../ragel/tokenizer/rules/*.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
 # =============================================================================
