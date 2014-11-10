@@ -499,7 +499,7 @@ shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Enc
       const unicode_t code_point = JIS0208_TABLE[j0 - 0x21][j1 - 0x21];
       result.write(code_point, 2, JIS0208_UTF8_NBYTES);
     }
-    else if ((0x00 <= c0 && c0 <= 0x80) || (0xa0 <= c0 && c0 <= 0xdf) || (0xf0 <= c0 && c0 <= 0xff)) {
+    else if ((c0 <= 0x80) || (0xa0 <= c0 && c0 <= 0xdf) || (0xf0 <= c0)) {
       // Single byte => JIS0201.
       result.write(JIS0201_TABLE[c0], 1, JIS0201_UTF8_NBYTES);
     }

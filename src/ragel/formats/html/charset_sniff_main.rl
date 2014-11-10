@@ -27,6 +27,9 @@ HTMLCharsetSniffer::_run_charset_sniff(const uint8_t *const input, const size_t 
   const uint8_t *p = input, *pe = p + nbytes, *eof = pe;
   const uint8_t *te = nullptr, *ts = nullptr;
   int cs = 0, act = 0;
+  (void)te;
+  (void)ts;
+  (void)act;
 
   %% write init;
   %% write exec;
