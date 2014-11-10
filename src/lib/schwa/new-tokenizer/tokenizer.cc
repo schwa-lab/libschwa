@@ -98,6 +98,7 @@ Tokenizer::_flush_sentence(void) {
 
 void
 Tokenizer::_contraction(void) {
+  //std::cerr << "[_contraction]" << std::endl;
   assert(_state.suffix != 0);
   assert(_state.n2 != nullptr);
   _flush_sentence();
@@ -109,6 +110,7 @@ Tokenizer::_contraction(void) {
 
 void
 Tokenizer::_close_double_quote(void) {
+  //std::cerr << "[_close_double_quote]" << std::endl;
   _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"”"));
   _state.reset();
   _in_double_quotes = false;
@@ -117,6 +119,7 @@ Tokenizer::_close_double_quote(void) {
 
 void
 Tokenizer::_close_single_quote(void) {
+  //std::cerr << "[_close_single_quote]" << std::endl;
   _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"’"));
   _state.reset();
 }
@@ -124,6 +127,7 @@ Tokenizer::_close_single_quote(void) {
 
 void
 Tokenizer::_double_quote(void) {
+  //std::cerr << "[_double_quote]" << std::endl;
   if (_in_double_quotes) {
     _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"”"));
     _in_double_quotes = false;
@@ -139,6 +143,7 @@ Tokenizer::_double_quote(void) {
 
 void
 Tokenizer::_open_double_quote(void) {
+  //std::cerr << "[_open_double_quote]" << std::endl;
   _flush_sentence();
   _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"“"));
   _state.reset();
@@ -148,6 +153,7 @@ Tokenizer::_open_double_quote(void) {
 
 void
 Tokenizer::_open_single_quote(void) {
+  //std::cerr << "[_open_single_quote]" << std::endl;
   _flush_sentence();
   _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"‘"));
   _state.reset();
@@ -155,6 +161,7 @@ Tokenizer::_open_single_quote(void) {
 
 void
 Tokenizer::_punctuation(const uint8_t *norm) {
+  //std::cerr << "[_punctuation]" << std::endl;
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
 }
@@ -162,6 +169,7 @@ Tokenizer::_punctuation(const uint8_t *norm) {
 
 void
 Tokenizer::_single_quote(void) {
+  //std::cerr << "[_single_quote]" << std::endl;
   _flush_sentence();
   _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"'"));
   _state.reset();
@@ -170,6 +178,7 @@ Tokenizer::_single_quote(void) {
 
 void
 Tokenizer::_split(void) {
+  //std::cerr << "[_split]" << std::endl;
   assert(_state.suffix != 0);
   _flush_sentence();
   _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
@@ -180,6 +189,7 @@ Tokenizer::_split(void) {
 
 void
 Tokenizer::_terminator(const uint8_t *norm) {
+  //std::cerr << "[_terminator]" << std::endl;
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
   _seen_terminator = true;
@@ -188,6 +198,7 @@ Tokenizer::_terminator(const uint8_t *norm) {
 
 void
 Tokenizer::_word(void) {
+  //std::cerr << "[_word]" << std::endl;
   _flush_sentence();
   _create_token(_state.ts, _state.te, _state.n1);
   _state.reset();
