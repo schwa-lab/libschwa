@@ -51,6 +51,7 @@ schwa/formats/uri_gen.cc: $(srcdir)/../ragel/formats/uri/main.rl $(srcdir)/../ra
 schwa/tokenizer/tokenizer_gen.cc: $(srcdir)/../ragel/tokenizer/tokenizer.rl $(srcdir)/../ragel/tokenizer/actions.rl $(srcdir)/../ragel/tokenizer/rules/*.rl $(srcdir)/../ragel/formats/uri/uri.rl
 	ragel -C -G2 -o $@ $<
 
+
 # =============================================================================
 # Scafolding
 # =============================================================================
@@ -164,11 +165,9 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/config/op.cc \
 		schwa/config/serialisation.cc \
 		schwa/corpora/tipster.cc \
-		schwa/corpora/tipster_gen.cc \
 		schwa/dr/config.cc \
 		schwa/dr/field_defs.cc \
 		schwa/dr/query.cc \
-		schwa/dr/query_gen.cc \
 		schwa/dr/reader.cc \
 		schwa/dr/runtime.cc \
 		schwa/dr/schema.cc \
@@ -178,20 +177,11 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/exception.cc \
 		schwa/formats/exception.cc \
 		schwa/formats/html.cc \
-		schwa/formats/html_gen.cc \
-		schwa/formats/html_charset_sniff_gen.cc \
-		schwa/formats/html_charset_sniff_content_type_gen.cc \
-		schwa/formats/html_named_character_references_gen.cc \
 		schwa/formats/http.cc \
-		schwa/formats/http_gen.cc \
 		schwa/formats/plain-text.cc \
-		schwa/formats/plain-text_gen.cc \
 		schwa/formats/sgml.cc \
-		schwa/formats/sgml_gen.cc \
 		schwa/formats/warc.cc \
-		schwa/formats/warc_gen.cc \
 		schwa/formats/uri.cc \
-		schwa/formats/uri_gen.cc \
 		schwa/io/array_reader.cc \
 		schwa/io/enums.cc \
 		schwa/io/file_source.cc \
@@ -211,12 +201,34 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/docrep_stream.cc \
 		schwa/tokenizer/text_stream.cc \
 		schwa/tokenizer/tokenizer.cc \
-		schwa/tokenizer/tokenizer_gen.cc \
 		schwa/unicode.cc \
-		schwa/unicode_gen.cc \
 		schwa/utils/buffer.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
+
+LIBSCHWA_SOURCE_GEN_FILES = \
+		schwa/corpora/tipster_gen.cc \
+		schwa/dr/query_gen.cc \
+		schwa/formats/html_gen.cc \
+		schwa/formats/html_charset_sniff_gen.cc \
+		schwa/formats/html_charset_sniff_content_type_gen.cc \
+		schwa/formats/html_named_character_references_gen.cc \
+		schwa/formats/http_gen.cc \
+		schwa/formats/plain-text_gen.cc \
+		schwa/formats/sgml_gen.cc \
+		schwa/formats/warc_gen.cc \
+		schwa/formats/uri_gen.cc \
+		schwa/unicode_gen.cc
+
+noinst_LTLIBRARIES += libschwa_gen.la
+libschwa_gen_la_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS) -Wno-type-limits
+libschwa_gen_la_SOURCES = $(LIBSCHWA_SOURCE_GEN_FILES)
+libschwa_la_LIBADD += libschwa_gen.la
+
+noinst_LTLIBRARIES += libschwa_tokenizer_gen.la
+libschwa_tokenizer_gen_la_CXXFLAGS = -O0
+libschwa_tokenizer_gen_la_SOURCES = schwa/tokenizer/tokenizer_gen.cc
+libschwa_la_LIBADD += libschwa_tokenizer_gen.la
 
 
 if HAVE_LIBZMQ
