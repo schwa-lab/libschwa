@@ -124,12 +124,12 @@ Tokenizer::_close_single_quote(void) {
 
 void
 Tokenizer::_double_quote(void) {
-  _flush_sentence();
   if (_in_double_quotes) {
     _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"”"));
     _in_double_quotes = false;
   }
   else {
+    _flush_sentence();
     _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"“"));
     _in_double_quotes = true;
   }
