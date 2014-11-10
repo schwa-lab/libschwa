@@ -55,7 +55,7 @@
   unicode_0eaf = 0xe0 0xba 0xaf ;  # U+0eaf lao ellipsis (ຯ)
   unicode_1801 = 0xe1 0xa0 0x81 ;  # U+1801 mongolian ellipsis (᠁)
   unicode_2026 = 0xe2 0x80 0xa6 ;  # U+2026 horizontal ellipsis (…)
-  ellipsis = '...' | '. . .' | unicode_2026{1,} | unicode_0e2f | unicode_0eaf | unicode_1801 ;
+  ellipsis = '...' '.'? | '. . .' ' .'? | unicode_2026{1,} | unicode_0e2f | unicode_0eaf | unicode_1801 ;
 
   # Hyphens.
   unicode_002d = 0x2d ;            # U+002d hyphen-minus (-)
