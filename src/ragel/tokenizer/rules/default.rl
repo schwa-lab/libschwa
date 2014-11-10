@@ -14,6 +14,6 @@
     | ( unicode_letter '.' unicode_letter )
     ;
 
-  default = ( letter | ( unicode - unicode_punct - unicode_space - unicode_line_space - unicode_paragraph_space ) )+ ;
+  default = ( letter | ( unicode -- symbols -- unicode_space -- unicode_line_space -- unicode_paragraph_space ) )+ ;
 
 }%%
