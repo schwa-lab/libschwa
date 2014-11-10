@@ -6,10 +6,10 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include <schwa/encoding.h>
 #include <schwa/exception.h>
-#include <schwa/formats/plain-text.h>
 #include <schwa/formats/sgml.h>
 #include <schwa/io/streams.h>
 #include <schwa/new-tokenizer/tokenizer.h>
@@ -33,6 +33,11 @@ static const RE2 RE_SURROUNDING_WHITESPACE("^\\s+|\\s+$");
 //!< Regex for parsing a short US date. Useful since strptime is POSIX only.
 static const RE2 RE_US_SHORT_DATE("^(0?[1-9]|1[0-2])/(0?[1-9]|[12][0-9]|3[01])/([0-9]{2})$");
 
+//!< Regex for attempting to identify ASCII table rows.
+static const std::string RE_ROW_TEXT_CHAR = "[A-Za-z0-9" + RE2::QuoteMeta("!\"#$%&'()*+,-./:;=?@[\\]^_`{|}~") + "]";
+static const std::string RE_ROW_TEXT = RE_ROW_TEXT_CHAR + "([ ]?" + RE_ROW_TEXT_CHAR + ")*";
+static const RE2 RE_ROW("^\\s*" + RE_ROW_TEXT + "((\\s*\\.{2,}\\s*|\\s{2,})[-+(]?\\s?" + RE_ROW_TEXT + "\\s?[)]?)+$");
+
 
 // ================================================================================================
 // TipsterImporter::Impl
@@ -43,7 +48,7 @@ private:
   Pool _pool;
   cs::Doc *_doc;
   fm::SGMLishParser *_sgml_parser;
-  fm::PlainTextLexer _plain_text_lexer;
+  TipsterTextLexer _text_lexer;
   tk::Tokenizer _tokenizer;
 
   void _handle_dateline(const fm::SGMLishNode &node);
@@ -128,21 +133,71 @@ TipsterImporter::Impl::_handle_docno(const fm::SGMLishNode &node) {
 
 void
 TipsterImporter::Impl::_handle_hl(const fm::SGMLishNode &node) {
-  _plain_text_lexer.lex(*node.text());
+  (void)node;
   // TODO tokenize the resultant sentence.
+  //_text_lexer.lex(*node.text());
+  //std::cerr << "<HL> #pars=" << _text_lexer.paragraph_indexes().size() << std::endl;
 }
 
 
 void
 TipsterImporter::Impl::_handle_text(const fm::SGMLishNode &node) {
-  // Use the plain text lexer to identify paragraph boundaries.
-  _plain_text_lexer.lex(*node.text());
+  // Use the text lexer to identify paragraph boundaries.
+  _text_lexer.lex(*node.text());
 
   const auto child_text_begin_it = node.text()->begin();
-  for (const auto &pair : _plain_text_lexer.paragraph_indexes()) {
-    // Copy the subset of the OffsetBuffer that belongs to the current paragraph into a tokenizer offset input stream.
+  for (const auto &pair : _text_lexer.paragraph_indexes()) {
+    // Find the newline boundaries in the paragraph.
+    std::vector<std::pair<BaseOffsetBuffer::iterator, BaseOffsetBuffer::iterator>> line_bounds;
+    BaseOffsetBuffer::iterator first = child_text_begin_it + pair.first;
+    BaseOffsetBuffer::iterator last = child_text_begin_it + pair.second;
+    for (BaseOffsetBuffer::iterator current = first; current != last; ++current) {
+      if (*current == '\n' && current != first) {
+        line_bounds.push_back(std::make_pair(first, current));
+        first = current;
+      }
+    }
+    if (first != last)
+      line_bounds.push_back(std::make_pair(first, last));
+
+    // Run an initial pass over the lines to identify lines that look like table rows.
+    std::vector<bool> is_table_row(line_bounds.size(), false);
+    for (size_t i = 0; i != line_bounds.size(); ++i) {
+      third_party::re2::StringPiece sp(reinterpret_cast<const char *>(line_bounds[i].first.get_bytes()), line_bounds[i].second - line_bounds[i].first);
+      if (RE2::FullMatch(sp, RE_ROW))
+        is_table_row[i] = true;
+    }
+
+    // Try and capture partial rows, table headings, and table captions.
+    for (size_t i = 0; i < line_bounds.size(); ++i) {
+      if (is_table_row[i]) {
+        // Scan backwards.
+        for (size_t j = i; j != 0; --j) {
+          if (is_table_row[j - 1] || line_bounds[j - 1].second - line_bounds[j - 1].first <= 1)
+            break;
+          is_table_row[j - 1] = true;
+        }
+        // Scan forwards.
+        for (size_t j = i + 1; j != line_bounds.size(); ++j) {
+          if (is_table_row[j] || line_bounds[j].second - line_bounds[j].first <= 1)
+            break;
+          is_table_row[j] = true;
+        }
+        // Skip the rest of the table.
+        for ( ; i != line_bounds.size() && is_table_row[i]; ++i) { }
+      }
+    }
+
+    // Copy lines that we haven't classified as being a table row into the buffer to send to the tokenizer. what we've classified as a table row.
     tk::OffsetInputStream<> ois(pair.second - pair.first);
-    ois.write(child_text_begin_it + pair.first, child_text_begin_it + pair.second);
+    for (size_t i = 0; i != line_bounds.size(); ++i) {
+      if (!is_table_row[i])
+        ois.write(line_bounds[i].first, line_bounds[i].second);
+      //else {
+        //std::string s(reinterpret_cast<const char *>(line_bounds[i].first.get_bytes()), line_bounds[i].second - line_bounds[i].first);
+        //std::cerr << i << ") " << s << std::endl;
+      //}
+    }
 
     // Tokenize the paragraph.
     const size_t nsentences_before = _doc->sentences.size();
@@ -150,10 +205,12 @@ TipsterImporter::Impl::_handle_text(const fm::SGMLishNode &node) {
     const size_t nsentences_after = _doc->sentences.size();
 
     // Create the Paragraph object and add it to the document.
-    cs::Paragraph paragraph;
-    paragraph.span.start = reinterpret_cast<cs::Sentence *>(nsentences_before);
-    paragraph.span.stop = reinterpret_cast<cs::Sentence *>(nsentences_after);
-    _doc->paragraphs.push_back(paragraph);
+    if (nsentences_before != nsentences_after) {
+      cs::Paragraph paragraph;
+      paragraph.span.start = reinterpret_cast<cs::Sentence *>(nsentences_before);
+      paragraph.span.stop = reinterpret_cast<cs::Sentence *>(nsentences_after);
+      _doc->paragraphs.push_back(paragraph);
+    }
   }
 }
 
@@ -257,6 +314,42 @@ TipsterImporter::~TipsterImporter(void) {
 cs::Doc *
 TipsterImporter::import(void) const {
   return _impl->import();
+}
+
+
+// ================================================================================================
+// TipsterTextLexer
+// ================================================================================================
+TipsterTextLexer::TipsterTextLexer(void) { }
+
+void
+TipsterTextLexer::_create_paragraph(void) {
+  _create_paragraph(_par_start_index, _state.ts.get_index());
+  _par_start_index = _state.te.get_index();
+}
+
+
+void
+TipsterTextLexer::_create_paragraph(const size_t start_index, const size_t end_index) {
+  _paragraphs.emplace_back(std::make_pair(start_index, end_index));
+}
+
+
+void
+TipsterTextLexer::lex(const BaseOffsetBuffer &buffer) {
+  // Reset our internal state.
+  _state.reset(buffer.begin(), buffer.end());
+  _par_start_index = 0;
+  _paragraphs.clear();
+
+  // Run the Ragel lexer.
+  const bool success = _lex();
+  if (!success)
+    throw RagelException("Failed to lex using TipsterTextLexer");
+
+  // Add the final paragraph.
+  if (_par_start_index != buffer.nitems_used())
+    _create_paragraph(_par_start_index, buffer.nitems_used());
 }
 
 }  // namesapce corpora

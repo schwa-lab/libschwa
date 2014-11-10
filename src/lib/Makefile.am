@@ -18,6 +18,9 @@ libschwa_thirdparty_re2_la_LDFLAGS = -no-undefined -version-info 1:0:0
 # =============================================================================
 # Ragel
 # =============================================================================
+schwa/corpora/tipster_gen.cc: $(srcdir)/../ragel/corpora/tipster/tipster.rl
+	ragel -C -G2 -o $@ $<
+
 schwa/dr/query_gen.cc: $(srcdir)/../ragel/dr-query/language.rl
 	ragel -C -G2 -o $@ $<
 
@@ -161,6 +164,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/config/op.cc \
 		schwa/config/serialisation.cc \
 		schwa/corpora/tipster.cc \
+		schwa/corpora/tipster_gen.cc \
 		schwa/dr/config.cc \
 		schwa/dr/field_defs.cc \
 		schwa/dr/query.cc \
