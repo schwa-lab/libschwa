@@ -24,23 +24,21 @@ AC_COMPILE_IFELSE(
 ]])], [CLANG=yes], [CLANG=no])
 AC_MSG_RESULT([$CLANG])
 
-dnl If CXXFLAGS was not set on entry and we are not debugging, default to -O4.
-libschwa_test_CXXFLAGS="${CXXFLAGS+set}"
-if test "$libschwa_test_CXXFLAGS" = "set"; then
-  if test "$libschwa_cv_enable_debug" != "yes"; then
-    CXXFLAGS='-O3'
-  else
-    CXXFLAGS='-O0'
-  fi
+dnl If we are not debugging, default to -O3.
+if test "$libschwa_cv_enable_debug" != "yes"; then
+  AM_CXXFLAGS='-O3'
+else
+  AM_CXXFLAGS='-O0'
 fi
 
 dnl Add debugging flags if requested and not already in CXXFLAGS.
 if test "$libschwa_cv_enable_debug" = "yes"; then
   case "${CXXFLAGS}" in
     *-g*) ;;
-       *) CXXFLAGS="${CXXFLAGS} -g -g3" ;;
+       *) AM_CXXFLAGS="${AM_CXXFLAGS} -g -g3" ;;
   esac
 fi
+AC_SUBST([AM_CXXFLAGS])
 AM_CONDITIONAL([ENABLE_DEBUG], [test "$libschwa_cv_enable_debug" = "yes"])
 
 dnl Initialise libtool (platform independant shared library generation).
