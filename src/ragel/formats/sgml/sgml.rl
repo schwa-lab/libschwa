@@ -36,7 +36,7 @@
   character_text        = ( utf8_character -- [<&] )  >character_start %character_end ;
   character_text_dquote = ( utf8_character -- [<&"] ) >character_start %character_end ;
   character_text_squote = ( utf8_character -- [<&'] ) >character_start %character_end ;
-  unescaped_ampersand = '& ' >character_start %character_end ;  # Stupid broken real world.
+  unescaped_ampersand = ( '&' [ \n] ) >character_start %character_end ;  # Stupid broken real world.
 
   text = character_reference_decimal | character_reference_hex | character_reference_named | character_text | unescaped_ampersand ;
   name = ( utf8_character -- [<&!?/=>] -- ws_character )+ ;

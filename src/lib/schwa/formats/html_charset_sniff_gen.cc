@@ -28,9 +28,12 @@ HTMLCharsetSniffer::_run_charset_sniff(const uint8_t *const input, const size_t 
   const uint8_t *p = input, *pe = p + nbytes, *eof = pe;
   const uint8_t *te = nullptr, *ts = nullptr;
   int cs = 0, act = 0;
+  (void)te;
+  (void)ts;
+  (void)act;
 
   
-#line 34 "schwa/formats/html_charset_sniff_gen.cc"
+#line 37 "schwa/formats/html_charset_sniff_gen.cc"
 	{
 	cs = html_charset_sniff_start;
 	ts = 0;
@@ -38,9 +41,9 @@ HTMLCharsetSniffer::_run_charset_sniff(const uint8_t *const input, const size_t 
 	act = 0;
 	}
 
-#line 32 "../ragel/formats/html/charset_sniff_main.rl"
+#line 35 "../ragel/formats/html/charset_sniff_main.rl"
   
-#line 44 "schwa/formats/html_charset_sniff_gen.cc"
+#line 47 "schwa/formats/html_charset_sniff_gen.cc"
 	{
 	if ( p == pe )
 		goto _test_eof;
@@ -80,7 +83,7 @@ st28:
 case 28:
 #line 1 "NONE"
 	{ts = p;}
-#line 84 "schwa/formats/html_charset_sniff_gen.cc"
+#line 87 "schwa/formats/html_charset_sniff_gen.cc"
 	if ( (*p) == 60u )
 		goto tr44;
 	goto tr43;
@@ -92,7 +95,7 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 96 "schwa/formats/html_charset_sniff_gen.cc"
+#line 99 "schwa/formats/html_charset_sniff_gen.cc"
 	switch( (*p) ) {
 		case 33u: goto st0;
 		case 77u: goto st14;
@@ -244,7 +247,7 @@ st17:
 	if ( ++p == pe )
 		goto _test_eof17;
 case 17:
-#line 248 "schwa/formats/html_charset_sniff_gen.cc"
+#line 251 "schwa/formats/html_charset_sniff_gen.cc"
 	switch( (*p) ) {
 		case 32u: goto st18;
 		case 47u: goto st21;
@@ -261,7 +264,7 @@ st18:
 	if ( ++p == pe )
 		goto _test_eof18;
 case 18:
-#line 265 "schwa/formats/html_charset_sniff_gen.cc"
+#line 268 "schwa/formats/html_charset_sniff_gen.cc"
 	switch( (*p) ) {
 		case 32u: goto st18;
 		case 34u: goto tr0;
@@ -281,7 +284,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 285 "schwa/formats/html_charset_sniff_gen.cc"
+#line 288 "schwa/formats/html_charset_sniff_gen.cc"
 	switch( (*p) ) {
 		case 32u: goto tr24;
 		case 34u: goto tr0;
@@ -301,7 +304,7 @@ st20:
 	if ( ++p == pe )
 		goto _test_eof20;
 case 20:
-#line 305 "schwa/formats/html_charset_sniff_gen.cc"
+#line 308 "schwa/formats/html_charset_sniff_gen.cc"
 	switch( (*p) ) {
 		case 32u: goto st20;
 		case 34u: goto tr0;
@@ -321,7 +324,7 @@ st21:
 	if ( ++p == pe )
 		goto _test_eof21;
 case 21:
-#line 325 "schwa/formats/html_charset_sniff_gen.cc"
+#line 328 "schwa/formats/html_charset_sniff_gen.cc"
 	if ( (*p) == 62u )
 		goto st30;
 	goto tr0;
@@ -337,7 +340,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 341 "schwa/formats/html_charset_sniff_gen.cc"
+#line 344 "schwa/formats/html_charset_sniff_gen.cc"
 	goto tr48;
 tr26:
 #line 9 "../ragel/formats/html/charset_sniff.rl"
@@ -347,7 +350,7 @@ st22:
 	if ( ++p == pe )
 		goto _test_eof22;
 case 22:
-#line 351 "schwa/formats/html_charset_sniff_gen.cc"
+#line 354 "schwa/formats/html_charset_sniff_gen.cc"
 	switch( (*p) ) {
 		case 32u: goto st22;
 		case 34u: goto st24;
@@ -371,7 +374,7 @@ st23:
 	if ( ++p == pe )
 		goto _test_eof23;
 case 23:
-#line 375 "schwa/formats/html_charset_sniff_gen.cc"
+#line 378 "schwa/formats/html_charset_sniff_gen.cc"
 	switch( (*p) ) {
 		case 32u: goto tr34;
 		case 34u: goto tr0;
@@ -399,7 +402,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 403 "schwa/formats/html_charset_sniff_gen.cc"
+#line 406 "schwa/formats/html_charset_sniff_gen.cc"
 	if ( (*p) == 34u )
 		goto tr40;
 	goto st25;
@@ -418,7 +421,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 422 "schwa/formats/html_charset_sniff_gen.cc"
+#line 425 "schwa/formats/html_charset_sniff_gen.cc"
 	if ( (*p) == 39u )
 		goto tr40;
 	goto st27;
@@ -494,13 +497,9 @@ case 27:
 
 	}
 
-#line 33 "../ragel/formats/html/charset_sniff_main.rl"
+#line 36 "../ragel/formats/html/charset_sniff_main.rl"
 
-  return cs != 
-#line 501 "schwa/formats/html_charset_sniff_gen.cc"
--1
-#line 34 "../ragel/formats/html/charset_sniff_main.rl"
-;
+  return cs != -1;
 }
 
 }  // namespace formats
