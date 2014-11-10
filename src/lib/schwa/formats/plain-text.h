@@ -27,11 +27,11 @@ namespace schwa {
       PlainTextLexer(void);
 
       inline bool at_eof(void) const { return _state.at_eof(); }
-      inline OffsetBuffer<>::iterator get_p(void) const { return _state.p; }
-      inline OffsetBuffer<>::iterator get_pe(void) const { return _state.pe; }
+      inline BaseOffsetBuffer::iterator get_p(void) const { return _state.p; }
+      inline BaseOffsetBuffer::iterator get_pe(void) const { return _state.pe; }
 
       inline const std::vector<std::pair<size_t, size_t>> &paragraph_indexes(void) const { return _paragraphs; }
-      inline const RagelState<OffsetBuffer<>::iterator> &state(void) const { return _state; }
+      inline const RagelState<BaseOffsetBuffer::iterator> &state(void) const { return _state; }
 
       void lex(const BaseOffsetBuffer &buffer);
 
