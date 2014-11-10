@@ -62,7 +62,7 @@
   hier_part = ( '//' authority path_abempty ) | path_absolute | path_rootless ;
   scheme = alpha ( alpha | digit | [\-+.] )* ;
 
-  uri          = scheme ':' hier_part? ( '?' query )? ( '#' fragment )? ;
-  absolute_uri = scheme ':' hier_part? ( '?' query )? ;
+  uri          = scheme ':' hier_part ( '?' query )? ( '#' fragment )? ;
+  absolute_uri = scheme ':' hier_part ( '?' query )? ;
 
 }%%

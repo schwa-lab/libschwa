@@ -4745,7 +4745,6 @@ case 248:
 		case 37u: goto st250;
 		case 47u: goto st253;
 		case 61u: goto st249;
-		case 63u: goto st244;
 		case 64u: goto st252;
 		case 95u: goto st249;
 		case 126u: goto st249;
@@ -7675,7 +7674,7 @@ st440:
 	if ( ++p == pe )
 		goto _test_eof440;
 case 440:
-#line 7679 "schwa/formats/http_gen.cc"
+#line 7678 "schwa/formats/http_gen.cc"
 	if ( 48u <= (*p) && (*p) <= 57u )
 		goto tr468;
 	goto st0;
@@ -7687,7 +7686,7 @@ st441:
 	if ( ++p == pe )
 		goto _test_eof441;
 case 441:
-#line 7691 "schwa/formats/http_gen.cc"
+#line 7690 "schwa/formats/http_gen.cc"
 	if ( 48u <= (*p) && (*p) <= 57u )
 		goto tr469;
 	goto st0;
@@ -7699,7 +7698,7 @@ st442:
 	if ( ++p == pe )
 		goto _test_eof442;
 case 442:
-#line 7703 "schwa/formats/http_gen.cc"
+#line 7702 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 10u: goto st19;
 		case 13u: goto st30;
@@ -7820,7 +7819,7 @@ st459:
 	if ( ++p == pe )
 		goto _test_eof459;
 case 459:
-#line 7824 "schwa/formats/http_gen.cc"
+#line 7823 "schwa/formats/http_gen.cc"
 	goto st0;
 	}
 	_test_eof2: cs = 2; goto _test_eof; 
@@ -8357,7 +8356,7 @@ case 459:
 #line 26 "../ragel/formats/http/http.rl"
 	{ _message_body_end(p); }
 	break;
-#line 8361 "schwa/formats/http_gen.cc"
+#line 8360 "schwa/formats/http_gen.cc"
 	}
 	}
 
@@ -8366,11 +8365,7 @@ case 459:
 
 #line 30 "../ragel/formats/http/main.rl"
 
-  return cs != 
-#line 8371 "schwa/formats/http_gen.cc"
-0
-#line 31 "../ragel/formats/http/main.rl"
-;
+  return cs != 0;
 }
 
 }  // namespace formats
