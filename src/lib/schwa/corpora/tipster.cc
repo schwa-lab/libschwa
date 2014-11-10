@@ -52,7 +52,7 @@ private:
   tk::Tokenizer _tokenizer;
 
   void _handle_dateline(const fm::SGMLishNode &node);
-  void _handle_dd(const fm::SGMLishNode &node);
+  void _handle_date(const fm::SGMLishNode &node);
   void _handle_docno(const fm::SGMLishNode &node);
   void _handle_hl(const fm::SGMLishNode &node);
   void _handle_text(const fm::SGMLishNode &node);
@@ -102,7 +102,7 @@ TipsterImporter::Impl::_handle_dateline(const fm::SGMLishNode &node) {
 
 
 void
-TipsterImporter::Impl::_handle_dd(const fm::SGMLishNode &node) {
+TipsterImporter::Impl::_handle_date(const fm::SGMLishNode &node) {
   // Strip surrounding whitespace.
   std::string dd = std::string(reinterpret_cast<const char *>(node.text()->bytes()), node.text()->nitems_used());
   RE2::GlobalReplace(&dd, RE_SURROUNDING_WHITESPACE, "");
@@ -219,25 +219,25 @@ void
 TipsterImporter::Impl::_process_tree(const fm::SGMLishNode &node) {
   const fm::SGMLishNode *child;
 
-  // If we're at a <DOCNO>...</DOCNO> node, extract the document number.
+  // If we're at a <DOCNO> node, extract the document number.
   if (node.is_start_tag() && node.has_name("docno")) {
     child = node.child();
     if (child != nullptr && child->is_text())
       _handle_docno(*child);
   }
 
-  // If we're at a <DATELINE>...</DATELINE> node, extract and store the contents.
+  // If we're at a <DATELINE> node, extract and store the contents.
   if (node.is_start_tag() && node.has_name("dateline")) {
     child = node.child();
     if (child != nullptr && child->is_text())
       _handle_dateline(*child);
   }
 
-  // If we're at a <DD>...</DD> node, extract and parse the date contents.
-  if (node.is_start_tag() && node.has_name("dd")) {
+  // If we're at a <DD> or <DATE> node, extract and parse the date contents.
+  if (node.is_start_tag() && (node.has_name("dd") || node.has_name("date"))) {
     child = node.child();
     if (child != nullptr && child->is_text())
-      _handle_dd(*child);
+      _handle_date(*child);
   }
 
   // If we're at a <HL>...</HL> node, extract the headline.
@@ -247,7 +247,7 @@ TipsterImporter::Impl::_process_tree(const fm::SGMLishNode &node) {
       _handle_hl(*child);
   }
 
-  // If we're at a <TEXT>...</TEXT> node, extract and tokenize the contents.
+  // If we're at a <TEXT> node, extract and tokenize the contents.
   if (node.is_start_tag() && node.has_name("text")) {
     child = node.child();
     if (child != nullptr && child->is_text())
