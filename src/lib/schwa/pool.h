@@ -19,36 +19,53 @@ namespace schwa {
   private:
     class Block {
     private:
-      const size_t _size;
-      size_t _upto;
+      const size_t _nbytes_allocd;
+      size_t _nbytes_used;
 
-      explicit Block(size_t size) : _size(size), _upto(0) { }
+      explicit Block(size_t nbytes_allocd) : _nbytes_allocd(nbytes_allocd), _nbytes_used(0) { }
+
+      inline char *
+      data(void) {
+        return reinterpret_cast<char *>(this + 1);
+      }
 
     public:
-      inline char *data(void) { return reinterpret_cast<char *>(this + 1); }
-      inline size_t size(void) const { return _size; }
-      inline size_t upto(void) const { return _upto; }
-
       inline void *
-      alloc(size_t size) {
-        size_t upto = _upto + size;
-        if (upto > _size)
+      alloc(const size_t nbytes) {
+        const size_t upto = _nbytes_used + nbytes;
+        if (upto > _nbytes_allocd)
           return nullptr;
-        void *ptr = data() + _upto;
-        _upto = upto;
+        void *ptr = data() + _nbytes_used;
+        _nbytes_used = upto;
         return ptr;
       }
 
-      inline void operator delete(void *ptr) {
+      inline void
+      drain(void) {
+        _nbytes_used = 0;
+      }
+
+      inline size_t
+      nbytes_allocd(void) const {
+        return _nbytes_allocd;
+      }
+
+      inline size_t
+      nbytes_used(void) const {
+        return _nbytes_used;
+      }
+
+      inline void
+      operator delete(void *ptr) {
         std::free(ptr);
       }
 
       static Block *
-      create(size_t size) {
-        void *ptr = std::malloc(sizeof(Block) + size);
-        if (ptr == nullptr)
+      create(const size_t nbytes) {
+        void *ptr = std::malloc(sizeof(Block) + nbytes);
+        if (SCHWA_UNLIKELY(ptr == nullptr))
           throw std::bad_alloc();
-        return new (ptr) Block(size);
+        return new (ptr) Block(nbytes);
       }
 
     private:
@@ -57,42 +74,82 @@ namespace schwa {
 
     const size_t _block_size;
     Block *_current;
-    std::vector<Block *> _blocks;
+    std::vector<Block *> _used_blocks;
+    std::vector<Block *> _unused_blocks;
 
   public:
-    explicit Pool(size_t block_size) : _block_size(block_size), _current(Block::create(block_size)) {
-      _blocks.push_back(_current);
-    }
-
+    explicit Pool(size_t block_size) : _block_size(block_size), _current(nullptr) { }
     ~Pool(void) {
-      for (Block *b : _blocks)
+      for (Block *b : _used_blocks)
+        delete b;
+      for (Block *b : _unused_blocks)
         delete b;
     }
 
     template <typename T=void *>
     inline T
-    alloc(size_t size) {
-      void *ptr = _current->alloc(size);
+    alloc(const size_t nbytes) {
+      void *ptr = (_current == nullptr) ? nullptr : _current->alloc(nbytes);
       if (ptr == nullptr) {
-        _current = Block::create(size > _block_size ? size : _block_size);
-        _blocks.push_back(_current);
-        ptr = _current->alloc(size);
+        // Reuse an existing unused block or allocate a new block.
+        _current = nullptr;
+        for (auto it = _unused_blocks.begin(); it != _unused_blocks.end(); ++it) {
+          if ((*it)->nbytes_allocd() >= nbytes) {
+            _current = *it;
+            _unused_blocks.erase(it);
+            break;
+          }
+        }
+        if (_current == nullptr)
+          _current = Block::create(nbytes > _block_size ? nbytes : _block_size);
+        _used_blocks.push_back(_current);
+
+        ptr = _current->alloc(nbytes);
       }
       return static_cast<T>(ptr);
     }
 
-    inline size_t nblocks(void) const { return _blocks.size(); }
-    inline size_t allocd(void) const {
-      size_t count = 0;
-      for (Block *b : _blocks)
-        count += b->size();
-      return count;
+    void
+    drain(void) {
+      for (Block *b : _used_blocks) {
+        b->drain();
+        _unused_blocks.push_back(b);
+      }
+      _used_blocks.clear();
+      _current = nullptr;
     }
-    inline size_t used(void) const {
-      size_t count = 0;
-      for (Block *b : _blocks)
-        count += b->upto();
-      return count;
+
+    inline size_t
+    nblocks(void) const {
+      return _used_blocks.size() + _unused_blocks.size();
+    }
+
+    inline size_t
+    nblocks_unused(void) const {
+      return _unused_blocks.size();
+    }
+
+    inline size_t
+    nblocks_used(void) const {
+      return _used_blocks.size();
+    }
+
+    size_t
+    nbytes_allocd(void) const {
+      size_t nbytes = 0;
+      for (Block *b : _used_blocks)
+        nbytes += b->nbytes_allocd();
+      for (Block *b : _unused_blocks)
+        nbytes += b->nbytes_allocd();
+      return nbytes;
+    }
+
+    size_t
+    nbytes_used(void) const {
+      size_t nbytes = 0;
+      for (Block *b : _used_blocks)
+        nbytes += b->nbytes_used();
+      return nbytes;
     }
 
   private:
