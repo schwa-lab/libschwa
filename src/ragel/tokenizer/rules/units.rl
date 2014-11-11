@@ -141,10 +141,17 @@
 
   post_integer_scalar = [kMB] %s1 ;
 
+  cardinal_suffix =
+      'thousand'i %s8
+    | 'million'i %s7
+    | 'billion'i %s7
+    | 'trillion'i %s8
+    ;
+
   unicode_00a2 = 0xc2 0xa2 ;  # U+00a2 cent sign (¢)
   cents_unit =
       'c' %s1
-    | unicode_00a2
+    | unicode_00a2 %s1
     ;
 
   currency_symbol =
@@ -156,7 +163,8 @@
 
   # Any units that may appear after a number.
   units =
-      computer_rate_unit
+      cardinal_suffix
+    | computer_rate_unit
     | computer_size_unit
     | frequency_unit
     | other_unit
