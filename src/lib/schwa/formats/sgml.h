@@ -106,18 +106,20 @@ namespace schwa {
     public:
       using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
 
-      static constexpr const size_t DEFAULT_BUFFER_GROW_SIZE = 4 * 1024 * 1024;  //!< Default amount the internal buffer grows by.
+      static constexpr const size_t DEFAULT_BUFFER_GROW_SIZE = 1024 * 1024;  //!< Default amount the internal buffer grows by.
 
     private:
       class LexBuffer {
       private:
         const uint8_t *_start;
+        Pool _pool;
         PooledOffsetBuffer _buffer;
 
       public:
-        LexBuffer(const size_t buffer_grow, Pool &pool) :
+        explicit LexBuffer(const size_t buffer_grow) :
             _start(nullptr),
-            _buffer(buffer_grow, 0, PoolAllocator<uint8_t>(pool))
+            _pool(4 * 1024 * 1024),
+            _buffer(buffer_grow, 0, PoolAllocator<uint8_t>(_pool))
           { }
 
         inline const PooledOffsetBuffer &buffer(void) const { return _buffer; }
@@ -165,7 +167,7 @@ namespace schwa {
       };
 
       const EncodingResult &_encoding_result;
-      Pool &_pool;
+      Pool *_node_pool;
 
       RagelState<> _state;
 
@@ -201,14 +203,14 @@ namespace schwa {
       void _create_xml_decl_node(void);
 
     public:
-      SGMLishLexer(const EncodingResult &er, Pool &pool);
+      explicit SGMLishLexer(const EncodingResult &er);
 
       inline bool at_eof(void) const { return _state.at_eof(); }
       inline const uint8_t *get_p(void) const { return _state.p; }
       inline const uint8_t *get_pe(void) const { return _state.pe; }
       inline const RagelState<> &get_state(void) const { return _state; }
 
-      SGMLishNode *lex(void);
+      SGMLishNode *lex(Pool &node_pool);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(SGMLishLexer);
@@ -244,14 +246,14 @@ namespace schwa {
       SGMLishNode *_root;
 
     public:
-      SGMLishParser(const EncodingResult &er, Pool &pool);
+      explicit SGMLishParser(const EncodingResult &er);
 
       inline bool eof(void) const { return _lexer.at_eof(); }
       inline const uint8_t *get_p(void) const { return _lexer.get_p(); }
       inline const uint8_t *get_pe(void) const { return _lexer.get_pe(); }
       inline SGMLishNode *root(void) const { return _root; }
 
-      SGMLishNode *parse(void);
+      SGMLishNode *parse(Pool &node_pool);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(SGMLishParser);

@@ -45,9 +45,9 @@ static const RE2 RE_ROW("^\\s*" + RE_ROW_TEXT + "((\\s*\\.{2,}\\s*|\\s{2,})[-+(]
 class TipsterImporter::Impl {
 private:
   EncodingResult _er;
-  Pool _pool;
   cs::Doc *_doc;
   fm::SGMLishParser *_sgml_parser;
+  Pool _node_pool;
   TipsterTextLexer _text_lexer;
   tk::Tokenizer _tokenizer;
 
@@ -71,9 +71,9 @@ public:
 
 
 TipsterImporter::Impl::Impl(const std::string &path) :
-    _pool(4 * 1024 * 1024),
     _doc(nullptr),
-    _sgml_parser(nullptr)
+    _sgml_parser(nullptr),
+    _node_pool(4 * 1024 * 1024)
   {
   // Read in all of the raw data.
   io::InputStream in(path);
@@ -84,7 +84,7 @@ TipsterImporter::Impl::Impl(const std::string &path) :
   to_utf8(Encoding::ASCII, encoded_bytes, _er);
 
   // Construct a SGML parser around the decoded data.
-  _sgml_parser = new fm::SGMLishParser(_er, _pool);
+  _sgml_parser = new fm::SGMLishParser(_er);
 }
 
 TipsterImporter::Impl::~Impl(void) {
@@ -279,9 +279,10 @@ TipsterImporter::Impl::_unswizzle_pointers(void) {
 cs::Doc *
 TipsterImporter::Impl::_read_doc(void) {
   delete _doc;
+  _node_pool.drain();
 
   // Read in and parse the next SGML document.
-  fm::SGMLishNode *const root = _sgml_parser->parse();
+  fm::SGMLishNode *const root = _sgml_parser->parse(_node_pool);
   if (root == nullptr) {
     if (!_sgml_parser->eof())
       throw schwa::Exception("Failed to parse");

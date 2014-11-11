@@ -40,14 +40,16 @@ SGMLishLexer::_init(void) {
 
 
 SGMLishNode *
-SGMLishLexer::lex(void) {
+SGMLishLexer::lex(Pool &node_pool) {
+  _node_pool = &node_pool;
+
   // Don't attempt to lex if we're at EOF.
   if (_state.at_eof())
     return nullptr;
   const auto p_before = _state.p;
 
   
-#line 51 "schwa/formats/sgml_gen.cc"
+#line 53 "schwa/formats/sgml_gen.cc"
 	{
 	if ( ( _state.p) == ( _state.pe) )
 		goto _test_eof;
@@ -141,7 +143,7 @@ st154:
 case 154:
 #line 1 "NONE"
 	{ _state.ts = ( _state.p);}
-#line 145 "schwa/formats/sgml_gen.cc"
+#line 147 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 38u: goto tr293;
@@ -223,7 +225,7 @@ st155:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof155;
 case 155:
-#line 227 "schwa/formats/sgml_gen.cc"
+#line 229 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto tr298;
 		case 38u: goto tr300;
@@ -276,7 +278,7 @@ st1:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof1;
 case 1:
-#line 280 "schwa/formats/sgml_gen.cc"
+#line 282 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 10u: goto tr1;
 		case 32u: goto tr1;
@@ -321,7 +323,7 @@ st156:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof156;
 case 156:
-#line 325 "schwa/formats/sgml_gen.cc"
+#line 327 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto tr304;
 		case 38u: goto tr306;
@@ -374,7 +376,7 @@ st4:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof4;
 case 4:
-#line 378 "schwa/formats/sgml_gen.cc"
+#line 380 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto tr1;
 	goto tr0;
@@ -410,7 +412,7 @@ st5:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof5;
 case 5:
-#line 414 "schwa/formats/sgml_gen.cc"
+#line 416 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st4;
 	goto tr0;
@@ -446,7 +448,7 @@ st6:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof6;
 case 6:
-#line 450 "schwa/formats/sgml_gen.cc"
+#line 452 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st5;
 	goto tr0;
@@ -488,7 +490,7 @@ st157:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof157;
 case 157:
-#line 492 "schwa/formats/sgml_gen.cc"
+#line 494 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto tr310;
 		case 38u: goto tr312;
@@ -546,7 +548,7 @@ st158:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof158;
 case 158:
-#line 550 "schwa/formats/sgml_gen.cc"
+#line 552 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto tr316;
 		case 38u: goto tr318;
@@ -654,7 +656,7 @@ st18:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof18;
 case 18:
-#line 658 "schwa/formats/sgml_gen.cc"
+#line 660 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 13u: goto tr28;
@@ -697,7 +699,7 @@ st19:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof19;
 case 19:
-#line 701 "schwa/formats/sgml_gen.cc"
+#line 703 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 13u: goto st19;
@@ -736,7 +738,7 @@ st20:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof20;
 case 20:
-#line 740 "schwa/formats/sgml_gen.cc"
+#line 742 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 13u: goto tr42;
@@ -775,7 +777,7 @@ st21:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof21;
 case 21:
-#line 779 "schwa/formats/sgml_gen.cc"
+#line 781 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 13u: goto st21;
 		case 32u: goto st21;
@@ -792,7 +794,7 @@ st22:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof22;
 case 22:
-#line 796 "schwa/formats/sgml_gen.cc"
+#line 798 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 13u: goto st22;
 		case 32u: goto st22;
@@ -859,7 +861,7 @@ st24:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof24;
 case 24:
-#line 863 "schwa/formats/sgml_gen.cc"
+#line 865 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 34u: goto tr58;
@@ -901,7 +903,7 @@ st25:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof25;
 case 25:
-#line 905 "schwa/formats/sgml_gen.cc"
+#line 907 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 13u: goto tr63;
 		case 32u: goto tr63;
@@ -923,7 +925,7 @@ st26:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof26;
 case 26:
-#line 927 "schwa/formats/sgml_gen.cc"
+#line 929 "schwa/formats/sgml_gen.cc"
 	if ( (*( _state.p)) == 62u )
 		goto tr66;
 	goto st0;
@@ -959,7 +961,7 @@ st27:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof27;
 case 27:
-#line 963 "schwa/formats/sgml_gen.cc"
+#line 965 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 35u: goto st28;
 		case 65u: goto st37;
@@ -1049,7 +1051,7 @@ st31:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof31;
 case 31:
-#line 1053 "schwa/formats/sgml_gen.cc"
+#line 1055 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st24;
 	goto st0;
@@ -1085,7 +1087,7 @@ st32:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof32;
 case 32:
-#line 1089 "schwa/formats/sgml_gen.cc"
+#line 1091 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st31;
 	goto st0;
@@ -1121,7 +1123,7 @@ st33:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof33;
 case 33:
-#line 1125 "schwa/formats/sgml_gen.cc"
+#line 1127 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st32;
 	goto st0;
@@ -1332,7 +1334,7 @@ st47:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof47;
 case 47:
-#line 1336 "schwa/formats/sgml_gen.cc"
+#line 1338 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 38u: goto tr109;
@@ -1386,7 +1388,7 @@ st48:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof48;
 case 48:
-#line 1390 "schwa/formats/sgml_gen.cc"
+#line 1392 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 35u: goto st49;
 		case 65u: goto st58;
@@ -1476,7 +1478,7 @@ st52:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof52;
 case 52:
-#line 1480 "schwa/formats/sgml_gen.cc"
+#line 1482 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st47;
 	goto st0;
@@ -1512,7 +1514,7 @@ st53:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof53;
 case 53:
-#line 1516 "schwa/formats/sgml_gen.cc"
+#line 1518 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st52;
 	goto st0;
@@ -1548,7 +1550,7 @@ st54:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof54;
 case 54:
-#line 1552 "schwa/formats/sgml_gen.cc"
+#line 1554 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st53;
 	goto st0;
@@ -1710,7 +1712,7 @@ st67:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof67;
 case 67:
-#line 1714 "schwa/formats/sgml_gen.cc"
+#line 1716 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st20;
 	goto st0;
@@ -1722,7 +1724,7 @@ st68:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof68;
 case 68:
-#line 1726 "schwa/formats/sgml_gen.cc"
+#line 1728 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st67;
 	goto st0;
@@ -1734,7 +1736,7 @@ st69:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof69;
 case 69:
-#line 1738 "schwa/formats/sgml_gen.cc"
+#line 1740 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st68;
 	goto st0;
@@ -1746,7 +1748,7 @@ st70:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof70;
 case 70:
-#line 1750 "schwa/formats/sgml_gen.cc"
+#line 1752 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st18;
 	goto st0;
@@ -1758,7 +1760,7 @@ st71:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof71;
 case 71:
-#line 1762 "schwa/formats/sgml_gen.cc"
+#line 1764 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st70;
 	goto st0;
@@ -1770,7 +1772,7 @@ st72:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof72;
 case 72:
-#line 1774 "schwa/formats/sgml_gen.cc"
+#line 1776 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st71;
 	goto st0;
@@ -2056,7 +2058,7 @@ st94:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof94;
 case 94:
-#line 2060 "schwa/formats/sgml_gen.cc"
+#line 2062 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 13u: goto tr172;
@@ -2095,7 +2097,7 @@ st95:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof95;
 case 95:
-#line 2099 "schwa/formats/sgml_gen.cc"
+#line 2101 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 13u: goto st95;
 		case 32u: goto st95;
@@ -2112,7 +2114,7 @@ st96:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof96;
 case 96:
-#line 2116 "schwa/formats/sgml_gen.cc"
+#line 2118 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st94;
 	goto st0;
@@ -2124,7 +2126,7 @@ st97:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof97;
 case 97:
-#line 2128 "schwa/formats/sgml_gen.cc"
+#line 2130 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st96;
 	goto st0;
@@ -2136,7 +2138,7 @@ st98:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof98;
 case 98:
-#line 2140 "schwa/formats/sgml_gen.cc"
+#line 2142 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st97;
 	goto st0;
@@ -2187,7 +2189,7 @@ st103:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof103;
 case 103:
-#line 2191 "schwa/formats/sgml_gen.cc"
+#line 2193 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 13u: goto st103;
@@ -2226,7 +2228,7 @@ st104:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof104;
 case 104:
-#line 2230 "schwa/formats/sgml_gen.cc"
+#line 2232 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 13u: goto tr189;
@@ -2265,7 +2267,7 @@ st105:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof105;
 case 105:
-#line 2269 "schwa/formats/sgml_gen.cc"
+#line 2271 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 13u: goto st105;
 		case 32u: goto st105;
@@ -2282,7 +2284,7 @@ st106:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof106;
 case 106:
-#line 2286 "schwa/formats/sgml_gen.cc"
+#line 2288 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 13u: goto st106;
 		case 32u: goto st106;
@@ -2349,7 +2351,7 @@ st108:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof108;
 case 108:
-#line 2353 "schwa/formats/sgml_gen.cc"
+#line 2355 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 34u: goto tr205;
@@ -2391,7 +2393,7 @@ st109:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof109;
 case 109:
-#line 2395 "schwa/formats/sgml_gen.cc"
+#line 2397 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 13u: goto tr210;
 		case 32u: goto tr210;
@@ -2408,7 +2410,7 @@ st110:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof110;
 case 110:
-#line 2412 "schwa/formats/sgml_gen.cc"
+#line 2414 "schwa/formats/sgml_gen.cc"
 	if ( (*( _state.p)) == 62u )
 		goto tr212;
 	goto st0;
@@ -2444,7 +2446,7 @@ st111:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof111;
 case 111:
-#line 2448 "schwa/formats/sgml_gen.cc"
+#line 2450 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 35u: goto st112;
 		case 65u: goto st121;
@@ -2534,7 +2536,7 @@ st115:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof115;
 case 115:
-#line 2538 "schwa/formats/sgml_gen.cc"
+#line 2540 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st108;
 	goto st0;
@@ -2570,7 +2572,7 @@ st116:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof116;
 case 116:
-#line 2574 "schwa/formats/sgml_gen.cc"
+#line 2576 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st115;
 	goto st0;
@@ -2606,7 +2608,7 @@ st117:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof117;
 case 117:
-#line 2610 "schwa/formats/sgml_gen.cc"
+#line 2612 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st116;
 	goto st0;
@@ -2817,7 +2819,7 @@ st131:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof131;
 case 131:
-#line 2821 "schwa/formats/sgml_gen.cc"
+#line 2823 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 0u: goto st0;
 		case 38u: goto tr255;
@@ -2871,7 +2873,7 @@ st132:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof132;
 case 132:
-#line 2875 "schwa/formats/sgml_gen.cc"
+#line 2877 "schwa/formats/sgml_gen.cc"
 	switch( (*( _state.p)) ) {
 		case 35u: goto st133;
 		case 65u: goto st142;
@@ -2961,7 +2963,7 @@ st136:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof136;
 case 136:
-#line 2965 "schwa/formats/sgml_gen.cc"
+#line 2967 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st131;
 	goto st0;
@@ -2997,7 +2999,7 @@ st137:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof137;
 case 137:
-#line 3001 "schwa/formats/sgml_gen.cc"
+#line 3003 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st136;
 	goto st0;
@@ -3033,7 +3035,7 @@ st138:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof138;
 case 138:
-#line 3037 "schwa/formats/sgml_gen.cc"
+#line 3039 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st137;
 	goto st0;
@@ -3195,7 +3197,7 @@ st151:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof151;
 case 151:
-#line 3199 "schwa/formats/sgml_gen.cc"
+#line 3201 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st104;
 	goto st0;
@@ -3207,7 +3209,7 @@ st152:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof152;
 case 152:
-#line 3211 "schwa/formats/sgml_gen.cc"
+#line 3213 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st151;
 	goto st0;
@@ -3219,7 +3221,7 @@ st153:
 	if ( ++( _state.p) == ( _state.pe) )
 		goto _test_eof153;
 case 153:
-#line 3223 "schwa/formats/sgml_gen.cc"
+#line 3225 "schwa/formats/sgml_gen.cc"
 	if ( 128u <= (*( _state.p)) && (*( _state.p)) <= 191u )
 		goto st152;
 	goto st0;
@@ -3413,10 +3415,14 @@ case 153:
 	_out: {}
 	}
 
-#line 96 "../ragel/formats/sgml/sgml.rl"
+#line 98 "../ragel/formats/sgml/sgml.rl"
 
   // Fail if we ended up in an error state or we didn't consume any input.
-  if (_state.cs == 0)
+  if (_state.cs == 
+#line 3423 "schwa/formats/sgml_gen.cc"
+0
+#line 100 "../ragel/formats/sgml/sgml.rl"
+)
     return nullptr;
   else if (_state.p == p_before)
     return nullptr;

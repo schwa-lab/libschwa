@@ -130,13 +130,13 @@ SGMLishNode::pprint(std::ostream &out) const {
 // ================================================================================================
 // SGMLishLexer
 // ================================================================================================
-SGMLishLexer::SGMLishLexer(const EncodingResult &er, Pool &pool) :
+SGMLishLexer::SGMLishLexer(const EncodingResult &er) :
     _encoding_result(er),
-    _pool(pool),
+    _node_pool(nullptr),
     _state(er.utf8(), er.utf8() + er.nbytes()),
-    _attr_name_buffer(64, _pool),
-    _tag_name_buffer(64, _pool),
-    _text_buffer(DEFAULT_BUFFER_GROW_SIZE, _pool),
+    _attr_name_buffer(64),
+    _tag_name_buffer(64),
+    _text_buffer(DEFAULT_BUFFER_GROW_SIZE),
     _attribute(nullptr),
     _node(nullptr)
   {
@@ -222,19 +222,19 @@ SGMLishLexer::_create_attr(void) {
   // Clone attribute name into pool memory.
   bytes = _attr_name_buffer.buffer().bytes();
   nbytes = _attr_name_buffer.buffer().nitems_used();
-  uint8_t *const name = _pool.alloc<uint8_t *>(nbytes + 1);  // FIXME
+  uint8_t *const name = _node_pool->alloc<uint8_t *>(nbytes + 1);  // FIXME
   std::memcpy(name, bytes, nbytes);
   name[nbytes] = 0;
 
   // Clone attribute value into pool memory.
   bytes = _text_buffer.buffer().bytes();
   nbytes = _text_buffer.buffer().nitems_used();
-  uint8_t *const value = _pool.alloc<uint8_t *>(nbytes + 1);  // FIXME
+  uint8_t *const value = _node_pool->alloc<uint8_t *>(nbytes + 1);  // FIXME
   std::memcpy(value, bytes, nbytes);
   value[nbytes] = 0;
 
   // Create attribute object in pool memory.
-  SGMLishAttribute *const attribute = _pool.alloc<SGMLishAttribute *>(sizeof(SGMLishAttribute));
+  SGMLishAttribute *const attribute = _node_pool->alloc<SGMLishAttribute *>(sizeof(SGMLishAttribute));
   new (attribute) SGMLishAttribute(name, value, _attribute);
   _attribute = attribute;
 
@@ -248,8 +248,8 @@ void
 SGMLishLexer::_create_cdata_node(void) {
   // Clone tag contents into pool memory.
   const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
-  PooledOffsetBuffer *contents = _pool.alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
-  new (contents) PooledOffsetBuffer(1024, initial_offset, PoolAllocator<uint8_t>(_pool));
+  PooledOffsetBuffer *contents = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
+  new (contents) PooledOffsetBuffer(1024, initial_offset, PoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
   for (const uint8_t *start = _state.ts; start != _state.te; ) {
     const size_t nbytes = read_utf8(&start, _state.te, utf8);
@@ -258,7 +258,7 @@ SGMLishLexer::_create_cdata_node(void) {
   }
 
   // Create node object in pool memory.
-  _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
+  _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::CDATA, nullptr, contents, nullptr);
 }
 
@@ -267,8 +267,8 @@ void
 SGMLishLexer::_create_comment_node(void) {
   // Clone tag contents into pool memory.
   const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
-  PooledOffsetBuffer *contents = _pool.alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
-  new (contents) PooledOffsetBuffer(1024, initial_offset, PoolAllocator<uint8_t>(_pool));
+  PooledOffsetBuffer *contents = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
+  new (contents) PooledOffsetBuffer(1024, initial_offset, PoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
   for (const uint8_t *start = _state.ts; start != _state.te; ) {
     const size_t nbytes = read_utf8(&start, _state.te, utf8);
@@ -277,7 +277,7 @@ SGMLishLexer::_create_comment_node(void) {
   }
 
   // Create node object in pool memory.
-  _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
+  _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::COMMENT, nullptr, contents, nullptr);
 }
 
@@ -289,8 +289,8 @@ SGMLishLexer::_create_poold_tag_name(void) {
 
   // Convert the tag name to lowercase.
   const uint32_t initial_offset = _tag_name_buffer.start() - _encoding_result.utf8();
-  PooledOffsetBuffer *name = _pool.alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
-  new (name) PooledOffsetBuffer(32, initial_offset, PoolAllocator<uint8_t>(_pool));
+  PooledOffsetBuffer *name = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
+  new (name) PooledOffsetBuffer(32, initial_offset, PoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
   unicode_t code_points[3];
   for (const uint8_t *bytes = start; bytes != end; ) {
@@ -314,7 +314,7 @@ SGMLishLexer::_create_empty_tag_node(void) {
   PooledOffsetBuffer *const name = _create_poold_tag_name();
 
   // Create node object in pool memory.
-  _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
+  _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::EMPTY_TAG, name, nullptr, _attribute);
 
   // Clear buffer memory.
@@ -329,7 +329,7 @@ SGMLishLexer::_create_end_tag_node(void) {
   PooledOffsetBuffer *const name = _create_poold_tag_name();
 
   // Create node object in pool memory.
-  _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
+  _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::END_TAG, name, nullptr, nullptr);
 
   // Clear buffer memory.
@@ -344,7 +344,7 @@ SGMLishLexer::_create_start_tag_node(void) {
   PooledOffsetBuffer *const name = _create_poold_tag_name();
 
   // Create node object in pool memory.
-  _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
+  _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::START_TAG, name, nullptr, _attribute);
 
   // Clear buffer memory.
@@ -356,11 +356,11 @@ SGMLishLexer::_create_start_tag_node(void) {
 void
 SGMLishLexer::_create_text_node(void) {
   // Clone text content into pool memory.
-  PooledOffsetBuffer *text = _pool.alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
+  PooledOffsetBuffer *text = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
   new (text) PooledOffsetBuffer(_text_buffer.buffer());
 
   // Create node object in pool memory.
-  _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
+  _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::TEXT, nullptr, text, nullptr);
 
   // Clear buffer memory.
@@ -372,7 +372,7 @@ SGMLishLexer::_create_text_node(void) {
 void
 SGMLishLexer::_create_xml_decl_node(void) {
   // Create node object in pool memory.
-  _node = _pool.alloc<SGMLishNode *>(sizeof(SGMLishNode));
+  _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));
   new (_node) SGMLishNode(SGMLishNodeType::XML_DECL, nullptr, nullptr, _attribute);
 
   // Clear buffer memory.
@@ -394,11 +394,11 @@ SGMLishParser::ParseError::~ParseError(void) throw() { }
 // ================================================================================================
 // SGMLishParser
 // ================================================================================================
-SGMLishParser::SGMLishParser(const EncodingResult &er, Pool &pool) : _lexer(er, pool), _root(nullptr) { }
+SGMLishParser::SGMLishParser(const EncodingResult &er) : _lexer(er), _root(nullptr) { }
 
 
 SGMLishNode *
-SGMLishParser::parse(void) {
+SGMLishParser::parse(Pool &node_pool) {
   std::stack<SGMLishNode *> stack;
   _root = nullptr;
 
@@ -406,7 +406,7 @@ SGMLishParser::parse(void) {
 
   while (true) {
     // Lex the next node from the input stream.
-    SGMLishNode *const node = _lexer.lex();
+    SGMLishNode *const node = _lexer.lex(node_pool);
     if (node == nullptr)
       break;
 

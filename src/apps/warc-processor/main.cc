@@ -212,10 +212,11 @@ main(int argc, char **argv) {
       schwa::to_utf8(encoding, reinterpret_cast<const uint8_t *>(buf.get()), input.gcount(), er);
 
       schwa::Pool pool(4 * 1024 * 1024);
-      fm::SGMLishParser parser(er, pool);
-      for (fm::SGMLishNode *root = nullptr; (root = parser.parse()) != nullptr; ) {
+      fm::SGMLishParser parser(er);
+      for (fm::SGMLishNode *root = nullptr; (root = parser.parse(pool)) != nullptr; ) {
         std::cout << "root=" << root << std::endl;
         root->pprint(std::cout);
+        pool.drain();
       }
       if (!parser.eof())
         throw std::runtime_error("Parser stopped parsing but did not hit EOF");

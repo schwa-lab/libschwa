@@ -86,7 +86,9 @@ SGMLishLexer::_init(void) {
 
 
 SGMLishNode *
-SGMLishLexer::lex(void) {
+SGMLishLexer::lex(Pool &node_pool) {
+  _node_pool = &node_pool;
+
   // Don't attempt to lex if we're at EOF.
   if (_state.at_eof())
     return nullptr;
