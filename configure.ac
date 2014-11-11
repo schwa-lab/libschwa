@@ -26,16 +26,16 @@ AC_MSG_RESULT([$CLANG])
 
 dnl If we are not debugging, default to -O3.
 if test "$libschwa_cv_enable_debug" != "yes"; then
-  AM_CXXFLAGS='-O3'
+  AM_CXXFLAGS='-O3 -g'
 else
-  AM_CXXFLAGS='-O0'
+  AM_CXXFLAGS='-O0 -g'
 fi
 
 dnl Add debugging flags if requested and not already in CXXFLAGS.
 if test "$libschwa_cv_enable_debug" = "yes"; then
   case "${CXXFLAGS}" in
     *-g*) ;;
-       *) AM_CXXFLAGS="${AM_CXXFLAGS} -g -g3" ;;
+       *) AM_CXXFLAGS="${AM_CXXFLAGS} -g3" ;;
   esac
 fi
 AC_SUBST([AM_CXXFLAGS])
