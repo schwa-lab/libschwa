@@ -8,6 +8,7 @@
 #include <schwa/_base.h>
 #include <schwa/encoding.h>
 #include <schwa/formats/exception.h>
+#include <schwa/memory.h>
 #include <schwa/pool.h>
 #include <schwa/unicode.h>
 #include <schwa/utils/buffer.h>
@@ -19,7 +20,7 @@ namespace schwa {
 
     class SGMLishAttribute {
     public:
-      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+      using PooledOffsetBuffer = OffsetBuffer<AlignedPoolAllocator<char>>;
 
     private:
       const uint8_t *const _name;
@@ -52,7 +53,7 @@ namespace schwa {
 
     class SGMLishNode {
     public:
-      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+      using PooledOffsetBuffer = OffsetBuffer<AlignedPoolAllocator<char>>;
 
     private:
       const SGMLishNodeType _type;
@@ -104,7 +105,7 @@ namespace schwa {
 
     class SGMLishLexer {
     public:
-      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+      using PooledOffsetBuffer = OffsetBuffer<AlignedPoolAllocator<char>>;
 
       static constexpr const size_t DEFAULT_BUFFER_GROW_SIZE = 1024 * 1024;  //!< Default amount the internal buffer grows by.
 
@@ -119,7 +120,7 @@ namespace schwa {
         explicit LexBuffer(const size_t buffer_grow) :
             _start(nullptr),
             _pool(4 * 1024 * 1024),
-            _buffer(buffer_grow, 0, PoolAllocator<uint8_t>(_pool))
+            _buffer(buffer_grow, 0, AlignedPoolAllocator<char>(_pool))
           { }
 
         inline const PooledOffsetBuffer &buffer(void) const { return _buffer; }
@@ -232,7 +233,7 @@ namespace schwa {
      **/
     class SGMLishParser {
     public:
-      using PooledOffsetBuffer = OffsetBuffer<PoolAllocator<uint8_t>>;
+      using PooledOffsetBuffer = OffsetBuffer<AlignedPoolAllocator<char>>;
 
       class ParseError : public formats::ParseError {
       public:

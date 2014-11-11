@@ -249,7 +249,7 @@ SGMLishLexer::_create_cdata_node(void) {
   // Clone tag contents into pool memory.
   const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
   PooledOffsetBuffer *contents = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
-  new (contents) PooledOffsetBuffer(1024, initial_offset, PoolAllocator<uint8_t>(*_node_pool));
+  new (contents) PooledOffsetBuffer(1024, initial_offset, AlignedPoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
   for (const uint8_t *start = _state.ts; start != _state.te; ) {
     const size_t nbytes = read_utf8(&start, _state.te, utf8);
@@ -268,7 +268,7 @@ SGMLishLexer::_create_comment_node(void) {
   // Clone tag contents into pool memory.
   const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
   PooledOffsetBuffer *contents = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
-  new (contents) PooledOffsetBuffer(1024, initial_offset, PoolAllocator<uint8_t>(*_node_pool));
+  new (contents) PooledOffsetBuffer(1024, initial_offset, AlignedPoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
   for (const uint8_t *start = _state.ts; start != _state.te; ) {
     const size_t nbytes = read_utf8(&start, _state.te, utf8);
@@ -290,7 +290,7 @@ SGMLishLexer::_create_poold_tag_name(void) {
   // Convert the tag name to lowercase.
   const uint32_t initial_offset = _tag_name_buffer.start() - _encoding_result.utf8();
   PooledOffsetBuffer *name = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
-  new (name) PooledOffsetBuffer(32, initial_offset, PoolAllocator<uint8_t>(*_node_pool));
+  new (name) PooledOffsetBuffer(32, initial_offset, AlignedPoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
   unicode_t code_points[3];
   for (const uint8_t *bytes = start; bytes != end; ) {
@@ -357,7 +357,7 @@ void
 SGMLishLexer::_create_text_node(void) {
   // Clone text content into pool memory.
   PooledOffsetBuffer *text = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
-  new (text) PooledOffsetBuffer(_text_buffer.buffer());
+  new (text) PooledOffsetBuffer(_text_buffer.buffer(), AlignedPoolAllocator<uint8_t>(*_node_pool));
 
   // Create node object in pool memory.
   _node = _node_pool->alloc<SGMLishNode *>(sizeof(SGMLishNode));

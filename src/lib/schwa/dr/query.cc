@@ -34,6 +34,7 @@ var_attribute ::= "." [_a-zA-Z][_a-zA-Z0-9]*
 #include <unordered_map>
 
 #include <schwa/dr.h>
+#include <schwa/memory.h>
 #include <schwa/msgpack.h>
 #include <schwa/utils/enums.h>
 #include <schwa/utils/hash.h>

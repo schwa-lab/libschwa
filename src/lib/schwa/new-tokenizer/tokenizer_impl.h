@@ -24,24 +24,24 @@ namespace schwa {
 
     template <typename ALLOC>
     OffsetInputStream<ALLOC>::~OffsetInputStream(void) {
-      _allocator.deallocate(_bytes, _nitems_allocd*sizeof(uint8_t));
-      _allocator.deallocate(reinterpret_cast<uint8_t *>(_offsets), _nitems_allocd*sizeof(uint32_t));
-      _allocator.deallocate(reinterpret_cast<uint8_t *>(_flags), _nitems_allocd*sizeof(BreakFlag));
+      _allocator.deallocate(reinterpret_cast<char *>(_bytes), _nitems_allocd*sizeof(uint8_t));
+      _allocator.deallocate(reinterpret_cast<char *>(_offsets), _nitems_allocd*sizeof(uint32_t));
+      _allocator.deallocate(reinterpret_cast<char *>(_flags), _nitems_allocd*sizeof(BreakFlag));
     }
 
 
     template <typename ALLOC>
     inline void
     OffsetInputStream<ALLOC>::_grow(const size_t nitems_grow) {
-      uint8_t *bytes = _allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(uint8_t));
+      uint8_t *bytes = reinterpret_cast<uint8_t *>(_allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(uint8_t)));
       uint32_t *offsets = reinterpret_cast<uint32_t *>(_allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(uint32_t)));
       BreakFlag *flags = reinterpret_cast<BreakFlag *>(_allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(BreakFlag)));
       std::memcpy(bytes, _bytes, _nitems_used*sizeof(uint8_t));
       std::memcpy(offsets, _offsets, _nitems_used*sizeof(uint32_t));
       std::memcpy(flags, _flags, _nitems_used*sizeof(BreakFlag));
-      _allocator.deallocate(_bytes, _nitems_allocd*sizeof(uint8_t));
-      _allocator.deallocate(reinterpret_cast<uint8_t *>(_offsets), _nitems_allocd*sizeof(uint32_t));
-      _allocator.deallocate(reinterpret_cast<uint8_t *>(_flags), _nitems_allocd*sizeof(BreakFlag));
+      _allocator.deallocate(reinterpret_cast<char *>(_bytes), _nitems_allocd*sizeof(uint8_t));
+      _allocator.deallocate(reinterpret_cast<char *>(_offsets), _nitems_allocd*sizeof(uint32_t));
+      _allocator.deallocate(reinterpret_cast<char *>(_flags), _nitems_allocd*sizeof(BreakFlag));
       _bytes = bytes;
       _offsets = offsets;
       _flags = flags;

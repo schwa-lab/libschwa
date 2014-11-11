@@ -10,6 +10,7 @@
 #include <schwa/config.h>
 #include <schwa/dr.h>
 #include <schwa/io/logging.h>
+#include <schwa/memory.h>
 #include <schwa/pool.h>
 
 namespace cf = schwa::config;

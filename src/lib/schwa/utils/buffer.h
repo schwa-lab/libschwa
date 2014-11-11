@@ -225,7 +225,7 @@ namespace schwa {
   };
 
 
-  template <typename ALLOC=schwa::AlignedAllocator<uint8_t>>
+  template <typename ALLOC=schwa::AlignedAllocator<char>>
   class OffsetBuffer : public BaseOffsetBuffer {
   public:
     using allocator_type = ALLOC;
@@ -238,7 +238,7 @@ namespace schwa {
 
   public:
     explicit OffsetBuffer(size_t nitems_grow, size_t initial_offset=0, const allocator_type &allocator=allocator_type());
-    OffsetBuffer(const OffsetBuffer &o);
+    template <typename A> OffsetBuffer(const OffsetBuffer<A> &o, const allocator_type &allocator=allocator_type());
     ~OffsetBuffer(void);
 
     inline allocator_type &allocator(void) const { return _allocator; }

@@ -22,7 +22,7 @@ namespace schwa {
     };
 
 
-    template <typename ALLOC=schwa::AlignedAllocator<uint8_t>>
+    template <typename ALLOC=schwa::AlignedAllocator<char>>
     class OffsetInputStream {
     private:
       class Iterator {

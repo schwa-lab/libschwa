@@ -3,6 +3,7 @@
 #define SCHWA_POOL_H_
 
 #include <cstdlib>
+#include <iostream>
 #include <new>
 #include <vector>
 
@@ -24,12 +25,21 @@ namespace schwa {
 
       explicit Block(size_t nbytes_allocd) : _nbytes_allocd(nbytes_allocd), _nbytes_used(0) { }
 
-      inline char *
-      data(void) {
-        return reinterpret_cast<char *>(this + 1);
+    public:
+      inline void *
+      aligned_alloc(size_t nbytes, const size_t alignment) {
+        size_t ptr = reinterpret_cast<size_t>(data() + _nbytes_used);
+        if (ptr % alignment != 0) {
+          nbytes += alignment - (ptr % alignment);
+          ptr += alignment - (ptr % alignment);
+        }
+        const size_t upto = _nbytes_used + nbytes;
+        if (upto > _nbytes_allocd)
+          return nullptr;
+        _nbytes_used = upto;
+        return reinterpret_cast<void *>(ptr);
       }
 
-    public:
       inline void *
       alloc(const size_t nbytes) {
         const size_t upto = _nbytes_used + nbytes;
@@ -38,6 +48,29 @@ namespace schwa {
         void *ptr = data() + _nbytes_used;
         _nbytes_used = upto;
         return ptr;
+      }
+
+      inline bool
+      can_aligned_alloc(size_t nbytes, const size_t alignment) const {
+        const size_t ptr = reinterpret_cast<size_t>(data());
+        if (ptr % alignment != 0)
+          nbytes += alignment - (ptr % alignment);
+        return _nbytes_used + nbytes <= _nbytes_allocd;
+      }
+
+      inline bool
+      can_alloc(const size_t nbytes) const {
+        return _nbytes_used + nbytes <= _nbytes_allocd;
+      }
+
+      inline char *
+      data(void) {
+        return reinterpret_cast<char *>(this) - _nbytes_allocd;
+      }
+
+      inline const char *
+      data(void) const {
+        return reinterpret_cast<const char *>(this) - _nbytes_allocd;
       }
 
       inline void
@@ -55,17 +88,13 @@ namespace schwa {
         return _nbytes_used;
       }
 
-      inline void
-      operator delete(void *ptr) {
-        std::free(ptr);
-      }
-
       static Block *
       create(const size_t nbytes) {
-        void *ptr = std::malloc(sizeof(Block) + nbytes);
-        if (SCHWA_UNLIKELY(ptr == nullptr))
+        void *ptr;
+        const int ret = ::posix_memalign(&ptr, 32, nbytes + sizeof(Block));  // FIXME this needs to be dependant on HAVE_POSIX_MEMALIGN.
+        if (SCHWA_UNLIKELY(ret != 0))
           throw std::bad_alloc();
-        return new (ptr) Block(nbytes);
+        return new (reinterpret_cast<void *>(reinterpret_cast<char *>(ptr) + nbytes)) Block(nbytes);
       }
 
     private:
@@ -81,9 +110,32 @@ namespace schwa {
     explicit Pool(size_t block_size) : _block_size(block_size), _current(nullptr) { }
     ~Pool(void) {
       for (Block *b : _used_blocks)
-        delete b;
+        std::free(b->data());
       for (Block *b : _unused_blocks)
-        delete b;
+        std::free(b->data());
+    }
+
+    template <typename T=void *>
+    inline T
+    aligned_alloc(const size_t nbytes, const size_t alignment) {
+      void *ptr = (_current == nullptr) ? nullptr : _current->aligned_alloc(nbytes, alignment);
+      if (ptr == nullptr) {
+        // Reuse an existing unused block or allocate a new block.
+        _current = nullptr;
+        for (auto it = _unused_blocks.begin(); it != _unused_blocks.end(); ++it) {
+          if ((*it)->can_aligned_alloc(nbytes, alignment)) {
+            _current = *it;
+            _unused_blocks.erase(it);
+            break;
+          }
+        }
+        if (_current == nullptr)
+          _current = Block::create(nbytes > _block_size ? nbytes : _block_size);
+        _used_blocks.push_back(_current);
+
+        ptr = _current->aligned_alloc(nbytes, alignment);
+      }
+      return static_cast<T>(ptr);
     }
 
     template <typename T=void *>
@@ -94,7 +146,7 @@ namespace schwa {
         // Reuse an existing unused block or allocate a new block.
         _current = nullptr;
         for (auto it = _unused_blocks.begin(); it != _unused_blocks.end(); ++it) {
-          if ((*it)->nbytes_allocd() >= nbytes) {
+          if ((*it)->can_alloc(nbytes)) {
             _current = *it;
             _unused_blocks.erase(it);
             break;
@@ -156,59 +208,6 @@ namespace schwa {
     SCHWA_DISALLOW_COPY_AND_ASSIGN(Pool);
   };
 
-
-  /**
-   * A std::allocator conforming class for use with a Pool. The \p deallocate method does not free
-   * up any resources since it is backed by a Pool.
-   **/
-  template <typename T>
-  class PoolAllocator {
-  public:
-    using const_pointer = const T *;
-    using const_reference = const T &;
-    using difference_type = ptrdiff_t;
-    using pointer = T *;
-    using reference = T &;
-    using size_type = size_t;
-    using value_type = T;
-    template <typename U> struct rebind { using other = PoolAllocator<U>; };
-
-  private:
-    Pool &_pool;
-
-    template <typename U> friend class PoolAllocator;
-
-  public:
-    explicit PoolAllocator(schwa::Pool &pool) noexcept : _pool(pool) { }
-    template <typename U> PoolAllocator(const PoolAllocator<U> &o) : _pool(o._pool) { }
-
-    pointer address(reference x) const noexcept { return &x; }
-    const_pointer address(const_reference x) const noexcept { return &x; }
-    Pool &pool(void) const { return _pool; }
-
-    inline pointer
-    allocate(size_type n) {
-      return _pool.alloc<T *>(n*sizeof(T));
-    }
-
-    template <typename U, typename... Args>
-    inline void
-    construct (U* p, Args&&... args) {
-      new (p) U(args...);
-    }
-
-    inline void
-    deallocate(pointer, size_type) {
-      // Do nothing.
-    }
-
-    template <typename U>
-    inline void
-    destroy (U* p) {
-      p->~U();
-    }
-  };
-
 }  // namespace schwa
 
 
@@ -216,9 +215,8 @@ namespace schwa {
  * std::new operator for use with a Pool.
  **/
 inline void *
-operator new(std::size_t nbytes, ::schwa::Pool &pool) {
+operator new(size_t nbytes, ::schwa::Pool &pool) {
   return pool.alloc(nbytes);
 }
-
 
 #endif  // SCHWA_POOL_H_
