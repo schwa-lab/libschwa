@@ -69,6 +69,7 @@ namespace schwa {
       BaseOffsetBuffer(o),
       _allocator(o._allocator)
     {
+    _nitems_allocd = _nitems_used;
     _bytes = _allocator.allocate(_nitems_allocd*sizeof(uint8_t));
     _offsets = reinterpret_cast<uint32_t *>(_allocator.allocate(_nitems_allocd*sizeof(uint32_t)));
     std::memcpy(_bytes, o._bytes, _nitems_used*sizeof(uint8_t));
