@@ -9,6 +9,7 @@
 
 #include <schwa/canonical-schema.h>
 #include <schwa/config.h>
+#include <schwa/corpora/nanc.h>
 #include <schwa/corpora/tipster.h>
 #include <schwa/dr.h>
 #include <schwa/encoding.h>
@@ -178,6 +179,7 @@ main(int argc, char **argv) {
   cf::Op<bool> html(cfg, "html", "Lex HTML only", false);
   cf::Op<bool> sgml(cfg, "sgml", "Lex SGML only", false);
   cf::Op<bool> tipster(cfg, "tipster", "Process a file from the Tipster corpus.", false);
+  cf::Op<bool> nanc(cfg, "nanc", "Process a file from the NANC corpus.", false);
   cf::Op<std::string> html_encoding(cfg, "encoding", "Encoding of HTML file", "UTF-8");
 
   bool success = true;
@@ -223,6 +225,18 @@ main(int argc, char **argv) {
     }
     else if (tipster()) {
       cp::TipsterImporter importer(input_path());
+
+      io::OutputStream out(output_path());
+      cs::Doc::Schema schema;
+      dr::Writer writer(out, schema);
+
+      for (cs::Doc *doc = nullptr; (doc = importer.import()) != nullptr; ) {
+        std::cerr << "Read in doc '" << doc->doc_id << "' date='" << doc->story_date << "' dateline='" << doc->dateline << "'" << std::endl;
+        writer << *doc;
+      }
+    }
+    else if (nanc()) {
+      cp::NANCImporter importer(input_path());
 
       io::OutputStream out(output_path());
       cs::Doc::Schema schema;
