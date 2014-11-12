@@ -31,11 +31,12 @@
 
   character_reference_decimal = ( '&#' digit+ ';' ) >character_start %character_reference_decimal_end ;
   character_reference_hex = ( '&#x'i xdigit+ ';' ) >character_start %character_reference_hex_end ;
-  character_reference_named = ( '&' ('amp'i | 'apos'i | 'gt'i | 'lt'i | 'quot'i) ';' ) >character_start %character_reference_named_end ;
+  character_reference_named = ( '&' [a-zA-Z] [a-zA-Z0-9]{0,3} ';' ) >character_start %character_reference_named_end ;
 
-  character_text        = ( utf8_character -- [<&] )  >character_start %character_end ;
-  character_text_dquote = ( utf8_character -- [<&"] ) >character_start %character_end ;
-  character_text_squote = ( utf8_character -- [<&'] ) >character_start %character_end ;
+  character_text        = ( utf8_character -- [<>&] )  >character_start %character_end ;
+  character_text_dquote = ( utf8_character -- [<>&"] ) >character_start %character_end ;
+  character_text_squote = ( utf8_character -- [<>&'] ) >character_start %character_end ;
+  character_text_no_ws  = ( utf8_character -- [<>&'"] -- ws_character ) >character_start %character_end ;
   unescaped_ampersand = ( '&' [ \n] ) >character_start %character_end ;  # Stupid broken real world.
 
   text = character_reference_decimal | character_reference_hex | character_reference_named | character_text | unescaped_ampersand ;
@@ -44,7 +45,9 @@
 
   attribute_name = name >attribute_name_start %attribute_name_end ;
   attribute_value = ( ["] ( character_reference_decimal | character_reference_hex | character_reference_named | character_text_dquote )* ["] )
-                  | ( ['] ( character_reference_decimal | character_reference_hex | character_reference_named | character_text_squote )* ['] ) ;
+                  | ( ['] ( character_reference_decimal | character_reference_hex | character_reference_named | character_text_squote )* ['] )
+                  | (     ( character_reference_decimal | character_reference_hex | character_reference_named | character_text_no_ws  )+     )
+                  ;
   attribute = attribute_name ws* '=' ws* attribute_value %create_attribute;
 
   tag_name = name >tag_name_start %tag_name_end ;

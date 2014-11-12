@@ -4,6 +4,9 @@
 
 #include <cstring>
 #include <iosfwd>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <schwa/_base.h>
 #include <schwa/encoding.h>
@@ -179,12 +182,37 @@ namespace schwa {
       SGMLishAttribute *_attribute;
       SGMLishNode *_node;
 
-      inline void _attr_name_end(const uint8_t *fpc) { _attr_name_buffer.set_end(fpc); }
-      inline void _attr_name_start(const uint8_t *fpc) { _attr_name_buffer.set_start(_encoding_result.utf8(), fpc); }
-      inline void _character_end(const uint8_t *fpc) { _text_buffer.set_end(fpc); }
-      inline void _character_start(const uint8_t *fpc) { _text_buffer.set_start(_encoding_result.utf8(), fpc); }
-      inline void _tag_name_end(const uint8_t *fpc) { _tag_name_buffer.set_end(fpc); }
-      inline void _tag_name_start(const uint8_t *fpc) { _tag_name_buffer.set_start(_encoding_result.utf8(), fpc); }
+      std::unordered_map<std::string, unicode_t> _escape_sequences;
+
+      inline void
+      _attr_name_end(const uint8_t *fpc) {
+        _attr_name_buffer.set_end(fpc);
+      }
+
+      inline void
+      _attr_name_start(const uint8_t *fpc) {
+        _attr_name_buffer.set_start(_encoding_result.utf8(), fpc);
+      }
+
+      inline void
+      _character_end(const uint8_t *fpc) {
+        _text_buffer.set_end(fpc);
+      }
+
+      inline void
+      _character_start(const uint8_t *fpc) {
+        _text_buffer.set_start(_encoding_result.utf8(), fpc);
+      }
+
+      inline void
+      _tag_name_end(const uint8_t *fpc) {
+        _tag_name_buffer.set_end(fpc);
+      }
+
+      inline void
+      _tag_name_start(const uint8_t *fpc) {
+        _tag_name_buffer.set_start(_encoding_result.utf8(), fpc);
+      }
 
       void _character_reference_decimal(const uint8_t *const fpc);
       void _character_reference_hex(const uint8_t *const fpc);
@@ -211,6 +239,8 @@ namespace schwa {
       inline const uint8_t *get_pe(void) const { return _state.pe; }
       inline const RagelState<> &get_state(void) const { return _state; }
 
+      void add_escape_sequence(const std::string &name, unicode_t code_point);
+      void dump_state(std::ostream &out) const;
       SGMLishNode *lex(Pool &node_pool);
 
     private:
@@ -245,6 +275,7 @@ namespace schwa {
     private:
       SGMLishLexer _lexer;
       SGMLishNode *_root;
+      std::unordered_set<std::string> _leaf_tag_names;
 
     public:
       explicit SGMLishParser(const EncodingResult &er);
@@ -253,6 +284,16 @@ namespace schwa {
       inline const uint8_t *get_p(void) const { return _lexer.get_p(); }
       inline const uint8_t *get_pe(void) const { return _lexer.get_pe(); }
       inline SGMLishNode *root(void) const { return _root; }
+
+      inline void
+      add_escape_sequence(const std::string &name, unicode_t code_point) {
+        _lexer.add_escape_sequence(name, code_point);
+      }
+
+      inline void
+      add_leaf_tag_name(const std::string &name) {
+        _leaf_tag_names.insert(name);
+      }
 
       SGMLishNode *parse(Pool &node_pool);
 

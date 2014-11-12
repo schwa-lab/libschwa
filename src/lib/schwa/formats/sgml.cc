@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <stack>
 #include <stdexcept>
 
@@ -140,7 +141,21 @@ SGMLishLexer::SGMLishLexer(const EncodingResult &er) :
     _attribute(nullptr),
     _node(nullptr)
   {
+  // Init the Ragel state machine.
   _init();
+
+  // Add the default known set of SGML escape sequences.
+  add_escape_sequence("amp", '&');
+  add_escape_sequence("apos", '\'');
+  add_escape_sequence("gt", '>');
+  add_escape_sequence("lt", '<');
+  add_escape_sequence("quot", '"');
+}
+
+
+void
+SGMLishLexer::add_escape_sequence(const std::string &name, const unicode_t code_point) {
+  _escape_sequences[name] = code_point;
 }
 
 
@@ -183,30 +198,23 @@ void
 SGMLishLexer::_character_reference_named(const uint8_t *const fpc) {
   // Convert the named reference to lowercase.
   const char *const start = reinterpret_cast<const char *>(_text_buffer.start()) + 1;
-  size_t i;
-  char name[5];
-  for (i = 0; i != 4; ++i) {
+  std::string name;
+  name.reserve(5);
+  for (size_t i = 0; i != 4; ++i) {
     if (start[i] == ';')
       break;
-    name[i] = std::tolower(start[i]);
+    name.push_back(std::tolower(start[i]));
   }
-  name[i] = '\0';
 
   // Append the appropriate raw character to the text stream.
-  unicode_t code_point;
-  if (std::strcmp(name, "amp") == 0)
-    code_point = '&';
-  else if (std::strcmp(name, "apos") == 0)
-    code_point = '\'';
-  else if (std::strcmp(name, "gt") == 0)
-    code_point = '>';
-  else if (std::strcmp(name, "lt") == 0)
-    code_point = '<';
-  else if (std::strcmp(name, "quot") == 0)
-    code_point = '"';
-  else
-    throw ValueException("Unexpected tag name");
+  const auto &it = _escape_sequences.find(name);
+  if (it == _escape_sequences.end()) {
+    std::ostringstream ss;
+    ss << "Unexpected SGML escape sequence name '" << name << "'";
+    throw ValueException(ss.str());
+  }
 
+  const unicode_t code_point = it->second;
   _text_buffer.write(code_point, static_cast<uint32_t>(fpc - _text_buffer.start()));
 }
 
@@ -381,6 +389,24 @@ SGMLishLexer::_create_xml_decl_node(void) {
 }
 
 
+void
+SGMLishLexer::dump_state(std::ostream &out) const {
+  out << "{left=" << (_state.pe - _state.p) << " p='";
+  auto it = _state.p;
+  for (size_t i = 0; i != 128; ++i) {
+    auto c = *it;
+    out << *reinterpret_cast<char *>(&c);
+    ++it;
+    if (it == _state.pe)
+      break;
+  }
+  out << "'";
+  if (it != _state.pe)
+    out << "...";
+  out << "}";
+}
+
+
 // ================================================================================================
 // SGMLishParser::ParseError
 // ================================================================================================
@@ -413,6 +439,14 @@ SGMLishParser::parse(Pool &node_pool) {
     // Try and form the tree structure, keeping a stack of the currently open tags.
     switch (node->type()) {
     case SGMLishNodeType::START_TAG:
+      // If the node at the current top of the stack is a leaf tag, close it.
+      if (!stack.empty()) {
+        name0 = stack.top()->name();
+        const auto &it = _leaf_tag_names.find(std::string(reinterpret_cast<const char *>(name0->bytes()), name0->nitems_used()));
+        if (it != _leaf_tag_names.end())
+          stack.pop();
+      }
+
       // Push the node to the stack of opened tags, and promote it to root if necessary.
       if (!stack.empty())
         stack.top()->add_child(*node);
@@ -421,6 +455,14 @@ SGMLishParser::parse(Pool &node_pool) {
         _root = node;
       break;
     case SGMLishNodeType::END_TAG:
+      // If the node at the current top of the stack is a leaf tag, close it.
+      if (!stack.empty()) {
+        name0 = stack.top()->name();
+        const auto &it = _leaf_tag_names.find(std::string(reinterpret_cast<const char *>(name0->bytes()), name0->nitems_used()));
+        if (it != _leaf_tag_names.end())
+          stack.pop();
+      }
+
       // Can't close a tag if there are no currently opened tags.
       if (stack.empty())
         throw ParseError("Encountered an end tag but the parsing stack is empty");
@@ -460,8 +502,13 @@ SGMLishParser::parse(Pool &node_pool) {
   if (!stack.empty()) {
     if (_lexer.at_eof())
       throw ParseError("EOF hit but the parse stack is not empty. Probably malformed SGML.");
-    else
-      throw ParseError("SGMLishLexer failed to lex. Probably invalid SGML (unescaped &).");
+    else {
+      std::ostringstream ss;
+      ss << "SGMLishLexer failed to lex. Probably invalid SGML (unescaped &). Lexer state=";
+      _lexer.dump_state(ss);
+      ss << ".";
+      throw ParseError(ss.str());
+    }
   }
 
   return _root;
