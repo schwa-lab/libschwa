@@ -58,7 +58,7 @@ namespace schwa {
         _grow(std::max(_nitems_grow, buffer.nitems_used() - nitems_free));
       std::memcpy(_bytes + _nitems_used, buffer.bytes(), buffer.nitems_used()*sizeof(uint8_t));
       std::memcpy(_offsets + _nitems_used, buffer.offsets(), buffer.nitems_used()*sizeof(uint32_t));
-      std::memset(_flags + _nitems_used, BreakFlag::NONE, buffer.nitems_used()*sizeof(BreakFlag));
+      std::memset(_flags + _nitems_used, to_underlying(BreakFlag::NONE), buffer.nitems_used()*sizeof(BreakFlag));
 
       // Either update our initial offset or the first copied offset.
       if (_nitems_used == 0)
