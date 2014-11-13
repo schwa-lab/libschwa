@@ -231,7 +231,7 @@ main(int argc, char **argv) {
       dr::Writer writer(out, schema);
 
       for (cs::Doc *doc = nullptr; (doc = importer.import()) != nullptr; ) {
-        std::cerr << "Read in doc '" << doc->doc_id << "' date='" << doc->story_date << "' dateline='" << doc->dateline << "'" << std::endl;
+        std::cerr << "Read in doc '" << doc->doc_id << "' date='" << doc->date << "' dateline='" << doc->dateline << "'" << std::endl;
         writer << *doc;
       }
     }
@@ -243,7 +243,7 @@ main(int argc, char **argv) {
       dr::Writer writer(out, schema);
 
       for (cs::Doc *doc = nullptr; (doc = importer.import()) != nullptr; ) {
-        std::cerr << "Read in doc '" << doc->doc_id << "' date='" << doc->story_date << "' dateline='" << doc->dateline << "'" << std::endl;
+        std::cerr << "Read in doc '" << doc->doc_id << "' date='" << doc->date << "' dateline='" << doc->dateline << "'" << std::endl;
         writer << *doc;
       }
     }

@@ -8,10 +8,16 @@ namespace canonical_schema {
 // ================================================================================================
 // docrep models
 // ================================================================================================
-Heading::Heading(void) : level(0) { }
+Heading::Heading(void) : sentence(nullptr), level(0) { }
+
+
+ListItem::ListItem(void) : sentence(nullptr), list(nullptr) { }
 
 
 List::List(void) : ordered(false) { }
+
+
+Block::Block(void) : list(nullptr), heading(nullptr), paragraph(nullptr) { }
 
 
 // ================================================================================================
@@ -64,19 +70,19 @@ List::Schema::Schema(void) :
 List::Schema::~Schema(void) { }
 
 
-Unit::Schema::Schema(void) :
-    dr::Ann::Schema<Unit>("Unit", "Abstract model representing the sequential top-level units of the document"),
+Block::Schema::Schema(void) :
+    dr::Ann::Schema<Block>("Block", "Abstract model representing the sequential top-level blocks of the document"),
     list(*this, "list", "Pointer to the List object if this is a list", dr::FieldMode::READ_WRITE),
     heading(*this, "heading", "Pointer to the Heading object if this is a heading", dr::FieldMode::READ_WRITE),
     paragraph(*this, "paragraph", "Pointer to the Paragraph object if this is a paragraph", dr::FieldMode::READ_WRITE)
   { }
-Unit::Schema::~Schema(void) { }
+Block::Schema::~Schema(void) { }
 
 
 Doc::Schema::Schema(void) :
     dr::Doc::Schema<Doc>("Doc", "The document class"),
     doc_id(*this, "doc_id", "The ID of the document", dr::FieldMode::READ_WRITE),
-    story_date(*this, "story_date", "The ISO-8601 representation of the date of publication", dr::FieldMode::READ_WRITE),
+    date(*this, "date", "The ISO-8601 representation of the date of publication", dr::FieldMode::READ_WRITE),
     dateline(*this, "dateline", "The dateline of the document", dr::FieldMode::READ_WRITE),
     headline(*this, "headline", "The headline of the document", dr::FieldMode::READ_WRITE),
     encoding(*this, "encoding", "The name of the encoding of the original document", dr::FieldMode::READ_WRITE),
@@ -86,7 +92,7 @@ Doc::Schema::Schema(void) :
     headings(*this, "headings", "The store for the headings", dr::FieldMode::READ_WRITE),
     list_items(*this, "list_items", "The store for the list items", dr::FieldMode::READ_WRITE),
     lists(*this, "lists", "The store for the lists", dr::FieldMode::READ_WRITE),
-    units(*this, "units", "The store for the units", dr::FieldMode::READ_WRITE)
+    blocks(*this, "blocks", "The store for the blocks", dr::FieldMode::READ_WRITE)
   { }
 Doc::Schema::~Schema(void) { }
 

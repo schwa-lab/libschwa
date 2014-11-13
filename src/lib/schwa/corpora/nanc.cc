@@ -52,6 +52,7 @@ private:
   tk::Tokenizer _tokenizer;
 
   void _handle_docid(const fm::SGMLishNode &node);
+  void _handle_headline(const fm::SGMLishNode &node);
   void _handle_msgdate(const fm::SGMLishNode &node);
   void _handle_p(const fm::SGMLishNode &node);
   void _handle_seqno(const fm::SGMLishNode &node);
@@ -145,8 +146,16 @@ NANCImporter::Impl::_handle_docid(const fm::SGMLishNode &node) {
   if (RE2::FullMatch(_doc->doc_id, RE_DATE_IN_DOCID, &date_year, &date_month, &date_day)) {
     std::ostringstream ss;
     ss << "19" << date_year << "-" << date_month << "-" << date_day;
-    _doc->story_date = ss.str();
+    _doc->date = ss.str();
   }
+}
+
+
+void
+NANCImporter::Impl::_handle_headline(const fm::SGMLishNode &node) {
+  // Strip surrounding whitespace.
+  _doc->headline = std::string(reinterpret_cast<const char *>(node.text()->bytes()), node.text()->nitems_used());
+  RE2::GlobalReplace(&_doc->headline, RE_SURROUNDING_WHITESPACE, "");
 }
 
 
@@ -159,7 +168,7 @@ NANCImporter::Impl::_handle_msgdate(const fm::SGMLishNode &node) {
   if (RE2::FullMatch(text, RE_MSGDATE, &date_year, &date_month, &date_day)) {
     std::ostringstream ss;
     ss << "19" << date_year << "-" << date_month << "-" << date_day;
-    _doc->story_date = ss.str();
+    _doc->date = ss.str();
 
     // Construct a docid in the same format was {latwp,nyt,reuff,reute}.
     ss.str("");
@@ -214,12 +223,16 @@ NANCImporter::Impl::_handle_p(const fm::SGMLishNode &node) {
   _tokenizer.tokenize(ois, *_doc);
   const size_t nsentences_after = _doc->sentences.size();
 
-  // Create the Paragraph object and add it to the document.
+  // Create the Paragraph and Block objects, and add them to the document.
   if (nsentences_before != nsentences_after) {
     cs::Paragraph paragraph;
     paragraph.span.start = reinterpret_cast<cs::Sentence *>(nsentences_before);
     paragraph.span.stop = reinterpret_cast<cs::Sentence *>(nsentences_after);
     _doc->paragraphs.push_back(paragraph);
+
+    cs::Block block;
+    block.paragraph = reinterpret_cast<cs::Paragraph *>(_doc->paragraphs.size() - 1);
+    _doc->blocks.push_back(block);
   }
 }
 
@@ -249,6 +262,13 @@ NANCImporter::Impl::_process_tree(const fm::SGMLishNode &node) {
       _handle_msgdate(*child);
   }
 
+  // If we're at a <HEADLINE> or <HL> node, extract the document headline text.
+  if (node.is_start_tag() && (node.has_name("headline") || node.has_name("hl"))) {
+    child = node.child();
+    if (child != nullptr && child->is_text())
+      _handle_headline(*child);
+  }
+
   // If we're at a <P> node, extract and tokenize the contents.
   if (node.is_start_tag() && node.has_name("p")) {
     child = node.child();
@@ -275,6 +295,9 @@ NANCImporter::Impl::_unswizzle_pointers(void) {
     paragraph.span.start = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.start)];
     paragraph.span.stop = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.stop)];
   }
+
+  for (auto &block : _doc->blocks)
+    block.paragraph = &_doc->paragraphs[reinterpret_cast<size_t>(block.paragraph)];
 }
 
 

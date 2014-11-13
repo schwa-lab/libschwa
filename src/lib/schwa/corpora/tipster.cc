@@ -118,7 +118,7 @@ TipsterImporter::Impl::_handle_date(const fm::SGMLishNode &node) {
     if (date_day.size() == 1)
       ss << "0";
     ss << date_day;
-    _doc->story_date = ss.str();
+    _doc->date = ss.str();
   }
 }
 
@@ -133,10 +133,9 @@ TipsterImporter::Impl::_handle_docno(const fm::SGMLishNode &node) {
 
 void
 TipsterImporter::Impl::_handle_hl(const fm::SGMLishNode &node) {
-  (void)node;
-  // TODO tokenize the resultant sentence.
-  //_text_lexer.lex(*node.text());
-  //std::cerr << "<HL> #pars=" << _text_lexer.paragraph_indexes().size() << std::endl;
+  // Strip surrounding whitespace.
+  _doc->headline = std::string(reinterpret_cast<const char *>(node.text()->bytes()), node.text()->nitems_used());
+  RE2::GlobalReplace(&_doc->headline, RE_SURROUNDING_WHITESPACE, "");
 }
 
 
@@ -190,26 +189,25 @@ TipsterImporter::Impl::_handle_text(const fm::SGMLishNode &node) {
 
     // Copy lines that we haven't classified as being a table row into the buffer to send to the tokenizer. what we've classified as a table row.
     tk::OffsetInputStream<> ois(pair.second - pair.first);
-    for (size_t i = 0; i != line_bounds.size(); ++i) {
+    for (size_t i = 0; i != line_bounds.size(); ++i)
       if (!is_table_row[i])
         ois.write(line_bounds[i].first, line_bounds[i].second);
-      //else {
-        //std::string s(reinterpret_cast<const char *>(line_bounds[i].first.get_bytes()), line_bounds[i].second - line_bounds[i].first);
-        //std::cerr << i << ") " << s << std::endl;
-      //}
-    }
 
     // Tokenize the paragraph.
     const size_t nsentences_before = _doc->sentences.size();
     _tokenizer.tokenize(ois, *_doc);
     const size_t nsentences_after = _doc->sentences.size();
 
-    // Create the Paragraph object and add it to the document.
+    // Create the Paragraph and Block objects, and add them to the document.
     if (nsentences_before != nsentences_after) {
       cs::Paragraph paragraph;
       paragraph.span.start = reinterpret_cast<cs::Sentence *>(nsentences_before);
       paragraph.span.stop = reinterpret_cast<cs::Sentence *>(nsentences_after);
       _doc->paragraphs.push_back(paragraph);
+
+      cs::Block block;
+      block.paragraph = reinterpret_cast<cs::Paragraph *>(_doc->paragraphs.size() - 1);
+      _doc->blocks.push_back(block);
     }
   }
 }
@@ -273,6 +271,9 @@ TipsterImporter::Impl::_unswizzle_pointers(void) {
     paragraph.span.start = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.start)];
     paragraph.span.stop = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.stop)];
   }
+
+  for (auto &block : _doc->blocks)
+    block.paragraph = &_doc->paragraphs[reinterpret_cast<size_t>(block.paragraph)];
 }
 
 

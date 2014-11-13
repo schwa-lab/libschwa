@@ -13,13 +13,13 @@ namespace schwa {
       // docrep models
       // ======================================================================
       class Doc;
+      class Block;
       class Heading;
       class List;
       class ListItem;
       class Paragraph;
       class Sentence;
       class Token;
-      class Unit;
 
 
       class Token : public dr::Ann {
@@ -68,6 +68,8 @@ namespace schwa {
         dr::Pointer<Sentence> sentence;
         dr::Pointer<List> list;
 
+        ListItem(void);
+
         class Schema;
       };
 
@@ -88,15 +90,17 @@ namespace schwa {
 
 
       /**
-       * A Unit is an abstract model that represents top-level elements of a document. One and only
-       * one of the pointers in this model will be not-null. Iterating through the store of Unit
+       * A block is an abstract model that represents top-level elements of a document. One and only
+       * one of the pointers in this model will be not-null. Iterating through the store of Block
        * objects will yield the overall document structure as it originally appeared.
        **/
-      class Unit : public dr::Ann {
+      class Block : public dr::Ann {
       public:
         dr::Pointer<List> list;
         dr::Pointer<Heading> heading;
         dr::Pointer<Paragraph> paragraph;
+
+        Block(void);
 
         class Schema;
       };
@@ -104,10 +108,10 @@ namespace schwa {
 
       class Doc : public dr::Doc {
       public:
-        std::string doc_id;      //!< The contents of the `DOCNO` element.
-        std::string story_date;  //!< ISO-8601 date representation of the contents of the `DD` element.
+        std::string doc_id;
+        std::string date;  //!< ISO-8601 date representation.
         std::string dateline;
-        dr::Pointer<Sentence> headline;
+        std::string headline;
         std::string encoding;  //!< The name of the encoding of the original document.
 
         dr::Store<Token> tokens;
@@ -116,7 +120,7 @@ namespace schwa {
         dr::Store<Heading> headings;
         dr::Store<ListItem> list_items;
         dr::Store<List> lists;
-        dr::Store<Unit> units;
+        dr::Store<Block> blocks;
 
         class Schema;
       };
@@ -184,11 +188,11 @@ namespace schwa {
       };
 
 
-      class Unit::Schema : public dr::Ann::Schema<Unit> {
+      class Block::Schema : public dr::Ann::Schema<Block> {
       public:
-        DR_POINTER(&Unit::list, &Doc::lists) list;
-        DR_POINTER(&Unit::heading, &Doc::headings) heading;
-        DR_POINTER(&Unit::paragraph, &Doc::paragraphs) paragraph;
+        DR_POINTER(&Block::list, &Doc::lists) list;
+        DR_POINTER(&Block::heading, &Doc::headings) heading;
+        DR_POINTER(&Block::paragraph, &Doc::paragraphs) paragraph;
 
         Schema(void);
         virtual ~Schema(void);
@@ -198,9 +202,9 @@ namespace schwa {
       class Doc::Schema : public dr::Doc::Schema<Doc> {
       public:
         DR_FIELD(&Doc::doc_id) doc_id;
-        DR_FIELD(&Doc::story_date) story_date;
+        DR_FIELD(&Doc::date) date;
         DR_FIELD(&Doc::dateline) dateline;
-        DR_POINTER(&Doc::headline, &Doc::sentences) headline;
+        DR_FIELD(&Doc::headline) headline;
         DR_FIELD(&Doc::encoding) encoding;
 
         DR_STORE(&Doc::tokens) tokens;
@@ -209,7 +213,7 @@ namespace schwa {
         DR_STORE(&Doc::headings) headings;
         DR_STORE(&Doc::list_items) list_items;
         DR_STORE(&Doc::lists) lists;
-        DR_STORE(&Doc::units) units;
+        DR_STORE(&Doc::blocks) blocks;
 
         Schema(void);
         virtual ~Schema(void);
