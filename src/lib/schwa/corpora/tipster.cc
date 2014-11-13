@@ -314,7 +314,7 @@ TipsterImporter::~TipsterImporter(void) {
 }
 
 cs::Doc *
-TipsterImporter::import(void) const {
+TipsterImporter::import(void) {
   return _impl->import();
 }
 

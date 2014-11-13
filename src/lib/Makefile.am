@@ -73,6 +73,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/containers/block_vector.h \
 		schwa/containers/block_vector_impl.h \
 		schwa/containers.h \
+		schwa/corpora/clueweb.h \
+		schwa/corpora/importer.h \
 		schwa/corpora/nanc.h \
 		schwa/corpora/tipster.h \
 		schwa/dr/config.h \
@@ -165,6 +167,8 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/config/main.cc \
 		schwa/config/op.cc \
 		schwa/config/serialisation.cc \
+		schwa/corpora/clueweb.cc \
+		schwa/corpora/importer.cc \
 		schwa/corpora/nanc.cc \
 		schwa/corpora/tipster.cc \
 		schwa/dr/config.cc \

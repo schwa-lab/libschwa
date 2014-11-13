@@ -6,7 +6,6 @@
 #include <string>
 
 #include <schwa/_base.h>
-#include <schwa/formats/html.h>
 
 
 namespace schwa {

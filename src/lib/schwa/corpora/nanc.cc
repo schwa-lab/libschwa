@@ -338,7 +338,7 @@ NANCImporter::~NANCImporter(void) {
 }
 
 cs::Doc *
-NANCImporter::import(void) const {
+NANCImporter::import(void) {
   return _impl->import();
 }
 

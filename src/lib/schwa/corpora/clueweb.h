@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_CORPORA_NANC_H_
-#define SCHWA_CORPORA_NANC_H_
+#ifndef SCHWA_CORPORA_CLUEWEB_H_
+#define SCHWA_CORPORA_CLUEWEB_H_
 
 #include <string>
 
@@ -11,22 +11,22 @@
 namespace schwa {
   namespace corpora {
 
-    class NANCImporter : public Importer {
+    class ClueWebImporter : public Importer {
     private:
       class Impl;
       Impl *_impl;
 
     public:
-      explicit NANCImporter(const std::string &path);
-      virtual ~NANCImporter(void);
+      explicit ClueWebImporter(const std::string &path);
+      virtual ~ClueWebImporter(void);
 
       virtual canonical_schema::Doc *import(void) override;
 
     private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(NANCImporter);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(ClueWebImporter);
     };
 
   }  // namespace corpora
 }  // namespace schwa
 
-#endif  // SCHWA_CORPORA_NANC_H_
+#endif  // SCHWA_CORPORA_CLUEWEB_H_

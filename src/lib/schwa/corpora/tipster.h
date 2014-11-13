@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <schwa/_base.h>
-#include <schwa/canonical-schema.h>
+#include <schwa/corpora/importer.h>
 #include <schwa/utils/buffer.h>
 #include <schwa/utils/ragel.h>
 
@@ -15,16 +15,16 @@
 namespace schwa {
   namespace corpora {
 
-    class TipsterImporter {
+    class TipsterImporter : public Importer {
     private:
       class Impl;
       Impl *_impl;
 
     public:
       explicit TipsterImporter(const std::string &path);
-      ~TipsterImporter(void);
+      virtual ~TipsterImporter(void);
 
-      canonical_schema::Doc *import(void) const;
+      virtual canonical_schema::Doc *import(void) override;
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(TipsterImporter);
