@@ -128,6 +128,10 @@
   unicode_e003b = 0xf3 0xa0 0x80 0xbb ;  # U+e003b tag semicolon (󠀻)
   semicolon = unicode_003b | unicode_061b | unicode_1364 | unicode_204f | unicode_236e | unicode_2e35 | unicode_a6f6 | unicode_fe14 | unicode_fe54 | unicode_ff1b | unicode_e003b ;
 
+  # Brackets.
+  open_bracket = '(' | '[' | '{' ;
+  close_bracket = ')' | ']' | '}' ;
+
   # Punctuation symbols that end a token.
   end_punct = unicode_punct_close | comma | colon | semicolon ;
 

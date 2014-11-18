@@ -5,6 +5,7 @@
   machine tokenizer;
   alphtype unsigned char;
 
+  action abbreviation { _abbreviation(); }
   action contraction { _contraction(); }
   action ignore { _ignore(); }
   action punctuation { _punctuation(); }
@@ -21,13 +22,15 @@
     open_double_quote => { _open_double_quote(); };
     close_double_quote => { _close_double_quote(); };
 
+    open_bracket => { _open_bracket(); };
+    close_bracket => { _close_bracket(); };
+
     full_stop => { _terminator(NORMALISED_PERIOD); };
     question_mark => { _terminator(NORMALISED_QUESTION_MARK); };
     inverted_question_mark => { _punctuation(NORMALISED_INVERTED_QUESTION_MARK); };
     exclamation_mark => { _terminator(NORMALISED_EXCLAMATION_MARK); };
     inverted_exclamation_mark => { _punctuation(NORMALISED_INVERTED_EXCLAMATION_MARK); };
     ellipsis => { _punctuation(NORMALISED_ELLIPSIS); };
-
     dash => { _punctuation(NORMALISED_DASH); };
 
     unicode_space+ | unicode_line_space => ignore;
@@ -46,12 +49,12 @@
 
     'and/or' | 'AND/OR' => word;
 
-    contractions_misc | acronym | title => word;
+    contractions_misc | ( lower+ '-' )? acronym | title => word;
     symbols => punctuation;
     emoticon => punctuation;
-    abbreviation_date | state | address_suffix => word;
+    abbreviation | abbreviation_date | abbreviation_org | abbreviation_state => abbreviation;
 
-    abbreviation_org | abbreviation | lines | currency_symbol | numbers | date_time => word;
+    address_suffix | lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;
     default => word;
 

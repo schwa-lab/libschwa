@@ -255,9 +255,12 @@ namespace schwa {
       OffsetInputStream<> *_ois;
       canonical_schema::Doc *_doc;
       size_t _ntokens_before;
-      bool _seen_terminator;
+      bool _in_brackets;
       bool _in_double_quotes;
       bool _in_single_quotes;
+      bool _prev_was_abbrev;
+      bool _prev_was_close_quote;
+      bool _seen_terminator;
 
       bool _tokenize(void);
 
@@ -265,17 +268,20 @@ namespace schwa {
       void _create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *norm);
       void _flush_sentence(void);
 
+      void _abbreviation(void);
+      void _close_bracket(void);
       void _close_double_quote(void);
       void _close_single_quote(void);
       void _contraction(void);
       void _double_quote(void);
       void _ignore(void);
+      void _open_bracket(void);
       void _open_double_quote(void);
       void _open_single_quote(void);
       void _punctuation(const uint8_t *norm=nullptr);
       void _single_quote(void);
       void _split(void);
-      void _terminator(const uint8_t *norm=nullptr);
+      void _terminator(const uint8_t *norm);
       void _word(void);
 
     public:

@@ -88,6 +88,7 @@
     | 'Hon'i
     | 'Jnr'i
     | 'Jr'i
+    | 'PhD'i | 'Ph.D'i
     | 'Snr'i
     | 'Sr'i
     ;
@@ -151,7 +152,7 @@
     | 'Yuk'i
     ;
   administrative_division = 'Prov'i ;
-  state = ( us_state_1 | us_state_2 | canada_state | administrative_division ) '.' ;
+  abbreviation_state = ( us_state_1 | us_state_2 '.' us_state_1 | canada_state | administrative_division ) '.' ;
 
   # https://www.usps.com/send/official-abbreviations.htm#2
   street_suffix =
@@ -256,11 +257,14 @@
 
   # Business/organisation names.
   abbreviation_corp =
-      'Co'i | 'Cos'i
+      'Bancorp'i
+    | 'Cie'i # Abbrevation for company in French.
+    | 'Co'i | 'Cos'i
     | 'Corp'i
     | 'Coop'i
     | 'Co-op'i
     | 'Inc'i
+    | 'Llp'i
     | 'Ltd'i
     | 'Plc'i
     | 'Pty'i
@@ -298,17 +302,15 @@
       | 'devel'i
       | 'disc'i
       | 'discont'i
-      | 'e.g'i
       | 'ed'i
       | 'eds'i
-      | 'eg'i
+      | 'eg'i | 'e.g'i
       | 'equiv'i
       | 'etc'i
       | 'excl'i
       | 'expell'i
       | 'fin'i
-      | 'i.e'i
-      | 'ie'i
+      | 'ie'i | 'i.e'i
       | 'imp'i
       | 'incl'i
       | 'ins'i
@@ -323,6 +325,7 @@
       | 'viz'i
       | 'vol'i
       | 'vols'i
+      | 'vs'i | 'v.s'i
    ) '.' ;
 
 }%%

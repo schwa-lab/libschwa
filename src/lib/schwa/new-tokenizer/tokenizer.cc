@@ -69,6 +69,15 @@ Tokenizer::~Tokenizer(void) { }
 
 
 void
+Tokenizer::_abbreviation(void) {
+  _flush_sentence();
+  _create_token(_state.ts, _state.te, _state.n1);
+  _state.reset();
+  _prev_was_abbrev = true;
+}
+
+
+void
 Tokenizer::_create_sentence(void) {
   // Don't create an empty sentence.
   if (_ntokens_before == _doc->tokens.size())
@@ -87,6 +96,14 @@ Tokenizer::_create_sentence(void) {
 
 void
 Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *const norm) {
+  // If the first code point is upper case and the previous token was an abbreviation, force a new sentence.
+  if (_prev_was_abbrev) {
+    const uint8_t *start = ts.get_bytes();
+    const unicode_t first = read_utf8(&start, te.get_bytes());
+    if (unicode::is_upper(first))
+      _create_sentence();
+  }
+
   // Create the Token object and add it to the document.
   cs::Token token;
   token.span.start = ts.get_summed_offset();
@@ -95,6 +112,10 @@ Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::
   if (norm != nullptr)
     token.norm = std::string(reinterpret_cast<const char *>(norm));
   _doc->tokens.push_back(token);
+
+  // Reset state.
+  _prev_was_abbrev = false;
+  _prev_was_close_quote = false;
 }
 
 
@@ -119,10 +140,19 @@ Tokenizer::_contraction(void) {
 
 
 void
+Tokenizer::_close_bracket(void) {
+  _create_token(_state.ts, _state.te, _state.n1);
+  _state.reset();
+  _in_brackets = false;
+}
+
+
+void
 Tokenizer::_close_double_quote(void) {
   _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
   _state.reset();
   _in_double_quotes = false;
+  _prev_was_close_quote = true;
 }
 
 
@@ -131,27 +161,31 @@ Tokenizer::_close_single_quote(void) {
   _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
   _state.reset();
   _in_single_quotes = false;
+  _prev_was_close_quote = true;
 }
 
 
 void
 Tokenizer::_double_quote(void) {
-  if (_in_double_quotes) {
-    _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
-    _in_double_quotes = false;
-  }
-  else {
-    _flush_sentence();
-    _create_token(_state.ts, _state.te, NORMALISED_OPEN_DOUBLE_QUOTE);
-    _in_double_quotes = true;
-  }
-  _state.reset();
+  if (_in_double_quotes)
+    _close_double_quote();
+  else
+    _open_double_quote();
 }
 
 
 void
 Tokenizer::_ignore(void) {
   // TODO actually take into account BreakFlags.
+}
+
+
+void
+Tokenizer::_open_bracket(void) {
+  _flush_sentence();
+  _create_token(_state.ts, _state.te, _state.n1);
+  _state.reset();
+  _in_brackets = true;
 }
 
 
@@ -173,7 +207,8 @@ Tokenizer::_open_single_quote(void) {
 }
 
 void
-Tokenizer::_punctuation(const uint8_t *norm) {
+Tokenizer::_punctuation(const uint8_t *const norm) {
+  _flush_sentence();
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
 }
@@ -211,16 +246,34 @@ Tokenizer::_split(void) {
 
 
 void
-Tokenizer::_terminator(const uint8_t *norm) {
-  _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
+Tokenizer::_terminator(const uint8_t *const norm) {
+  _create_token(_state.ts, _state.te, norm);
   _state.reset();
-  _seen_terminator = true;
+  if (norm == NORMALISED_PERIOD) {
+    if (!_in_single_quotes)
+      _seen_terminator = true;
+  }
+  else {
+    if (!(_in_brackets || _in_single_quotes))
+      _seen_terminator = true;
+  }
 }
 
 
 void
 Tokenizer::_word(void) {
-  _flush_sentence();
+  // Maybe flush sentence.
+  if (_seen_terminator && _prev_was_close_quote) {
+    const uint8_t *start = _state.ts.get_bytes();
+    const unicode_t first = read_utf8(&start, _state.te.get_bytes());
+    if (unicode::is_lower(first))
+      _seen_terminator = false;
+    else
+      _flush_sentence();
+  }
+  else
+    _flush_sentence();
+
   _create_token(_state.ts, _state.te, _state.n1);
   _state.reset();
 }
@@ -233,9 +286,12 @@ Tokenizer::tokenize(OffsetInputStream<> &ois, cs::Doc &doc) {
   _ois = &ois;
   _doc = &doc;
   _ntokens_before = doc.tokens.size();
-  _seen_terminator = false;
+  _in_brackets = false;
   _in_double_quotes = false;
   _in_single_quotes = false;
+  _prev_was_abbrev = false;
+  _prev_was_close_quote = false;
+  _seen_terminator = false;
 
   // Run the Ragel-generated tokenizer.
   const bool success = _tokenize();
