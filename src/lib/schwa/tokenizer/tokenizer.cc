@@ -1,235 +1,308 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#include <schwa/tokenizer.h>
+#include <schwa/tokenizer/tokenizer.h>
 
-#include <cctype>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
+#include <cassert>
+#include <sstream>
 #include <string>
 
-#include <schwa/io/istream_source.h>
-#include <schwa/io/mmapped_source.h>
+#include <schwa/exception.h>
+#include <schwa/utils/enums.h>
+
+namespace cs = ::schwa::canonical_schema;
 
 
 namespace schwa {
 namespace tokenizer {
 
+// ============================================================================
+// Punctuation normalisation constants.
+// ============================================================================
+const uint8_t *const NORMALISED_CLOSE_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"”");
+const uint8_t *const NORMALISED_CLOSE_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"’");
+const uint8_t *const NORMALISED_DASH = reinterpret_cast<const uint8_t *>(u8"--");
+const uint8_t *const NORMALISED_ELLIPSIS = reinterpret_cast<const uint8_t *>(u8"...");
+const uint8_t *const NORMALISED_EXCLAMATION_MARK = reinterpret_cast<const uint8_t *>(u8"!");
+const uint8_t *const NORMALISED_INVERTED_EXCLAMATION_MARK = reinterpret_cast<const uint8_t *>(u8"¡");
+const uint8_t *const NORMALISED_INVERTED_QUESTION_MARK = reinterpret_cast<const uint8_t *>(u8"¿");
+const uint8_t *const NORMALISED_OPEN_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"“");
+const uint8_t *const NORMALISED_OPEN_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"‘");
+const uint8_t *const NORMALISED_PERIOD = reinterpret_cast<const uint8_t *>(u8".");
+const uint8_t *const NORMALISED_QUESTION_MARK = reinterpret_cast<const uint8_t *>(u8"?");
+const uint8_t *const NORMALISED_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"'");
+
+
+// ============================================================================
+// Tokenizer::State
+// ============================================================================
+Tokenizer::State::State(void) : RagelState<OffsetInputStream<>::iterator>() { }
+
 void
-Tokenizer::_token(Type type, Stream &dest, State &state, const uint8_t *norm) const {
-  state.ensure_sentence(dest);
-  state.add(type, dest, norm);
+Tokenizer::State::reset(void) {
+  suffix = 0;
+  n1 = n2 = nullptr;
 }
 
 
 void
-Tokenizer::_word(Type type, Stream &dest, State &state, const uint8_t *norm) const {
-  if (state.seen_terminator) {
-    // XXX need to make this work better for UTF-8.
-    if (type == WORD && (std::isupper(*state.ts) || std::isdigit(*state.ts))) {
-      state.flush_sentence(dest);
+Tokenizer::State::reset(iterator start, iterator end) {
+  RagelState<OffsetInputStream<>::iterator>::reset(start, end);
+  reset();
+}
+
+
+std::ostream &
+Tokenizer::State::dump(std::ostream &out) const {
+  out << "{p=" << p.get_index() << " pe=" << pe.get_index() << " t='";
+  for (iterator it = ts; it != te; ++it)
+    out << *it;
+  out << "' suffix=" << suffix << "}";
+  return out;
+}
+
+
+// ============================================================================
+// Tokenizer
+// ============================================================================
+Tokenizer::Tokenizer(void) : _ois(nullptr), _doc(nullptr) { }
+
+Tokenizer::~Tokenizer(void) { }
+
+
+void
+Tokenizer::_abbreviation(void) {
+  _flush_sentence();
+  _create_token(_state.ts, _state.te, _state.n1);
+  _state.reset();
+  _prev_was_abbrev = true;
+}
+
+
+void
+Tokenizer::_create_sentence(void) {
+  // Don't create an empty sentence.
+  if (_ntokens_before == _doc->tokens.size())
+    return;
+
+  // Create the Sentence object and add it to the document.
+  cs::Sentence sentence;
+  sentence.span.start = reinterpret_cast<cs::Token *>(_ntokens_before);
+  sentence.span.stop = reinterpret_cast<cs::Token *>(_doc->tokens.size());
+  _doc->sentences.push_back(sentence);
+
+  // Set the index of the start of the next sentence.
+  _ntokens_before = _doc->tokens.size();
+}
+
+
+void
+Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *const norm) {
+  // If the first code point is upper case and the previous token was an abbreviation, force a new sentence.
+  if (_prev_was_abbrev && !_in_brackets) {
+    const uint8_t *start = ts.get_bytes();
+    const unicode_t first = read_utf8(&start, te.get_bytes());
+    if (unicode::is_upper(first))
+      _create_sentence();
+  }
+
+  // Create the Token object and add it to the document.
+  cs::Token token;
+  token.span.start = ts.get_summed_offset();
+  token.span.stop = te.get_summed_offset();
+  token.raw = std::string(reinterpret_cast<const char *>(ts.get_bytes()), reinterpret_cast<const char *>(te.get_bytes()));
+  if (norm != nullptr)
+    token.norm = std::string(reinterpret_cast<const char *>(norm));
+  _doc->tokens.push_back(token);
+
+  // Reset state.
+  _prev_was_abbrev = false;
+  _prev_was_close_quote = false;
+}
+
+
+inline void
+Tokenizer::_flush_sentence(void) {
+  if (_seen_terminator) {
+    _create_sentence();
+    _seen_terminator = false;
+  }
+}
+
+
+void
+Tokenizer::_contraction(void) {
+  assert(_state.suffix != 0);
+  assert(_state.n2 != nullptr);
+  _flush_sentence();
+  _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
+  _create_token(_state.te - _state.suffix, _state.te, _state.n2);
+  _state.reset();
+}
+
+
+void
+Tokenizer::_close_bracket(void) {
+  _create_token(_state.ts, _state.te, _state.n1);
+  _state.reset();
+  _in_brackets = false;
+}
+
+
+void
+Tokenizer::_close_double_quote(void) {
+  _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
+  _state.reset();
+  _in_double_quotes = false;
+  _prev_was_close_quote = true;
+}
+
+
+void
+Tokenizer::_close_single_quote(void) {
+  _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
+  _state.reset();
+  _in_single_quotes = false;
+  _prev_was_close_quote = true;
+}
+
+
+void
+Tokenizer::_double_quote(void) {
+  if (_in_double_quotes)
+    _close_double_quote();
+  else
+    _open_double_quote();
+}
+
+
+void
+Tokenizer::_ignore(void) {
+  // TODO actually take into account BreakFlags.
+}
+
+
+void
+Tokenizer::_open_bracket(void) {
+  _flush_sentence();
+  _create_token(_state.ts, _state.te, _state.n1);
+  _state.reset();
+  _in_brackets = true;
+}
+
+
+void
+Tokenizer::_open_double_quote(void) {
+  _flush_sentence();
+  _create_token(_state.ts, _state.te, NORMALISED_OPEN_DOUBLE_QUOTE);
+  _state.reset();
+  _in_double_quotes = true;
+}
+
+
+void
+Tokenizer::_open_single_quote(void) {
+  _flush_sentence();
+  _create_token(_state.ts, _state.te, NORMALISED_OPEN_SINGLE_QUOTE);
+  _state.reset();
+  _in_single_quotes = true;
+}
+
+void
+Tokenizer::_punctuation(const uint8_t *const norm) {
+  // Maybe flush sentence.
+  if (!(_seen_terminator && _prev_was_close_quote))
+    _flush_sentence();
+
+  _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
+  _state.reset();
+}
+
+
+void
+Tokenizer::_single_quote(void) {
+  if (_in_single_quotes) {
+    _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
+    _in_single_quotes = false;
+  }
+  else {
+    _flush_sentence();
+    if (_ntokens_before != _doc->tokens.size() && _state.ts.get_summed_offset() == _doc->tokens.back().span.stop) {
+      _create_token(_state.ts, _state.te, NORMALISED_SINGLE_QUOTE);
+      _in_single_quotes = false;
     }
     else {
-      state.seen_terminator = false;
+      _create_token(_state.ts, _state.te, NORMALISED_OPEN_SINGLE_QUOTE);
+      _in_single_quotes = true;
     }
   }
-  _token(type, dest, state, norm);
+  _state.reset();
 }
 
 
 void
-Tokenizer::_punct(Type type, Stream &dest, State &state, const uint8_t *norm) const {
-  state.flush_sentence(dest);
-  _token(type, dest, state, norm);
+Tokenizer::_split(void) {
+  assert(_state.suffix != 0);
+  _flush_sentence();
+  _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
+  _create_token(_state.te - _state.suffix, _state.te, _state.n2);
+  _state.reset();
 }
 
 
 void
-Tokenizer::_end(Type type, Stream &dest, State &state, const uint8_t *norm) const {
-  _token(type, dest, state, norm);
-}
-
-
-void
-Tokenizer::_split(Type type1, Type type2, Stream &dest, State &state, const uint8_t *norm1, const uint8_t *norm2) const {
-  if (state.seen_terminator) {
-    // need to make this work better for UTF-8
-    if (type1 == WORD && (std::isupper(*state.ts) || std::isdigit(*state.ts))) {
-      state.flush_sentence(dest);
-    }
-    else {
-      state.seen_terminator = false;
-    }
+Tokenizer::_terminator(const uint8_t *const norm) {
+  _create_token(_state.ts, _state.te, norm);
+  _state.reset();
+  if (norm == NORMALISED_PERIOD) {
+    if (!_in_single_quotes)
+      _seen_terminator = true;
   }
-  state.ensure_sentence(dest);
-  state.split(type1, type2, dest, norm1, norm2);
-}
-
-void
-Tokenizer::_terminator(Stream &dest, State &state, const uint8_t *norm) const {
-  state.seen_terminator = true;
-  _end(TERMINATOR, dest, state, norm);
-}
-
-void
-Tokenizer::_error(Stream &dest, State &state) const {
-  state.error(dest);
-}
-
-void
-Tokenizer::_single_quote(Stream &dest, State &state, const uint8_t *eof) const {
-  if (state.in_single_quotes || state.te == eof || !std::isalnum(*state.te)) {
-    _end(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"'"));
-    state.in_single_quotes = false;
-    return;
+  else {
+    if (!(_in_brackets || _in_single_quotes))
+      _seen_terminator = true;
   }
-
-  _punct(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"`"));
-  state.in_single_quotes = true;
 }
 
-void
-Tokenizer::_double_quote(Stream &dest, State &state, const uint8_t *) const {
-  if (state.in_double_quotes) {
-    _end(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"''"));
-    state.in_double_quotes = false;
-    return;
-  }
-
-  _punct(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"``"));
-  state.in_double_quotes = true;
-}
 
 void
-Tokenizer::_open_single_quote(Stream &dest, State &state) const {
-  _punct(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"`"));
-  state.in_single_quotes = true;
-}
-
-void
-Tokenizer::_close_single_quote(Stream &dest, State &state) const {
-  _end(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"'"));
-  state.in_single_quotes = false;
-}
-
-void
-Tokenizer::_open_double_quote(Stream &dest, State &state) const {
-  _punct(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"``"));
-  state.in_double_quotes = true;
-}
-
-void
-Tokenizer::_close_double_quote(Stream &dest, State &state) const {
-  _end(QUOTE, dest, state, reinterpret_cast<const uint8_t *>(u8"''"));
-  state.in_double_quotes = false;
-}
-
-void
-Tokenizer::_sep_text_paragraph(Stream &dest, State &state) const {
-  state.end_paragraph(dest);
-}
-
-void
-Tokenizer::_sep_html_paragraph(Stream &dest, State &state) const {
-  state.end_paragraph(dest);
-}
-
-void
-Tokenizer::_begin_html_paragraph(Stream &dest, State &state) const {
-  state.begin_paragraph(dest);
-}
-
-void
-Tokenizer::_end_html_paragraph(Stream &dest, State &state) const {
-  state.end_paragraph(dest);
-}
-
-void
-Tokenizer::_begin_html_heading(Stream &dest, State &state) const {
-  const long val = std::strtol(reinterpret_cast<const char *>(state.ts) + 2 /* <h */, nullptr, 10);
-  state.begin_heading(dest, static_cast<int>(val));
-}
-
-void
-Tokenizer::_end_html_heading(Stream &dest, State &state) const {
-  const long val = std::strtol(reinterpret_cast<const char *>(state.ts) + 3 /* </h */, nullptr, 10);
-  state.end_heading(dest, static_cast<int>(val));
-}
-
-void
-Tokenizer::_begin_html_list(Stream &dest, State &state) const {
-  state.begin_list(dest);
-}
-
-void
-Tokenizer::_end_html_list(Stream &dest, State &state) const {
-  state.end_list(dest);
-}
-
-void
-Tokenizer::_begin_html_item(Stream &dest, State &state) const {
-  state.begin_item(dest);
-}
-
-void
-Tokenizer::_end_html_item(Stream &dest, State &state) const {
-  state.end_item(dest);
-}
-
-void
-Tokenizer::_dash_or_item(Stream &dest, State &state) const {
-  if (state.in_sentence)
-    _punct(DASH, dest, state, reinterpret_cast<const uint8_t *>(u8"--"));
-  else
-    state.begin_item(dest);
-}
-
-void
-Tokenizer::_number_or_item(Stream &dest, State &state) const {
-  if (state.in_sentence) {
-    _split(NUMBER, PUNCTUATION, dest, state);
-    state.seen_terminator = true;
+Tokenizer::_word(void) {
+  // Maybe flush sentence.
+  if (_seen_terminator && _prev_was_close_quote) {
+    const uint8_t *start = _state.ts.get_bytes();
+    const unicode_t first = read_utf8(&start, _state.te.get_bytes());
+    if (unicode::is_lower(first))
+      _seen_terminator = false;
+    else
+      _flush_sentence();
   }
   else
-    state.begin_item(dest);
-}
+    _flush_sentence();
 
-bool
-Tokenizer::tokenize(Stream &dest, const uint8_t *data, OnError onerror) const {
-  return tokenize(dest, data, std::strlen(reinterpret_cast<const char *>(data)), onerror);
-}
-
-bool
-Tokenizer::tokenize(Stream &dest, const std::string &data, OnError onerror) const {
-  return tokenize(dest, reinterpret_cast<const uint8_t *>(data.data()), data.size(), onerror);
-}
-
-bool
-Tokenizer::tokenize_stream(Stream &dest, std::istream &in, size_t buffer_size, OnError onerror) const {
-  io::IStreamSource src(in);
-  return tokenize(dest, src, buffer_size, onerror);
-}
-
-bool
-Tokenizer::tokenize_mmap(Stream &dest, const std::string &filename, OnError onerror) const {
-  io::MMappedSource src(filename.c_str());
-  return tokenize(dest, reinterpret_cast<const uint8_t *>(src.data()), src.size(), onerror);
+  _create_token(_state.ts, _state.te, _state.n1);
+  _state.reset();
 }
 
 
+void
+Tokenizer::tokenize(OffsetInputStream<> &ois, cs::Doc &doc) {
+  // Reset our local state.
+  _state.reset(ois.begin(), ois.end());
+  _ois = &ois;
+  _doc = &doc;
+  _ntokens_before = doc.tokens.size();
+  _in_brackets = false;
+  _in_double_quotes = false;
+  _in_single_quotes = false;
+  _prev_was_abbrev = false;
+  _prev_was_close_quote = false;
+  _seen_terminator = false;
 
-bool
-Tokenizer::_tokenize(Stream &, State &, const uint8_t *&, const uint8_t *&, const uint8_t *, const uint8_t *, const uint8_t *, OnError) const {
-  return false;
-}
+  // Run the Ragel-generated tokenizer.
+  const bool success = _tokenize();
+  if (!success)
+    throw RagelException("Failed to tokenize using Tokenizer");
 
-bool
-Tokenizer::tokenize(Stream &, const uint8_t *, const size_t, OnError) const {
-  return false;
-}
-
-bool
-Tokenizer::tokenize(Stream &, io::Source &, const size_t, const OnError) const {
-  return false;
+  // Ensure the last sentence is closed.
+  _create_sentence();
 }
 
 }  // namespace tokenizer

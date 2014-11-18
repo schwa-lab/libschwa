@@ -15,13 +15,13 @@
 #include <schwa/formats/sgml.h>
 #include <schwa/formats/warc.h>
 #include <schwa/io/streams.h>
-#include <schwa/new-tokenizer/tokenizer.h>
+#include <schwa/tokenizer/tokenizer.h>
 
 
 namespace cs = ::schwa::canonical_schema;
 namespace fm = ::schwa::formats;
 namespace io = ::schwa::io;
-namespace tk = ::schwa::new_tokenizer;
+namespace tk = ::schwa::tokenizer;
 
 namespace schwa {
 namespace corpora {

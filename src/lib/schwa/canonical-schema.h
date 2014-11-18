@@ -90,7 +90,7 @@ namespace schwa {
        **/
       class List : public dr::Ann {
       public:
-        dr::Slice<ListItem *> items;
+        dr::Slice<ListItem *> span;
         bool ordered;
 
         List(void);
@@ -134,6 +134,8 @@ namespace schwa {
         dr::Store<Block> blocks;
 
         class Schema;
+
+        void unswizzle_pointers(void);
       };
 
 
@@ -201,7 +203,7 @@ namespace schwa {
 
       class List::Schema : public dr::Ann::Schema<List> {
       public:
-        DR_POINTER(&List::items, &Doc::list_items) items;
+        DR_POINTER(&List::span, &Doc::list_items) span;
         DR_FIELD(&List::ordered) ordered;
 
         Schema(void);

@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
-#ifndef SCHWA_NEW_TOKENIZER_TOKENIZER_IMPL_H_
-#define SCHWA_NEW_TOKENIZER_TOKENIZER_IMPL_H_
+#ifndef SCHWA_TOKENIZER_TOKENIZER_IMPL_H_
+#define SCHWA_TOKENIZER_TOKENIZER_IMPL_H_
 
 #include <algorithm>
 
@@ -8,7 +8,7 @@
 
 
 namespace schwa {
-  namespace new_tokenizer {
+  namespace tokenizer {
 
     template <typename ALLOC>
     OffsetInputStream<ALLOC>::OffsetInputStream(const size_t nitems_grow, const size_t initial_offset, const allocator_type &allocator) :
@@ -108,7 +108,7 @@ namespace schwa {
       ++_nitems_used;
     }
 
-  }  // namespace new_tokenizer
+  }  // namespace tokenizer
 }  // namespace schwa
 
-#endif  // SCHWA_NEW_TOKENIZER_TOKENIZER_H_
+#endif  // SCHWA_TOKENIZER_TOKENIZER_H_

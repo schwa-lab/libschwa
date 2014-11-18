@@ -20,6 +20,51 @@ List::List(void) : ordered(false) { }
 Block::Block(void) : list(nullptr), heading(nullptr), paragraph(nullptr) { }
 
 
+void
+Doc::unswizzle_pointers(void) {
+  for (auto &sentence : sentences) {
+    sentence.span.start = &tokens[reinterpret_cast<size_t>(sentence.span.start)];
+    sentence.span.stop = &tokens[reinterpret_cast<size_t>(sentence.span.stop)];
+  }
+
+  for (auto &paragraph : paragraphs) {
+    paragraph.span.start = &sentences[reinterpret_cast<size_t>(paragraph.span.start)];
+    paragraph.span.stop = &sentences[reinterpret_cast<size_t>(paragraph.span.stop)];
+  }
+
+  for (auto &heading : headings) {
+    if (heading.sentence != nullptr)
+      heading.sentence = &sentences[reinterpret_cast<size_t>(heading.sentence)];
+  }
+
+  for (auto &hyperlink : hyperlinks) {
+    hyperlink.span.start = &tokens[reinterpret_cast<size_t>(hyperlink.span.start)];
+    hyperlink.span.stop = &tokens[reinterpret_cast<size_t>(hyperlink.span.stop)];
+  }
+
+  for (auto &li : list_items) {
+    if (li.sentence != nullptr)
+      li.sentence = &sentences[reinterpret_cast<size_t>(li.sentence)];
+    if (li.list != nullptr)
+      li.list = &lists[reinterpret_cast<size_t>(li.list)];
+  }
+
+  for (auto &list : lists) {
+    list.span.start = &list_items[reinterpret_cast<size_t>(list.span.start)];
+    list.span.stop = &list_items[reinterpret_cast<size_t>(list.span.stop)];
+  }
+
+  for (auto &block : blocks) {
+    if (block.list != nullptr)
+      block.list = &lists[reinterpret_cast<size_t>(block.list)];
+    if (block.heading != nullptr)
+      block.heading = &headings[reinterpret_cast<size_t>(block.heading)];
+    if (block.paragraph != nullptr)
+      block.paragraph = &paragraphs[reinterpret_cast<size_t>(block.paragraph)];
+  }
+}
+
+
 // ================================================================================================
 // docrep schemas
 // ================================================================================================
@@ -72,7 +117,7 @@ ListItem::Schema::~Schema(void) { }
 
 List::Schema::Schema(void) :
     dr::Ann::Schema<List>("List", "The list class"),
-    items(*this, "items", "The items of teh list", dr::FieldMode::READ_WRITE),
+    span(*this, "span", "The span of ListItem's in the list", dr::FieldMode::READ_WRITE),
     ordered(*this, "ordered", "Whether or not this list has a semantic ordering on the items", dr::FieldMode::READ_WRITE)
   { }
 List::Schema::~Schema(void) { }

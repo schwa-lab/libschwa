@@ -12,8 +12,8 @@
 #include <schwa/exception.h>
 #include <schwa/formats/sgml.h>
 #include <schwa/io/streams.h>
-#include <schwa/new-tokenizer/tokenizer.h>
 #include <schwa/pool.h>
+#include <schwa/tokenizer/tokenizer.h>
 #include <schwa/unicode.h>
 #include <schwa/utils/buffer.h>
 
@@ -22,7 +22,7 @@
 
 namespace cs = ::schwa::canonical_schema;
 namespace fm = ::schwa::formats;
-namespace tk = ::schwa::new_tokenizer;
+namespace tk = ::schwa::tokenizer;
 using ::schwa::third_party::re2::RE2;
 
 namespace schwa {
@@ -58,7 +58,6 @@ private:
   void _handle_text(const fm::SGMLishNode &node);
 
   void _process_tree(const fm::SGMLishNode &node);
-  void _unswizzle_pointers(void);
 
   cs::Doc *_read_doc(void);
 
@@ -260,23 +259,6 @@ TipsterImporter::Impl::_process_tree(const fm::SGMLishNode &node) {
 }
 
 
-void
-TipsterImporter::Impl::_unswizzle_pointers(void) {
-  for (auto &sentence : _doc->sentences) {
-    sentence.span.start = &_doc->tokens[reinterpret_cast<size_t>(sentence.span.start)];
-    sentence.span.stop = &_doc->tokens[reinterpret_cast<size_t>(sentence.span.stop)];
-  }
-
-  for (auto &paragraph : _doc->paragraphs) {
-    paragraph.span.start = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.start)];
-    paragraph.span.stop = &_doc->sentences[reinterpret_cast<size_t>(paragraph.span.stop)];
-  }
-
-  for (auto &block : _doc->blocks)
-    block.paragraph = &_doc->paragraphs[reinterpret_cast<size_t>(block.paragraph)];
-}
-
-
 cs::Doc *
 TipsterImporter::Impl::_read_doc(void) {
   delete _doc;
@@ -299,7 +281,7 @@ TipsterImporter::Impl::_read_doc(void) {
   _process_tree(*root);
 
   // Unswizzle the docrep pointers and return the document.
-  _unswizzle_pointers();
+  _doc->unswizzle_pointers();
   return _doc;
 }
 

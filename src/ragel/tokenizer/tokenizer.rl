@@ -28,11 +28,11 @@
 }%%
 
 
-#include <schwa/new-tokenizer/tokenizer.h>
+#include <schwa/tokenizer/tokenizer.h>
 
 
 namespace schwa {
-namespace new_tokenizer {
+namespace tokenizer {
 
 %% write data noerror nofinal;
 
@@ -44,5 +44,5 @@ Tokenizer::_tokenize(void) {
   return _state.cs != %%{ write error; }%%;
 }
 
-}  // namespace new_tokenizer
+}  // namespace tokenizer
 }  // namespace schwa

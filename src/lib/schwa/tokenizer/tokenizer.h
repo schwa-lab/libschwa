@@ -2,76 +2,301 @@
 #ifndef SCHWA_TOKENIZER_TOKENIZER_H_
 #define SCHWA_TOKENIZER_TOKENIZER_H_
 
+#include <iostream>
+#include <numeric>
 #include <string>
 
 #include <schwa/_base.h>
-#include <schwa/tokenizer/common.h>
+#include <schwa/canonical-schema.h>
+#include <schwa/memory.h>
+#include <schwa/utils/buffer.h>
+#include <schwa/utils/ragel.h>
 
 
 namespace schwa {
-  namespace io {
-    class Source;
-  }
-
   namespace tokenizer {
 
-    class Stream;
+    extern const uint8_t *const NORMALISED_CLOSE_DOUBLE_QUOTE;
+    extern const uint8_t *const NORMALISED_CLOSE_SINGLE_QUOTE;
+    extern const uint8_t *const NORMALISED_DASH;
+    extern const uint8_t *const NORMALISED_ELLIPSIS;
+    extern const uint8_t *const NORMALISED_EXCLAMATION_MARK;
+    extern const uint8_t *const NORMALISED_INVERTED_EXCLAMATION_MARK;
+    extern const uint8_t *const NORMALISED_INVERTED_QUESTION_MARK;
+    extern const uint8_t *const NORMALISED_OPEN_DOUBLE_QUOTE;
+    extern const uint8_t *const NORMALISED_OPEN_SINGLE_QUOTE;
+    extern const uint8_t *const NORMALISED_PERIOD;
+    extern const uint8_t *const NORMALISED_QUESTION_MARK;
+    extern const uint8_t *const NORMALISED_SINGLE_QUOTE;
+
+
+    enum class BreakFlag : uint8_t {
+      NONE = 0,
+      FORCE_SENTENCE_BREAK,
+    };
+
+
+    template <typename ALLOC=schwa::AlignedAllocator<char>>
+    class OffsetInputStream {
+    private:
+      class Iterator {
+      private:
+        const OffsetInputStream *_ois;
+        size_t _index;
+
+      public:
+        Iterator(void) : _ois(nullptr), _index(0) { }
+        Iterator(const OffsetInputStream &ois, const size_t index) : _ois(&ois), _index(index) { }
+        Iterator(const Iterator &o) : _ois(o._ois), _index(o._index) { }
+        Iterator(const Iterator &&o) : _ois(o._ois), _index(o._index) { }
+        ~Iterator(void) { }
+
+        inline Iterator &
+        operator =(const Iterator &o) {
+          _ois = o._ois;
+          _index = o._index;
+          return *this;
+        }
+
+        inline Iterator &
+        operator =(int) {  // Needed for Ragel-generated code (state.ts = 0).
+          _ois = nullptr;
+          _index = 0;
+          return *this;
+        }
+
+        inline Iterator &
+        operator ++(void) {
+          ++_index;
+          return *this;
+        }
+
+        inline Iterator
+        operator ++(int) {
+          Iterator it(*this);
+          ++(*this);
+          return it;
+        }
+
+        inline Iterator &
+        operator +=(const size_t delta) {
+          _index += delta;
+          return *this;
+        }
+
+        inline Iterator &
+        operator --(void) {
+          --_index;
+          return *this;
+        }
+
+        inline Iterator
+        operator --(int) {
+          Iterator it(*this);
+          --(*this);
+          return it;
+        }
+
+        inline Iterator &
+        operator -=(const size_t delta) {
+          _index -= delta;
+          return *this;
+        }
+
+        inline Iterator
+        operator +(const size_t delta) {
+          Iterator it(*this);
+          it += delta;
+          return it;
+        }
+
+        inline Iterator
+        operator -(const size_t delta) {
+          Iterator it(*this);
+          it -= delta;
+          return it;
+        }
+
+        inline uint8_t
+        operator *(void) const {
+          return get_byte();
+        }
+
+        inline bool
+        operator ==(const Iterator &o) const {
+          return _ois == o._ois && _index == o._index;
+        }
+
+        inline bool
+        operator !=(const Iterator &o) const {
+          return _ois != o._ois || _index != o._index;
+        }
+
+        inline uint8_t
+        get_byte(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return 0;
+          return _ois->bytes()[_index];
+        }
+
+        inline uint8_t *
+        get_bytes(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return nullptr;
+          return _ois->bytes() + _index;
+        }
+
+        inline BreakFlag
+        get_flag(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return BreakFlag::NONE;
+          return _ois->flags()[_index];
+        }
+
+        inline size_t
+        get_index(void) const {
+          return _index;
+        }
+
+        inline uint32_t
+        get_offset(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return 0;
+          return _ois->offsets()[_index];
+        }
+
+        inline uint32_t *
+        get_offsets(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return 0;
+          return _ois->offsets() + _index;
+        }
+
+        inline size_t
+        get_summed_offset(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return 0;
+          return _ois->get_summed_offset(_index);
+        }
+      };
+
+    public:
+      using allocator_type = ALLOC;
+      using iterator = Iterator;
+
+    private:
+      allocator_type _allocator;
+      const size_t _nitems_grow;
+      size_t _nitems_allocd;
+      size_t _nitems_used;
+      size_t _initial_offset;
+      uint8_t *_bytes;
+      uint32_t *_offsets;
+      BreakFlag *_flags;
+
+      template <typename U> friend class OffsetInputStream;
+
+      void _grow(void) { _grow(_nitems_grow); }
+      void _grow(size_t nitems_grow);
+
+    public:
+      explicit OffsetInputStream(size_t nitems_grow, size_t initial_offset=0, const allocator_type &allocator=allocator_type());
+      ~OffsetInputStream(void);
+
+      inline allocator_type &allocator(void) const { return _allocator; }
+      inline uint8_t *bytes(void) const { return _bytes; }
+      inline bool empty(void) const { return _nitems_used == 0; }
+      inline BreakFlag *flags(void) const { return _flags; }
+      inline size_t initial_offset(void) const { return _initial_offset; }
+      inline size_t nitems_allocd(void) const { return _nitems_allocd; }
+      inline size_t nitems_grow(void) const { return _nitems_grow; }
+      inline size_t nitems_used(void) const { return _nitems_used; }
+      inline uint32_t *offsets(void) const { return _offsets; }
+
+      inline void clear(void) { _nitems_used = 0; }
+      inline void set_initial_offset(const size_t initial_offset) { _initial_offset = initial_offset; }
+
+      inline iterator begin(void) const { return iterator(*this, 0); }
+      inline iterator end(void) const { return iterator(*this, _nitems_used); }
+
+      inline size_t get_summed_offset(const size_t index) const { return std::accumulate(_offsets, _offsets + index, _initial_offset); }
+
+      template <typename A>
+      void write(const OffsetBuffer<A> &buffer);
+      void write(const BaseOffsetBuffer::iterator &begin, const BaseOffsetBuffer::iterator &end);
+      void write(uint8_t byte, uint32_t offset, BreakFlag flag=BreakFlag::NONE);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OffsetInputStream);
+    };
 
 
     class Tokenizer {
-    protected:
-      struct State;
+    private:
+      class State : public RagelState<OffsetInputStream<>::iterator> {
+      public:
+        using RagelState<OffsetInputStream<>::iterator>::iterator;
 
-      bool _tokenize(Stream &dest, State &s, const uint8_t *&n1, const uint8_t *&n2, const uint8_t *p, const uint8_t *pe, const uint8_t *eof, OnError onerror=OnError::SKIP) const;
+        unsigned int suffix;
+        const uint8_t *n1;
+        const uint8_t *n2;
 
-      void _token(Type type, Stream &dest, State &state, const uint8_t *norm=nullptr) const;
-      void _word(Type type, Stream &dest, State &state, const uint8_t *norm=nullptr) const;
-      void _punct(Type type, Stream &dest, State &state, const uint8_t *norm=nullptr) const;
-      void _end(Type type, Stream &dest, State &state, const uint8_t *norm=nullptr) const;
+        State(void);
 
-      void _split(Type type1, Type type2, Stream &dest, State &state, const uint8_t *norm1=nullptr, const uint8_t *norm2=nullptr) const;
+        std::ostream &dump(std::ostream &out) const;
+        void reset(void);
+        void reset(iterator start, iterator end);
 
-      void _terminator(Stream &dest, State &state, const uint8_t *norm=nullptr) const;
+      private:
+        SCHWA_DISALLOW_COPY_AND_ASSIGN(State);
+      };
 
-      void _error(Stream &dest, State &state) const;
+      State _state;
+      OffsetInputStream<> *_ois;
+      canonical_schema::Doc *_doc;
+      size_t _ntokens_before;
+      bool _in_brackets;
+      bool _in_double_quotes;
+      bool _in_single_quotes;
+      bool _prev_was_abbrev;
+      bool _prev_was_close_quote;
+      bool _seen_terminator;
 
-      void _single_quote(Stream &dest, State &state, const uint8_t *eof) const;
-      void _double_quote(Stream &dest, State &state, const uint8_t *eof) const;
+      bool _tokenize(void);
 
-      void _open_single_quote(Stream &dest, State &state) const;
-      void _close_single_quote(Stream &dest, State &state) const;
-      void _open_double_quote(Stream &dest, State &state) const;
-      void _close_double_quote(Stream &dest, State &state) const;
+      void _create_sentence(void);
+      void _create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *norm);
+      void _flush_sentence(void);
 
-      void _sep_text_paragraph(Stream &dest, State &state) const;
-      void _sep_html_paragraph(Stream &dest, State &state) const;
-      void _begin_html_paragraph(Stream &dest, State &state) const;
-      void _end_html_paragraph(Stream &dest, State &state) const;
-
-      void _begin_html_heading(Stream &dest, State &state) const;
-      void _end_html_heading(Stream &dest, State &state) const;
-
-      void _begin_html_list(Stream &dest, State &state) const;
-      void _end_html_list(Stream &dest, State &state) const;
-      void _begin_html_item(Stream &dest, State &state) const;
-      void _end_html_item(Stream &dest, State &state) const;
-
-      void _dash_or_item(Stream &dest, State &state) const;
-      void _number_or_item(Stream &dest, State &state) const;
+      void _abbreviation(void);
+      void _close_bracket(void);
+      void _close_double_quote(void);
+      void _close_single_quote(void);
+      void _contraction(void);
+      void _double_quote(void);
+      void _ignore(void);
+      void _open_bracket(void);
+      void _open_double_quote(void);
+      void _open_single_quote(void);
+      void _punctuation(const uint8_t *norm=nullptr);
+      void _single_quote(void);
+      void _split(void);
+      void _terminator(const uint8_t *norm);
+      void _word(void);
 
     public:
-      bool tokenize(Stream &dest, const uint8_t *data, OnError onerror=OnError::SKIP) const;
-      bool tokenize(Stream &dest, const uint8_t *data, size_t len, OnError onerror=OnError::SKIP) const;
-      bool tokenize(Stream &dest, const std::string &data, OnError onerror=OnError::SKIP) const;
-      bool tokenize(Stream &dest, io::Source &src, size_t buffer_size=DEFAULT_BUFFER_SIZE, OnError onerror=OnError::SKIP) const;
+      Tokenizer(void);
+      ~Tokenizer(void);
 
-      bool tokenize_stream(Stream &dest, std::istream &in, size_t buffer_size=DEFAULT_BUFFER_SIZE, OnError onerror=OnError::SKIP) const;
-      bool tokenize_mmap(Stream &dest, const std::string &filename, OnError onerror=OnError::SKIP) const;
+      void tokenize(OffsetInputStream<> &ois, canonical_schema::Doc &doc);
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Tokenizer);
     };
 
-  }
-}
+  }  // namespace tokenizer
+}  // namespace schwa
 
-#include <schwa/tokenizer/tokenizer_state.h>
+#include <schwa/tokenizer/tokenizer_impl.h>
 
 #endif  // SCHWA_TOKENIZER_TOKENIZER_H_

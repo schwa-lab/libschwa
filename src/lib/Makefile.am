@@ -135,19 +135,10 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/msgpack/wire.h \
 		schwa/msgpack/wire_impl.h \
 		schwa/msgpack.h \
-		schwa/new-tokenizer/tokenizer.h \
-		schwa/new-tokenizer/tokenizer_impl.h \
 		schwa/pool.h \
 		schwa/port.h \
-		schwa/tokenizer/common.h \
-		schwa/tokenizer/debug_text_stream.h \
-		schwa/tokenizer/docrep_stream.h \
-		schwa/tokenizer/exception.h \
-		schwa/tokenizer/stream.h \
-		schwa/tokenizer/text_stream.h \
 		schwa/tokenizer/tokenizer.h \
-		schwa/tokenizer/tokenizer_state.h \
-		schwa/tokenizer.h \
+		schwa/tokenizer/tokenizer_impl.h \
 		schwa/unicode.h \
 		schwa/unicode_gen.h \
 		schwa/utils/buffer.h \
@@ -201,11 +192,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/learn/features.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/exception.cc \
-		schwa/new-tokenizer/tokenizer.cc \
 		schwa/port.cc \
-		schwa/tokenizer/debug_text_stream.cc \
-		schwa/tokenizer/docrep_stream.cc \
-		schwa/tokenizer/text_stream.cc \
 		schwa/tokenizer/tokenizer.cc \
 		schwa/unicode.cc \
 		schwa/utils/buffer.cc \
