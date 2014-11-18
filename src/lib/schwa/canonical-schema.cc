@@ -54,6 +54,14 @@ Heading::Schema::Schema(void) :
 Heading::Schema::~Schema(void) { }
 
 
+Hyperlink::Schema::Schema(void) :
+    dr::Ann::Schema<Hyperlink>("Hyperlink", "The hyperlink class"),
+    span(*this, "span", "The beginning and end token offsets of the hyperlink", dr::FieldMode::READ_WRITE),
+    link(*this, "link", "The raw link that appeared in the source document", dr::FieldMode::READ_WRITE)
+  { }
+Hyperlink::Schema::~Schema(void) { }
+
+
 ListItem::Schema::Schema(void) :
     dr::Ann::Schema<ListItem>("ListItem", "The list item class"),
     sentence(*this, "sentence", "Pointer to the underlying sentence", dr::FieldMode::READ_WRITE),
@@ -90,6 +98,7 @@ Doc::Schema::Schema(void) :
     sentences(*this, "sentences", "The store for the sentences", dr::FieldMode::READ_WRITE),
     paragraphs(*this, "paragraphs", "The store for the paragraphs", dr::FieldMode::READ_WRITE),
     headings(*this, "headings", "The store for the headings", dr::FieldMode::READ_WRITE),
+    hyperlinks(*this, "hyperlinks", "The store for the hyperlinks", dr::FieldMode::READ_WRITE),
     list_items(*this, "list_items", "The store for the list items", dr::FieldMode::READ_WRITE),
     lists(*this, "lists", "The store for the lists", dr::FieldMode::READ_WRITE),
     blocks(*this, "blocks", "The store for the blocks", dr::FieldMode::READ_WRITE)

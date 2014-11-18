@@ -15,6 +15,7 @@ namespace schwa {
       class Doc;
       class Block;
       class Heading;
+      class Hyperlink;
       class List;
       class ListItem;
       class Paragraph;
@@ -54,6 +55,15 @@ namespace schwa {
         unsigned int level;
 
         Heading(void);
+
+        class Schema;
+      };
+
+
+      class Hyperlink : public dr::Ann {
+      public:
+        dr::Slice<Token *> span;  //!< A hyperlink is over a series of tokens.
+        std::string link;
 
         class Schema;
       };
@@ -118,6 +128,7 @@ namespace schwa {
         dr::Store<Sentence> sentences;
         dr::Store<Paragraph> paragraphs;
         dr::Store<Heading> headings;
+        dr::Store<Hyperlink> hyperlinks;
         dr::Store<ListItem> list_items;
         dr::Store<List> lists;
         dr::Store<Block> blocks;
@@ -168,6 +179,16 @@ namespace schwa {
       };
 
 
+      class Hyperlink::Schema : public dr::Ann::Schema<Hyperlink> {
+      public:
+        DR_POINTER(&Hyperlink::span, &Doc::tokens) span;
+        DR_FIELD(&Hyperlink::link) link;
+
+        Schema(void);
+        virtual ~Schema(void);
+      };
+
+
       class ListItem::Schema : public dr::Ann::Schema<ListItem> {
       public:
         DR_POINTER(&ListItem::sentence, &Doc::sentences) sentence;
@@ -211,6 +232,7 @@ namespace schwa {
         DR_STORE(&Doc::sentences) sentences;
         DR_STORE(&Doc::paragraphs) paragraphs;
         DR_STORE(&Doc::headings) headings;
+        DR_STORE(&Doc::hyperlinks) hyperlinks;
         DR_STORE(&Doc::list_items) list_items;
         DR_STORE(&Doc::lists) lists;
         DR_STORE(&Doc::blocks) blocks;
