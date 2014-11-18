@@ -5,11 +5,11 @@
   machine tokenizer;
   alphtype unsigned char;
 
-  action ignore { }
-  action word { _word(); }
-  action punctuation { _punctuation(); }
   action contraction { _contraction(); }
-  action catchall { throw std::runtime_error("Stuck :("); }
+  action ignore { _ignore(); }
+  action punctuation { _punctuation(); }
+  action split { _split(); }
+  action word { _word(); }
 
   main := |*
     single_quote => { _single_quote(); };
@@ -21,27 +21,25 @@
     open_double_quote => { _open_double_quote(); };
     close_double_quote => { _close_double_quote(); };
 
-    full_stop => { _terminator(reinterpret_cast<const uint8_t *>(u8".")); };
-    question_mark => { _terminator(reinterpret_cast<const uint8_t *>(u8"?")); };
-    inverted_question_mark => { _punctuation(reinterpret_cast<const uint8_t *>(u8"¿")); };
-    exclamation_mark => { _terminator(reinterpret_cast<const uint8_t *>(u8"!")); };
-    inverted_exclamation_mark => { _punctuation(reinterpret_cast<const uint8_t *>(u8"¡")); };
-    ellipsis => { _terminator(reinterpret_cast<const uint8_t *>(u8"...")); };
+    full_stop => { _terminator(NORMALISED_PERIOD); };
+    question_mark => { _terminator(NORMALISED_QUESTION_MARK); };
+    inverted_question_mark => { _punctuation(NORMALISED_INVERTED_QUESTION_MARK); };
+    exclamation_mark => { _terminator(NORMALISED_EXCLAMATION_MARK); };
+    inverted_exclamation_mark => { _punctuation(NORMALISED_INVERTED_EXCLAMATION_MARK); };
+    ellipsis => { _punctuation(NORMALISED_ELLIPSIS); };
 
-    dash => { _punctuation(reinterpret_cast<const uint8_t *>(u8"--")); };
+    dash => { _punctuation(NORMALISED_DASH); };
 
     unicode_space+ | unicode_line_space => ignore;
-    # unicode_line_space{2,} | unicode_paragraph_space => { _sep_text_paragraph(); };
 
     contractions_neg => contraction;
     contractions_neg_error => contraction;
     letter+ contractions_suffix => contraction;
 
-    (letter+ '.'? possessive) - abbrev_decade => { _split(); };
-    # possessive => { _word(); }; # always capture 's
+    (letter+ '.'? possessive) - abbrev_decade => split;
 
-    (numbers units) - abbrev_decade => { _split(); };
-    time_ambiguous meridian => { _split(); };
+    (numbers units) - abbrev_decade => split;
+    time_ambiguous meridian => split;
     meridian_token | date_time => word;
 
     (integer | float) '-' alpha+ ('-' alpha+)* => word;
@@ -51,13 +49,13 @@
     contractions_misc | acronym | title => word;
     symbols => punctuation;
     emoticon => punctuation;
-    date_abbrev | state | address_suffix => word;
+    abbreviation_date | state | address_suffix => word;
 
-    org | abbreviation | lines | currency_symbol | numbers | date_time => word;
+    abbreviation_org | abbreviation | lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;
     default => word;
 
-    unicode => catchall;
+    unicode => ignore;
   *|;
 
 }%%

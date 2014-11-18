@@ -15,6 +15,23 @@ namespace schwa {
 namespace new_tokenizer {
 
 // ============================================================================
+// Punctuation normalisation constants.
+// ============================================================================
+const uint8_t *const NORMALISED_CLOSE_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"”");
+const uint8_t *const NORMALISED_CLOSE_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"’");
+const uint8_t *const NORMALISED_DASH = reinterpret_cast<const uint8_t *>(u8"--");
+const uint8_t *const NORMALISED_ELLIPSIS = reinterpret_cast<const uint8_t *>(u8"...");
+const uint8_t *const NORMALISED_EXCLAMATION_MARK = reinterpret_cast<const uint8_t *>(u8"!");
+const uint8_t *const NORMALISED_INVERTED_EXCLAMATION_MARK = reinterpret_cast<const uint8_t *>(u8"¡");
+const uint8_t *const NORMALISED_INVERTED_QUESTION_MARK = reinterpret_cast<const uint8_t *>(u8"¿");
+const uint8_t *const NORMALISED_OPEN_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"“");
+const uint8_t *const NORMALISED_OPEN_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"‘");
+const uint8_t *const NORMALISED_PERIOD = reinterpret_cast<const uint8_t *>(u8".");
+const uint8_t *const NORMALISED_QUESTION_MARK = reinterpret_cast<const uint8_t *>(u8"?");
+const uint8_t *const NORMALISED_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"'");
+
+
+// ============================================================================
 // Tokenizer::State
 // ============================================================================
 Tokenizer::State::State(void) : RagelState<OffsetInputStream<>::iterator>() { }
@@ -110,8 +127,7 @@ Tokenizer::_contraction(void) {
 
 void
 Tokenizer::_close_double_quote(void) {
-  //std::cerr << "[_close_double_quote]" << std::endl;
-  _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"”"));
+  _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
   _state.reset();
   _in_double_quotes = false;
 }
@@ -119,8 +135,7 @@ Tokenizer::_close_double_quote(void) {
 
 void
 Tokenizer::_close_single_quote(void) {
-  //std::cerr << "[_close_single_quote]" << std::endl;
-  _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"’"));
+  _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
   _state.reset();
 }
 
@@ -129,12 +144,12 @@ void
 Tokenizer::_double_quote(void) {
   //std::cerr << "[_double_quote]" << std::endl;
   if (_in_double_quotes) {
-    _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"”"));
+    _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
     _in_double_quotes = false;
   }
   else {
     _flush_sentence();
-    _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"“"));
+    _create_token(_state.ts, _state.te, NORMALISED_OPEN_DOUBLE_QUOTE);
     _in_double_quotes = true;
   }
   _state.reset();
@@ -142,10 +157,15 @@ Tokenizer::_double_quote(void) {
 
 
 void
+Tokenizer::_ignore(void) {
+  // TODO actually take into account BreakFlags.
+}
+
+
+void
 Tokenizer::_open_double_quote(void) {
-  //std::cerr << "[_open_double_quote]" << std::endl;
   _flush_sentence();
-  _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"“"));
+  _create_token(_state.ts, _state.te, NORMALISED_OPEN_DOUBLE_QUOTE);
   _state.reset();
   _in_double_quotes = true;
 }
@@ -155,7 +175,7 @@ void
 Tokenizer::_open_single_quote(void) {
   //std::cerr << "[_open_single_quote]" << std::endl;
   _flush_sentence();
-  _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"‘"));
+  _create_token(_state.ts, _state.te, NORMALISED_OPEN_SINGLE_QUOTE);
   _state.reset();
 }
 

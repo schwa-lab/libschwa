@@ -16,6 +16,20 @@
 namespace schwa {
   namespace new_tokenizer {
 
+    extern const uint8_t *const NORMALISED_CLOSE_DOUBLE_QUOTE;
+    extern const uint8_t *const NORMALISED_CLOSE_SINGLE_QUOTE;
+    extern const uint8_t *const NORMALISED_DASH;
+    extern const uint8_t *const NORMALISED_ELLIPSIS;
+    extern const uint8_t *const NORMALISED_EXCLAMATION_MARK;
+    extern const uint8_t *const NORMALISED_INVERTED_EXCLAMATION_MARK;
+    extern const uint8_t *const NORMALISED_INVERTED_QUESTION_MARK;
+    extern const uint8_t *const NORMALISED_OPEN_DOUBLE_QUOTE;
+    extern const uint8_t *const NORMALISED_OPEN_SINGLE_QUOTE;
+    extern const uint8_t *const NORMALISED_PERIOD;
+    extern const uint8_t *const NORMALISED_QUESTION_MARK;
+    extern const uint8_t *const NORMALISED_SINGLE_QUOTE;
+
+
     enum class BreakFlag : uint8_t {
       NONE = 0,
       FORCE_SENTENCE_BREAK,
@@ -255,6 +269,7 @@ namespace schwa {
       void _close_single_quote(void);
       void _contraction(void);
       void _double_quote(void);
+      void _ignore(void);
       void _open_double_quote(void);
       void _open_single_quote(void);
       void _punctuation(const uint8_t *norm=nullptr);
