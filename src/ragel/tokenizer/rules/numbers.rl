@@ -12,7 +12,7 @@
 
   integer = sign? unicode_digit+ ( ',' unicode_digit+ )* ;
   float = integer '.' unicode_digit+ | sign? '.' unicode_digit+ ;
-  fraction = sign? ( unicode_digit+ '-' )? unicode_digit+ '/' unicode_digit+ ;
+  fraction = sign? ( unicode_digit+ ( '-' | unicode_space ) )? unicode_digit+ '/' unicode_digit+ ;
   ordinal = '#' unicode_digit+ ;
 
   numbers = integer | float | ordinal | fraction;

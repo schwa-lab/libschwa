@@ -47,7 +47,8 @@
     ;
 
   volume_unit =
-      'L' %s1
+      'cc' %s2
+    | 'L' %s1
     | 'fl oz' %s5
     | 'gal' %s4
     | 'mL' %s2

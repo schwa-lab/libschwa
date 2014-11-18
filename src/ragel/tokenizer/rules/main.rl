@@ -41,7 +41,7 @@
 
     (letter+ '.'? possessive) - abbrev_decade => split;
 
-    (numbers units) - abbrev_decade => split;
+    (numbers units '.'?) - abbrev_decade => split;
     time_ambiguous meridian => split;
     meridian_token | date_time => word;
 
@@ -52,7 +52,7 @@
     contractions_misc | ( lower+ '-' )? acronym | title => word;
     symbols => punctuation;
     emoticon => punctuation;
-    abbreviation | abbreviation_date | abbreviation_org | abbreviation_state => abbreviation;
+    abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | ( units '.' ) => abbreviation;
 
     address_suffix | lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;

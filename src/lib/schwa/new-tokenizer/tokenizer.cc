@@ -97,7 +97,7 @@ Tokenizer::_create_sentence(void) {
 void
 Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *const norm) {
   // If the first code point is upper case and the previous token was an abbreviation, force a new sentence.
-  if (_prev_was_abbrev) {
+  if (_prev_was_abbrev && !_in_brackets) {
     const uint8_t *start = ts.get_bytes();
     const unicode_t first = read_utf8(&start, te.get_bytes());
     if (unicode::is_upper(first))
@@ -208,7 +208,10 @@ Tokenizer::_open_single_quote(void) {
 
 void
 Tokenizer::_punctuation(const uint8_t *const norm) {
-  _flush_sentence();
+  // Maybe flush sentence.
+  if (!(_seen_terminator && _prev_was_close_quote))
+    _flush_sentence();
+
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
 }

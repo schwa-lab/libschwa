@@ -6,7 +6,7 @@
   alphtype unsigned char;
 
   # Things that look like acronyms.
-  acronym1 = alpha ( '.' alpha ) '.' ;
+  acronym1 = alpha ( '.' alpha )+ '.' ;
   acronym2 = upper /[bcdfghj-np-tvxz]+\./ ;
   acronym3 = upper ( upper | '&' )* upper+ ;
   initial = /[A-Z]\./ ;
@@ -89,6 +89,7 @@
     | 'Jnr'i
     | 'Jr'i
     | 'PhD'i | 'Ph.D'i
+    | 'Ret'i
     | 'Snr'i
     | 'Sr'i
     ;
@@ -258,16 +259,19 @@
   # Business/organisation names.
   abbreviation_corp =
       'Bancorp'i
-    | 'Cie'i # Abbrevation for company in French.
+    | 'Bhd'i  # Sdn. Bhd. is Malay for Inc.
+    | 'Cie'i  # Abbrevation for company in French.
     | 'Co'i | 'Cos'i
     | 'Corp'i
     | 'Coop'i
     | 'Co-op'i
+    | 'Group'i
     | 'Inc'i
     | 'Llp'i
     | 'Ltd'i
     | 'Plc'i
     | 'Pty'i
+    | 'Sdn'i  # Sdn. Bhd. is Malay for Inc.
     ;
   abbreviation_business =
       'Admin'i
@@ -286,6 +290,8 @@
     | 'Twp'i
     | 'Govt'i
     | 'Int'i | 'Intl'i
+    | 'Nati' | 'Natl'i
+    | 'Soc'
     | 'Uni'i | 'Univ'i
     ;
   abbreviation_org = ( abbreviation_corp | abbreviation_business | abbreviation_group ) '.' ;
@@ -293,6 +299,7 @@
   # problem cases: 'cent' (per cent appears often at the end of a sentence)
   abbreviation = (
         'accd'i
+      | 'al'i  # et al.
       | 'amort'i
       | 'approx'i
       | 'avg'i
