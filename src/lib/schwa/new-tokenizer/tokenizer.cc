@@ -60,12 +60,6 @@ Tokenizer::State::dump(std::ostream &out) const {
 }
 
 
-inline std::ostream &
-operator <<(std::ostream &out, const Tokenizer::State &state) {
-  return state.dump(out);
-}
-
-
 // ============================================================================
 // Tokenizer
 // ============================================================================
@@ -115,7 +109,6 @@ Tokenizer::_flush_sentence(void) {
 
 void
 Tokenizer::_contraction(void) {
-  //std::cerr << "[_contraction]" << std::endl;
   assert(_state.suffix != 0);
   assert(_state.n2 != nullptr);
   _flush_sentence();
@@ -137,12 +130,12 @@ void
 Tokenizer::_close_single_quote(void) {
   _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
   _state.reset();
+  _in_single_quotes = false;
 }
 
 
 void
 Tokenizer::_double_quote(void) {
-  //std::cerr << "[_double_quote]" << std::endl;
   if (_in_double_quotes) {
     _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
     _in_double_quotes = false;
@@ -173,15 +166,14 @@ Tokenizer::_open_double_quote(void) {
 
 void
 Tokenizer::_open_single_quote(void) {
-  //std::cerr << "[_open_single_quote]" << std::endl;
   _flush_sentence();
   _create_token(_state.ts, _state.te, NORMALISED_OPEN_SINGLE_QUOTE);
   _state.reset();
+  _in_single_quotes = true;
 }
 
 void
 Tokenizer::_punctuation(const uint8_t *norm) {
-  //std::cerr << "[_punctuation]" << std::endl;
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
 }
@@ -189,16 +181,27 @@ Tokenizer::_punctuation(const uint8_t *norm) {
 
 void
 Tokenizer::_single_quote(void) {
-  //std::cerr << "[_single_quote]" << std::endl;
-  _flush_sentence();
-  _create_token(_state.ts, _state.te, reinterpret_cast<const uint8_t *>(u8"'"));
+  if (_in_single_quotes) {
+    _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
+    _in_single_quotes = false;
+  }
+  else {
+    _flush_sentence();
+    if (_ntokens_before != _doc->tokens.size() && _state.ts.get_summed_offset() == _doc->tokens.back().span.stop) {
+      _create_token(_state.ts, _state.te, NORMALISED_SINGLE_QUOTE);
+      _in_single_quotes = false;
+    }
+    else {
+      _create_token(_state.ts, _state.te, NORMALISED_OPEN_SINGLE_QUOTE);
+      _in_single_quotes = true;
+    }
+  }
   _state.reset();
 }
 
 
 void
 Tokenizer::_split(void) {
-  //std::cerr << "[_split]" << std::endl;
   assert(_state.suffix != 0);
   _flush_sentence();
   _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
@@ -209,7 +212,6 @@ Tokenizer::_split(void) {
 
 void
 Tokenizer::_terminator(const uint8_t *norm) {
-  //std::cerr << "[_terminator]" << std::endl;
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
   _seen_terminator = true;
@@ -218,7 +220,6 @@ Tokenizer::_terminator(const uint8_t *norm) {
 
 void
 Tokenizer::_word(void) {
-  //std::cerr << "[_word]" << std::endl;
   _flush_sentence();
   _create_token(_state.ts, _state.te, _state.n1);
   _state.reset();
@@ -234,6 +235,7 @@ Tokenizer::tokenize(OffsetInputStream<> &ois, cs::Doc &doc) {
   _ntokens_before = doc.tokens.size();
   _seen_terminator = false;
   _in_double_quotes = false;
+  _in_single_quotes = false;
 
   // Run the Ragel-generated tokenizer.
   const bool success = _tokenize();

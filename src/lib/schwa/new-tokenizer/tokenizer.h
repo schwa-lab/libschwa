@@ -219,7 +219,7 @@ namespace schwa {
       inline iterator begin(void) const { return iterator(*this, 0); }
       inline iterator end(void) const { return iterator(*this, _nitems_used); }
 
-    inline size_t get_summed_offset(const size_t index) const { return std::accumulate(_offsets, _offsets + index, _initial_offset); }
+      inline size_t get_summed_offset(const size_t index) const { return std::accumulate(_offsets, _offsets + index, _initial_offset); }
 
       template <typename A>
       void write(const OffsetBuffer<A> &buffer);
@@ -232,7 +232,7 @@ namespace schwa {
 
 
     class Tokenizer {
-    public:
+    private:
       class State : public RagelState<OffsetInputStream<>::iterator> {
       public:
         using RagelState<OffsetInputStream<>::iterator>::iterator;
@@ -251,13 +251,13 @@ namespace schwa {
         SCHWA_DISALLOW_COPY_AND_ASSIGN(State);
       };
 
-    private:
       State _state;
       OffsetInputStream<> *_ois;
       canonical_schema::Doc *_doc;
       size_t _ntokens_before;
       bool _seen_terminator;
       bool _in_double_quotes;
+      bool _in_single_quotes;
 
       bool _tokenize(void);
 
