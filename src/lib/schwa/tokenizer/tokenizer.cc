@@ -94,8 +94,8 @@ Tokenizer::_create_sentence(void) {
 
   // Create the Sentence object and add it to the document.
   cs::Sentence sentence;
-  sentence.span.start = reinterpret_cast<cs::Token *>(_ntokens_before);
-  sentence.span.stop = reinterpret_cast<cs::Token *>(_doc->tokens.size());
+  sentence.span.start = reinterpret_cast<cs::Token *>(_ntokens_before + 1);
+  sentence.span.stop = reinterpret_cast<cs::Token *>(_doc->tokens.size() + 1);
   _doc->sentences.push_back(sentence);
 
   // Set the index of the start of the next sentence.

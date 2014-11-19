@@ -200,12 +200,12 @@ TipsterImporter::Impl::_handle_text(const fm::SGMLishNode &node) {
     // Create the Paragraph and Block objects, and add them to the document.
     if (nsentences_before != nsentences_after) {
       cs::Paragraph paragraph;
-      paragraph.span.start = reinterpret_cast<cs::Sentence *>(nsentences_before);
-      paragraph.span.stop = reinterpret_cast<cs::Sentence *>(nsentences_after);
+      paragraph.span.start = reinterpret_cast<cs::Sentence *>(nsentences_before + 1);
+      paragraph.span.stop = reinterpret_cast<cs::Sentence *>(nsentences_after + 1);
       _doc->paragraphs.push_back(paragraph);
 
       cs::Block block;
-      block.paragraph = reinterpret_cast<cs::Paragraph *>(_doc->paragraphs.size() - 1);
+      block.paragraph = reinterpret_cast<cs::Paragraph *>(_doc->paragraphs.size() - 1 + 1);
       _doc->blocks.push_back(block);
     }
   }

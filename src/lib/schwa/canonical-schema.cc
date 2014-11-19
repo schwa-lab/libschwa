@@ -23,44 +23,44 @@ Block::Block(void) : list(nullptr), heading(nullptr), paragraph(nullptr) { }
 void
 Doc::unswizzle_pointers(void) {
   for (auto &sentence : sentences) {
-    sentence.span.start = &tokens[reinterpret_cast<size_t>(sentence.span.start)];
-    sentence.span.stop = &tokens[reinterpret_cast<size_t>(sentence.span.stop)];
+    sentence.span.start = &tokens[reinterpret_cast<size_t>(sentence.span.start) - 1];
+    sentence.span.stop = &tokens[reinterpret_cast<size_t>(sentence.span.stop) - 1];
   }
 
   for (auto &paragraph : paragraphs) {
-    paragraph.span.start = &sentences[reinterpret_cast<size_t>(paragraph.span.start)];
-    paragraph.span.stop = &sentences[reinterpret_cast<size_t>(paragraph.span.stop)];
+    paragraph.span.start = &sentences[reinterpret_cast<size_t>(paragraph.span.start) - 1];
+    paragraph.span.stop = &sentences[reinterpret_cast<size_t>(paragraph.span.stop) - 1];
   }
 
   for (auto &heading : headings) {
     if (heading.sentence != nullptr)
-      heading.sentence = &sentences[reinterpret_cast<size_t>(heading.sentence)];
+      heading.sentence = &sentences[reinterpret_cast<size_t>(heading.sentence) - 1];
   }
 
   for (auto &hyperlink : hyperlinks) {
-    hyperlink.span.start = &tokens[reinterpret_cast<size_t>(hyperlink.span.start)];
-    hyperlink.span.stop = &tokens[reinterpret_cast<size_t>(hyperlink.span.stop)];
+    hyperlink.span.start = &tokens[reinterpret_cast<size_t>(hyperlink.span.start) - 1];
+    hyperlink.span.stop = &tokens[reinterpret_cast<size_t>(hyperlink.span.stop) - 1];
   }
 
   for (auto &li : list_items) {
     if (li.sentence != nullptr)
-      li.sentence = &sentences[reinterpret_cast<size_t>(li.sentence)];
+      li.sentence = &sentences[reinterpret_cast<size_t>(li.sentence) - 1];
     if (li.list != nullptr)
-      li.list = &lists[reinterpret_cast<size_t>(li.list)];
+      li.list = &lists[reinterpret_cast<size_t>(li.list) - 1];
   }
 
   for (auto &list : lists) {
-    list.span.start = &list_items[reinterpret_cast<size_t>(list.span.start)];
-    list.span.stop = &list_items[reinterpret_cast<size_t>(list.span.stop)];
+    list.span.start = &list_items[reinterpret_cast<size_t>(list.span.start) - 1];
+    list.span.stop = &list_items[reinterpret_cast<size_t>(list.span.stop) - 1];
   }
 
   for (auto &block : blocks) {
     if (block.list != nullptr)
-      block.list = &lists[reinterpret_cast<size_t>(block.list)];
+      block.list = &lists[reinterpret_cast<size_t>(block.list) - 1];
     if (block.heading != nullptr)
-      block.heading = &headings[reinterpret_cast<size_t>(block.heading)];
+      block.heading = &headings[reinterpret_cast<size_t>(block.heading)] - 1;
     if (block.paragraph != nullptr)
-      block.paragraph = &paragraphs[reinterpret_cast<size_t>(block.paragraph)];
+      block.paragraph = &paragraphs[reinterpret_cast<size_t>(block.paragraph) - 1];
   }
 }
 
