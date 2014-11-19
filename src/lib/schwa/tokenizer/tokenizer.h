@@ -117,6 +117,11 @@ namespace schwa {
           return it;
         }
 
+        inline size_t
+        operator -(const Iterator &o) {
+          return _index - o._index;
+        }
+
         inline uint8_t
         operator *(void) const {
           return get_byte();
@@ -240,6 +245,8 @@ namespace schwa {
         unsigned int suffix;
         const uint8_t *n1;
         const uint8_t *n2;
+        OffsetInputStream<>::iterator b1;
+        OffsetInputStream<>::iterator b2;
 
         State(void);
 
@@ -269,6 +276,7 @@ namespace schwa {
       void _flush_sentence(void);
 
       void _abbreviation(void);
+      void _bigram(void);
       void _close_bracket(void);
       void _close_double_quote(void);
       void _close_single_quote(void);

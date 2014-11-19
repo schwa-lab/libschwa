@@ -5,6 +5,21 @@
   machine tokenizer ;
   alphtype unsigned char ;
 
+  month_name =
+      'January'i
+    | 'February'i
+    | 'March'i
+    | 'April'i
+    | 'May'i
+    | 'June'i
+    | 'July'i
+    | 'August'i
+    | 'September'i
+    | 'October'i
+    | 'November'i
+    | 'December'i
+    ;
+
   day_2digits = '0' [1-9] | [12] digit | '3' [01] ;
   day_digits = [1-9] | day_2digits ;
 

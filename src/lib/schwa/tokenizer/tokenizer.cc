@@ -78,6 +78,15 @@ Tokenizer::_abbreviation(void) {
 
 
 void
+Tokenizer::_bigram(void) {
+  _flush_sentence();
+  _create_token(_state.ts, _state.b1, _state.n1);
+  _create_token(_state.b2, _state.te, _state.n2);
+  _state.reset();
+}
+
+
+void
 Tokenizer::_create_sentence(void) {
   // Don't create an empty sentence.
   if (_ntokens_before == _doc->tokens.size())

@@ -5,6 +5,9 @@
   machine tokenizer;
   alphtype unsigned char;
 
+  action b1  { _state.b1 = _state.p; }
+  action b2  { _state.b2 = _state.p; }
+
   action s1 { _state.suffix += 1; }
   action s2 { _state.suffix += 2; }
   action s3 { _state.suffix += 3; }

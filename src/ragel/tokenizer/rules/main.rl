@@ -6,6 +6,7 @@
   alphtype unsigned char;
 
   action abbreviation { _abbreviation(); }
+  action bigram { _bigram(); }
   action contraction { _contraction(); }
   action ignore { _ignore(); }
   action punctuation { _punctuation(); }
@@ -45,9 +46,11 @@
     time_ambiguous meridian => split;
     meridian_token | date_time => word;
 
-    (integer | float) '-' alpha+ ('-' alpha+)* => word;
+    # (integer | float) '-' alpha+ ('-' alpha+)* => word;
 
     'and/or' | 'AND/OR' => word;
+
+    (abbreviation_date | month_name) %b1 unicode_space+ %b2 (('0'? [1-9] | [12] digit | '3' [01]) '.') => bigram;
 
     contractions_misc | ( lower+ '-' )? acronym | title => word;
     symbols => punctuation;
