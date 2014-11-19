@@ -266,13 +266,13 @@ namespace schwa {
       bool _in_double_quotes;
       bool _in_single_quotes;
       bool _prev_was_abbrev;
-      bool _prev_was_close_quote;
+      bool _prev_was_close_punctuation;
       bool _seen_terminator;
 
       bool _tokenize(void);
 
       void _create_sentence(void);
-      void _create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *norm);
+      void _create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *norm, bool maybe_break_on_caps=true);
       void _flush_sentence(void);
 
       void _abbreviation(void);

@@ -71,7 +71,7 @@ Tokenizer::~Tokenizer(void) { }
 void
 Tokenizer::_abbreviation(void) {
   _flush_sentence();
-  _create_token(_state.ts, _state.te, _state.n1);
+  _create_token(_state.ts, _state.te, _state.n1, false);
   _state.reset();
   _prev_was_abbrev = true;
 }
@@ -104,9 +104,9 @@ Tokenizer::_create_sentence(void) {
 
 
 void
-Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *const norm) {
+Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *const norm, const bool maybe_break_on_caps) {
   // If the first code point is upper case and the previous token was an abbreviation, force a new sentence.
-  if (_prev_was_abbrev && !_in_brackets) {
+  if (maybe_break_on_caps && _prev_was_abbrev && !_in_brackets) {
     const uint8_t *start = ts.get_bytes();
     const unicode_t first = read_utf8(&start, te.get_bytes());
     if (unicode::is_upper(first))
@@ -124,7 +124,7 @@ Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::
 
   // Reset state.
   _prev_was_abbrev = false;
-  _prev_was_close_quote = false;
+  _prev_was_close_punctuation = false;
 }
 
 
@@ -139,9 +139,20 @@ Tokenizer::_flush_sentence(void) {
 
 void
 Tokenizer::_contraction(void) {
+  // Maybe flush sentence.
+  if (_seen_terminator && _prev_was_close_punctuation) {
+    const uint8_t *start = _state.ts.get_bytes();
+    const unicode_t first = read_utf8(&start, _state.te.get_bytes());
+    if (unicode::is_lower(first))
+      _seen_terminator = false;
+    else
+      _flush_sentence();
+  }
+  else
+    _flush_sentence();
+
   assert(_state.suffix != 0);
   assert(_state.n2 != nullptr);
-  _flush_sentence();
   _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
   _create_token(_state.te - _state.suffix, _state.te, _state.n2);
   _state.reset();
@@ -153,6 +164,7 @@ Tokenizer::_close_bracket(void) {
   _create_token(_state.ts, _state.te, _state.n1);
   _state.reset();
   _in_brackets = false;
+  _prev_was_close_punctuation = true;
 }
 
 
@@ -161,7 +173,7 @@ Tokenizer::_close_double_quote(void) {
   _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
   _state.reset();
   _in_double_quotes = false;
-  _prev_was_close_quote = true;
+  _prev_was_close_punctuation = true;
 }
 
 
@@ -170,7 +182,7 @@ Tokenizer::_close_single_quote(void) {
   _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
   _state.reset();
   _in_single_quotes = false;
-  _prev_was_close_quote = true;
+  _prev_was_close_punctuation = true;
 }
 
 
@@ -218,8 +230,8 @@ Tokenizer::_open_single_quote(void) {
 void
 Tokenizer::_punctuation(const uint8_t *const norm) {
   // Maybe flush sentence.
-  if (!(_seen_terminator && _prev_was_close_quote))
-    _flush_sentence();
+  if (_seen_terminator)
+    _seen_terminator = false;
 
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
@@ -231,6 +243,7 @@ Tokenizer::_single_quote(void) {
   if (_in_single_quotes) {
     _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
     _in_single_quotes = false;
+    _prev_was_close_punctuation = true;
   }
   else {
     _flush_sentence();
@@ -275,7 +288,7 @@ Tokenizer::_terminator(const uint8_t *const norm) {
 void
 Tokenizer::_word(void) {
   // Maybe flush sentence.
-  if (_seen_terminator && _prev_was_close_quote) {
+  if (_seen_terminator && _prev_was_close_punctuation) {
     const uint8_t *start = _state.ts.get_bytes();
     const unicode_t first = read_utf8(&start, _state.te.get_bytes());
     if (unicode::is_lower(first))
@@ -302,7 +315,7 @@ Tokenizer::tokenize(OffsetInputStream<> &ois, cs::Doc &doc) {
   _in_double_quotes = false;
   _in_single_quotes = false;
   _prev_was_abbrev = false;
-  _prev_was_close_quote = false;
+  _prev_was_close_punctuation = false;
   _seen_terminator = false;
 
   // Run the Ragel-generated tokenizer.

@@ -290,8 +290,8 @@
     | 'Twp'i
     | 'Govt'i
     | 'Int'i | 'Intl'i
-    | 'Nati' | 'Natl'i
-    | 'Soc'
+    | 'Nat'i | 'Natl'i
+    | 'Soc'i
     | 'Uni'i | 'Univ'i
     ;
   abbreviation_org = ( abbreviation_corp | abbreviation_business | abbreviation_group ) '.' ;

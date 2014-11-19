@@ -55,7 +55,7 @@
     contractions_misc | ( lower+ '-' )? acronym | title => word;
     symbols => punctuation;
     emoticon => punctuation;
-    abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | ( units '.' ) => abbreviation;
+    abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | (units | year_modern) '.'  => abbreviation;
 
     address_suffix | lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;
