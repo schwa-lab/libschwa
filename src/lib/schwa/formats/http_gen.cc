@@ -159,10 +159,13 @@ case 9:
 		case 122u: goto st773;
 		case 126u: goto st76;
 	}
-	if ( (*p) > 59u ) {
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
+			goto st76;
+	} else if ( (*p) > 59u ) {
 		if ( 65u <= (*p) && (*p) <= 90u )
 			goto st76;
-	} else if ( (*p) >= 36u )
+	} else
 		goto st76;
 	goto st0;
 st10:
@@ -242,7 +245,7 @@ st19:
 	if ( ++p == pe )
 		goto _test_eof19;
 case 19:
-#line 246 "schwa/formats/http_gen.cc"
+#line 249 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 10u: goto st812;
 		case 13u: goto st20;
@@ -311,7 +314,7 @@ st813:
 	if ( ++p == pe )
 		goto _test_eof813;
 case 813:
-#line 315 "schwa/formats/http_gen.cc"
+#line 318 "schwa/formats/http_gen.cc"
 	if ( (*p) == 32u )
 		goto st813;
 	if ( 9u <= (*p) && (*p) <= 13u )
@@ -345,7 +348,7 @@ st814:
 	if ( ++p == pe )
 		goto _test_eof814;
 case 814:
-#line 349 "schwa/formats/http_gen.cc"
+#line 352 "schwa/formats/http_gen.cc"
 	_widec = (*p);
 	_widec = (short)(256u + ((*p) - 0u));
 	if ( 
@@ -445,7 +448,7 @@ st24:
 	if ( ++p == pe )
 		goto _test_eof24;
 case 24:
-#line 449 "schwa/formats/http_gen.cc"
+#line 452 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st23;
 		case 10u: goto st812;
@@ -542,7 +545,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 546 "schwa/formats/http_gen.cc"
+#line 549 "schwa/formats/http_gen.cc"
 	if ( (*p) == 10u )
 		goto st24;
 	goto tr58;
@@ -568,7 +571,7 @@ st29:
 	if ( ++p == pe )
 		goto _test_eof29;
 case 29:
-#line 572 "schwa/formats/http_gen.cc"
+#line 575 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st29;
 		case 10u: goto st19;
@@ -591,7 +594,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 595 "schwa/formats/http_gen.cc"
+#line 598 "schwa/formats/http_gen.cc"
 	if ( (*p) == 10u )
 		goto st19;
 	goto st0;
@@ -1181,7 +1184,7 @@ st50:
 	if ( ++p == pe )
 		goto _test_eof50;
 case 50:
-#line 1185 "schwa/formats/http_gen.cc"
+#line 1188 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto tr91;
 		case 10u: goto tr92;
@@ -1377,7 +1380,7 @@ st57:
 	if ( ++p == pe )
 		goto _test_eof57;
 case 57:
-#line 1381 "schwa/formats/http_gen.cc"
+#line 1384 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st56;
 		case 10u: goto st24;
@@ -1415,7 +1418,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 1419 "schwa/formats/http_gen.cc"
+#line 1422 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st29;
 		case 10u: goto st24;
@@ -1486,7 +1489,7 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-#line 1490 "schwa/formats/http_gen.cc"
+#line 1493 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st29;
 		case 10u: goto st24;
@@ -1530,7 +1533,7 @@ st61:
 	if ( ++p == pe )
 		goto _test_eof61;
 case 61:
-#line 1534 "schwa/formats/http_gen.cc"
+#line 1537 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto tr107;
 		case 10u: goto tr108;
@@ -1575,7 +1578,7 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 1579 "schwa/formats/http_gen.cc"
+#line 1582 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st62;
 		case 10u: goto st19;
@@ -1599,7 +1602,7 @@ st63:
 	if ( ++p == pe )
 		goto _test_eof63;
 case 63:
-#line 1603 "schwa/formats/http_gen.cc"
+#line 1606 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st64;
 		case 10u: goto st24;
@@ -1674,7 +1677,7 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 1678 "schwa/formats/http_gen.cc"
+#line 1681 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st64;
 		case 10u: goto st19;
@@ -1715,7 +1718,7 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 1719 "schwa/formats/http_gen.cc"
+#line 1722 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st29;
 		case 10u: goto st24;
@@ -1792,7 +1795,7 @@ st68:
 	if ( ++p == pe )
 		goto _test_eof68;
 case 68:
-#line 1796 "schwa/formats/http_gen.cc"
+#line 1799 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st29;
 		case 10u: goto st24;
@@ -1836,7 +1839,7 @@ st69:
 	if ( ++p == pe )
 		goto _test_eof69;
 case 69:
-#line 1840 "schwa/formats/http_gen.cc"
+#line 1843 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto tr124;
 		case 10u: goto tr125;
@@ -1877,7 +1880,7 @@ st70:
 	if ( ++p == pe )
 		goto _test_eof70;
 case 70:
-#line 1881 "schwa/formats/http_gen.cc"
+#line 1884 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto tr124;
 		case 10u: goto tr130;
@@ -1918,7 +1921,7 @@ st71:
 	if ( ++p == pe )
 		goto _test_eof71;
 case 71:
-#line 1922 "schwa/formats/http_gen.cc"
+#line 1925 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto st72;
 		case 10u: goto st24;
@@ -1984,7 +1987,7 @@ st75:
 	if ( ++p == pe )
 		goto _test_eof75;
 case 75:
-#line 1988 "schwa/formats/http_gen.cc"
+#line 1991 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 9u: goto tr107;
 		case 10u: goto tr136;
@@ -2032,7 +2035,10 @@ case 76:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -2082,20 +2088,23 @@ case 79:
 		case 95u: goto st80;
 		case 126u: goto st80;
 	}
-	if ( (*p) < 58u ) {
-		if ( (*p) > 46u ) {
-			if ( 48u <= (*p) && (*p) <= 57u )
-				goto st79;
+	if ( (*p) < 48u ) {
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st80;
 		} else if ( (*p) >= 36u )
 			goto st80;
-	} else if ( (*p) > 59u ) {
-		if ( (*p) > 90u ) {
+	} else if ( (*p) > 57u ) {
+		if ( (*p) < 65u ) {
+			if ( 58u <= (*p) && (*p) <= 59u )
+				goto st80;
+		} else if ( (*p) > 90u ) {
 			if ( 97u <= (*p) && (*p) <= 122u )
 				goto st80;
-		} else if ( (*p) >= 65u )
+		} else
 			goto st80;
 	} else
-		goto st80;
+		goto st79;
 	goto st0;
 st80:
 	if ( ++p == pe )
@@ -2110,7 +2119,10 @@ case 80:
 		case 126u: goto st80;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st80;
+		} else if ( (*p) >= 36u )
 			goto st80;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -2162,7 +2174,10 @@ case 83:
 		case 126u: goto st84;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st84;
+		} else if ( (*p) >= 36u )
 			goto st84;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -2187,7 +2202,10 @@ case 84:
 		case 126u: goto st84;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st84;
+		} else if ( (*p) >= 36u )
 			goto st84;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -4645,7 +4663,10 @@ case 242:
 		case 126u: goto st243;
 	}
 	if ( (*p) < 48u ) {
-		if ( 38u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st243;
+		} else if ( (*p) >= 38u )
 			goto st243;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -4669,7 +4690,10 @@ case 243:
 		case 126u: goto st243;
 	}
 	if ( (*p) < 48u ) {
-		if ( 38u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st243;
+		} else if ( (*p) >= 38u )
 			goto st243;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -4692,11 +4716,14 @@ case 244:
 		case 95u: goto st244;
 		case 126u: goto st244;
 	}
-	if ( (*p) < 63u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st244;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st244;
+		} else if ( (*p) >= 63u )
 			goto st244;
 	} else
 		goto st244;
@@ -4751,7 +4778,10 @@ case 247:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -4778,7 +4808,10 @@ case 248:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -4804,7 +4837,10 @@ case 249:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -4829,11 +4865,14 @@ case 250:
 		case 95u: goto st251;
 		case 126u: goto st251;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st251;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st251;
+		} else if ( (*p) >= 65u )
 			goto st251;
 	} else
 		goto st251;
@@ -4853,11 +4892,14 @@ case 251:
 		case 95u: goto st251;
 		case 126u: goto st251;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st251;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st251;
+		} else if ( (*p) >= 65u )
 			goto st251;
 	} else
 		goto st251;
@@ -4901,11 +4943,14 @@ case 254:
 		case 95u: goto st244;
 		case 126u: goto st244;
 	}
-	if ( (*p) < 63u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st244;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st244;
+		} else if ( (*p) >= 63u )
 			goto st244;
 	} else
 		goto st244;
@@ -4923,11 +4968,14 @@ case 255:
 		case 95u: goto st244;
 		case 126u: goto st244;
 	}
-	if ( (*p) < 63u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st244;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st244;
+		} else if ( (*p) >= 63u )
 			goto st244;
 	} else
 		goto st244;
@@ -4949,11 +4997,14 @@ case 256:
 		case 95u: goto st257;
 		case 126u: goto st257;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st257;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st257;
+		} else if ( (*p) >= 65u )
 			goto st257;
 	} else
 		goto st257;
@@ -4974,11 +5025,14 @@ case 257:
 		case 95u: goto st257;
 		case 126u: goto st257;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st257;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st257;
+		} else if ( (*p) >= 65u )
 			goto st257;
 	} else
 		goto st257;
@@ -5024,20 +5078,23 @@ case 260:
 		case 95u: goto st261;
 		case 126u: goto st261;
 	}
-	if ( (*p) < 58u ) {
-		if ( (*p) > 46u ) {
-			if ( 48u <= (*p) && (*p) <= 57u )
-				goto st260;
+	if ( (*p) < 48u ) {
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st261;
 		} else if ( (*p) >= 36u )
 			goto st261;
-	} else if ( (*p) > 59u ) {
-		if ( (*p) > 90u ) {
+	} else if ( (*p) > 57u ) {
+		if ( (*p) < 65u ) {
+			if ( 58u <= (*p) && (*p) <= 59u )
+				goto st261;
+		} else if ( (*p) > 90u ) {
 			if ( 97u <= (*p) && (*p) <= 122u )
 				goto st261;
-		} else if ( (*p) >= 65u )
+		} else
 			goto st261;
 	} else
-		goto st261;
+		goto st260;
 	goto st0;
 st261:
 	if ( ++p == pe )
@@ -5052,7 +5109,10 @@ case 261:
 		case 126u: goto st261;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st261;
+		} else if ( (*p) >= 36u )
 			goto st261;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -5105,11 +5165,14 @@ case 264:
 		case 95u: goto st265;
 		case 126u: goto st265;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st265;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st265;
+		} else if ( (*p) >= 65u )
 			goto st265;
 	} else
 		goto st265;
@@ -5129,11 +5192,14 @@ case 265:
 		case 95u: goto st265;
 		case 126u: goto st265;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st265;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st265;
+		} else if ( (*p) >= 65u )
 			goto st265;
 	} else
 		goto st265;
@@ -7590,7 +7656,10 @@ case 423:
 		case 126u: goto st424;
 	}
 	if ( (*p) < 48u ) {
-		if ( 38u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st424;
+		} else if ( (*p) >= 38u )
 			goto st424;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7614,7 +7683,10 @@ case 424:
 		case 126u: goto st424;
 	}
 	if ( (*p) < 48u ) {
-		if ( 38u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st424;
+		} else if ( (*p) >= 38u )
 			goto st424;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7641,7 +7713,10 @@ case 425:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7668,7 +7743,10 @@ case 426:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7695,7 +7773,10 @@ case 427:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7723,7 +7804,10 @@ case 428:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7750,7 +7834,10 @@ case 429:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7777,7 +7864,10 @@ case 430:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7804,7 +7894,10 @@ case 431:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7831,7 +7924,10 @@ case 432:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7858,7 +7954,10 @@ case 433:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7885,7 +7984,10 @@ case 434:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7912,7 +8014,10 @@ case 435:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7940,7 +8045,10 @@ case 436:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7967,7 +8075,10 @@ case 437:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -7995,7 +8106,10 @@ case 438:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8022,7 +8136,10 @@ case 439:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8049,7 +8166,10 @@ case 440:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8076,7 +8196,10 @@ case 441:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8103,7 +8226,10 @@ case 442:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8130,7 +8256,10 @@ case 443:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8157,7 +8286,10 @@ case 444:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8184,7 +8316,10 @@ case 445:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8214,7 +8349,10 @@ case 446:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8241,7 +8379,10 @@ case 447:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8268,7 +8409,10 @@ case 448:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8295,7 +8439,10 @@ case 449:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8322,7 +8469,10 @@ case 450:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8349,7 +8499,10 @@ case 451:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8376,7 +8529,10 @@ case 452:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8403,7 +8559,10 @@ case 453:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8430,7 +8589,10 @@ case 454:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8457,7 +8619,10 @@ case 455:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8484,7 +8649,10 @@ case 456:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8511,7 +8679,10 @@ case 457:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8538,7 +8709,10 @@ case 458:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8565,7 +8739,10 @@ case 459:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8592,7 +8769,10 @@ case 460:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8619,7 +8799,10 @@ case 461:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8651,7 +8834,10 @@ case 462:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8679,7 +8865,10 @@ case 463:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8706,7 +8895,10 @@ case 464:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8733,7 +8925,10 @@ case 465:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8760,7 +8955,10 @@ case 466:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8787,7 +8985,10 @@ case 467:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8814,7 +9015,10 @@ case 468:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8841,7 +9045,10 @@ case 469:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8868,7 +9075,10 @@ case 470:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8895,7 +9105,10 @@ case 471:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8922,7 +9135,10 @@ case 472:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8949,7 +9165,10 @@ case 473:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -8976,7 +9195,10 @@ case 474:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9003,7 +9225,10 @@ case 475:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9030,7 +9255,10 @@ case 476:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9057,7 +9285,10 @@ case 477:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9086,7 +9317,10 @@ case 478:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9113,7 +9347,10 @@ case 479:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9140,7 +9377,10 @@ case 480:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9167,7 +9407,10 @@ case 481:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9194,7 +9437,10 @@ case 482:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9221,7 +9467,10 @@ case 483:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9248,7 +9497,10 @@ case 484:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9275,7 +9527,10 @@ case 485:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9302,7 +9557,10 @@ case 486:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9329,7 +9587,10 @@ case 487:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9356,7 +9617,10 @@ case 488:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9383,7 +9647,10 @@ case 489:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9410,7 +9677,10 @@ case 490:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9437,7 +9707,10 @@ case 491:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9464,7 +9737,10 @@ case 492:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9491,7 +9767,10 @@ case 493:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9518,7 +9797,10 @@ case 494:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9545,7 +9827,10 @@ case 495:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9572,7 +9857,10 @@ case 496:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9599,7 +9887,10 @@ case 497:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9626,7 +9917,10 @@ case 498:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9653,7 +9947,10 @@ case 499:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9680,7 +9977,10 @@ case 500:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9713,7 +10013,10 @@ case 501:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9740,7 +10043,10 @@ case 502:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9767,7 +10073,10 @@ case 503:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9794,7 +10103,10 @@ case 504:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9821,7 +10133,10 @@ case 505:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9848,7 +10163,10 @@ case 506:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9875,7 +10193,10 @@ case 507:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9902,7 +10223,10 @@ case 508:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9929,7 +10253,10 @@ case 509:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9956,7 +10283,10 @@ case 510:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -9983,7 +10313,10 @@ case 511:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10010,7 +10343,10 @@ case 512:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10037,7 +10373,10 @@ case 513:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10064,7 +10403,10 @@ case 514:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10091,7 +10433,10 @@ case 515:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10118,7 +10463,10 @@ case 516:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10145,7 +10493,10 @@ case 517:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10172,7 +10523,10 @@ case 518:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10199,7 +10553,10 @@ case 519:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10226,7 +10583,10 @@ case 520:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10256,7 +10616,10 @@ case 521:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10284,7 +10647,10 @@ case 522:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10311,7 +10677,10 @@ case 523:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10338,7 +10707,10 @@ case 524:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10365,7 +10737,10 @@ case 525:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10392,7 +10767,10 @@ case 526:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10419,7 +10797,10 @@ case 527:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10448,7 +10829,10 @@ case 528:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10475,7 +10859,10 @@ case 529:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10502,7 +10889,10 @@ case 530:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10529,7 +10919,10 @@ case 531:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10556,7 +10949,10 @@ case 532:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10587,7 +10983,10 @@ case 533:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10615,7 +11014,10 @@ case 534:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10642,7 +11044,10 @@ case 535:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10669,7 +11074,10 @@ case 536:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10696,7 +11104,10 @@ case 537:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10723,7 +11134,10 @@ case 538:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10750,7 +11164,10 @@ case 539:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10777,7 +11194,10 @@ case 540:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10804,7 +11224,10 @@ case 541:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10831,7 +11254,10 @@ case 542:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10858,7 +11284,10 @@ case 543:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10885,7 +11314,10 @@ case 544:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10912,7 +11344,10 @@ case 545:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10941,7 +11376,10 @@ case 546:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10968,7 +11406,10 @@ case 547:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -10995,7 +11436,10 @@ case 548:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11022,7 +11466,10 @@ case 549:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11049,7 +11496,10 @@ case 550:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11076,7 +11526,10 @@ case 551:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11109,7 +11562,10 @@ case 552:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11136,7 +11592,10 @@ case 553:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11164,7 +11623,10 @@ case 554:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11191,7 +11653,10 @@ case 555:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11218,7 +11683,10 @@ case 556:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11246,7 +11714,10 @@ case 557:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11274,7 +11745,10 @@ case 558:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11302,7 +11776,10 @@ case 559:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11329,7 +11806,10 @@ case 560:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11358,7 +11838,10 @@ case 561:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11387,7 +11870,10 @@ case 562:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11414,7 +11900,10 @@ case 563:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11441,7 +11930,10 @@ case 564:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11468,7 +11960,10 @@ case 565:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11495,7 +11990,10 @@ case 566:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11522,7 +12020,10 @@ case 567:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11549,7 +12050,10 @@ case 568:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11576,7 +12080,10 @@ case 569:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11603,7 +12110,10 @@ case 570:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11630,7 +12140,10 @@ case 571:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11657,7 +12170,10 @@ case 572:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11684,7 +12200,10 @@ case 573:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11711,7 +12230,10 @@ case 574:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11738,7 +12260,10 @@ case 575:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11765,7 +12290,10 @@ case 576:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11793,7 +12321,10 @@ case 577:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11820,7 +12351,10 @@ case 578:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11847,7 +12381,10 @@ case 579:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11874,7 +12411,10 @@ case 580:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11901,7 +12441,10 @@ case 581:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11936,7 +12479,10 @@ case 582:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11966,7 +12512,10 @@ case 583:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -11993,7 +12542,10 @@ case 584:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12020,7 +12572,10 @@ case 585:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12047,7 +12602,10 @@ case 586:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12075,7 +12633,10 @@ case 587:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12102,7 +12663,10 @@ case 588:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12129,7 +12693,10 @@ case 589:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12156,7 +12723,10 @@ case 590:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12183,7 +12753,10 @@ case 591:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12210,7 +12783,10 @@ case 592:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12237,7 +12813,10 @@ case 593:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12264,7 +12843,10 @@ case 594:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12291,7 +12873,10 @@ case 595:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12318,7 +12903,10 @@ case 596:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12345,7 +12933,10 @@ case 597:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12374,7 +12965,10 @@ case 598:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12402,7 +12996,10 @@ case 599:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12429,7 +13026,10 @@ case 600:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12456,7 +13056,10 @@ case 601:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12483,7 +13086,10 @@ case 602:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12510,7 +13116,10 @@ case 603:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12537,7 +13146,10 @@ case 604:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12564,7 +13176,10 @@ case 605:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12591,7 +13206,10 @@ case 606:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12618,7 +13236,10 @@ case 607:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12645,7 +13266,10 @@ case 608:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12672,7 +13296,10 @@ case 609:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12699,7 +13326,10 @@ case 610:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12726,7 +13356,10 @@ case 611:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12753,7 +13386,10 @@ case 612:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12780,7 +13416,10 @@ case 613:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12807,7 +13446,10 @@ case 614:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12835,7 +13477,10 @@ case 615:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12862,7 +13507,10 @@ case 616:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12889,7 +13537,10 @@ case 617:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12916,7 +13567,10 @@ case 618:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12943,7 +13597,10 @@ case 619:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -12975,7 +13632,10 @@ case 620:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13002,7 +13662,10 @@ case 621:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13029,7 +13692,10 @@ case 622:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13056,7 +13722,10 @@ case 623:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13083,7 +13752,10 @@ case 624:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13110,7 +13782,10 @@ case 625:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13137,7 +13812,10 @@ case 626:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13165,7 +13843,10 @@ case 627:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13192,7 +13873,10 @@ case 628:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13219,7 +13903,10 @@ case 629:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13246,7 +13933,10 @@ case 630:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13273,7 +13963,10 @@ case 631:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13300,7 +13993,10 @@ case 632:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13327,7 +14023,10 @@ case 633:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13354,7 +14053,10 @@ case 634:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13381,7 +14083,10 @@ case 635:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13408,7 +14113,10 @@ case 636:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13435,7 +14143,10 @@ case 637:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13462,7 +14173,10 @@ case 638:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13489,7 +14203,10 @@ case 639:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13521,7 +14238,10 @@ case 640:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13550,7 +14270,10 @@ case 641:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13577,7 +14300,10 @@ case 642:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13604,7 +14330,10 @@ case 643:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13631,7 +14360,10 @@ case 644:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13658,7 +14390,10 @@ case 645:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13685,7 +14420,10 @@ case 646:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13712,7 +14450,10 @@ case 647:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13739,7 +14480,10 @@ case 648:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13766,7 +14510,10 @@ case 649:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13793,7 +14540,10 @@ case 650:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13820,7 +14570,10 @@ case 651:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13847,7 +14600,10 @@ case 652:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13874,7 +14630,10 @@ case 653:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13901,7 +14660,10 @@ case 654:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13928,7 +14690,10 @@ case 655:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13956,7 +14721,10 @@ case 656:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -13984,7 +14752,10 @@ case 657:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14011,7 +14782,10 @@ case 658:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14038,7 +14812,10 @@ case 659:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14065,7 +14842,10 @@ case 660:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14092,7 +14872,10 @@ case 661:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14119,7 +14902,10 @@ case 662:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14146,7 +14932,10 @@ case 663:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14173,7 +14962,10 @@ case 664:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14200,7 +14992,10 @@ case 665:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14230,7 +15025,10 @@ case 666:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14258,7 +15056,10 @@ case 667:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14285,7 +15086,10 @@ case 668:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14312,7 +15116,10 @@ case 669:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14339,7 +15146,10 @@ case 670:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14366,7 +15176,10 @@ case 671:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14393,7 +15206,10 @@ case 672:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14420,7 +15236,10 @@ case 673:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14447,7 +15266,10 @@ case 674:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14474,7 +15296,10 @@ case 675:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14502,7 +15327,10 @@ case 676:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14530,7 +15358,10 @@ case 677:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14569,7 +15400,10 @@ case 678:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14598,7 +15432,10 @@ case 679:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14625,7 +15462,10 @@ case 680:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14652,7 +15492,10 @@ case 681:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14679,7 +15522,10 @@ case 682:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14706,7 +15552,10 @@ case 683:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14733,7 +15582,10 @@ case 684:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14760,7 +15612,10 @@ case 685:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14787,7 +15642,10 @@ case 686:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14814,7 +15672,10 @@ case 687:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14841,7 +15702,10 @@ case 688:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14869,7 +15733,10 @@ case 689:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14896,7 +15763,10 @@ case 690:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14923,7 +15793,10 @@ case 691:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14950,7 +15823,10 @@ case 692:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -14978,7 +15854,10 @@ case 693:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15006,7 +15885,10 @@ case 694:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15034,7 +15916,10 @@ case 695:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15061,7 +15946,10 @@ case 696:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15088,7 +15976,10 @@ case 697:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 45u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 45u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15115,7 +16006,10 @@ case 698:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15142,7 +16036,10 @@ case 699:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15169,7 +16066,10 @@ case 700:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15196,7 +16096,10 @@ case 701:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15223,7 +16126,10 @@ case 702:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15250,7 +16156,10 @@ case 703:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15277,7 +16186,10 @@ case 704:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15304,7 +16216,10 @@ case 705:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15331,7 +16246,10 @@ case 706:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15360,7 +16278,10 @@ case 707:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15387,7 +16308,10 @@ case 708:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15414,7 +16338,10 @@ case 709:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15441,7 +16368,10 @@ case 710:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15468,7 +16398,10 @@ case 711:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15502,7 +16435,10 @@ case 712:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15529,7 +16465,10 @@ case 713:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15557,7 +16496,10 @@ case 714:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15584,7 +16526,10 @@ case 715:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15611,7 +16556,10 @@ case 716:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15638,7 +16586,10 @@ case 717:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15665,7 +16616,10 @@ case 718:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15692,7 +16646,10 @@ case 719:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15719,7 +16676,10 @@ case 720:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15746,7 +16706,10 @@ case 721:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15774,7 +16737,10 @@ case 722:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15801,7 +16767,10 @@ case 723:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15828,7 +16797,10 @@ case 724:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15855,7 +16827,10 @@ case 725:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15882,7 +16857,10 @@ case 726:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15909,7 +16887,10 @@ case 727:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15936,7 +16917,10 @@ case 728:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15963,7 +16947,10 @@ case 729:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 49u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -15990,7 +16977,10 @@ case 730:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16020,7 +17010,10 @@ case 731:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16047,7 +17040,10 @@ case 732:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16074,7 +17070,10 @@ case 733:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16101,7 +17100,10 @@ case 734:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16128,7 +17130,10 @@ case 735:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16155,7 +17160,10 @@ case 736:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16182,7 +17190,10 @@ case 737:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 49u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16209,7 +17220,10 @@ case 738:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 49u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16236,7 +17250,10 @@ case 739:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16264,7 +17281,10 @@ case 740:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16292,7 +17312,10 @@ case 741:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16319,7 +17342,10 @@ case 742:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16346,7 +17372,10 @@ case 743:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16373,7 +17402,10 @@ case 744:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16400,7 +17432,10 @@ case 745:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16428,7 +17463,10 @@ case 746:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16455,7 +17493,10 @@ case 747:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16482,7 +17523,10 @@ case 748:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16509,7 +17553,10 @@ case 749:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16536,7 +17583,10 @@ case 750:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16563,7 +17613,10 @@ case 751:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16590,7 +17643,10 @@ case 752:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16617,7 +17673,10 @@ case 753:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16644,7 +17703,10 @@ case 754:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16675,7 +17737,10 @@ case 755:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16702,7 +17767,10 @@ case 756:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16729,7 +17797,10 @@ case 757:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16756,7 +17827,10 @@ case 758:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16783,7 +17857,10 @@ case 759:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16810,7 +17887,10 @@ case 760:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16837,7 +17917,10 @@ case 761:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16864,7 +17947,10 @@ case 762:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16891,7 +17977,10 @@ case 763:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16921,7 +18010,10 @@ case 764:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16948,7 +18040,10 @@ case 765:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -16976,7 +18071,10 @@ case 766:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17003,7 +18101,10 @@ case 767:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17030,7 +18131,10 @@ case 768:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17057,7 +18161,10 @@ case 769:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17084,7 +18191,10 @@ case 770:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17111,7 +18221,10 @@ case 771:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17138,7 +18251,10 @@ case 772:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17165,7 +18281,10 @@ case 773:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17192,7 +18311,10 @@ case 774:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17219,7 +18341,10 @@ case 775:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 45u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 45u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17246,7 +18371,10 @@ case 776:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17273,7 +18401,10 @@ case 777:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 49u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st76;
+		} else if ( (*p) >= 36u )
 			goto st76;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -17299,10 +18430,13 @@ case 778:
 		case 126u: goto st76;
 	}
 	if ( (*p) < 65u ) {
-		if ( (*p) > 46u ) {
+		if ( (*p) < 42u ) {
+			if ( 36u <= (*p) && (*p) <= 39u )
+				goto st76;
+		} else if ( (*p) > 46u ) {
 			if ( 48u <= (*p) && (*p) <= 59u )
 				goto st76;
-		} else if ( (*p) >= 36u )
+		} else
 			goto st76;
 	} else if ( (*p) > 90u ) {
 		if ( (*p) < 114u ) {
@@ -17445,7 +18579,7 @@ st796:
 	if ( ++p == pe )
 		goto _test_eof796;
 case 796:
-#line 17449 "schwa/formats/http_gen.cc"
+#line 18583 "schwa/formats/http_gen.cc"
 	if ( 48u <= (*p) && (*p) <= 57u )
 		goto tr824;
 	goto st0;
@@ -17457,7 +18591,7 @@ st797:
 	if ( ++p == pe )
 		goto _test_eof797;
 case 797:
-#line 17461 "schwa/formats/http_gen.cc"
+#line 18595 "schwa/formats/http_gen.cc"
 	if ( 48u <= (*p) && (*p) <= 57u )
 		goto tr825;
 	goto st0;
@@ -17469,7 +18603,7 @@ st798:
 	if ( ++p == pe )
 		goto _test_eof798;
 case 798:
-#line 17473 "schwa/formats/http_gen.cc"
+#line 18607 "schwa/formats/http_gen.cc"
 	switch( (*p) ) {
 		case 10u: goto st19;
 		case 13u: goto st30;
@@ -17590,7 +18724,7 @@ st815:
 	if ( ++p == pe )
 		goto _test_eof815;
 case 815:
-#line 17594 "schwa/formats/http_gen.cc"
+#line 18728 "schwa/formats/http_gen.cc"
 	goto st0;
 	}
 	_test_eof2: cs = 2; goto _test_eof; 
@@ -18483,7 +19617,7 @@ case 815:
 #line 26 "../ragel/formats/http/http.rl"
 	{ _message_body_end(p); }
 	break;
-#line 18487 "schwa/formats/http_gen.cc"
+#line 19621 "schwa/formats/http_gen.cc"
 	}
 	}
 

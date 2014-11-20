@@ -126,11 +126,14 @@ case 5:
 		case 95u: goto st526;
 		case 126u: goto st526;
 	}
-	if ( (*p) < 64u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st526;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st526;
+		} else if ( (*p) >= 64u )
 			goto st526;
 	} else
 		goto st526;
@@ -147,11 +150,14 @@ case 526:
 		case 95u: goto st526;
 		case 126u: goto st526;
 	}
-	if ( (*p) < 63u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st526;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st526;
+		} else if ( (*p) >= 63u )
 			goto st526;
 	} else
 		goto st526;
@@ -167,11 +173,14 @@ case 527:
 		case 95u: goto st527;
 		case 126u: goto st527;
 	}
-	if ( (*p) < 63u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st527;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st527;
+		} else if ( (*p) >= 63u )
 			goto st527;
 	} else
 		goto st527;
@@ -241,11 +250,14 @@ case 528:
 		case 95u: goto st526;
 		case 126u: goto st526;
 	}
-	if ( (*p) < 63u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st526;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st526;
+		} else if ( (*p) >= 63u )
 			goto st526;
 	} else
 		goto st526;
@@ -267,11 +279,14 @@ case 529:
 		case 95u: goto st530;
 		case 126u: goto st530;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st530;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st530;
+		} else if ( (*p) >= 65u )
 			goto st530;
 	} else
 		goto st530;
@@ -292,11 +307,14 @@ case 530:
 		case 95u: goto st530;
 		case 126u: goto st530;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st530;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st530;
+		} else if ( (*p) >= 65u )
 			goto st530;
 	} else
 		goto st530;
@@ -342,20 +360,23 @@ case 531:
 		case 95u: goto st12;
 		case 126u: goto st12;
 	}
-	if ( (*p) < 58u ) {
-		if ( (*p) > 46u ) {
-			if ( 48u <= (*p) && (*p) <= 57u )
-				goto st531;
+	if ( (*p) < 48u ) {
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st12;
 		} else if ( (*p) >= 36u )
 			goto st12;
-	} else if ( (*p) > 59u ) {
-		if ( (*p) > 90u ) {
+	} else if ( (*p) > 57u ) {
+		if ( (*p) < 65u ) {
+			if ( 58u <= (*p) && (*p) <= 59u )
+				goto st12;
+		} else if ( (*p) > 90u ) {
 			if ( 97u <= (*p) && (*p) <= 122u )
 				goto st12;
-		} else if ( (*p) >= 65u )
+		} else
 			goto st12;
 	} else
-		goto st12;
+		goto st531;
 	goto st0;
 st12:
 	if ( ++p == pe )
@@ -370,7 +391,10 @@ case 12:
 		case 126u: goto st12;
 	}
 	if ( (*p) < 48u ) {
-		if ( 36u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st12;
+		} else if ( (*p) >= 36u )
 			goto st12;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -423,11 +447,14 @@ case 532:
 		case 95u: goto st533;
 		case 126u: goto st533;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st533;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st533;
+		} else if ( (*p) >= 65u )
 			goto st533;
 	} else
 		goto st533;
@@ -447,11 +474,14 @@ case 533:
 		case 95u: goto st533;
 		case 126u: goto st533;
 	}
-	if ( (*p) < 65u ) {
-		if ( 36u <= (*p) && (*p) <= 59u )
+	if ( (*p) < 42u ) {
+		if ( 36u <= (*p) && (*p) <= 39u )
 			goto st533;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
+	} else if ( (*p) > 59u ) {
+		if ( (*p) > 90u ) {
+			if ( 97u <= (*p) && (*p) <= 122u )
+				goto st533;
+		} else if ( (*p) >= 65u )
 			goto st533;
 	} else
 		goto st533;
@@ -2908,7 +2938,10 @@ case 170:
 		case 126u: goto st171;
 	}
 	if ( (*p) < 48u ) {
-		if ( 38u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st171;
+		} else if ( (*p) >= 38u )
 			goto st171;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
@@ -2932,7 +2965,10 @@ case 171:
 		case 126u: goto st171;
 	}
 	if ( (*p) < 48u ) {
-		if ( 38u <= (*p) && (*p) <= 46u )
+		if ( (*p) > 39u ) {
+			if ( 42u <= (*p) && (*p) <= 46u )
+				goto st171;
+		} else if ( (*p) >= 38u )
 			goto st171;
 	} else if ( (*p) > 59u ) {
 		if ( (*p) > 90u ) {
