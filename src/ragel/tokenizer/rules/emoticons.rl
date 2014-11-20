@@ -12,8 +12,7 @@
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_4.htm
   # http://netforbeginners.about.com/cs/netiquette101/a/bl_emoticons101_5.htm
   emoticon_smile =
-      ':)'
-    | ':-)'
+      ':-)'
     | ':->'
     | ':-{)'
     | ':-{)}'
