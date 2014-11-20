@@ -34,7 +34,7 @@
   pct_encoded = '%' xdigit{2} ;
 
   gen_delims = [][:/?#@] ;
-  sub_delims = [!$&'()*+,;=] ;
+  sub_delims = [!$&'*+,;=] ;
   reserved = gen_delims | sub_delims ;
   unreserved = alpha | digit | [\-._~] ;
 
