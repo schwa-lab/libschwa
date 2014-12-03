@@ -328,7 +328,7 @@ HTMLLexer::run(const uint8_t *const input, const size_t nbytes) {
 bool
 HTMLLexer::run(const EncodingResult &er) {
   _reset(&er);
-  return _run(er.utf8(), er.nbytes());
+  return _run(er.bytes(), er.nitems());
 }
 
 

@@ -95,19 +95,15 @@ public:
 static void
 tokenize(io::InputStream &in, Printer &printer, const Encoding &encoding) {
   // Read the input stream into a buffer, and re-encode it into UTF-8.
-  OffsetBuffer<> in_utf8(1 * 1024 * 1024);
+  EncodingResult er;
   {
-    Buffer<> in_bytes(1 * 1024 * 1024);
+    Buffer<> in_bytes(4 * 1024 * 1024);
     in_bytes.consume(in);
-
-    EncodingResult er;
     to_utf8(encoding, in_bytes, er);
-    er.copy_to(in_utf8);
   }
-
   // Run the plain text lexer over the input to get paragraph bounds.
   fm::PlainTextLexer lexer;
-  lexer.lex(in_utf8);
+  lexer.lex(er.buffer());
 
   // Construct the document object.
   cs::Doc doc;
@@ -119,7 +115,7 @@ tokenize(io::InputStream &in, Printer &printer, const Encoding &encoding) {
   for (const auto &pair : lexer.paragraph_indexes()) {
     // Find the newline boundaries in the paragraph.
     OffsetInputStream<> ois(pair.second - pair.first);
-    ois.write(in_utf8.begin() + pair.first, in_utf8.begin() + pair.second);
+    ois.write(er.buffer().begin() + pair.first, er.buffer().begin() + pair.second);
 
     // Tokenize the paragraph.
     const size_t nsentences_before = doc.sentences.size();

@@ -82,36 +82,27 @@ namespace schwa {
 
 
   class EncodingResult {
+  public:
+    static constexpr const size_t DEFAULT_BUFFER_GROW = 4096;
+
   private:
-    uint8_t *_utf8;
-    uint8_t *_deltas;
-    size_t _allocated;
-    size_t _consumed;
+    OffsetBuffer<> _buffer;
     uint8_t _tmp[4];
     Encoding _from_encoding;
 
-    void _grow(size_t new_nbytes);
-
   public:
-    explicit EncodingResult(Encoding from_encoding=Encoding::ASCII);
-    ~EncodingResult(void);
+    explicit EncodingResult(Encoding from_encoding=Encoding::ASCII, size_t buffer_grow=DEFAULT_BUFFER_GROW);
 
-    inline size_t allocated(void) const { return _allocated; }
-    inline const uint8_t *deltas(void) const { return _deltas; }
+    inline const OffsetBuffer<> &buffer(void) const { return _buffer; }
+    inline uint8_t *bytes(void) const { return _buffer.bytes(); }
     inline Encoding encoding(void) const { return _from_encoding; }
-    inline size_t nbytes(void) const { return _consumed; }
-    inline size_t remaining(void) const { return _allocated - _consumed; }
-    inline const uint8_t *utf8(void) const { return _utf8; }
+    inline size_t nitems(void) const { return _buffer.nitems_used(); }
+    inline uint32_t *offsets(void) const { return _buffer.offsets(); }
 
-    void grow(size_t grow_size=4096);
-    void reserve(size_t nbytes);
-    void reset(Encoding from_encoding);
+    void clear(Encoding from_encoding);
+    inline void reserve(const size_t nbytes) { _buffer.reserve(nbytes); }
 
     size_t write(unicode_t code_point, uint8_t nbytes_consumed);
-    size_t write(unicode_t code_point, uint8_t nbytes_consumed, uint8_t utf8_nbytes_needed);
-
-    template <typename ALLOC>
-    void copy_to(OffsetBuffer<ALLOC> &buffer);
 
   private:
     SCHWA_DISALLOW_COPY_AND_ASSIGN(EncodingResult);

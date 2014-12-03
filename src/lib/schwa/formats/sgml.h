@@ -191,7 +191,7 @@ namespace schwa {
 
       inline void
       _attr_name_start(const uint8_t *fpc) {
-        _attr_name_buffer.set_start(_encoding_result.utf8(), fpc);
+        _attr_name_buffer.set_start(_encoding_result.bytes(), fpc);
       }
 
       inline void
@@ -201,7 +201,7 @@ namespace schwa {
 
       inline void
       _character_start(const uint8_t *fpc) {
-        _text_buffer.set_start(_encoding_result.utf8(), fpc);
+        _text_buffer.set_start(_encoding_result.bytes(), fpc);
       }
 
       inline void
@@ -211,7 +211,7 @@ namespace schwa {
 
       inline void
       _tag_name_start(const uint8_t *fpc) {
-        _tag_name_buffer.set_start(_encoding_result.utf8(), fpc);
+        _tag_name_buffer.set_start(_encoding_result.bytes(), fpc);
       }
 
       void _character_reference_decimal(const uint8_t *const fpc);

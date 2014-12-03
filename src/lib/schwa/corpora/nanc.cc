@@ -114,8 +114,8 @@ NANCImporter::Impl::Impl(const std::string &path) :
     const uint8_t bytes[1] = {static_cast<uint8_t>(byte)};
     latin1_to_utf8(bytes, 1, utf8);
 
-    const uint8_t *start = utf8.utf8();
-    const uint8_t *const end = start + utf8.nbytes();
+    const uint8_t *start = utf8.bytes();
+    const uint8_t *const end = start + utf8.nitems();
     assert(start != end);
     const unicode_t code_point = read_utf8(&start, end);
     assert(start == end);

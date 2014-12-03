@@ -28,16 +28,37 @@ namespace schwa {
 
   template <typename ALLOC>
   inline void
+  Buffer<ALLOC>::_grow(const size_t nbytes) {
+    uint8_t *bytes = _allocator.allocate(_nbytes_allocd + nbytes);
+    std::memcpy(bytes, _bytes, _nbytes_used);
+    _allocator.deallocate(_bytes, _nbytes_allocd);
+    _bytes = bytes;
+    _nbytes_allocd += nbytes;
+  }
+
+
+  template <typename ALLOC>
+  inline void
   Buffer<ALLOC>::_write(const uint8_t *const data, const size_t nbytes) {
-    if (SCHWA_UNLIKELY(_nbytes_used + nbytes > _nbytes_allocd)) {
-      uint8_t *bytes = _allocator.allocate(_nbytes_allocd + _nbytes_grow);
-      std::memcpy(bytes, _bytes, _nbytes_used);
-      _allocator.deallocate(_bytes, _nbytes_allocd);
-      _bytes = bytes;
-      _nbytes_allocd += _nbytes_grow;
-    }
+    if (SCHWA_UNLIKELY(_nbytes_used + nbytes > _nbytes_allocd))
+      _grow(_nbytes_grow);
     std::memcpy(_bytes + _nbytes_used, data, nbytes);
     _nbytes_used += nbytes;
+  }
+
+
+  template <typename ALLOC>
+  inline void
+  Buffer<ALLOC>::consume(io::InputStream &in) {
+    if (in.is_stdin() || in.is_tty()) {
+      Buffer<ALLOC>::consume(static_cast<std::istream &>(in));
+      return;
+    }
+
+    if (SCHWA_UNLIKELY(_nbytes_used + in.nbytes() > _nbytes_allocd))
+      _grow(in.nbytes());
+    (*in).read(reinterpret_cast<char *>(_bytes + _nbytes_used), in.nbytes());
+    _nbytes_used += (*in).gcount();
   }
 
 
@@ -52,6 +73,14 @@ namespace schwa {
         break;
       write(buf, nbytes);
     }
+  }
+
+
+  template <typename ALLOC>
+  inline void
+  Buffer<ALLOC>::reserve(const size_t nbytes) {
+    if (_nbytes_used + nbytes > _nbytes_allocd)
+      _grow(nbytes);
   }
 
 
@@ -82,21 +111,36 @@ namespace schwa {
     _allocator.deallocate(reinterpret_cast<char *>(_offsets), _nitems_allocd*sizeof(uint32_t));
   }
 
+
+  template <typename ALLOC>
+  inline void
+  OffsetBuffer<ALLOC>::_grow(const size_t nitems) {
+    const size_t new_nitems_allocd = _nitems_allocd + nitems;
+    uint8_t *bytes = reinterpret_cast<uint8_t *>(_allocator.allocate(new_nitems_allocd*sizeof(uint8_t)));
+    uint32_t *offsets = reinterpret_cast<uint32_t *>(_allocator.allocate(new_nitems_allocd*sizeof(uint32_t)));
+    std::memcpy(bytes, _bytes, _nitems_used*sizeof(uint8_t));
+    std::memcpy(offsets, _offsets, _nitems_used*sizeof(uint32_t));
+    _allocator.deallocate(reinterpret_cast<char *>(_bytes), _nitems_allocd*sizeof(uint8_t));
+    _allocator.deallocate(reinterpret_cast<char *>(_offsets), _nitems_allocd*sizeof(uint32_t));
+    _bytes = bytes;
+    _offsets = offsets;
+    _nitems_allocd = new_nitems_allocd;
+  }
+
+
+  template <typename ALLOC>
+  inline void
+  OffsetBuffer<ALLOC>::reserve(const size_t nitems) {
+    if (_nitems_allocd - _nitems_used < nitems)
+      _grow(std::max(nitems, _nitems_grow));
+  }
+
+
   template <typename ALLOC>
   inline void
   OffsetBuffer<ALLOC>::write(const uint8_t byte, const uint32_t offset) {
-    if (SCHWA_UNLIKELY(_nitems_used == _nitems_allocd)) {
-      const size_t new_nitems_allocd = _nitems_allocd + _nitems_grow;
-      uint8_t *bytes = reinterpret_cast<uint8_t *>(_allocator.allocate(new_nitems_allocd*sizeof(uint8_t)));
-      uint32_t *offsets = reinterpret_cast<uint32_t *>(_allocator.allocate(new_nitems_allocd*sizeof(uint32_t)));
-      std::memcpy(bytes, _bytes, _nitems_used*sizeof(uint8_t));
-      std::memcpy(offsets, _offsets, _nitems_used*sizeof(uint32_t));
-      _allocator.deallocate(reinterpret_cast<char *>(_bytes), _nitems_allocd*sizeof(uint8_t));
-      _allocator.deallocate(reinterpret_cast<char *>(_offsets), _nitems_allocd*sizeof(uint32_t));
-      _bytes = bytes;
-      _offsets = offsets;
-      _nitems_allocd = new_nitems_allocd;
-    }
+    if (SCHWA_UNLIKELY(_nitems_used == _nitems_allocd))
+      _grow(_nitems_grow);
     _bytes[_nitems_used] = byte;
     _offsets[_nitems_used] = offset;
     ++_nitems_used;

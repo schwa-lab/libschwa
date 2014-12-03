@@ -183,6 +183,13 @@ namespace schwa {
             return 0;
           return _ois->get_summed_offset(_index);
         }
+
+        inline uint32_t *
+        get_summed_offsets(void) const {
+          if (SCHWA_UNLIKELY(_ois == nullptr))
+            return 0;
+          return _ois->summed_offsets() + _index;
+        }
       };
 
     public:
@@ -197,6 +204,7 @@ namespace schwa {
       size_t _initial_offset;
       uint8_t *_bytes;
       uint32_t *_offsets;
+      uint32_t *_summed_offsets;
       BreakFlag *_flags;
 
       template <typename U> friend class OffsetInputStream;
@@ -217,6 +225,7 @@ namespace schwa {
       inline size_t nitems_grow(void) const { return _nitems_grow; }
       inline size_t nitems_used(void) const { return _nitems_used; }
       inline uint32_t *offsets(void) const { return _offsets; }
+      inline uint32_t *summed_offsets(void) const { return _summed_offsets; }
 
       inline void clear(void) { _nitems_used = 0; }
       inline void set_initial_offset(const size_t initial_offset) { _initial_offset = initial_offset; }
@@ -224,7 +233,7 @@ namespace schwa {
       inline iterator begin(void) const { return iterator(*this, 0); }
       inline iterator end(void) const { return iterator(*this, _nitems_used); }
 
-      inline size_t get_summed_offset(const size_t index) const { return std::accumulate(_offsets, _offsets + index, _initial_offset); }
+      inline size_t get_summed_offset(const size_t index) const { return _initial_offset + _summed_offsets[index]; }
 
       template <typename A>
       void write(const OffsetBuffer<A> &buffer);

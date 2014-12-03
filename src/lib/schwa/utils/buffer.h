@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include <schwa/_base.h>
+#include <schwa/io/streams.h>
 #include <schwa/memory.h>
 
 
@@ -24,7 +25,8 @@ namespace schwa {
     size_t _nbytes_used;
     uint8_t *_bytes;
 
-    void _write(const uint8_t *const data, const size_t nbytes);
+    void _grow(size_t nbytes);
+    void _write(const uint8_t *data, size_t nbytes);
 
   public:
     explicit Buffer(size_t nbytes_grow, const allocator_type &allocator=allocator_type());
@@ -39,7 +41,9 @@ namespace schwa {
     inline void clear(void) { _nbytes_used = 0; }
     inline bool empty(void) const { return _nbytes_used == 0; }
 
+    void consume(io::InputStream &in);
     void consume(std::istream &in);
+    void reserve(size_t nbytes);
 
     inline void write(const uint8_t byte) { _write(&byte, 1); }
     inline void write(const uint8_t *const data, const size_t nbytes) { _write(data, nbytes); }
@@ -236,12 +240,15 @@ namespace schwa {
 
     template <typename U> friend class OffsetBuffer;
 
+    void _grow(size_t nitems);
+
   public:
     explicit OffsetBuffer(size_t nitems_grow, size_t initial_offset=0, const allocator_type &allocator=allocator_type());
     template <typename A> OffsetBuffer(const OffsetBuffer<A> &o, const allocator_type &allocator=allocator_type());
     ~OffsetBuffer(void);
 
     inline allocator_type &allocator(void) const { return _allocator; }
+    void reserve(size_t nitems);
     void write(uint8_t byte, uint32_t offset);
   };
 

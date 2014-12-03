@@ -144,53 +144,13 @@ operator <<(std::ostream &out, const Encoding encoding) {
 // ================================================================================================
 // EncodingResult
 // ================================================================================================
-EncodingResult::EncodingResult(const Encoding from_encoding) :
-    _utf8(nullptr),
-    _deltas(nullptr),
-    _allocated(0),
-    _consumed(0),
-    _from_encoding(from_encoding)
-  { }
-
-EncodingResult::~EncodingResult(void) {
-  delete [] _utf8;
-  delete [] _deltas;
-}
+EncodingResult::EncodingResult(const Encoding from_encoding, const size_t buffer_grow) : _buffer(buffer_grow), _from_encoding(from_encoding) { }
 
 
 void
-EncodingResult::_grow(const size_t new_nbytes) {
-  uint8_t *utf8 = new uint8_t[new_nbytes];
-  uint8_t *deltas = new uint8_t[new_nbytes];
-  if (_consumed != 0) {
-    std::memcpy(utf8, _utf8, _consumed);
-    std::memcpy(deltas, _deltas, _consumed);
-    delete [] _utf8;
-    delete [] _deltas;
-  }
-  _utf8 = utf8;
-  _deltas = deltas;
-  _allocated = new_nbytes;
-}
-
-
-void
-EncodingResult::grow(const size_t grow_size) {
-  _grow(_allocated + grow_size);
-}
-
-
-void
-EncodingResult::reserve(const size_t nbytes) {
-  if (nbytes > _allocated)
-    _grow(nbytes);
-}
-
-
-void
-EncodingResult::reset(const Encoding from_encoding) {
-  _consumed = 0;
+EncodingResult::clear(const Encoding from_encoding) {
   _from_encoding = from_encoding;
+  _buffer.clear();
 }
 
 
@@ -198,37 +158,8 @@ size_t
 EncodingResult::write(const unicode_t code_point, const uint8_t nbytes_consumed) {
   // Write the UTF-8 for the code point to the temporary working buffer.
   const uint8_t n = static_cast<uint8_t>(write_utf8(code_point, _tmp));
-
-  // Grow the output buffer if required.
-  if (SCHWA_UNLIKELY(remaining() < n))
-    grow();
-
-  // Copy the UTF-8 from the temporary buffer to the output buffer, and insert the delta
-  // values into the delta buffer.
-  std::memcpy(_utf8 + _consumed, _tmp, n);
-  _deltas[_consumed] = nbytes_consumed;
-  if (n != 1)
-    std::memset(_deltas + _consumed + 1, 0, n - 1);
-  _consumed += n;
-
-  // Return the number of UTF-8 bytes written out.
-  return n;
-}
-
-
-size_t
-EncodingResult::write(const unicode_t code_point, const uint8_t nbytes_consumed, const uint8_t utf8_nbytes_needed) {
-  // Grow the output buffer if required.
-  if (SCHWA_UNLIKELY(remaining() < utf8_nbytes_needed))
-    grow();
-
-  // Write the UTF-8 directly into the output buffer, and insert the delta values into the delta
-  // buffer.
-  const uint8_t n = static_cast<uint8_t>(write_utf8(code_point, _utf8 + _consumed));
-  _deltas[_consumed] = nbytes_consumed;
-  if (n != 1)
-    std::memset(_deltas + _consumed + 1, 0, n - 1);
-  _consumed += n;
+  for (uint8_t i = 0; i != n; ++i)
+    _buffer.write(_tmp[i], (i == 0) ? nbytes_consumed : 0);
 
   // Return the number of UTF-8 bytes written out.
   return n;
@@ -282,6 +213,7 @@ to_utf8(Encoding encoding, const std::string &encoded_bytes, EncodingResult &res
 
 void
 to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, EncodingResult &result) {
+  result.reserve(encoded_nbytes);
   switch (encoding) {
   case Encoding::UTF_8: utf_8_to_utf8(encoded, encoded_nbytes, result); return;
   case Encoding::ASCII: ascii_to_utf8(encoded, encoded_nbytes, result); return;
@@ -323,18 +255,18 @@ to_utf8(Encoding encoding, const uint8_t *encoded, size_t encoded_nbytes, Encodi
 
 void
 ascii_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
-  result.reset(Encoding::ASCII);
+  result.clear(Encoding::ASCII);
 
   for (size_t i = 0; i != encoded_nbytes; ++i) {
     const unicode_t code_point = *encoded_bytes++;
-    result.write(code_point, 1, 1);
+    result.write(code_point, 1);
   }
 }
 
 
 void
 utf_8_to_utf8(const uint8_t *const encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
-  result.reset(Encoding::UTF_8);
+  result.clear(Encoding::UTF_8);
 
   unicode_t code_point;
   const uint8_t *start = encoded_bytes, *old_start;
@@ -347,14 +279,14 @@ utf_8_to_utf8(const uint8_t *const encoded_bytes, const size_t encoded_nbytes, E
     catch (UnicodeException &e) {
       throw DecodeException(e.msg());
     }
-    result.write(code_point, start - old_start, start - old_start);
+    result.write(code_point, start - old_start);
   }
 }
 
 
 void
 big5_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
-  result.reset(Encoding::BIG5);
+  result.clear(Encoding::BIG5);
 
   for (size_t i = 0; i != encoded_nbytes; ) {
     const uint8_t c0 = *encoded_bytes++;
@@ -363,7 +295,7 @@ big5_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encoding
     // Is it a one-byte encoding?
     if ((c0 & 0x80) == 0) {
       // Assume ASCII. Technically could be any single-byte encoding, but is almost always ASCII.
-      result.write(c0, 1, 1);
+      result.write(c0, 1);
     }
     else if (0xa1 <= c0 && c0 <= 0xf9) {
       // Consume the second byte.
@@ -376,7 +308,7 @@ big5_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encoding
       if (SCHWA_UNLIKELY(!((0x40 <= c1 && c1 <= 0x7e) || (0xa1 <= c1 && c1 <= 0xfe))))
         throw DecodeException("Invalid second byte of two-byte Big-5 sequence");
       const unicode_t code_point = BIG5_TABLE[c0 - 0xa1][c1 - 0x40];
-      result.write(code_point, 2, BIG5_UTF8_NBYTES);
+      result.write(code_point, 2);
     }
     else {
       // Unmapped region of the space.
@@ -388,7 +320,7 @@ big5_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encoding
 
 void
 euc_jp_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
-  result.reset(Encoding::EUC_JP);
+  result.clear(Encoding::EUC_JP);
 
   for (size_t i = 0; i != encoded_nbytes; ) {
     const uint8_t c0 = *encoded_bytes++;
@@ -397,7 +329,7 @@ euc_jp_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
     // How many bytes is the current encoded code point spread across?
     if ((c0 & 0x80) == 0) {
       // Single byte => ASCII.
-      result.write(c0, 1, 1);
+      result.write(c0, 1);
     }
     else {
       // Consume the second byte.
@@ -411,7 +343,7 @@ euc_jp_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
         if (SCHWA_UNLIKELY((c1 < 0xa1 || c1 > 0xdf)))
           throw DecodeException("Invalid second byte of two-byte EUC-JP sequence");
 
-        result.write(JIS0201_TABLE[c1], 2, JIS0201_UTF8_NBYTES);
+        result.write(JIS0201_TABLE[c1], 2);
       }
       else if (0xa1 <= c0 && c0 <= 0xf4) {
         // Two bytes both in the range [0xa1, 0xfe] => JIS0208.
@@ -419,7 +351,7 @@ euc_jp_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
           throw DecodeException("Invalid second byte of two-byte EUC-JP sequence");
 
         const unicode_t code_point = JIS0208_TABLE[c0 - 0xa1][c1 - 0xa1];
-        result.write(code_point, 2, JIS0208_UTF8_NBYTES);
+        result.write(code_point, 2);
       }
       else if (c0 == 0x8f) {
         // Three bytes with leading 0x8f => JIS0212.
@@ -434,7 +366,7 @@ euc_jp_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
           throw DecodeException("Invalid third byte of three-byte EUC-JP sequence");
 
         const unicode_t code_point = JIS0212_TABLE[c1 - 0xa1][c2 - 0xa1];
-        result.write(code_point, 3, JIS0212_UTF8_NBYTES);
+        result.write(code_point, 3);
       }
       else {
         // Unmapped region of the space.
@@ -447,14 +379,14 @@ euc_jp_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
 
 void
 gb2312_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
-  result.reset(Encoding::GB2312);
+  result.clear(Encoding::GB2312);
 
   for (size_t i = 0; i != encoded_nbytes; ) {
     const uint8_t c0 = *encoded_bytes++;
     ++i;
 
     if ((c0 & 0x80) == 0)
-      result.write(c0, 1, 1);
+      result.write(c0, 1);
     else {
       if (SCHWA_UNLIKELY(i == encoded_nbytes))
         throw DecodeException("Failed to read second byte of two-byte GB2312 sequence");
@@ -464,7 +396,7 @@ gb2312_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
         throw DecodeException("Invalid second byte of two-byte GB2312 sequence");
 
       const unicode_t code_point = GB2312_TABLE[c0 - GB2312_DELTA][c1 - GB2312_DELTA];
-      result.write(code_point, 2, GB2312_UTF8_NBYTES);
+      result.write(code_point, 2);
     }
   }
 }
@@ -472,7 +404,7 @@ gb2312_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Encodi
 
 void
 shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) {
-  result.reset(Encoding::SHIFT_JIS);
+  result.clear(Encoding::SHIFT_JIS);
 
   for (size_t i = 0; i != encoded_nbytes; ) {
     const uint8_t c0 = *encoded_bytes++;
@@ -497,11 +429,11 @@ shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Enc
 
       // Construct the Unicode code point, and write out the UTF-8.
       const unicode_t code_point = JIS0208_TABLE[j0 - 0x21][j1 - 0x21];
-      result.write(code_point, 2, JIS0208_UTF8_NBYTES);
+      result.write(code_point, 2);
     }
     else if ((c0 <= 0x80) || (0xa0 <= c0 && c0 <= 0xdf) || (0xf0 <= c0)) {
       // Single byte => JIS0201.
-      result.write(JIS0201_TABLE[c0], 1, JIS0201_UTF8_NBYTES);
+      result.write(JIS0201_TABLE[c0], 1);
     }
     else {
       // Unmapped region of the space.
@@ -514,11 +446,11 @@ shift_jis_to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, Enc
 #define CREATE_CODE_PAGE_TABLE_TO_UTF8_FUNCTION(FN_NAME, NAME, ENCODING) \
   void \
   FN_NAME ## _to_utf8(const uint8_t *encoded_bytes, const size_t encoded_nbytes, EncodingResult &result) { \
-    result.reset(ENCODING); \
+    result.clear(ENCODING); \
 \
     for (size_t i = 0; i != encoded_nbytes; ++i) { \
       const unicode_t code_point = NAME ## _TABLE[*encoded_bytes - NAME ## _DELTA]; \
-      result.write(code_point, 1, NAME ## _UTF8_NBYTES); \
+      result.write(code_point, 1); \
       ++encoded_bytes; \
     } \
   }

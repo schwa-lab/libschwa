@@ -134,7 +134,7 @@ SGMLishNode::pprint(std::ostream &out) const {
 SGMLishLexer::SGMLishLexer(const EncodingResult &er) :
     _encoding_result(er),
     _node_pool(nullptr),
-    _state(er.utf8(), er.utf8() + er.nbytes()),
+    _state(er.bytes(), er.bytes() + er.nitems()),
     _attr_name_buffer(64),
     _tag_name_buffer(64),
     _text_buffer(DEFAULT_BUFFER_GROW_SIZE),
@@ -255,7 +255,7 @@ SGMLishLexer::_create_attr(void) {
 void
 SGMLishLexer::_create_cdata_node(void) {
   // Clone tag contents into pool memory.
-  const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
+  const uint32_t initial_offset = _state.ts - _encoding_result.bytes();
   PooledOffsetBuffer *contents = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
   new (contents) PooledOffsetBuffer(1024, initial_offset, AlignedPoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
@@ -274,7 +274,7 @@ SGMLishLexer::_create_cdata_node(void) {
 void
 SGMLishLexer::_create_comment_node(void) {
   // Clone tag contents into pool memory.
-  const uint32_t initial_offset = _state.ts - _encoding_result.utf8();
+  const uint32_t initial_offset = _state.ts - _encoding_result.bytes();
   PooledOffsetBuffer *contents = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
   new (contents) PooledOffsetBuffer(1024, initial_offset, AlignedPoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];
@@ -296,7 +296,7 @@ SGMLishLexer::_create_poold_tag_name(void) {
   const uint8_t *const end = start + _tag_name_buffer.buffer().nitems_used();
 
   // Convert the tag name to lowercase.
-  const uint32_t initial_offset = _tag_name_buffer.start() - _encoding_result.utf8();
+  const uint32_t initial_offset = _tag_name_buffer.start() - _encoding_result.bytes();
   PooledOffsetBuffer *name = _node_pool->alloc<PooledOffsetBuffer *>(sizeof(PooledOffsetBuffer));
   new (name) PooledOffsetBuffer(32, initial_offset, AlignedPoolAllocator<uint8_t>(*_node_pool));
   uint8_t utf8[4];

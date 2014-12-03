@@ -19,6 +19,7 @@ namespace schwa {
         _initial_offset(initial_offset),
         _bytes(nullptr),
         _offsets(nullptr),
+        _summed_offsets(nullptr),
         _flags(nullptr)
       { }
 
@@ -26,6 +27,7 @@ namespace schwa {
     OffsetInputStream<ALLOC>::~OffsetInputStream(void) {
       _allocator.deallocate(reinterpret_cast<char *>(_bytes), _nitems_allocd*sizeof(uint8_t));
       _allocator.deallocate(reinterpret_cast<char *>(_offsets), _nitems_allocd*sizeof(uint32_t));
+      _allocator.deallocate(reinterpret_cast<char *>(_summed_offsets), _nitems_allocd*sizeof(uint32_t));
       _allocator.deallocate(reinterpret_cast<char *>(_flags), _nitems_allocd*sizeof(BreakFlag));
     }
 
@@ -35,15 +37,19 @@ namespace schwa {
     OffsetInputStream<ALLOC>::_grow(const size_t nitems_grow) {
       uint8_t *bytes = reinterpret_cast<uint8_t *>(_allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(uint8_t)));
       uint32_t *offsets = reinterpret_cast<uint32_t *>(_allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(uint32_t)));
+      uint32_t *summed_offsets = reinterpret_cast<uint32_t *>(_allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(uint32_t)));
       BreakFlag *flags = reinterpret_cast<BreakFlag *>(_allocator.allocate((_nitems_allocd + nitems_grow)*sizeof(BreakFlag)));
       std::memcpy(bytes, _bytes, _nitems_used*sizeof(uint8_t));
       std::memcpy(offsets, _offsets, _nitems_used*sizeof(uint32_t));
+      std::memcpy(summed_offsets, _summed_offsets, _nitems_used*sizeof(uint32_t));
       std::memcpy(flags, _flags, _nitems_used*sizeof(BreakFlag));
       _allocator.deallocate(reinterpret_cast<char *>(_bytes), _nitems_allocd*sizeof(uint8_t));
       _allocator.deallocate(reinterpret_cast<char *>(_offsets), _nitems_allocd*sizeof(uint32_t));
+      _allocator.deallocate(reinterpret_cast<char *>(_summed_offsets), _nitems_allocd*sizeof(uint32_t));
       _allocator.deallocate(reinterpret_cast<char *>(_flags), _nitems_allocd*sizeof(BreakFlag));
       _bytes = bytes;
       _offsets = offsets;
+      _summed_offsets = summed_offsets;
       _flags = flags;
       _nitems_allocd += nitems_grow;
     }
@@ -65,6 +71,15 @@ namespace schwa {
         _initial_offset = buffer.initial_offset();
       else
         _offsets[_nitems_used - 1] += buffer.initial_offset();
+
+      // Populate the summed offsets.
+      uint32_t prev = 0;
+      if (_nitems_used != 0)
+        prev = _summed_offsets[_nitems_used - 1];
+      for (size_t i = 0; i != buffer.nitems_used(); ++i) {
+        _summed_offsets[_nitems_used + i] = prev + _offsets[_nitems_used + i];
+        prev = _summed_offsets[_nitems_used + i];
+      }
 
       // Update the number of items we contain.
       _nitems_used += buffer.nitems_used();
@@ -89,6 +104,15 @@ namespace schwa {
       else
         _offsets[_nitems_used - 1] += begin.get_summed_offset();
 
+      // Populate the summed offsets.
+      uint32_t prev = 0;
+      if (_nitems_used != 0)
+        prev = _summed_offsets[_nitems_used - 1];
+      for (size_t i = 0; i != nitems_incoming; ++i) {
+        _summed_offsets[_nitems_used + i] = prev + _offsets[_nitems_used + i];
+        prev = _summed_offsets[_nitems_used + i];
+      }
+
       // Update the number of items we contain.
       _nitems_used += nitems_incoming;
     }
@@ -102,7 +126,11 @@ namespace schwa {
         _grow();
       _bytes[_nitems_used] = byte;
       _offsets[_nitems_used] = offset;
+      _summed_offsets[_nitems_used] = offset;
       _flags[_nitems_used] = flag;
+
+      if (_nitems_used != 0)
+        _summed_offsets[_nitems_used] += _summed_offsets[_nitems_used - 1];
 
       // Update the number of items we contain.
       ++_nitems_used;
