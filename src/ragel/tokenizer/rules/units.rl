@@ -120,7 +120,7 @@
       's' %s1
     | ('m' | 'u' | unicode_00b5 | unicode_03bc | 'n' ) 's' %s2
     | 'min' %s3
-    | 'h'
+    | 'h' %s1
     ;
   period_unit_expanded =
       'millisec' %s8
