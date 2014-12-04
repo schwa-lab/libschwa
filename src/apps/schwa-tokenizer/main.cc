@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <schwa/canonical-schema.h>
 #include <schwa/config.h>
@@ -156,6 +157,7 @@ main(int argc, char **argv) {
   cf::Op<std::string> output_path(cfg, "output", 'o', "The output path", io::STDOUT_STRING);
   cf::OpChoices<std::string> printer_name(cfg, "printer", 'p', "Which printer to use as output", {"text", "debug", "docrep"}, "text");
   dr::DocrepGroup dr(cfg, schema);
+  cfg.allow_unclaimed_args("[input-path...]");
 
   SCHWA_MAIN(cfg, [&] {
     // Parse argv.
@@ -164,8 +166,7 @@ main(int argc, char **argv) {
     // Convert the input encoding string to an encoding enum value.
     const auto encoding = schwa::get_encoding(input_encoding());
 
-    // Open the input and output streams.
-    io::InputStream in(input_path());
+    // Open the output stream.
     io::OutputStream out(output_path());
 
     // Create the tokenizer printer object.
@@ -177,8 +178,18 @@ main(int argc, char **argv) {
     else if (printer_name() == "docrep")
       printer.reset(new tk::DocrepPrinter(out, schema));
 
+    // Work out which input paths to read from.
+    std::vector<std::string> input_paths;
+    if (input_path.was_mentioned() || cfg.unclaimed_args().empty())
+      input_paths.push_back(input_path());
+    else
+      input_paths = cfg.unclaimed_args();
+
     // Dispatch to the main function.
-    tokenize(in, *printer, encoding);
+    for (const auto &path : input_paths) {
+      io::InputStream in(path);
+      tokenize(in, *printer, encoding);
+    }
   })
   return 0;
 }

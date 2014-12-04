@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <schwa/canonical-schema.h>
 #include <schwa/config.h>
@@ -31,28 +32,38 @@ main(int argc, char **argv) {
   cf::Op<std::string> output_path(cfg, "output", 'o', "The output path", io::STDOUT_STRING);
   cf::OpChoices<std::string> corpus(cfg, "corpus", 'c', "Which corpus is input source from", {"clueweb", "nanc", "tipster"});
   dr::DocrepGroup dr(cfg, schema);
+  cfg.allow_unclaimed_args("[input-path...]");
 
   SCHWA_MAIN(cfg, [&] {
     // Parse argv.
     cfg.main<io::PrettyLogger>(argc, argv);
 
-    // Create the corpus importer object.
-    std::unique_ptr<cp::Importer> importer;
-    if (corpus() == "clueweb")
-      importer.reset(new cp::ClueWebImporter(input_path()));
-    else if (corpus() == "nanc")
-      importer.reset(new cp::NANCImporter(input_path()));
-    else if (corpus() == "tipster")
-      importer.reset(new cp::TipsterImporter(input_path()));
+    // Work out which input paths to read from.
+    std::vector<std::string> input_paths;
+    if (input_path.was_mentioned() || cfg.unclaimed_args().empty())
+      input_paths.push_back(input_path());
+    else
+      input_paths = cfg.unclaimed_args();
 
     // Create a docrep writer over the output stream.
     io::OutputStream out(output_path());
     dr::Writer writer(out, schema);
 
-    // Read in each of the documents from the importer, and write out the docrep.
-    for (cs::Doc *doc = nullptr; (doc = importer->import()) != nullptr; ) {
-      LOG(INFO) << "Read in doc '" << doc->doc_id << "' date='" << doc->date << "'" << std::endl;
-      writer << *doc;
+    std::unique_ptr<cp::Importer> importer;
+    for (const auto &path : input_paths) {
+      // Create the corpus importer object.
+      if (corpus() == "clueweb")
+        importer.reset(new cp::ClueWebImporter(path));
+      else if (corpus() == "nanc")
+        importer.reset(new cp::NANCImporter(path));
+      else if (corpus() == "tipster")
+        importer.reset(new cp::TipsterImporter(path));
+
+      // Read in each of the documents from the importer, and write out the docrep.
+      for (cs::Doc *doc = nullptr; (doc = importer->import()) != nullptr; ) {
+        LOG(INFO) << "Read in doc '" << doc->doc_id << "'" << std::endl;
+        writer << *doc;
+      }
     }
   })
   return 0;
