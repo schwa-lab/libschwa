@@ -8,6 +8,8 @@
 #include <schwa/exception.h>
 #include <schwa/utils/enums.h>
 
+//#define TOKENIZER_DEBUG 1
+
 namespace cs = ::schwa::canonical_schema;
 
 
@@ -70,19 +72,13 @@ Tokenizer::~Tokenizer(void) { }
 
 void
 Tokenizer::_abbreviation(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_abbreviation] "; _state.dump(std::cerr) << std::endl;
+#endif
   _flush_sentence();
   _create_token(_state.ts, _state.te, _state.n1, false);
   _state.reset();
   _prev_was_abbrev = true;
-}
-
-
-void
-Tokenizer::_bigram(void) {
-  _flush_sentence();
-  _create_token(_state.ts, _state.b1, _state.n1);
-  _create_token(_state.b2, _state.te, _state.n2);
-  _state.reset();
 }
 
 
@@ -139,6 +135,9 @@ Tokenizer::_flush_sentence(void) {
 
 void
 Tokenizer::_contraction(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_contraction] "; _state.dump(std::cerr) << std::endl;
+#endif
   // Maybe flush sentence.
   if (_seen_terminator && _prev_was_close_punctuation) {
     const uint8_t *start = _state.ts.get_bytes();
@@ -161,6 +160,9 @@ Tokenizer::_contraction(void) {
 
 void
 Tokenizer::_close_bracket(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_close_bracket] "; _state.dump(std::cerr) << std::endl;
+#endif
   _create_token(_state.ts, _state.te, _state.n1);
   _state.reset();
   _in_brackets = false;
@@ -170,6 +172,9 @@ Tokenizer::_close_bracket(void) {
 
 void
 Tokenizer::_close_double_quote(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_close_double_quote] "; _state.dump(std::cerr) << std::endl;
+#endif
   _create_token(_state.ts, _state.te, NORMALISED_CLOSE_DOUBLE_QUOTE);
   _state.reset();
   _in_double_quotes = false;
@@ -179,6 +184,9 @@ Tokenizer::_close_double_quote(void) {
 
 void
 Tokenizer::_close_single_quote(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_close_single_quote] "; _state.dump(std::cerr) << std::endl;
+#endif
   _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
   _state.reset();
   _in_single_quotes = false;
@@ -188,6 +196,11 @@ Tokenizer::_close_single_quote(void) {
 
 void
 Tokenizer::_double_quote(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_double_quote] "; _state.dump(std::cerr) << std::endl;
+#endif
+  if (_seen_terminator && !_in_double_quotes)
+    _flush_sentence();
   if (_in_double_quotes)
     _close_double_quote();
   else
@@ -197,12 +210,32 @@ Tokenizer::_double_quote(void) {
 
 void
 Tokenizer::_ignore(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_ignore] "; _state.dump(std::cerr) << std::endl;
+#endif
   // TODO actually take into account BreakFlags.
 }
 
 
 void
+Tokenizer::_month_day(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_month_day] "; _state.dump(std::cerr) << std::endl;
+#endif
+  _flush_sentence();
+  _create_token(_state.ts, _state.b1, _state.n1);
+  _create_token(_state.b2, _state.te - 1, _state.n2);
+  _create_token(_state.te - 1, _state.te, _state.n2);
+  _state.reset();
+  _seen_terminator = true;
+}
+
+
+void
 Tokenizer::_open_bracket(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_open_bracket] "; _state.dump(std::cerr) << std::endl;
+#endif
   _flush_sentence();
   _create_token(_state.ts, _state.te, _state.n1);
   _state.reset();
@@ -212,6 +245,9 @@ Tokenizer::_open_bracket(void) {
 
 void
 Tokenizer::_open_double_quote(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_open_double_quote] "; _state.dump(std::cerr) << std::endl;
+#endif
   _flush_sentence();
   _create_token(_state.ts, _state.te, NORMALISED_OPEN_DOUBLE_QUOTE);
   _state.reset();
@@ -221,6 +257,9 @@ Tokenizer::_open_double_quote(void) {
 
 void
 Tokenizer::_open_single_quote(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_open_single_quote] "; _state.dump(std::cerr) << std::endl;
+#endif
   _flush_sentence();
   _create_token(_state.ts, _state.te, NORMALISED_OPEN_SINGLE_QUOTE);
   _state.reset();
@@ -229,6 +268,9 @@ Tokenizer::_open_single_quote(void) {
 
 void
 Tokenizer::_punctuation(const uint8_t *const norm) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_punctuation] "; _state.dump(std::cerr) << std::endl;
+#endif
   // Maybe flush sentence.
   if (_seen_terminator)
     _seen_terminator = false;
@@ -262,6 +304,9 @@ Tokenizer::_single_quote(void) {
 
 void
 Tokenizer::_split(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_split] "; _state.dump(std::cerr) << std::endl;
+#endif
   assert(_state.suffix != 0);
   _flush_sentence();
   _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
@@ -287,6 +332,9 @@ Tokenizer::_terminator(const uint8_t *const norm) {
 
 void
 Tokenizer::_word(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_word] "; _state.dump(std::cerr) << std::endl;
+#endif
   // Maybe flush sentence.
   if (_seen_terminator && _prev_was_close_punctuation) {
     const uint8_t *start = _state.ts.get_bytes();

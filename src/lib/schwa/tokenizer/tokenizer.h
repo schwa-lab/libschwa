@@ -43,18 +43,20 @@ namespace schwa {
       private:
         const OffsetInputStream *_ois;
         size_t _index;
+        uint8_t *_byte;
 
       public:
-        Iterator(void) : _ois(nullptr), _index(0) { }
-        Iterator(const OffsetInputStream &ois, const size_t index) : _ois(&ois), _index(index) { }
-        Iterator(const Iterator &o) : _ois(o._ois), _index(o._index) { }
-        Iterator(const Iterator &&o) : _ois(o._ois), _index(o._index) { }
+        Iterator(void) : _ois(nullptr), _index(0), _byte(nullptr) { }
+        Iterator(const OffsetInputStream &ois, const size_t index) : _ois(&ois), _index(index), _byte(ois.bytes()) { }
+        Iterator(const Iterator &o) : _ois(o._ois), _index(o._index), _byte(o._byte) { }
+        Iterator(const Iterator &&o) : _ois(o._ois), _index(o._index), _byte(o._byte) { }
         ~Iterator(void) { }
 
         inline Iterator &
         operator =(const Iterator &o) {
           _ois = o._ois;
           _index = o._index;
+          _byte = o._byte;
           return *this;
         }
 
@@ -62,12 +64,14 @@ namespace schwa {
         operator =(int) {  // Needed for Ragel-generated code (state.ts = 0).
           _ois = nullptr;
           _index = 0;
+          _byte = 0;
           return *this;
         }
 
         inline Iterator &
         operator ++(void) {
           ++_index;
+          ++_byte;
           return *this;
         }
 
@@ -81,12 +85,14 @@ namespace schwa {
         inline Iterator &
         operator +=(const size_t delta) {
           _index += delta;
+          _byte += delta;
           return *this;
         }
 
         inline Iterator &
         operator --(void) {
           --_index;
+          --_byte;
           return *this;
         }
 
@@ -100,6 +106,7 @@ namespace schwa {
         inline Iterator &
         operator -=(const size_t delta) {
           _index -= delta;
+          _byte -= delta;
           return *this;
         }
 
@@ -124,7 +131,7 @@ namespace schwa {
 
         inline uint8_t
         operator *(void) const {
-          return get_byte();
+          return *_byte;
         }
 
         inline bool
@@ -139,22 +146,16 @@ namespace schwa {
 
         inline uint8_t
         get_byte(void) const {
-          if (SCHWA_UNLIKELY(_ois == nullptr))
-            return 0;
-          return _ois->bytes()[_index];
+          return *_byte;
         }
 
         inline uint8_t *
         get_bytes(void) const {
-          if (SCHWA_UNLIKELY(_ois == nullptr))
-            return nullptr;
-          return _ois->bytes() + _index;
+          return _byte;
         }
 
         inline BreakFlag
         get_flag(void) const {
-          if (SCHWA_UNLIKELY(_ois == nullptr))
-            return BreakFlag::NONE;
           return _ois->flags()[_index];
         }
 
@@ -165,29 +166,21 @@ namespace schwa {
 
         inline uint32_t
         get_offset(void) const {
-          if (SCHWA_UNLIKELY(_ois == nullptr))
-            return 0;
           return _ois->offsets()[_index];
         }
 
         inline uint32_t *
         get_offsets(void) const {
-          if (SCHWA_UNLIKELY(_ois == nullptr))
-            return 0;
           return _ois->offsets() + _index;
         }
 
         inline size_t
         get_summed_offset(void) const {
-          if (SCHWA_UNLIKELY(_ois == nullptr))
-            return 0;
           return _ois->get_summed_offset(_index);
         }
 
         inline uint32_t *
         get_summed_offsets(void) const {
-          if (SCHWA_UNLIKELY(_ois == nullptr))
-            return 0;
           return _ois->summed_offsets() + _index;
         }
       };
@@ -285,13 +278,13 @@ namespace schwa {
       void _flush_sentence(void);
 
       void _abbreviation(void);
-      void _bigram(void);
       void _close_bracket(void);
       void _close_double_quote(void);
       void _close_single_quote(void);
       void _contraction(void);
       void _double_quote(void);
       void _ignore(void);
+      void _month_day(void);
       void _open_bracket(void);
       void _open_double_quote(void);
       void _open_single_quote(void);
