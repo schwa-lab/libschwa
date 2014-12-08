@@ -7,11 +7,11 @@
 
   letter =
       unicode_letter
-    | unicode_digit
+    | numbers
     | ( unicode_letter_uppercase '&' unicode_letter_uppercase )
     | ( unicode_letter ( single_quote | close_single_quote ) unicode_letter )
     | ( unicode_letter '.' unicode_letter )
-    | ( unicode_letter '.' '-' )
+    | ( (unicode_letter '.')+ hyphen )
     ;
 
   default = ( letter | hyphen letter | ( unicode -- symbols -- unicode_space -- unicode_line_space -- unicode_paragraph_space ) )+ ;

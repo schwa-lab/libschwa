@@ -66,19 +66,19 @@
   time_ambiguous = time_colon | hour_24 '.' min_60 ( '.' sec_60 )? ;
 
   ante_meridian =
-      ( ( 'am' @s2 | 'a.m.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"am"); } )
-    | ( ( 'AM' @s2 | 'A.M.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"AM"); } )
+      ( ( 'am' @s2 | 'a.m.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"a.m."); } )
+    | ( ( 'AM' @s2 | 'A.M.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"A.M."); } )
     ;
   post_meridian =
-      ( ( 'pm' @s2 | 'p.m.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"pm"); } )
-    | ( ( 'PM' @s2 | 'P.M.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"PM"); } )
+      ( ( 'pm' @s2 | 'p.m.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"p.m."); } )
+    | ( ( 'PM' @s2 | 'P.M.' @s4 ) @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"P.M."); } )
     ;
   meridian = ante_meridian | post_meridian ;
   meridian_token =
-      ('a.m.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"am"); } )
-    | ('A.M.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"AM"); } )
-    | ('p.m.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"pm"); } )
-    | ('P.M.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"PM"); } )
+      ('a.m.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"a.m."); } )
+    | ('A.M.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"A.M."); } )
+    | ('p.m.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"p.m."); } )
+    | ('P.M.' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"P.M."); } )
     ;
 
   date_time = date | time_colon ;

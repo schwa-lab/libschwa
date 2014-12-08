@@ -10,7 +10,7 @@
   acronym2 = upper /[bcdfghj-np-tvxz]+\./ ;
   acronym3 = upper ( upper | '&' )* upper+ ;
   initial = /[A-Z]\./ ;
-  acronym = acronym1 | acronym2 | acronym3 | initial;
+  acronym = acronym2 | acronym3 | initial;
 
   # Date abbreviations.
   abbreviation_month =

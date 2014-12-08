@@ -164,8 +164,7 @@
 
   # Any units that may appear after a number.
   units =
-      cardinal_suffix
-    | computer_rate_unit
+      computer_rate_unit
     | computer_size_unit
     | frequency_unit
     | other_unit

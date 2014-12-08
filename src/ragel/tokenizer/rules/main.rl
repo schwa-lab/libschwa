@@ -6,9 +6,9 @@
   alphtype unsigned char;
 
   action abbreviation { _abbreviation(); }
-  action bigram { _bigram(); }
   action contraction { _contraction(); }
   action ignore { _ignore(); }
+  action month_day { _month_day(); }
   action punctuation { _punctuation(); }
   action split { _split(); }
   action word { _word(); }
@@ -42,7 +42,7 @@
 
     (letter+ '.'? possessive) - abbrev_decade => split;
 
-    (numbers units '.'?) - abbrev_decade => split;
+    (numbers ( units | cardinal_suffix ) '.'?) - abbrev_decade => split;
     time_ambiguous meridian => split;
     meridian_token | date_time => word;
 
@@ -50,12 +50,12 @@
 
     'and/or' | 'AND/OR' => word;
 
-    (abbreviation_date | month_name) %b1 unicode_space+ %b2 (('0'? [1-9] | [12] digit | '3' [01]) '.') => bigram;
+    (abbreviation_date | month_name) %b1 unicode_space+ %b2 (('0'? [1-9] | [12] digit | '3' [01]) '.') => month_day;
 
     contractions_misc | ( lower+ '-' )? acronym | title => word;
     symbols => punctuation;
     emoticon => punctuation;
-    abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | (units | year_modern) '.'  => abbreviation;
+    acronym1 | abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | (units | century_modern) '.' => abbreviation;
 
     address_suffix | lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;
