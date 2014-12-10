@@ -8,8 +8,10 @@
   contractions_quote = single_quote | close_single_quote ;
 
   contractions_misc =
-      contractions_quote 'em'
+      contractions_quote 'em' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"them"); }
+    | contractions_quote 'til' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"until"); }
     | contractions_quote 'tis'
+    | contractions_quote 'twas'
     | 'add' contractions_quote 'l'
     | 'Add' contractions_quote 'l'
     | 'c' contractions_quote 'mon'
@@ -34,7 +36,7 @@
     | 'O' contractions_quote 'er' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"Over"); }
     | 'qur' contractions_quote 'an'
     | 'Qur' contractions_quote 'an'
-    | 'readin' contractions_quote
+    | 'readin' contractions_quote @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"reading"); }
     | 'req' contractions_quote 'd' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"required"); }
     | 'Req' contractions_quote 'd' @{ _state.n1 = reinterpret_cast<const uint8_t *>(u8"Required"); }
     | 'rock' contractions_quote 'n' contractions_quote 'roll'

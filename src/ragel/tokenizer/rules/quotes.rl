@@ -50,8 +50,8 @@
 
   # Possessive 's.
   possessive =
-      ( close_single_quote | single_quote ) 's' @s2 @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"'s"); }
-    | ( close_single_quote | single_quote ) 'S' @s2 @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"'S"); }
+      ( close_single_quote | single_quote ) 's' @S2 @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"'s"); }
+    | ( close_single_quote | single_quote ) 'S' @S2 @{ _state.n2 = reinterpret_cast<const uint8_t *>(u8"'S"); }
     ;
 
 }%%

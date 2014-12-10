@@ -249,6 +249,7 @@ namespace schwa {
         const uint8_t *n2;
         OffsetInputStream<>::iterator b1;
         OffsetInputStream<>::iterator b2;
+        OffsetInputStream<>::iterator b3;
 
         State(void);
 
@@ -269,6 +270,7 @@ namespace schwa {
       bool _in_single_quotes;
       bool _prev_was_abbrev;
       bool _prev_was_close_punctuation;
+      bool _prev_was_terminator;
       bool _seen_terminator;
 
       bool _tokenize(void);
@@ -278,7 +280,7 @@ namespace schwa {
       void _flush_sentence(void);
 
       void _abbreviation(void);
-      void _bigram(void);
+      void _bigram(bool seen_terminator=false);
       void _close_bracket(void);
       void _close_double_quote(void);
       void _close_single_quote(void);

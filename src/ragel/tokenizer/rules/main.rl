@@ -40,27 +40,28 @@
     contractions_neg_error => contraction;
     letter+ contractions_suffix => contraction;
 
-    (letter+ '.'? possessive) -- abbrev_decade => split;
+    (default '.'? possessive) -- abbrev_decade => split;
+    (acronym1 | acronym2) possessive => split;
 
     (numbers cardinal_suffix) -- abbrev_decade => split;
     (numbers units) -- abbrev_decade => split;
     (numbers units '.') -- abbrev_decade => { _split(true); };
     (numbers %b1 unicode_space+ %b2 cardinal_suffix) -- abbrev_decade => bigram;
-    (numbers %b1 unicode_space+ %b2 units '.') -- abbrev_decade => bigram;
+    (numbers %b1 unicode_space+ %b2 units '.') -- abbrev_decade => { _bigram(true); };
     time_ambiguous meridian => split;
     meridian_token | date_time => word;
 
     'and/or' | 'AND/OR' => word;
     /[Cc]an/ %b1 %b2 'not' | 'CAN' %b1 %b2 'NOT' => bigram;
-    #'I.' %b1 unicode_space+ %b2 ('About'|'According'|'Additionally'|'After'|'An'|'A'|'As'|'At'|'But'|'Earlier'|'He'|'Her'|'Here'|'However'|'If'|'In'|'It'|'Last'|'Many'|'More'|'Mr.'|'Ms.'|'Now'|'Once'|'One'|'Other'|'Our'|'She'|'Since'|'So'|'Some'|'Such'|'That'|'The'|'Their'|'Then'|'There'|'These'|'They'|'This'|'We'|'When'|'While'|'What'|'Yet'|'You') => { _eos_initial(); };
-    (abbreviation_date | month_name) %b1 unicode_space+ %b2 (('0'? [1-9] | [12] digit | '3' [01]) '.') => { _month_day(); };
+    (abbreviation_date | month_name) %b1 unicode_space+ %b2 ('0'? [1-9] | [12] digit | '3' [01]) '.' %b3 unicode_space => { _month_day(); };
     abbreviation_bigram => bigram;
+    (initial1 | initial2) %b1 unicode_space+ %b2 default_title => bigram;
 
     contractions_misc | title => word;
     symbols => punctuation;
     emoticon => punctuation;
     acronym1 | acronym2 | abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | century_modern '.' => abbreviation;
-    non_eos_abbreviation | initial | acronym3 => word;
+    non_eos_abbreviation | initial1 | acronym3 => word;
 
     address_suffix | lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;

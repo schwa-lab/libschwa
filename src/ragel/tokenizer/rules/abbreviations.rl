@@ -6,10 +6,11 @@
   alphtype unsigned char;
 
   # Things that look like acronyms.
-  acronym1 = alpha ( '.' alpha )+ '.' ;
+  acronym1 = upper ( '.' alpha )+ '.' ;
   acronym2 = upper /[bcdfghj-np-tvxz]+\./ ;
   acronym3 = upper+ '&' upper+ ;
-  initial = /[A-HJ-Z]\./ ;
+  initial1 = /[A-HJ-Z]\./ ;
+  initial2 = upper '.' upper '.' ;
 
   # Date abbreviations.
   abbreviation_month =
@@ -155,7 +156,7 @@
     | administrative_division
   ) '.' ;
 
-  # https://www.usps.com/send/official-abbreviations.htm#2
+  # http://pe.usps.gov/text/pub28/28apc_002.htm
   street_suffix =
       'Aly'i
     | 'Anx'i
@@ -260,7 +261,6 @@
   abbreviation_corp =
       'Bancorp' | 'BANCORP'
     | 'Bhd' | 'BHD'  # Sdn. Bhd. is Malay for Inc.
-    | 'Cie' | 'CIE'  # Abbrevation for company in French.
     | 'Co' | 'Cos' | 'CO' | 'COS'
     | 'Corp' | 'CORP'
     | 'Coop' | 'COOP'
@@ -280,7 +280,7 @@
     | 'Ind' | 'IND'
     | 'Mkts' | 'MKTS'
     | 'Est' | 'EST'
-    | 'Manufac' | 'MANUFAC'
+    | 'Manufac' | 'MANUFAC' | 'Mfg' | 'MFG'
     | 'Svcs' | 'SVCS'
     ;
   abbreviation_group =
@@ -333,6 +333,7 @@
    ) '.' ;
    non_eos_abbreviation = (
         'cf'i
+      | 'Cie' | 'CIE'  # Abbrevation for company in French.
       | 'eg'i | 'e.g'i
       | 'ie'i | 'i.e'i
       | 'vs'i | 'v.s'i

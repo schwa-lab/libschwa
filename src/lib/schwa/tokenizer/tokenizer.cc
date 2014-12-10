@@ -134,14 +134,16 @@ Tokenizer::_flush_sentence(void) {
 
 
 void
-Tokenizer::_bigram(void) {
+Tokenizer::_bigram(const bool seen_terminator) {
 #ifdef TOKENIZER_DEBUG
-  std::cerr << "[_bigram] "; _state.dump(std::cerr) << std::endl;
+  std::cerr << "[_bigram] "; _state.dump(std::cerr) << " " << seen_terminator << std::endl;
 #endif
   _flush_sentence();
   _create_token(_state.ts, _state.b1, _state.n1);
   _create_token(_state.b2, _state.te, _state.n2);
   _state.reset();
+  if (seen_terminator)
+    _seen_terminator = true;
 }
 
 
@@ -203,6 +205,10 @@ Tokenizer::_close_single_quote(void) {
   _state.reset();
   _in_single_quotes = false;
   _prev_was_close_punctuation = true;
+  if (_prev_was_terminator) {
+    _seen_terminator = true;
+    _prev_was_terminator = false;
+  }
 }
 
 
@@ -250,8 +256,8 @@ Tokenizer::_month_day(void) {
 #endif
   _flush_sentence();
   _create_token(_state.ts, _state.b1, _state.n1);
-  _create_token(_state.b2, _state.te - 1, _state.n2);
-  _create_token(_state.te - 1, _state.te, _state.n2);
+  _create_token(_state.b2, _state.b3 - 1, _state.n2);
+  _create_token(_state.b3 - 1, _state.b3, _state.n2);
   _state.reset();
   _seen_terminator = true;
 }
@@ -312,6 +318,10 @@ Tokenizer::_single_quote(void) {
     _create_token(_state.ts, _state.te, NORMALISED_CLOSE_SINGLE_QUOTE);
     _in_single_quotes = false;
     _prev_was_close_punctuation = true;
+    if (_prev_was_terminator) {
+      _seen_terminator = true;
+      _prev_was_terminator = false;
+    }
   }
   else {
     _flush_sentence();
@@ -345,6 +355,9 @@ Tokenizer::_split(const bool seen_terminator) {
 
 void
 Tokenizer::_terminator(const uint8_t *const norm) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_terminator] "; _state.dump(std::cerr) << std::endl;
+#endif
   _create_token(_state.ts, _state.te, norm);
   _state.reset();
   if (norm == NORMALISED_PERIOD) {
@@ -355,6 +368,7 @@ Tokenizer::_terminator(const uint8_t *const norm) {
     if (!(_in_brackets || _in_single_quotes))
       _seen_terminator = true;
   }
+  _prev_was_terminator = true;
 }
 
 
@@ -392,6 +406,7 @@ Tokenizer::tokenize(OffsetInputStream<> &ois, cs::Doc &doc) {
   _in_single_quotes = false;
   _prev_was_abbrev = false;
   _prev_was_close_punctuation = false;
+  _prev_was_terminator = true;
   _seen_terminator = false;
 
   // Run the Ragel-generated tokenizer.
