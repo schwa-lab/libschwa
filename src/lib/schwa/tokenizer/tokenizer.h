@@ -268,7 +268,7 @@ namespace schwa {
       bool _in_brackets;
       bool _in_double_quotes;
       bool _in_single_quotes;
-      bool _prev_was_abbrev;
+      bool _prev_ending_terminator;
       bool _prev_was_close_punctuation;
       bool _prev_was_terminator;
       bool _seen_terminator;

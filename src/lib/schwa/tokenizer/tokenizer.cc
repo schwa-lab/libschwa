@@ -19,15 +19,15 @@ namespace tokenizer {
 // ============================================================================
 // Punctuation normalisation constants.
 // ============================================================================
-const uint8_t *const NORMALISED_CLOSE_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"”");
-const uint8_t *const NORMALISED_CLOSE_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"’");
+const uint8_t *const NORMALISED_CLOSE_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"”");         // U+201D
+const uint8_t *const NORMALISED_CLOSE_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"’");         // U+2018
 const uint8_t *const NORMALISED_DASH = reinterpret_cast<const uint8_t *>(u8"--");
-const uint8_t *const NORMALISED_ELLIPSIS = reinterpret_cast<const uint8_t *>(u8"...");
+const uint8_t *const NORMALISED_ELLIPSIS = reinterpret_cast<const uint8_t *>(u8"…");                   // U+2026
 const uint8_t *const NORMALISED_EXCLAMATION_MARK = reinterpret_cast<const uint8_t *>(u8"!");
-const uint8_t *const NORMALISED_INVERTED_EXCLAMATION_MARK = reinterpret_cast<const uint8_t *>(u8"¡");
-const uint8_t *const NORMALISED_INVERTED_QUESTION_MARK = reinterpret_cast<const uint8_t *>(u8"¿");
-const uint8_t *const NORMALISED_OPEN_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"“");
-const uint8_t *const NORMALISED_OPEN_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"‘");
+const uint8_t *const NORMALISED_INVERTED_EXCLAMATION_MARK = reinterpret_cast<const uint8_t *>(u8"¡");  // U+00A1
+const uint8_t *const NORMALISED_INVERTED_QUESTION_MARK = reinterpret_cast<const uint8_t *>(u8"¿");     // U+00BF
+const uint8_t *const NORMALISED_OPEN_DOUBLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"“");          // U+201C
+const uint8_t *const NORMALISED_OPEN_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"‘");          // U+2018
 const uint8_t *const NORMALISED_PERIOD = reinterpret_cast<const uint8_t *>(u8".");
 const uint8_t *const NORMALISED_QUESTION_MARK = reinterpret_cast<const uint8_t *>(u8"?");
 const uint8_t *const NORMALISED_SINGLE_QUOTE = reinterpret_cast<const uint8_t *>(u8"'");
@@ -78,7 +78,7 @@ Tokenizer::_abbreviation(void) {
   _flush_sentence();
   _create_token(_state.ts, _state.te, _state.n1, false);
   _state.reset();
-  _prev_was_abbrev = true;
+  _prev_ending_terminator = true;
 }
 
 
@@ -101,8 +101,8 @@ Tokenizer::_create_sentence(void) {
 
 void
 Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::iterator te, const uint8_t *const norm, const bool maybe_break_on_caps) {
-  // If the first code point is upper case and the previous token was an abbreviation, force a new sentence.
-  if (maybe_break_on_caps && _prev_was_abbrev && !_in_brackets) {
+  // If the first code point is upper case and the previous token ended with a terminator, force a new sentence.
+  if (maybe_break_on_caps && _prev_ending_terminator && !_in_brackets) {
     const uint8_t *start = ts.get_bytes();
     const unicode_t first = read_utf8(&start, te.get_bytes());
     if (unicode::is_upper(first))
@@ -119,7 +119,7 @@ Tokenizer::_create_token(OffsetInputStream<>::iterator ts, OffsetInputStream<>::
   _doc->tokens.push_back(token);
 
   // Reset state.
-  _prev_was_abbrev = false;
+  _prev_ending_terminator = false;
   _prev_was_close_punctuation = false;
 }
 
@@ -217,8 +217,6 @@ Tokenizer::_double_quote(void) {
 #ifdef TOKENIZER_DEBUG
   std::cerr << "[_double_quote] "; _state.dump(std::cerr) << std::endl;
 #endif
-  if (_seen_terminator && !_in_double_quotes)
-    _flush_sentence();
   if (_in_double_quotes)
     _close_double_quote();
   else
@@ -280,7 +278,10 @@ Tokenizer::_open_double_quote(void) {
 #ifdef TOKENIZER_DEBUG
   std::cerr << "[_open_double_quote] "; _state.dump(std::cerr) << std::endl;
 #endif
-  _flush_sentence();
+  if (_seen_terminator || _prev_ending_terminator) {
+    _create_sentence();
+    _seen_terminator = false;
+  }
   _create_token(_state.ts, _state.te, NORMALISED_OPEN_DOUBLE_QUOTE);
   _state.reset();
   _in_double_quotes = true;
@@ -309,6 +310,8 @@ Tokenizer::_punctuation(const uint8_t *const norm) {
 
   _create_token(_state.ts, _state.te, norm != nullptr ? norm : _state.n1);
   _state.reset();
+  if (norm == NORMALISED_ELLIPSIS)
+    _prev_ending_terminator = true;
 }
 
 
@@ -404,7 +407,7 @@ Tokenizer::tokenize(OffsetInputStream<> &ois, cs::Doc &doc) {
   _in_brackets = false;
   _in_double_quotes = false;
   _in_single_quotes = false;
-  _prev_was_abbrev = false;
+  _prev_ending_terminator = false;
   _prev_was_close_punctuation = false;
   _prev_was_terminator = true;
   _seen_terminator = false;

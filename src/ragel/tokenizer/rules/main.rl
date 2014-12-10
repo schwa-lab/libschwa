@@ -57,13 +57,13 @@
     abbreviation_bigram => bigram;
     (initial1 | initial2) %b1 unicode_space+ %b2 default_title => bigram;
 
-    contractions_misc | title => word;
+    contractions_misc | title_prefix => word;
     symbols => punctuation;
     emoticon => punctuation;
-    acronym1 | acronym2 | abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | century_modern '.' => abbreviation;
+    acronym1 | acronym2 | abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | century_modern '.' | address_suffix | title_suffix => abbreviation;
     non_eos_abbreviation | initial1 | acronym3 => word;
 
-    address_suffix | lines | currency_symbol | numbers | date_time => word;
+    lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;
     default => word;
 

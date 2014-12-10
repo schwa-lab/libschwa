@@ -38,62 +38,64 @@
   abbreviation_date = ( abbreviation_month | abbreviation_day ) '.' ;
 
   # Personal titles.
-  title_prefix =
-      'Amb'i
-    | 'Adm'i
-    | 'Atty'i
-    | 'Br'i
-    | 'Brig'i
-    | 'Capt'i
-    | 'Cdr'i
-    | 'Cmdr'i
-    | 'Col'i
-    | 'Cpl'i
-    | 'Crpl'i
-    | 'Dr'i
-    | 'Drs'i
-    | 'Ed'i
-    | 'Fr'i
-    | 'Gen'i
-    | 'Gov'i
-    | 'Hon'i
-    | 'Lt'i
-    | 'Maj'i
-    | 'Md'i
-    | 'Messrs'i
-    | 'Mr'i
-    | 'Mrs'i
-    | 'Ms'i
-    | 'Msgr'i
-    | 'Mssr'i
-    | 'Mssrs'i
-    | 'Ofc'i
-    | 'Pres'i
-    | 'Prof'i
-    | 'Pvt'i
-    | 'Rep'i
-    | 'Rev'i
-    | 'Rt'i
-    | 'Rtd'i
-    | 'Sec'i
-    | 'Sen'i
-    | 'Sgt'i
-    | 'Sr'i
-    | 'Supt'i
-    | 'Treas'i
+  title_prefix = (
+        'Amb' | 'AMB'
+      | 'Adm' | 'ADM'
+      | 'Atty' | 'ATTY'
+      | 'Br' | 'BR'
+      | 'Brig' | 'BRIG'
+      | 'Capt' | 'CAPT'
+      | 'Cdr' | 'CDR'
+      | 'Cmdr' | 'CMDR'
+      | 'Col' | 'COL'
+      | 'Cpl' | 'CPL'
+      | 'Crpl' | 'CRPL'
+      | 'Dr' | 'DR'
+      | 'Drs' | 'DRS'
+      | 'Ed' | 'ED'
+      | 'Fr' | 'FR'
+      | 'Gen' | 'GEN'
+      | 'Gov' | 'GOV'
+      | 'Hon' | 'HON'
+      | 'Lt' | 'LT'
+      | 'Maj' | 'MAJ'
+      | 'Md' | 'MD'
+      | 'Messrs' | 'MESSRS'
+      | 'Mr' | 'MR'
+      | 'Mrs' | 'MRS'
+      | 'Ms' | 'MS'
+      | 'Msgr' | 'MSGR'
+      | 'Mssr' | 'MSSR'
+      | 'Mssrs' | 'MSSRS'
+      | 'Ofc' | 'OFC'
+      | 'Pres' | 'PRES'
+      | 'Prof' | 'PROF'
+      | 'Pvt' | 'PVT'
+      | 'Rep' | 'REP'
+      | 'Rev' | 'REV'
+      | 'Rt' | 'RT'
+      | 'Rtd' | 'RTD'
+      | 'Sec' | 'SEC'
+      | 'Sen' | 'SEN'
+      | 'Sgt' | 'SGT'
+      | 'Sr' | 'SR'
+      | 'St' | 'ST'
+      | 'Supt' | 'SUPT'
+      | 'Treas' | 'TREAS'
+    ) '.'
     ;
-  title_suffix =
-      'Bros'i
-    | 'Esq'i
-    | 'Hon'i
-    | 'Jnr'i
-    | 'Jr'i
-    | 'PhD'i | 'Ph.D'i
-    | 'Ret'i
-    | 'Snr'i
-    | 'Sr'i
+  title_suffix = (
+        'Bros' | 'BROS'
+      | 'Esq' | 'ESQ'
+      | 'Hon' | 'HON'
+      | 'Jnr' | 'JNR'
+      | 'Jr' | 'JR'
+      | 'PhD' | 'Ph.D' | 'PHD' | 'PH.D'
+      | 'Ret' | 'RET'
+      | 'Snr' | 'SNR'
+      | 'Sr' | 'SR'
+    ) '.'
     ;
-  title = ( title_prefix | title_suffix ) '.' ;
 
   # https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations
   us_state_1 =
@@ -158,102 +160,101 @@
 
   # http://pe.usps.gov/text/pub28/28apc_002.htm
   street_suffix =
-      'Aly'i
-    | 'Anx'i
-    | 'Arc'i
-    | 'Av'i | 'Ave'i | 'Avn'i
-    | 'Bch'i
-    | 'Bg'i | 'Bgs'i
-    | 'Blf'i | 'Blfs'i
-    | 'Blvd'i | 'Boul'i | 'Boulv'i
-    | 'Bnd'i
-    | 'Bot'i | 'Btm'i
-    | 'Br'i
-    | 'Brg'i
-    | 'Brk'i
-    | 'Byp'i
-    | 'Byu'i
-    | 'Cct'i
-    | 'Cir'i
-    | 'Cmn'i
-    | 'Cp'i
-    | 'Cpe'i
-    | 'Cr'i
-    | 'Crcl'i
-    | 'Crk'i
-    | 'Cres'i
-    | 'Cswy'i
-    | 'Ct'i
-    | 'Ctr'i
-    | 'Cts'i
-    | 'Cyn'i
-    | 'Dr'i
-    | 'Drv'i
-    | 'Hbr'i
-    | 'Hgts'i
-    | 'Hts'i
-    | 'Hwy'i
+      'Aly' | 'ALY'
+    | 'Anx' | 'ANX'
+    | 'Arc' | 'ARC'
+    | 'Av' | 'AV' | 'Ave' | 'AVE' | 'Avn' | 'AVN'
+    | 'Bch' | 'BCH'
+    | 'Bg' | 'BG' | 'Bgs' | 'BGS'
+    | 'Blf' | 'BLF' | 'Blfs' | 'BLFS'
+    | 'Blvd' | 'BLVD' | 'Boul' | 'BOUL' | 'Boulv' | 'BOULV'
+    | 'Bnd' | 'BND'
+    | 'Bot' | 'BOT' | 'Btm' | 'BTM'
+    | 'Br' | 'BR'
+    | 'Brg' | 'BRG'
+    | 'Brk' | 'BRK'
+    | 'Byp' | 'BYP'
+    | 'Byu' | 'BYU'
+    | 'Cct' | 'CCT'
+    | 'Cir' | 'CIR'
+    | 'Cmn' | 'CMN'
+    | 'Cp' | 'CP'
+    | 'Cpe' | 'CPE'
+    | 'Cr' | 'CR'
+    | 'Crcl' | 'CRCL'
+    | 'Crk' | 'CRK'
+    | 'Cres' | 'CRES'
+    | 'Cswy' | 'CSWY'
+    | 'Ct' | 'CT'
+    | 'Ctr' | 'CTR'
+    | 'Cts' | 'CTS'
+    | 'Cyn' | 'CYN'
+    | 'Dr' | 'DR'
+    | 'Drv' | 'DRV'
+    | 'Hbr' | 'HBR'
+    | 'Hgts' | 'HGTS'
+    | 'Hts' | 'HTS'
+    | 'Hwy' | 'HWY'
     | 'Is' | 'IS'
-    | 'Isl'i
-    | 'Jctn'i
-    | 'La'i
-    | 'Lks'i
-    | 'Ln'i
-    | 'Lndg'i
-    | 'Mnr'i
-    | 'Mdw'i
-    | 'Mdws'i
-    | 'Mls'i
-    | 'Mt'i
-    | 'Mtn'i
-    | 'Mnt'i
-    | 'Mntn'i
-    | 'Mntns'i
-    | 'Pk'i
-    | 'Pkwy'i
-    | 'Pl'i
-    | 'Pln'i
-    | 'Plns'i
-    | 'Plz'i
-    | 'Rd'i
-    | 'Rds'i
-    | 'St'i
-    | 'Sta'i
-    | 'Stn'i
-    | 'Str'i
-    | 'Te'i
-    | 'Tr'i
-    | 'Trk'i
-    | 'Trl'i
-    | 'Tpk'i
-    | 'Tpke'i
-    | 'Trpk'i
-    | 'Vl'i
-    | 'Vlg'i
-    | 'Vly'i
-    | 'Via'i
-    | 'Vdct'i
-    | 'Wl'i
-    | 'Wls'i
+    | 'Isl' | 'ISL'
+    | 'Jctn' | 'JCTN'
+    | 'La' | 'LA'
+    | 'Lks' | 'LKS'
+    | 'Ln' | 'LN'
+    | 'Lndg' | 'LNDG'
+    | 'Mnr' | 'MNR'
+    | 'Mdw' | 'MDW'
+    | 'Mdws' | 'MDWS'
+    | 'Mls' | 'MLS'
+    | 'Mt' | 'MT'
+    | 'Mtn' | 'MTN'
+    | 'Mnt' | 'MNT'
+    | 'Mntn' | 'MNTN'
+    | 'Mntns' | 'MNTNS'
+    | 'Pk' | 'PK'
+    | 'Pkwy' | 'PKWY'
+    | 'Pl' | 'PL'
+    | 'Pln' | 'PLN'
+    | 'Plns' | 'PLNS'
+    | 'Plz' | 'PLZ'
+    | 'Rd' | 'RD'
+    | 'Rds' | 'RDS'
+    | 'Sta' | 'STA'
+    | 'Stn' | 'STN'
+    | 'Str' | 'STR'
+    | 'Te' | 'TE'
+    | 'Tr' | 'TR'
+    | 'Trk' | 'TRK'
+    | 'Trl' | 'TRL'
+    | 'Tpk' | 'TPK'
+    | 'Tpke' | 'TPKE'
+    | 'Trpk' | 'TRPK'
+    | 'Vl' | 'VL'
+    | 'Vlg' | 'VLG'
+    | 'Vly' | 'VLY'
+    | 'Via' | 'VIA'
+    | 'Vdct' | 'VDCT'
+    | 'Wl' | 'WL'
+    | 'Wls' | 'WLS'
     ;
   building_suffix =
-      'Apt'i
-    | 'Bldg'i
-    | 'Bsmt'i
-    | 'Dept'i
-    | 'Fl'i
-    | 'Frnt'i
-    | 'Hngr'i
-    | 'Lbby'i
-    | 'Lowr'i
-    | 'Lvl'i
-    | 'Ofc'i
-    | 'Ph'i
-    | 'Rm'i
-    | 'Spc'i
-    | 'Ste'i
-    | 'Trlr'i
-    | 'Uppr'i
+      'Apt' | 'APT'
+    | 'Bldg' | 'BLDG'
+    | 'Bsmt' | 'BSMT'
+    | 'Dept' | 'DEPT'
+    | 'Fl' | 'FL'
+    | 'Frnt' | 'FRNT'
+    | 'Hngr' | 'HNGR'
+    | 'Lbby' | 'LBBY'
+    | 'Lowr' | 'LOWR'
+    | 'Lvl' | 'LVL'
+    | 'Ofc' | 'OFC'
+    | 'Ph' | 'PH'
+    | 'Rm' | 'RM'
+    | 'Spc' | 'SPC'
+    | 'Ste' | 'STE'
+    | 'Trlr' | 'TRLR'
+    | 'Uppr' | 'UPPR'
     ;
   address_suffix = ( street_suffix | building_suffix ) '.' ;
 
@@ -265,7 +266,6 @@
     | 'Corp' | 'CORP'
     | 'Coop' | 'COOP'
     | 'Co-op' | 'CO-OP'
-    | 'Group' | 'GROUP'
     | 'Inc' | 'INC'
     | 'Llp' | 'LLP'
     | 'Ltd' | 'LTD'
@@ -300,43 +300,43 @@
 
   # problem cases: 'cent' (per cent appears often at the end of a sentence)
   abbreviation = (
-        'accd'i
-      | 'al'i  # et al.
-      | 'amort'i
-      | 'approx'i
-      | 'avg'i
-      | 'cert'i
-      | 'cont'i
-      | 'devel'i
-      | 'disc'i
-      | 'discont'i
-      | 'ed'i
-      | 'eds'i
-      | 'equiv'i
-      | 'etc'i
-      | 'excl'i
-      | 'expell'i
-      | 'fin'i
-      | 'imp'i
-      | 'incl'i
-      | 'ins'i
-      | 'inv'i
-      | 'invest'i
-      | 'ord'i
-      | 'pell'i
-      | 'repr'i
-      | 'rev'i
-      | 'trans'i
-      | 'viz'i
-      | 'vol'i
-      | 'vols'i
+        'accd' | 'ACCD'
+      | 'al' | 'AL'  # et al.
+      | 'amort' | 'AMORT'
+      | 'approx' | 'APPROX'
+      | 'avg' | 'AVG'
+      | 'cert' | 'CERT'
+      | 'cont' | 'CONT'
+      | 'devel' | 'DEVEL'
+      | 'disc' | 'DISC'
+      | 'discont' | 'DISCONT'
+      | 'ed' | 'ED'
+      | 'eds' | 'EDS'
+      | 'equiv' | 'EQUIV'
+      | 'etc' | 'ETC'
+      | 'excl' | 'EXCL'
+      | 'expell' | 'EXPELL'
+      | 'fin' | 'FIN'
+      | 'imp' | 'IMP'
+      | 'incl' | 'INCL'
+      | 'ins' | 'INS'
+      | 'inv' | 'INV'
+      | 'invest' | 'INVEST'
+      | 'ord' | 'ORD'
+      | 'pell' | 'PELL'
+      | 'repr' | 'REPR'
+      | 'rev' | 'REV'
+      | 'trans' | 'TRANS'
+      | 'viz' | 'VIZ'
+      | 'vol' | 'VOL'
+      | 'vols' | 'VOLS'
    ) '.' ;
    non_eos_abbreviation = (
-        'cf'i
+        'cf' | 'CF'
       | 'Cie' | 'CIE'  # Abbrevation for company in French.
-      | 'eg'i | 'e.g'i
-      | 'ie'i | 'i.e'i
-      | 'vs'i | 'v.s'i
+      | 'eg' | 'EG' | 'e.g' | 'E.G'
+      | 'ie' | 'IE' | 'i.e' | 'I.E'
+      | 'v' | 'V' | 'vs' | 'VS' | 'v.s' | 'V.S'
    ) '.' ;
 
 
