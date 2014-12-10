@@ -8,7 +8,8 @@
   contractions_quote = single_quote | close_single_quote ;
 
   contractions_misc =
-      contractions_quote 'tis'
+      contractions_quote 'em'
+    | contractions_quote 'tis'
     | 'add' contractions_quote 'l'
     | 'Add' contractions_quote 'l'
     | 'c' contractions_quote 'mon'

@@ -278,11 +278,13 @@ namespace schwa {
       void _flush_sentence(void);
 
       void _abbreviation(void);
+      void _bigram(void);
       void _close_bracket(void);
       void _close_double_quote(void);
       void _close_single_quote(void);
       void _contraction(void);
       void _double_quote(void);
+      void _eos_initial(void);
       void _ignore(void);
       void _month_day(void);
       void _open_bracket(void);
@@ -290,7 +292,7 @@ namespace schwa {
       void _open_single_quote(void);
       void _punctuation(const uint8_t *norm=nullptr);
       void _single_quote(void);
-      void _split(void);
+      void _split(bool seen_terminator=false);
       void _terminator(const uint8_t *norm);
       void _word(void);
 

@@ -6,9 +6,9 @@
   alphtype unsigned char;
 
   action abbreviation { _abbreviation(); }
+  action bigram { _bigram(); }
   action contraction { _contraction(); }
   action ignore { _ignore(); }
-  action month_day { _month_day(); }
   action punctuation { _punctuation(); }
   action split { _split(); }
   action word { _word(); }
@@ -40,22 +40,27 @@
     contractions_neg_error => contraction;
     letter+ contractions_suffix => contraction;
 
-    (letter+ '.'? possessive) - abbrev_decade => split;
+    (letter+ '.'? possessive) -- abbrev_decade => split;
 
-    (numbers ( units | cardinal_suffix ) '.'?) - abbrev_decade => split;
+    (numbers cardinal_suffix) -- abbrev_decade => split;
+    (numbers units) -- abbrev_decade => split;
+    (numbers units '.') -- abbrev_decade => { _split(true); };
+    (numbers %b1 unicode_space+ %b2 cardinal_suffix) -- abbrev_decade => bigram;
+    (numbers %b1 unicode_space+ %b2 units '.') -- abbrev_decade => bigram;
     time_ambiguous meridian => split;
     meridian_token | date_time => word;
 
-    # (integer | float) '-' alpha+ ('-' alpha+)* => word;
-
     'and/or' | 'AND/OR' => word;
+    /[Cc]an/ %b1 %b2 'not' | 'CAN' %b1 %b2 'NOT' => bigram;
+    #'I.' %b1 unicode_space+ %b2 ('About'|'According'|'Additionally'|'After'|'An'|'A'|'As'|'At'|'But'|'Earlier'|'He'|'Her'|'Here'|'However'|'If'|'In'|'It'|'Last'|'Many'|'More'|'Mr.'|'Ms.'|'Now'|'Once'|'One'|'Other'|'Our'|'She'|'Since'|'So'|'Some'|'Such'|'That'|'The'|'Their'|'Then'|'There'|'These'|'They'|'This'|'We'|'When'|'While'|'What'|'Yet'|'You') => { _eos_initial(); };
+    (abbreviation_date | month_name) %b1 unicode_space+ %b2 (('0'? [1-9] | [12] digit | '3' [01]) '.') => { _month_day(); };
+    abbreviation_bigram => bigram;
 
-    (abbreviation_date | month_name) %b1 unicode_space+ %b2 (('0'? [1-9] | [12] digit | '3' [01]) '.') => month_day;
-
-    contractions_misc | ( lower+ '-' )? acronym | title => word;
+    contractions_misc | title => word;
     symbols => punctuation;
     emoticon => punctuation;
-    acronym1 | abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | (units | century_modern) '.' => abbreviation;
+    acronym1 | acronym2 | abbreviation | abbreviation_date | abbreviation_org | abbreviation_state | century_modern '.' => abbreviation;
+    non_eos_abbreviation | initial | acronym3 => word;
 
     address_suffix | lines | currency_symbol | numbers | date_time => word;
     uri | email_address | twitter_username | hash_tag => word;

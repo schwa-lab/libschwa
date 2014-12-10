@@ -38,7 +38,7 @@
 
   # Unicode line separators.
   unicode_2028 = 0xe2 0x80 0xa8 ;  # U+2028 line separator
-  unicode_line_space = '\r\n' | '\r' | '\n' | unicode_2028 ;
+  unicode_line_space = '\r\n' | '\n' | unicode_2028 ;
 
   # Unicode paragraph separators.
   unicode_2029 = 0xe2 0x80 0xa9 ;  # U+2029 paragraph separator ( )

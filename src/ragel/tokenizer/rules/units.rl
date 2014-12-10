@@ -151,8 +151,7 @@
 
   unicode_00a2 = 0xc2 0xa2 ;  # U+00a2 cent sign (¢)
   cents_unit =
-      'c' %s1
-    | unicode_00a2 %s1
+      unicode_00a2 %s1
     ;
 
   currency_symbol =

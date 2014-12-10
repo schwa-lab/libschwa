@@ -134,6 +134,18 @@ Tokenizer::_flush_sentence(void) {
 
 
 void
+Tokenizer::_bigram(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_bigram] "; _state.dump(std::cerr) << std::endl;
+#endif
+  _flush_sentence();
+  _create_token(_state.ts, _state.b1, _state.n1);
+  _create_token(_state.b2, _state.te, _state.n2);
+  _state.reset();
+}
+
+
+void
 Tokenizer::_contraction(void) {
 #ifdef TOKENIZER_DEBUG
   std::cerr << "[_contraction] "; _state.dump(std::cerr) << std::endl;
@@ -205,6 +217,20 @@ Tokenizer::_double_quote(void) {
     _close_double_quote();
   else
     _open_double_quote();
+}
+
+
+void
+Tokenizer::_eos_initial(void) {
+#ifdef TOKENIZER_DEBUG
+  std::cerr << "[_eos_initial] "; _state.dump(std::cerr) << std::endl;
+#endif
+  _flush_sentence();
+  _create_token(_state.ts, _state.ts + 1, _state.n1);
+  _create_token(_state.ts + 1, _state.b1, NORMALISED_PERIOD);
+  _create_sentence();
+  _create_token(_state.b2, _state.te, _state.n2);
+  _state.reset();
 }
 
 
@@ -303,15 +329,17 @@ Tokenizer::_single_quote(void) {
 
 
 void
-Tokenizer::_split(void) {
+Tokenizer::_split(const bool seen_terminator) {
 #ifdef TOKENIZER_DEBUG
-  std::cerr << "[_split] "; _state.dump(std::cerr) << std::endl;
+  std::cerr << "[_split] "; _state.dump(std::cerr) << " " << seen_terminator << std::endl;
 #endif
   assert(_state.suffix != 0);
   _flush_sentence();
   _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
   _create_token(_state.te - _state.suffix, _state.te, _state.n2);
   _state.reset();
+  if (seen_terminator)
+    _seen_terminator = true;
 }
 
 
@@ -339,7 +367,7 @@ Tokenizer::_word(void) {
   if (_seen_terminator && _prev_was_close_punctuation) {
     const uint8_t *start = _state.ts.get_bytes();
     const unicode_t first = read_utf8(&start, _state.te.get_bytes());
-    if (unicode::is_lower(first))
+    if (unicode::is_lower(first) || (start == _state.te.get_bytes() && first == 'I'))
       _seen_terminator = false;
     else
       _flush_sentence();
