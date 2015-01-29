@@ -105,14 +105,14 @@
   pressure_unit =
       'Pa' %s2
     | metric_prefix 'Pa' %s3
-    | 'psi'
+    | 'psi' %s3
     ;
 
   other_unit =
-      'db'
-    | 'dB'
-    | 'rpm'
-    | 'RPM'
+      'db' %s2
+    | 'dB' %s2
+    | 'rpm' %s3
+    | 'RPM' %s3
     ;
 
   # Time.
