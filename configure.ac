@@ -120,6 +120,7 @@ AC_CHECK_HEADER([unistd.h], , AC_MSG_ERROR([C unistd.h header not found]))
 
 dnl Check for optional headers.
 AC_CHECK_HEADERS([pcre.h])
+AC_CHECK_HEADERS([xmmintrin.h emmintrin.h])
 
 dnl Check for C functions.
 AC_CHECK_FUNC([close], , AC_MSG_ERROR([C close function not found]))

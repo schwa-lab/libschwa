@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(SIMD_FLAGS)
 
 lib_LTLIBRARIES = libschwa.la
-noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_liblbfgs.la libschwa_thirdparty_re2.la
 nobase_library_include_HEADERS =
 
 check_LIBRARIES =
@@ -13,6 +13,7 @@ check_PROGRAMS =
 
 libschwa_la_LDFLAGS = -no-undefined -version-info $(libschwa_la_version_info)
 libschwa_thirdparty_cityhash_la_LDFLAGS = -no-undefined -version-info 4:0:0
+libschwa_thirdparty_liblbfgs_la_LDFLAGS = -no-undefined -version-info 1:10:0
 libschwa_thirdparty_re2_la_LDFLAGS = -no-undefined -version-info 1:0:0
 
 # =============================================================================
@@ -169,7 +170,7 @@ endif
 # libschwa Automake
 # =============================================================================
 libschwa_la_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS)
-libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_cityhash.la libschwa_thirdparty_liblbfgs.la libschwa_thirdparty_re2.la
 libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
@@ -264,6 +265,23 @@ check_PROGRAMS += cityhash_tests
 
 cityhash_tests_LDADD = libschwa_thirdparty_cityhash.la
 cityhash_tests_SOURCES = schwa/third-party/cityhash/city_test.cc
+
+
+# =============================================================================
+# libschwa_thirdparty_liblbfgs Automake
+# =============================================================================
+LIBLBFGS_HEADER_FILES = \
+		schwa/third-party/liblbfgs/arithmetic_ansi.h \
+		schwa/third-party/liblbfgs/arithmetic_sse_double.h \
+		schwa/third-party/liblbfgs/arithmetic_sse_float.h \
+		schwa/third-party/liblbfgs/lbfgs.h
+
+LIBLBFGS_SOURCE_FILES = \
+		schwa/third-party/liblbfgs/lbfgs.cc
+
+libschwa_thirdparty_liblbfgs_la_SOURCES = $(LIBLBFGS_HEADER_FILES) $(LIBLBFGS_SOURCE_FILES)
+nobase_library_include_HEADERS += $(LIBLBFGS_HEADER_FILES)
+
 
 # =============================================================================
 # libschwa_thirdparty_re2 Automake
