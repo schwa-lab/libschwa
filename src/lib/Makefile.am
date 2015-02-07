@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(SIMD_FLAGS)
 
 lib_LTLIBRARIES = libschwa.la
-noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+noinst_LTLIBRARIES = libschwa_thirdparty_cityhash.la libschwa_thirdparty_cqdb.la libschwa_thirdparty_crfsuite.la libschwa_thirdparty_liblbfgs.la libschwa_thirdparty_re2.la
 nobase_library_include_HEADERS =
 
 check_LIBRARIES =
@@ -13,6 +13,9 @@ check_PROGRAMS =
 
 libschwa_la_LDFLAGS = -no-undefined -version-info $(libschwa_la_version_info)
 libschwa_thirdparty_cityhash_la_LDFLAGS = -no-undefined -version-info 4:0:0
+libschwa_thirdparty_cqdb_la_LDFLAGS = -no-undefined -version-info 0:12:0
+libschwa_thirdparty_crfsuite_la_LDFLAGS = -no-undefined -version-info 0:12:0
+libschwa_thirdparty_liblbfgs_la_LDFLAGS = -no-undefined -version-info 1:10:0
 libschwa_thirdparty_re2_la_LDFLAGS = -no-undefined -version-info 1:0:0
 
 # =============================================================================
@@ -242,7 +245,7 @@ endif
 # libschwa Automake
 # =============================================================================
 libschwa_la_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS)
-libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_cityhash.la libschwa_thirdparty_re2.la
+libschwa_la_LIBADD += $(PROFILERLIB) $(TCMALLOCLIB) libschwa_thirdparty_cityhash.la libschwa_thirdparty_crfsuite.la libschwa_thirdparty_re2.la
 libschwa_la_SOURCES += $(LIBSCHWA_HEADER_FILES) $(LIBSCHWA_SOURCE_FILES)
 
 library_includedir = $(includedir)
@@ -337,6 +340,76 @@ check_PROGRAMS += cityhash_tests
 
 cityhash_tests_LDADD = libschwa_thirdparty_cityhash.la
 cityhash_tests_SOURCES = schwa/third-party/cityhash/city_test.cc
+
+
+# =============================================================================
+# libschwa_thirdparty_cqdb Automake
+# =============================================================================
+CQDB_HEADER_FILES = \
+		schwa/third-party/cqdb/cqdb.h
+
+CQDB_SOURCE_FILES = \
+		schwa/third-party/cqdb/cqdb.cc \
+		schwa/third-party/cqdb/lookup3.cc
+
+libschwa_thirdparty_cqdb_la_SOURCES = $(CQDB_HEADER_FILES) $(CQDB_SOURCE_FILES)
+nobase_library_include_HEADERS += $(CQDB_HEADER_FILES)
+
+
+# =============================================================================
+# libschwa_thirdparty_crfsuite Automake
+# =============================================================================
+CRFSUITE_HEADER_FILES = \
+		schwa/third-party/crfsuite/crf1d.h \
+		schwa/third-party/crfsuite/crfsuite.h \
+		schwa/third-party/crfsuite/crfsuite_internal.h \
+		schwa/third-party/crfsuite/logging.h \
+		schwa/third-party/crfsuite/params.h \
+		schwa/third-party/crfsuite/quark.h \
+		schwa/third-party/crfsuite/rumavl.h \
+		schwa/third-party/crfsuite/vecmath.h
+
+CRFSUITE_SOURCE_FILES = \
+		schwa/third-party/crfsuite/crf1d_context.cc \
+		schwa/third-party/crfsuite/crf1d_encode.cc \
+		schwa/third-party/crfsuite/crf1d_feature.cc \
+		schwa/third-party/crfsuite/crf1d_model.cc \
+		schwa/third-party/crfsuite/crf1d_tag.cc \
+		schwa/third-party/crfsuite/crfsuite.cc \
+		schwa/third-party/crfsuite/crfsuite_train.cc \
+		schwa/third-party/crfsuite/dataset.cc \
+		schwa/third-party/crfsuite/dictionary.cc \
+		schwa/third-party/crfsuite/holdout.cc \
+		schwa/third-party/crfsuite/logging.cc \
+		schwa/third-party/crfsuite/params.cc \
+		schwa/third-party/crfsuite/quark.cc \
+		schwa/third-party/crfsuite/rumavl.cc \
+		schwa/third-party/crfsuite/train_arow.cc \
+		schwa/third-party/crfsuite/train_averaged_perceptron.cc \
+		schwa/third-party/crfsuite/train_l2sgd.cc \
+		schwa/third-party/crfsuite/train_lbfgs.cc \
+		schwa/third-party/crfsuite/train_passive_aggressive.cc
+
+libschwa_thirdparty_crfsuite_la_SOURCES = $(CRFSUITE_HEADER_FILES) $(CRFSUITE_SOURCE_FILES)
+libschwa_thirdparty_crfsuite_la_LIBADD = libschwa_thirdparty_cqdb.la libschwa_thirdparty_liblbfgs.la
+nobase_library_include_HEADERS += $(CRFSUITE_HEADER_FILES)
+
+
+# =============================================================================
+# libschwa_thirdparty_liblbfgs Automake
+# =============================================================================
+LIBLBFGS_HEADER_FILES = \
+		schwa/third-party/liblbfgs/arithmetic_ansi.h \
+		schwa/third-party/liblbfgs/arithmetic_sse_double.h \
+		schwa/third-party/liblbfgs/arithmetic_sse_float.h \
+		schwa/third-party/liblbfgs/lbfgs.h
+
+LIBLBFGS_SOURCE_FILES = \
+		schwa/third-party/liblbfgs/lbfgs.cc
+
+libschwa_thirdparty_liblbfgs_la_SOURCES = $(LIBLBFGS_HEADER_FILES) $(LIBLBFGS_SOURCE_FILES)
+nobase_library_include_HEADERS += $(LIBLBFGS_HEADER_FILES)
+
 
 # =============================================================================
 # libschwa_thirdparty_re2 Automake

@@ -167,7 +167,7 @@ namespace schwa {
         static inline void
         read(IN &in, Slice<T> &val) {
           const uint32_t nitems = msgpack::read_array_size(in);
-          assert(nitems == 2);
+          assert(nitems == 2); (void)nitems;  // Ensure there's a use of this variable when NDEBUG is defined so that gcc doesn't incorrectly warn about unused variable.
           msgpack::read<IN>(in, val.start);
           msgpack::read<IN>(in, val.stop);
           val.stop += val.start;
@@ -196,7 +196,7 @@ namespace schwa {
         static inline void
         read(IN &in, Slice<T> &val, IStore &istore) {
           const uint32_t nitems = msgpack::read_array_size(in);
-          assert(nitems == 2);
+          assert(nitems == 2); (void)nitems;  // Ensure there's a use of this variable when NDEBUG is defined so that gcc doesn't incorrectly warn about unused variable.
           const size_t offset = msgpack::read_uint(in);
           const size_t delta = msgpack::read_uint(in);
           val.start = &static_cast<typename FieldTraits<Slice<T>>::value_type &>(istore.at_index(offset));

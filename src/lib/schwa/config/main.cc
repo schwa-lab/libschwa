@@ -28,6 +28,7 @@ throw_config_exception(const std::string &msg, const std::string &key) {
 
 Main::Main(const std::string &name, const std::string &desc) : Group(name, desc) {
   _owned.push_back(_op_help = new OpHelp(*this));
+  _owned.push_back(_op_short_help = new OpShortHelp(*this));
   _owned.push_back(_op_version = new OpVersion(*this));
   _owned.push_back(_op_log = new Op<std::string>(*this, "log", "The file to log to", "/dev/stderr"));
   _owned.push_back(_op_log_level = new OpLogLevel(*this, "log-level", "The level to log at", "info"));
@@ -100,6 +101,12 @@ Main::help(std::ostream &out) const {
 
 
 void
+Main::help_short(std::ostream &out) const {
+  out << desc() << std::endl;
+}
+
+
+void
 Main::serialise(std::ostream &out) const {
   out << "# $";
   serialise_cmdline_args(out);
@@ -164,7 +171,7 @@ Main::_main(void) {
       throw_config_exception("Invalid option", key);
 
     // If the node can be assigned a value, try and assign it one.
-    if (node->accepts_assignment()) {
+    if (node->accepts_assignment() && !(node->is_flag() && is_short_option(key))) {
       if (node->requires_assignment() && args.empty())
         throw_config_exception("Value missing for option", key);
       if (!args.empty()) {

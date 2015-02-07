@@ -62,6 +62,7 @@ namespace schwa {
 
       virtual bool accepts_assignment(void) const = 0;
       virtual bool accepts_mention(void) const = 0;
+      virtual bool is_flag(void) const { return false; }
       virtual bool requires_assignment(void) const = 0;
 
       void assign(const std::string &value);

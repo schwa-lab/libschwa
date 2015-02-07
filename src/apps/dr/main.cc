@@ -10,12 +10,15 @@
 #include <vector>
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include <schwa/exception.h>
+#include <schwa/io/logging.h>
 #include <schwa/io/paths.h>
 #include <schwa/port.h>
 #include <schwa/version.h>
@@ -69,6 +72,71 @@ find_tools_in_dir(const std::string dir_path, std::map<std::string, std::string>
 }
 
 
+static std::string
+get_short_help(const std::string &dir_path, const std::string &tool_name) {
+  const std::string path = io::path_join(dir_path, "dr-" + tool_name);
+  std::string short_help;
+
+  // Setup pipe.
+  int child_to_parent[2];  // [read, write]
+  if (::pipe(child_to_parent) == -1) {
+    const int errnum = errno;
+    LOG(ERROR) << "Call to pipe failed: " << std::strerror(errnum) << std::endl;
+    return "";
+  }
+
+  // Fork.
+  const pid_t pid = ::fork();
+  if (pid < 0) {  // Call to fork() failed.
+    const int errnum = errno;
+    LOG(ERROR) << "Call to fork failed: " << std::strerror(errnum) << std::endl;
+    return "";
+  }
+  else if (pid == 0) {  // Child process.
+    // Redirect stdin and stderr to be /dev/null.
+    ::close(STDIN_FILENO);
+    ::open("/dev/null", O_RDONLY);
+    ::close(STDERR_FILENO);
+    ::open("/dev/null", O_RDWR);
+
+    // Bind stdout to the writing end of the pipe.
+    ::close(child_to_parent[0]);
+    ::close(STDOUT_FILENO);
+    ::dup2(child_to_parent[1], STDOUT_FILENO);
+
+    // Attempt to exec the tool, invoking the --short-help flag.
+    char *args[3] = {::strdup(path.c_str()), ::strdup("--short-help"), nullptr};
+    ::execvp(args[0], args);
+    std::perror("execvp");
+    std::exit(1);
+  }
+  else {  // Parent process.
+    // Wait for the child process to terminate.
+    int status;
+    ::waitpid(pid, &status, 0);
+
+    // Did the process exited successfully?
+    if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+      // Try and read from the pipe, copying the output chars into `short_help`.
+      char buf[BUFSIZ];
+      while (true) {
+        const ssize_t nread = ::read(child_to_parent[0], buf, sizeof(buf));
+        for (ssize_t i = 0; i != nread; ++i)
+          if (buf[i] != '\n')
+            short_help += buf[i];
+        if (nread != sizeof(buf))
+          break;
+      }
+    }
+
+    // Close the pipe.
+    ::close(child_to_parent[0]);
+  }
+
+  return short_help;
+}
+
+
 static void
 show_tools_help(std::ostream &out=std::cerr) {
   std::map<std::string, std::string> core_tools, extra_tools;
@@ -78,8 +146,14 @@ show_tools_help(std::ostream &out=std::cerr) {
   find_tools_in_dir(argv0_path, core_tools);
   if (!core_tools.empty()) {
     out << "  Core tools:" << std::endl;
-    for (const auto &pair : core_tools)
-      out << "    " << port::BOLD << pair.first << port::OFF << std::endl;
+    for (const auto &pair : core_tools) {
+      const std::string short_help = get_short_help(pair.second, pair.first);
+
+      out << "    " << port::BOLD << pair.first << port::OFF;
+      if (!short_help.empty())
+        out << ": " << short_help;
+      out << std::endl;
+    }
   }
 
   // Search each of the paths in ${PATH}.
@@ -104,12 +178,18 @@ show_tools_help(std::ostream &out=std::cerr) {
 
 
 static void
-show_help(std::ostream &out=std::cerr) {
-  out << port::BOLD << "dr" << port::OFF << ": " << "A dispatcher to other docrep processing tools." << std::endl;
+show_help(const bool short_help=false, std::ostream &out=std::cout) {
+  static const std::string DESC = "A dispatcher to other docrep processing tools.";
+  if (short_help) {
+    out << DESC << std::endl;
+    return;
+  }
+  out << port::BOLD << "dr" << port::OFF << ": " << DESC << std::endl;
   out << "  Usage: dr tool [tool-options]" << std::endl;
   show_tools_help(out);
   out << std::endl;
   out << "  " << port::BOLD << "-h, --help" << port::OFF << ": Displays the help text" << std::endl;
+  out << "  " << port::BOLD << "--short-help" << port::OFF << ": Displays the short help text" << std::endl;
   out << "  " << port::BOLD << "--version" << port::OFF << ": Displays the version" << std::endl;
 }
 
@@ -170,6 +250,10 @@ main(int argc, char **argv) {
   else if (argc > 1) {
     if (std::strcmp(argv[1], "-h") == 0 || std::strcmp(argv[1], "--help") == 0) {
       show_help();
+      return 0;
+    }
+    if (std::strcmp(argv[1], "--short-help") == 0) {
+      show_help(true);
       return 0;
     }
     else if (std::strcmp(argv[1], "--version") == 0) {

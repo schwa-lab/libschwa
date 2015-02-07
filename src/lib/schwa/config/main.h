@@ -24,6 +24,7 @@ namespace schwa {
       std::vector<std::string> _unclaimed_args;
 
       OpHelp *_op_help;
+      OpShortHelp *_op_short_help;
       OpVersion *_op_version;
       Op<std::string> *_op_log;
       OpLogLevel *_op_log_level;
@@ -51,12 +52,14 @@ namespace schwa {
       void serialise_cmdline_args(std::ostream &out) const;
 
       void help(std::ostream &out) const;
+      void help_short(std::ostream &out) const;
 
       inline void allow_unclaimed_args(const std::string &desc) { _unclaimed_args_desc = desc; }
       inline bool allow_unclaimed_args(void) const { return !_unclaimed_args_desc.empty(); }
       inline const std::vector<std::string> &unclaimed_args(void) const { return _unclaimed_args; }
 
       inline OpHelp *op_help(void) { return _op_help; }
+      inline OpShortHelp *op_short_help(void) { return _op_short_help; }
       inline OpVersion *op_version(void) { return _op_version; }
 
       template <typename LOGGER>

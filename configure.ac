@@ -3,7 +3,7 @@ AC_INIT([libschwa], m4_normalize(m4_include([m4/version.m4])), [schwa-lab@it.usy
 : ${CXXFLAGS=""}
 
 m4_include([m4/version-set.m4])
-AC_SUBST([libschwa_la_version_info], [3:0:0])
+AC_SUBST([libschwa_la_version_info], [4:0:0])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -118,6 +118,7 @@ AC_CHECK_HEADER([unistd.h], , AC_MSG_ERROR([C unistd.h header not found]))
 
 dnl Check for optional headers.
 AC_CHECK_HEADERS([pcre.h])
+AC_CHECK_HEADERS([xmmintrin.h emmintrin.h])
 
 dnl Check for C functions.
 AC_CHECK_FUNC([close], , AC_MSG_ERROR([C close function not found]))
@@ -225,6 +226,8 @@ AC_CONFIG_FILES([
   src/apps/dr-sample/Makefile
   src/apps/dr-tail/Makefile
   src/apps/dr-worker-example/Makefile
+  src/apps/mp-less/Makefile
+  src/apps/schwa-crfsuite/Makefile
   src/apps/schwa-tokenizer/Makefile
   src/lib/Makefile
   src/lib/schwa/macros.h:src/lib/schwa/macros.h.in
