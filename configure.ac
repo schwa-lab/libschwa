@@ -224,6 +224,7 @@ AC_CONFIG_FILES([
   src/apps/dr-tail/Makefile
   src/apps/dr-worker-example/Makefile
   src/apps/mp-less/Makefile
+  src/apps/schwa-crfsuite/Makefile
   src/apps/schwa-tokenizer/Makefile
   src/lib/Makefile
   src/lib/schwa/macros.h:src/lib/schwa/macros.h.in
