@@ -287,6 +287,13 @@ namespace schwa {
       LOG(INFO) << "CRFSuiteTrainer::exact end" << std::endl;
     }
 
+
+    template <typename EXTRACTOR>
+    inline void
+    CRFSuiteTrainer<EXTRACTOR>::dump_crfsuite_data(io::OutputStream &out) const {
+      learn::dump_crfsuite_data(out, _data);
+    }
+
   }
 }
 

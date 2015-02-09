@@ -14,9 +14,6 @@
 namespace schwa {
   namespace learn {
 
-    void dump_crfsuite_feature(const std::string &feature, std::ostream &out);
-
-
     template <class TRANSFORM=NoTransform, typename VALUE=float>
     class Features {
     public:
@@ -50,7 +47,6 @@ namespace schwa {
 
       inline bool empty(void) const { return _values.empty(); }
       inline size_t size(void) const { return _values.size(); }
-      void dump_crfsuite(std::ostream &out) const;
     };
 
 
@@ -63,13 +59,9 @@ namespace schwa {
       explicit Instance(const TRANSFORM &transformer) : features(transformer) { }
       Instance(const Instance &o) : features(o.features), klass(o.klass) { }
       Instance(const Instance &&o) : features(o.features), klass(o.klass) { }
-
-      void dump_crfsuite(std::ostream &out) const;
     };
 
   }
 }
-
-#include <schwa/learn/features_impl.h>
 
 #endif  // SCHWA_LEARN_FEATURES_H_

@@ -129,7 +129,6 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/extract_impl.h \
 		schwa/learn/feature-transformers.h \
 		schwa/learn/features.h \
-		schwa/learn/features_impl.h \
 		schwa/learn/io.h \
 		schwa/learn/io_impl.h \
 		schwa/learn/lexicon.h \
@@ -198,8 +197,8 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/paths.cc \
 		schwa/io/streams.cc \
 		schwa/io/write_buffer.cc \
+		schwa/learn/crfsuite.cc \
 		schwa/learn/extract.cc \
-		schwa/learn/features.cc \
 		schwa/learn/lexicon.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/exception.cc \

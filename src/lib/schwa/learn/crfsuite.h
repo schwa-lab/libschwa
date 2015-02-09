@@ -2,10 +2,12 @@
 #ifndef SCHWA_LEARN_CRFSUITE_H_
 #define SCHWA_LEARN_CRFSUITE_H_
 
+#include <iosfwd>
 #include <string>
 
 #include <schwa/_base.h>
 #include <schwa/canonical-schema.h>
+#include <schwa/io/streams.h>
 #include <schwa/learn/io.h>
 #include <schwa/third-party/crfsuite/crfsuite.h>
 
@@ -44,17 +46,23 @@ namespace schwa {
       explicit CRFSuiteTrainer(EXTRACTOR &extractor, const std::string &algorithm=DEFAULT_ALGORITHM);
       ~CRFSuiteTrainer(void);
 
-      std::string get_param(const std::string &key);
+      std::string get_param(const std::string &key) const;
       void set_param(const std::string &key, const std::string &val);
 
       template <typename TRANSFORM>
       void extract(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer=TRANSFORM());
 
+      void dump_crfsuite_data(io::OutputStream &out) const;
       void train(const std::string &model_path);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFSuiteTrainer);
     };
+
+
+    void dump_crfsuite_data(std::ostream &out, const third_party::crfsuite::crfsuite_data_t &data);
+    void dump_crfsuite_value(std::ostream &out, const char *value);
+
 
   }
 }
