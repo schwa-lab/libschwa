@@ -30,8 +30,7 @@ namespace schwa {
       EXTRACTOR &_extractor;
       third_party::crfsuite::crfsuite_data_t _data;
       third_party::crfsuite::crfsuite_instance_t _instance;
-      third_party::crfsuite::crfsuite_item_t _item;
-      third_party::crfsuite::crfsuite_attribute_t _attribute;
+      third_party::crfsuite::crfsuite_item_t *_item;
       third_party::crfsuite::crfsuite_trainer_t *_trainer;
 
       void _crfsuite_error(const std::string &api_call, int ret);

@@ -51,9 +51,8 @@ namespace schwa {
       using namespace ::schwa::third_party::crfsuite;
       int ret;
 
-      // Initialise crfsuite data model objects.
+      // Initialise crfsuite data.
       crfsuite_data_init(&_data);
-      crfsuite_attribute_init(&_attribute);
 
       // Initialise the attribute and label dictionaries.
       ret = crfsuite_create_instance("dictionary", reinterpret_cast<void **>(&_data.attrs));
@@ -137,6 +136,7 @@ namespace schwa {
       using namespace ::schwa::third_party::crfsuite;
       // Initialise the item sequence with a known number of items.
       crfsuite_instance_init_n(&_instance, nitems);
+      _item = _instance.items;
     }
 
 
@@ -160,35 +160,28 @@ namespace schwa {
     inline void
     CRFSuiteTrainer<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label) {
       using namespace ::schwa::third_party::crfsuite;
-      int ret;
 
       // Initialise the item with a known number of attributes.
-      crfsuite_item_init_n(&_item, features.size());
+      crfsuite_item_init_n(_item, features.size());
 
       // Convert each of the provided features into attribute IDs and add them to the item.
       std::string attr_str;
+      size_t a = 0;
       for (const auto &pair : features) {
         // Convert the feature value into a string and obtain its crfsuite attribute ID.
         attr_str.assign(to_string_helper(pair.first));
         const int attr_id = _data.attrs->get(_data.attrs, attr_str.c_str());
 
         // Set the attribute data and add the attribute to the item.
-        crfsuite_attribute_set(&_attribute, attr_id, pair.second);
-        ret = crfsuite_item_append_attribute(&_item, &_attribute);
-        if (ret != 0)
-          _crfsuite_error("crfsuite_item_append_attribute", ret);
+        crfsuite_attribute_set(&_item->contents[a++], attr_id, pair.second);
       }
 
-      // Convert the label into its crfsuite label ID.
+      // Convert the label into its crfsuite label ID and add it to the item sequence.
       const int label_id = _data.labels->get(_data.labels, label.c_str());
+      _instance.labels[_item - _instance.items] = label_id;
 
-      // Add the item to the item sequence.
-      ret = crfsuite_instance_append(&_instance, &_item, label_id);
-      if (ret != 0)
-        _crfsuite_error("crfsuite_instance_append", ret);
-
-      // Deinitialise the item.
-      crfsuite_item_finish(&_item);
+      // Increment the item pointer to the next pre-allocated item.
+      ++_item;
     }
 
 
