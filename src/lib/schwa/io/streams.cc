@@ -86,6 +86,7 @@ InputStream::is_tty(void) const {
 
 void
 InputStream::seek_start(void) {
+  _stream->clear();
   _stream->seekg(0, _stream->beg);
 }
 
