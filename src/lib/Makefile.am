@@ -123,11 +123,14 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/io/unsafe_array_writer.h \
 		schwa/io/write_buffer.h \
 		schwa/learn.h \
+		schwa/learn/crfsuite.h \
+		schwa/learn/crfsuite_impl.h \
 		schwa/learn/extract.h \
 		schwa/learn/extract_impl.h \
 		schwa/learn/feature-transformers.h \
 		schwa/learn/features.h \
 		schwa/learn/features_impl.h \
+		schwa/learn/lexicon.h \
 		schwa/macros.h \
 		schwa/memory.h \
 		schwa/mpl/if.h \
@@ -140,6 +143,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/msgpack.h \
 		schwa/pool.h \
 		schwa/port.h \
+		schwa/tagger/pos.h \
+		schwa/tagger/pos_impl.h \
 		schwa/tokenizer/tokenizer.h \
 		schwa/tokenizer/tokenizer_impl.h \
 		schwa/unicode.h \
@@ -193,9 +198,11 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/io/write_buffer.cc \
 		schwa/learn/extract.cc \
 		schwa/learn/features.cc \
+		schwa/learn/lexicon.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/exception.cc \
 		schwa/port.cc \
+		schwa/tagger/pos.cc \
 		schwa/tokenizer/tokenizer.cc \
 		schwa/unicode.cc \
 		schwa/utils/buffer.cc \
