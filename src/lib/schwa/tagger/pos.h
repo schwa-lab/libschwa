@@ -17,10 +17,12 @@ namespace schwa {
       static constexpr const unsigned int DEFAULT_LEX_CUTOFF = 5;
 
     private:
-      const learn::contextual_callback<canonical_schema::Token> _unigram_token_callback;
-      const learn::contextual_callback<canonical_schema::Token> _bigram_token_callback;
-      const learn::contextual_callback<canonical_schema::Token> _trigram_token_callback;
       learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
+      learn::Windower2<canonical_schema::Token> _w_im2_i;
+      learn::Windower2<canonical_schema::Token> _w_im1_i;
+      learn::Windower2<canonical_schema::Token> _w_i_ip1;
+      learn::Windower2<canonical_schema::Token> _w_i_ip2;
+      learn::Windower3<canonical_schema::Token> _w_im1_i_ip1;
       learn::Lexicon _lex_token;
       unsigned int _lex_cutoff;
 
