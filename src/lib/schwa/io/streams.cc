@@ -55,7 +55,7 @@ InputStream::~InputStream(void) {
 bool
 InputStream::is_seekable(void) const {
   // Open a read-only file descriptor to the underlying path.
-  int fd = ::open(_path.c_str(), O_RDONLY | O_SYMLINK);
+  int fd = ::open(_path.c_str(), O_RDONLY);
   if (fd == -1) {
     return false;
   }
