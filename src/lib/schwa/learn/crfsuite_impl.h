@@ -227,9 +227,7 @@ namespace schwa {
 
       // Run phase 1.
       _extractor.phase1_begin();
-      ndocs_read = 0;
-      while ((doc = doc_reader.next()) != nullptr) {
-        ++ndocs_read;
+      for (ndocs_read = 0; (doc = doc_reader.next()) != nullptr; ++ndocs_read) {
         _extractor.phase1_bod(*doc);
         for (canonical_schema::Sentence &sentence : doc->sentences) {
           _extractor.phase1_bos(sentence);
@@ -242,7 +240,7 @@ namespace schwa {
         _extractor.phase1_eod(*doc);
       }
       _extractor.phase1_end();
-      LOG(INFO) << "ndocs_read=" << ndocs_read << std::endl;
+      LOG(INFO) << "CRFSuiteTrainer::extract ndocs_read=" << ndocs_read << std::endl;
 
       // Reset the document reader.
       doc_reader.reset();
@@ -252,9 +250,7 @@ namespace schwa {
 
       // Run phase 2.
       _extractor.phase2_begin();
-      ndocs_read = 0;
-      while ((doc = doc_reader.next()) != nullptr) {
-        ++ndocs_read;
+      for (ndocs_read = 0; (doc = doc_reader.next()) != nullptr; ++ndocs_read) {
         _extractor.phase2_bod(*doc);
         for (canonical_schema::Sentence &sentence : doc->sentences) {
           _extractor.phase2_bos(sentence);
@@ -276,7 +272,7 @@ namespace schwa {
         _extractor.phase2_eod(*doc);
       }
       _extractor.phase2_end();
-      LOG(INFO) << "ndocs_read=" << ndocs_read << std::endl;
+      LOG(INFO) << "CRFSuiteTrainer::extract ndocs_read=" << ndocs_read << std::endl;
       LOG(INFO) << "CRFSuiteTrainer::exact end" << std::endl;
     }
 
@@ -284,7 +280,9 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::dump_crfsuite_data(io::OutputStream &out) const {
+      LOG(INFO) << "CRFSuiteTrainer::dump_crfsuite_data begin" << std::endl;
       learn::dump_crfsuite_data(out, _data);
+      LOG(INFO) << "CRFSuiteTrainer::dump_crfsuite_data end" << std::endl;
     }
 
   }
