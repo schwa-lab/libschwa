@@ -34,8 +34,12 @@ namespace schwa {
       inline operator std::istream &() { return *_stream; }
       inline std::istream &operator *(void) { return *_stream; }
 
+      bool is_seekable(void) const;
       bool is_stdin(void) const;
       bool is_tty(void) const;
+
+      void seek_start(void);
+      void seek_end(void);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(InputStream);

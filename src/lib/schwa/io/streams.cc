@@ -6,7 +6,10 @@
 #include <fstream>
 #include <iostream>
 
-#include <unistd.h>  // isatty
+#include <fcntl.h>  // open
+#include <sys/types.h>  // lseek
+#include <sys/stat.h>  // open
+#include <unistd.h>  // close, isatty, lseek
 
 #include <schwa/exception.h>
 #include <schwa/io/enums.h>
@@ -50,6 +53,24 @@ InputStream::~InputStream(void) {
 
 
 bool
+InputStream::is_seekable(void) const {
+  // Open a read-only file descriptor to the underlying path.
+  int fd = ::open(_path.c_str(), O_RDONLY | O_SYMLINK);
+  if (fd == -1) {
+    return false;
+  }
+
+  // Non-seekable file return ESPIPE from `lseek`.
+  off_t offset = ::lseek(fd, 0, SEEK_SET);
+  bool not_seekable = offset == -1 && errno == ESPIPE;
+
+  // Close the file descriptor.
+  ::close(fd);
+  return !not_seekable;
+}
+
+
+bool
 InputStream::is_stdin(void) const {
   return _stream->rdbuf() == std::cin.rdbuf();
 }
@@ -60,6 +81,18 @@ InputStream::is_tty(void) const {
   if (is_stdin())
     return ::isatty(STDIN_FILENO);
   return false;
+}
+
+
+void
+InputStream::seek_start(void) {
+  _stream->seekg(0, _stream->beg);
+}
+
+
+void
+InputStream::seek_end(void) {
+  _stream->seekg(0, _stream->end);
 }
 
 
