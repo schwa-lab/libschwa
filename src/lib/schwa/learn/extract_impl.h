@@ -3,12 +3,14 @@
 #define SCHWA_LEARN_EXTRACT_IMPL_H_
 
 #include <algorithm>
+#include <cstdio>
 #include <functional>
 #include <sstream>
 #include <string>
 
 #include <schwa/_base.h>
 #include <schwa/dr/fields.h>
+#include <schwa/exception.h>
 #include <schwa/learn/features.h>
 
 
@@ -67,19 +69,11 @@ namespace schwa {
         _offsets(offsets)
       {
       // Construct the attribute prefix.
-      std::stringstream prefix;
-      prefix << name << "[i";
-      if (_delta0 < 0)
-        prefix << static_cast<int>(_delta0);
-      else if (_delta0 > 0)
-        prefix << "+" << static_cast<int>(_delta0);
-      prefix << ",i";
-      if (_delta1 < 0)
-        prefix << static_cast<int>(_delta1);
-      else if (_delta1 > 0)
-        prefix << "+" << static_cast<int>(_delta1);
-      prefix << "]=";
-      _prefix = prefix.str();
+      char buffer[256];
+      const int nchars = std::snprintf(buffer, sizeof(buffer), "%s[i%+d,i%+d]=", name.c_str(), delta0, delta1);
+      if (SCHWA_UNLIKELY(nchars < 0 || static_cast<unsigned int>(nchars) >= sizeof(buffer)))
+        throw schwa::ValueException("Feature name was too long for buffer");
+      _prefix.assign(buffer);
     }
 
 
@@ -103,24 +97,11 @@ namespace schwa {
         _offsets(offsets)
       {
       // Construct the attribute prefix.
-      std::stringstream prefix;
-      prefix << name << "[i";
-      if (_delta0 < 0)
-        prefix << static_cast<int>(_delta0);
-      else if (_delta0 > 0)
-        prefix << "+" << static_cast<int>(_delta0);
-      prefix << ",i";
-      if (_delta1 < 0)
-        prefix << static_cast<int>(_delta1);
-      else if (_delta1 > 0)
-        prefix << "+" << static_cast<int>(_delta1);
-      prefix << ",i";
-      if (_delta2 < 0)
-        prefix << static_cast<int>(_delta2);
-      else if (_delta2 > 0)
-        prefix << "+" << static_cast<int>(_delta2);
-      prefix << "]=";
-      _prefix = prefix.str();
+      char buffer[256];
+      const int nchars = std::snprintf(buffer, sizeof(buffer), "%s[i%+d,i%+d,i%+d]=", name.c_str(), delta0, delta1, delta2);
+      if (SCHWA_UNLIKELY(nchars < 0 || static_cast<unsigned int>(nchars) >= sizeof(buffer)))
+        throw schwa::ValueException("Feature name was too long for buffer");
+      _prefix.assign(buffer);
     }
 
 
