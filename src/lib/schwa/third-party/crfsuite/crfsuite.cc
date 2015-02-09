@@ -47,10 +47,9 @@ int crf1m_create_instance_from_file(const char *filename, void **ptr);
 
 int crfsuite_create_instance(const char *iid, void **ptr)
 {
-    int ret = 
-        crf1de_create_instance(iid, ptr) == 0 ||
-        crfsuite_dictionary_create_instance(iid, ptr) == 0;
-
+    int ret = crf1de_create_instance(iid, ptr);
+    if (ret != 0)
+      ret = crfsuite_dictionary_create_instance(iid, ptr);
     return ret;
 }
 
