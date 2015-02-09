@@ -2,6 +2,8 @@
 #ifndef SCHWA_TAGGER_POS_IMPL_H_
 #define SCHWA_TAGGER_POS_IMPL_H_
 
+#include <schwa/unicode.h>
+
 
 namespace schwa {
   namespace tagger {
@@ -16,19 +18,30 @@ namespace schwa {
       const std::string &utf8 = _get_token_norm_raw(token);
 
       // Add w_{i}.
+      features("w[i-2]=" + _offsets_token_norm_raw(i, -2));
+      features("w[i-1]=" + _offsets_token_norm_raw(i, -1));
       features("w[i]=" + utf8);
-      _w_im2_i(features, i);
-      _w_im1_i(features, i);
-      _w_i_ip1(features, i);
-      _w_i_ip2(features, i);
-      _w_im1_i_ip1(features, i);
+      features("w[i+1]=" + _offsets_token_norm_raw(i,  1));
+      features("w[i+2]=" + _offsets_token_norm_raw(i,  2));
 
-      // Prefix and suffix of length up to 5.
-      learn::add_affix_features(features, 5, 5, utf8);
+      //_w_im2_i(features, i);
+      //_w_im1_i(features, i);
+      //_w_i_ip1(features, i);
+      //_w_i_ip2(features, i);
+      //_w_im1_i_ip1(features, i);
 
-      // Is the current token in the lexicon?
-      if (_lex_token.contains(utf8))
+      // Is the current token rare?
+      if (_lex_token.contains(utf8)) {
+        // Add a feature to say it's not a rare word.
         features("in_lex=tokens");
+      }
+      else {
+        // Prefix and suffix of length up to 4.
+        learn::add_affix_features(features, 4, 4, utf8);
+
+        // Word form.
+        features("wf[i]=" + learn::word_form(utf8));
+      }
     }
 
   }
