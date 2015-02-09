@@ -14,7 +14,7 @@ namespace schwa {
 
     class Lexicon {
     private:
-      const std::string &_name;
+      const std::string _name;
       std::unordered_map<std::string, unsigned int> _counts;
 
     public:
