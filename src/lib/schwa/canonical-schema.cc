@@ -72,7 +72,8 @@ Token::Schema::Schema(void) :
     dr::Ann::Schema<Token>("Token", "The token class"),
     span(*this, "span", "The beginning and end byte offsets of the token into the original document", dr::FieldMode::READ_WRITE),
     raw(*this, "raw", "The raw token", dr::FieldMode::READ_WRITE),
-    norm(*this, "norm", "The normalised token", dr::FieldMode::READ_WRITE)
+    norm(*this, "norm", "The normalised token", dr::FieldMode::READ_WRITE),
+    pos(*this, "pos", "The POS tag for the token", dr::FieldMode::READ_WRITE)
   { }
 Token::Schema::~Schema(void) { }
 
