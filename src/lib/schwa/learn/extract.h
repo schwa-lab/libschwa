@@ -3,6 +3,7 @@
 #define SCHWA_LEARN_EXTRACT_H_
 
 #include <functional>
+#include <sstream>
 #include <string>
 
 #include <schwa/_base.h>
@@ -14,7 +15,7 @@
 namespace schwa {
   namespace learn {
 
-    const std::string SENTINEL = "__SENTINEL__";
+    extern const std::string SENTINEL;
 
 
     template <typename T>
@@ -52,6 +53,9 @@ namespace schwa {
         else
           return _callback(*ptr);
       }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(SentinelOffsets);
     };
 
 
@@ -63,9 +67,62 @@ namespace schwa {
     template <typename T> inline contextual_callback<T> create_trigram_callback(void);
 
 
-    template <typename T, typename R, class TRANSFORM=NoTransform>
-    void
-    window(const std::string &name, size_t i, ptrdiff_t dl, ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, contextual_callback<T, R> callback);
+    class Windower {
+    private:
+      const int8_t _delta_left;
+      const int8_t _delta_right;
+      std::string _prefix;
+
+    public:
+      Windower(const std::string &name, int8_t delta_left, int8_t delta_right);
+
+      template <typename T, typename R, typename TRANSFORM, typename VALUE>
+      void operator ()(const SentinelOffsets<T> &offsets, contextual_callback<T, R> callback, Features<TRANSFORM, VALUE> &features, size_t i) const;
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Windower);
+    };
+
+
+    template <typename T>
+    class Windower2 {
+    private:
+      const int8_t _delta0;
+      const int8_t _delta1;
+      SentinelOffsets<T> &_offsets;
+      std::string _prefix;
+      mutable std::ostringstream _attr;
+
+    public:
+      Windower2(const std::string &name, int8_t delta0, int8_t delta1, SentinelOffsets<T> &offsets);
+
+      template <typename TRANSFORM, typename VALUE>
+      void operator ()(Features<TRANSFORM, VALUE> &features, size_t i) const;
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Windower2);
+    };
+
+
+    template <typename T>
+    class Windower3 {
+    private:
+      const int8_t _delta0;
+      const int8_t _delta1;
+      const int8_t _delta2;
+      SentinelOffsets<T> &_offsets;
+      std::string _prefix;
+      mutable std::ostringstream _attr;
+
+    public:
+      Windower3(const std::string &name, int8_t delta0, int8_t delta1, int8_t delta2, SentinelOffsets<T> &offsets);
+
+      template <typename TRANSFORM, typename VALUE>
+      void operator ()(Features<TRANSFORM, VALUE> &features, size_t i) const;
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(Windower3);
+    };
 
 
     std::string word_form(const std::string &utf8);

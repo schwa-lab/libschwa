@@ -45,28 +45,101 @@ namespace schwa {
     }
 
 
-    template <typename T, typename R, class TRANSFORM>
+    template <typename T, typename R, typename TRANSFORM, typename VALUE>
     inline void
-    window(const std::string &name, const size_t i, const ptrdiff_t dl, const ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, contextual_callback<T, R> callback) {
-      std::stringstream key;
-      for (ptrdiff_t delta = dl; delta <= dr; ++delta) {
-        key << name << "[i";
-        if (delta < 0)
-          key << delta;
-        else if (delta > 0)
-          key << "+" << delta;
-        key << "]=";
-        key << callback(offsets, i, delta);
-        features(key.str());
-        key.str("");
+    Windower::operator ()(const SentinelOffsets<T> &offsets, contextual_callback<T, R> callback, Features<TRANSFORM, VALUE> &features, const size_t i) const {
+      std::stringstream attr;
+      for (int8_t delta = _delta_left; delta <= _delta_right; ++delta) {
+        attr.str(_prefix);
+        attr << callback(offsets, i, delta);
+        features(attr.str());
       }
     }
 
 
-    template <class TRANSFORM, typename VALUE, typename T>
+    // ============================================================================
+    // Windower2
+    // ============================================================================
+    template <typename T>
+    Windower2<T>::Windower2(const std::string &name, const int8_t delta0, const int8_t delta1, SentinelOffsets<T> &offsets) :
+        _delta0(delta0),
+        _delta1(delta1),
+        _offsets(offsets)
+      {
+      // Construct the attribute prefix.
+      std::stringstream prefix;
+      prefix << name << "[i";
+      if (_delta0 < 0)
+        prefix << static_cast<int>(_delta0);
+      else if (_delta0 > 0)
+        prefix << "+" << static_cast<int>(_delta0);
+      prefix << ",i";
+      if (_delta1 < 0)
+        prefix << static_cast<int>(_delta1);
+      else if (_delta1 > 0)
+        prefix << "+" << static_cast<int>(_delta1);
+      prefix << "]=";
+      _prefix = prefix.str();
+    }
+
+
+    template <typename T> template <typename TRANSFORM, typename VALUE>
+    inline void
+    Windower2<T>::operator ()(Features<TRANSFORM, VALUE> &features, const size_t i) const {
+      _attr << _prefix << _offsets(i, _delta0) << ' ' << _offsets(i, _delta1);
+      features(_attr.str());
+      _attr.str("");
+    }
+
+
+    // ============================================================================
+    // Windower3
+    // ============================================================================
+    template <typename T>
+    Windower3<T>::Windower3(const std::string &name, const int8_t delta0, const int8_t delta1, const int8_t delta2, SentinelOffsets<T> &offsets) :
+        _delta0(delta0),
+        _delta1(delta1),
+        _delta2(delta2),
+        _offsets(offsets)
+      {
+      // Construct the attribute prefix.
+      std::stringstream prefix;
+      prefix << name << "[i";
+      if (_delta0 < 0)
+        prefix << static_cast<int>(_delta0);
+      else if (_delta0 > 0)
+        prefix << "+" << static_cast<int>(_delta0);
+      prefix << ",i";
+      if (_delta1 < 0)
+        prefix << static_cast<int>(_delta1);
+      else if (_delta1 > 0)
+        prefix << "+" << static_cast<int>(_delta1);
+      prefix << ",i";
+      if (_delta2 < 0)
+        prefix << static_cast<int>(_delta2);
+      else if (_delta2 > 0)
+        prefix << "+" << static_cast<int>(_delta2);
+      prefix << "]=";
+      _prefix = prefix.str();
+    }
+
+
+    template <typename T> template <typename TRANSFORM, typename VALUE>
+    inline void
+    Windower3<T>::operator ()(Features<TRANSFORM, VALUE> &features, const size_t i) const {
+      _attr << _prefix << _offsets(i, _delta0) << ' ' << _offsets(i, _delta1) << ' ' << _offsets(i, _delta2);
+      features(_attr.str());
+      _attr.str("");
+    }
+
+
+    // ============================================================================
+    // add_affix_features
+    // ============================================================================
+    template <typename TRANSFORM, typename VALUE, typename T>
     inline void
     _add_affix_features(Features<TRANSFORM, VALUE> &features, const size_t nprefix, const size_t nsuffix, const T &string) {
-      std::stringstream key;
+      std::stringstream attr;
       UnicodeString affix;
       affix.reserve(std::max(nprefix, nsuffix));
 
@@ -77,9 +150,9 @@ namespace schwa {
           break;
         affix += *fit;
 
-        key << "prefix=" << affix;
-        features(key.str());
-        key.str("");
+        attr << "prefix=" << affix;
+        features(attr.str());
+        attr.str("");
       }
       affix.clear();
 
@@ -90,19 +163,19 @@ namespace schwa {
           break;
         affix += *rit;
 
-        key << "suffix=" << affix;
-        features(key.str());
-        key.str("");
+        attr << "suffix=" << affix;
+        features(attr.str());
+        attr.str("");
       }
     }
 
-    template <class TRANSFORM, typename VALUE>
+    template <typename TRANSFORM, typename VALUE>
     inline void
     add_affix_features(Features<TRANSFORM, VALUE> &features, const size_t nprefix, const size_t nsuffix, const std::string &s) {
       return _add_affix_features(features, nprefix, nsuffix, UTF8Decoder(s));
     }
 
-    template <class TRANSFORM, typename VALUE>
+    template <typename TRANSFORM, typename VALUE>
     inline void
     add_affix_features(Features<TRANSFORM, VALUE> &features, const size_t nprefix, const size_t nsuffix, const UnicodeString &s) {
       return _add_affix_features(features, nprefix, nsuffix, s);
