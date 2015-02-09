@@ -8,7 +8,7 @@
 #include <unordered_map>
 
 #include <schwa/_base.h>
-#include <schwa/learn/feature_transformers.h>
+#include <schwa/learn/feature-transformers.h>
 
 
 namespace schwa {

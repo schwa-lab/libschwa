@@ -125,7 +125,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn.h \
 		schwa/learn/extract.h \
 		schwa/learn/extract_impl.h \
-		schwa/learn/feature_transformers.h \
+		schwa/learn/feature-transformers.h \
 		schwa/learn/features.h \
 		schwa/learn/features_impl.h \
 		schwa/macros.h \
@@ -302,7 +302,7 @@ schwa_learn_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_learn_tests_SOURCES = \
 		schwa/unittest_main.cc \
 		schwa/learn/extract_test.cc \
-		schwa/learn/feature_transformers_test.cc \
+		schwa/learn/feature-transformers_test.cc \
 		schwa/learn/features_test.cc
 
 schwa_mpl_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
