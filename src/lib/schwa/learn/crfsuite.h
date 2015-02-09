@@ -6,6 +6,7 @@
 #include <string>
 
 #include <schwa/_base.h>
+#include <schwa/config.h>
 #include <schwa/canonical-schema.h>
 #include <schwa/io/streams.h>
 #include <schwa/learn/io.h>
@@ -16,13 +17,28 @@ namespace schwa {
   namespace learn {
 
     // ========================================================================
-    // POSExtractor
+    // CRFSuiteTrainerParams
+    // ========================================================================
+    class CRFSuiteTrainerParams : public config::Group {
+    public:
+      config::OpChoices<std::string> algorithm;
+      config::Op<double> c2;
+      config::Op<unsigned int> max_iterations;
+      config::Op<unsigned int> num_memories;
+      config::Op<double> epsilon;
+      config::OpChoices<std::string> line_search;
+      config::Op<unsigned int> max_line_search_iterations;
+
+      CRFSuiteTrainerParams(config::Group &group);
+      virtual ~CRFSuiteTrainerParams(void);
+    };
+
+
+    // ========================================================================
+    // CRFSuiteTrainer
     // ========================================================================
     template <typename EXTRACTOR>
     class CRFSuiteTrainer {
-    public:
-      static const std::string DEFAULT_ALGORITHM;
-
     private:
       static int _crfsuite_logging_callback(void *self, const char *format, va_list args);
 
@@ -42,7 +58,7 @@ namespace schwa {
       void _add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label);
 
     public:
-      explicit CRFSuiteTrainer(EXTRACTOR &extractor, const std::string &algorithm=DEFAULT_ALGORITHM);
+      CRFSuiteTrainer(EXTRACTOR &extractor, const CRFSuiteTrainerParams &params);
       ~CRFSuiteTrainer(void);
 
       std::string get_param(const std::string &key) const;

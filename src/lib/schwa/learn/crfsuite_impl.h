@@ -44,10 +44,7 @@ namespace schwa {
     // CRFSuiteTrainer
     // ========================================================================
     template <typename EXTRACTOR>
-    const std::string CRFSuiteTrainer<EXTRACTOR>::DEFAULT_ALGORITHM = "lbfgs";
-
-    template <typename EXTRACTOR>
-    CRFSuiteTrainer<EXTRACTOR>::CRFSuiteTrainer(EXTRACTOR &extractor, const std::string &algorithm) : _extractor(extractor), _trainer(nullptr) {
+    CRFSuiteTrainer<EXTRACTOR>::CRFSuiteTrainer(EXTRACTOR &extractor, const CRFSuiteTrainerParams &params) : _extractor(extractor), _trainer(nullptr) {
       using namespace ::schwa::third_party::crfsuite;
       int ret;
 
@@ -63,7 +60,7 @@ namespace schwa {
         _crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
 
       // Initialise the trainer.
-      std::string tid = "train/crf1d/" + algorithm;
+      std::string tid = "train/crf1d/" + params.algorithm();
       ret = crfsuite_create_instance(tid.c_str(), reinterpret_cast<void **>(&_trainer));
       if (ret != 0) {
         std::ostringstream ss;
@@ -71,6 +68,18 @@ namespace schwa {
         _crfsuite_error(ss.str(), ret);
       }
       _trainer->set_message_callback(_trainer, this, &_crfsuite_logging_callback);
+
+      // Set the LBFGS-related parameters if we're using LBFGS.
+      if (params.algorithm() == "lbfgs") {
+        std::ostringstream ss;
+
+        ss << params.c2(); set_param("c2", ss.str()); ss.str("");
+        ss << params.max_iterations(); set_param("max_iterations", ss.str()); ss.str("");
+        ss << params.num_memories(); set_param("num_memories", ss.str()); ss.str("");
+        ss << params.epsilon(); set_param("epsilon", ss.str()); ss.str("");
+        set_param("linesearch", params.line_search());
+        ss << params.max_line_search_iterations(); set_param("max_linesearch", ss.str()); ss.str("");
+      }
     }
 
     template <typename EXTRACTOR>

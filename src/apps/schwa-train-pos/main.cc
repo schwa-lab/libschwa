@@ -14,22 +14,25 @@ namespace cf = ::schwa::config;
 namespace cs = ::schwa::canonical_schema;
 namespace dr = ::schwa::dr;
 namespace io = ::schwa::io;
+namespace ln = ::schwa::learn;
+namespace tg = ::schwa::tagger;
+
 
 namespace schwa {
 namespace tagger {
 
 template <typename TRANSFORMER>
 static void
-train_pos(io::InputStream &in, cs::Doc::Schema &schema, io::OutputStream &model, TRANSFORMER &transformer, const bool retain_docs, const cf::Op<std::string> &extracted_path, const bool extract_only) {
+train_pos(io::InputStream &in, cs::Doc::Schema &schema, io::OutputStream &model, TRANSFORMER &transformer, const ln::CRFSuiteTrainerParams &params, const bool retain_docs, const cf::Op<std::string> &extracted_path, const bool extract_only) {
   // Create the feature extractor.
   POSExtractor extractor;
 
   // Create the trainer.
-  learn::CRFSuiteTrainer<POSExtractor> trainer(extractor);
+  ln::CRFSuiteTrainer<POSExtractor> trainer(extractor, params);
 
   {
     // Construct a resettable docrep reader over the provided stream.
-    learn::ResettableDocrepReader<cs::Doc> doc_reader(in, schema, retain_docs);
+    ln::ResettableDocrepReader<cs::Doc> doc_reader(in, schema, retain_docs);
 
     // Extract the features.
     trainer.extract<TRANSFORMER>(doc_reader, transformer);
@@ -58,13 +61,14 @@ main(int argc, char **argv) {
   cs::Doc::Schema schema;
 
   // Construct an option parser.
-  cf::Main cfg("schwa-train-pos", "Schwa Lab POS tag trainer. 1D linear CRF with LBFGS.");
+  cf::Main cfg("schwa-train-pos", "Schwa Lab POS tag trainer. Linear CRF backed by crfsuite.");
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
   cf::Op<std::string> model_path(cfg, "model", 'm', "The model path", io::STDOUT_STRING);
   cf::Op<size_t> feature_hashing(cfg, "feature-hashing", 'H', "Number of bits to use for feature hashing", cf::Flags::OPTIONAL);
   cf::Op<std::string> extracted_path(cfg, "dump-extracted", "The path to dump the extracted features in crfsuite format", cf::Flags::OPTIONAL);
   cf::Op<bool> extract_only(cfg, "extract-only", "Whether to perform feature extraction only and no training", false);
   cf::Op<bool> retain_docs(cfg, "retain-docs", "Read the documents into memory instead of reading multiple times from disk (useful if input is a pipe)", false);
+  ln::CRFSuiteTrainerParams trainer_params(cfg);
   dr::DocrepGroup dr(cfg, schema);
 
   SCHWA_MAIN(cfg, [&] {
@@ -77,12 +81,12 @@ main(int argc, char **argv) {
 
     // Create the feature extractor.
     if (feature_hashing.was_mentioned()) {
-      schwa::learn::HasherTransform<> transformer(feature_hashing());
-      schwa::tagger::train_pos(in, schema, model, transformer, retain_docs(), extracted_path, extract_only());
+      ln::HasherTransform<> transformer(feature_hashing());
+      tg::train_pos(in, schema, model, transformer, trainer_params, retain_docs(), extracted_path, extract_only());
     }
     else {
-      schwa::learn::NoTransform transformer;
-      schwa::tagger::train_pos(in, schema, model, transformer, retain_docs(), extracted_path, extract_only());
+      ln::NoTransform transformer;
+      tg::train_pos(in, schema, model, transformer, trainer_params, retain_docs(), extracted_path, extract_only());
     }
   })
   return 0;
