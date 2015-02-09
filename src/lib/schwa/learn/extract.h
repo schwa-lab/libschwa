@@ -20,18 +20,29 @@ namespace schwa {
     template <typename T>
     class SentinelOffsets {
     public:
-      using callback_type = std::function<std::string(T *)>;
+      using callback_type = std::function<std::string(const T &)>;
 
     private:
-      T *const _start;
-      T *const _stop;
+      T *_start;
+      T *_stop;
       callback_type _callback;
 
     public:
       template <typename F>
+      explicit SentinelOffsets(F callback) : _start(nullptr), _stop(nullptr), _callback(callback) { }
+
+      template <typename F>
       SentinelOffsets(const dr::Slice<T *> &slice, F callback) : _start(slice.start), _stop(slice.stop), _callback(callback) { }
+
       template <typename F>
       SentinelOffsets(T *start, T *stop, F callback) : _start(start), _stop(stop), _callback(callback) { }
+
+      inline void set_slice(const dr::Slice<T *> &slice) { set_slice(slice.start, slice.stop); }
+      inline void
+      set_slice(T *start, T *stop) {
+        _start = start;
+        _stop = stop;
+      }
 
       inline std::string
       operator ()(const size_t i, const ptrdiff_t delta) const {
@@ -39,7 +50,7 @@ namespace schwa {
         if (ptr < _start || ptr >= _stop)
           return SENTINEL;
         else
-          return _callback(ptr);
+          return _callback(*ptr);
       }
     };
 
@@ -51,20 +62,23 @@ namespace schwa {
     template <typename T> inline contextual_callback<T> create_bigram_callback(void);
     template <typename T> inline contextual_callback<T> create_trigram_callback(void);
 
+
     template <typename T, typename R, class TRANSFORM=NoTransform>
     void
     window(const std::string &name, size_t i, ptrdiff_t dl, ptrdiff_t dr, const SentinelOffsets<T> &offsets, Features<TRANSFORM> &features, contextual_callback<T, R> callback);
 
+
     std::string word_form(const std::string &utf8);
     std::string word_form(const UnicodeString &s);
 
-    template <class TRANSFORM>
-    void
-    add_affix_features(Features<TRANSFORM> &features, size_t nprefix, size_t nsuffix, const std::string &utf8);
 
-    template <class TRANSFORM>
+    template <typename TRANSFORM, typename VALUE>
     void
-    add_affix_features(Features<TRANSFORM> &features, size_t nprefix, size_t nsuffix, const UnicodeString &s);
+    add_affix_features(Features<TRANSFORM, VALUE> &features, size_t nprefix, size_t nsuffix, const std::string &utf8);
+
+    template <typename TRANSFORM, typename VALUE>
+    void
+    add_affix_features(Features<TRANSFORM, VALUE> &features, size_t nprefix, size_t nsuffix, const UnicodeString &s);
   }
 }
 

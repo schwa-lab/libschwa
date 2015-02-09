@@ -63,9 +63,9 @@ namespace schwa {
     }
 
 
-    template <class TRANSFORM, typename T>
+    template <class TRANSFORM, typename VALUE, typename T>
     inline void
-    _add_affix_features(Features<TRANSFORM> &features, const size_t nprefix, const size_t nsuffix, const T &string) {
+    _add_affix_features(Features<TRANSFORM, VALUE> &features, const size_t nprefix, const size_t nsuffix, const T &string) {
       std::stringstream key;
       UnicodeString affix;
       affix.reserve(std::max(nprefix, nsuffix));
@@ -96,15 +96,15 @@ namespace schwa {
       }
     }
 
-    template <class TRANSFORM>
+    template <class TRANSFORM, typename VALUE>
     inline void
-    add_affix_features(Features<TRANSFORM> &features, const size_t nprefix, const size_t nsuffix, const std::string &s) {
+    add_affix_features(Features<TRANSFORM, VALUE> &features, const size_t nprefix, const size_t nsuffix, const std::string &s) {
       return _add_affix_features(features, nprefix, nsuffix, UTF8Decoder(s));
     }
 
-    template <class TRANSFORM>
+    template <class TRANSFORM, typename VALUE>
     inline void
-    add_affix_features(Features<TRANSFORM> &features, const size_t nprefix, const size_t nsuffix, const UnicodeString &s) {
+    add_affix_features(Features<TRANSFORM, VALUE> &features, const size_t nprefix, const size_t nsuffix, const UnicodeString &s) {
       return _add_affix_features(features, nprefix, nsuffix, s);
     }
 

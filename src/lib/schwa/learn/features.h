@@ -47,6 +47,9 @@ namespace schwa {
       }
 
       inline void clear(void) { _values.clear(); }
+
+      inline bool empty(void) const { return _values.empty(); }
+      inline size_t size(void) const { return _values.size(); }
       void dump_crfsuite(std::ostream &out) const;
     };
 

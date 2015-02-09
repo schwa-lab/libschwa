@@ -59,9 +59,9 @@ TEST(sentinel_offsets) {
   for (unsigned int i = 0; i != xs.size(); ++i)
     xs[i].value = i;
 
-  const SentinelOffsets<X> o(&xs.front(), &xs.back() + 1, [](const X *const x) {
+  const SentinelOffsets<X> o(&xs.front(), &xs.back() + 1, [](const X &x) {
       std::stringstream ss;
-      ss << x->value;
+      ss << x.value;
       return ss.str();
   });
   CHECK_EQUAL("0", o(0, 0));
@@ -83,9 +83,9 @@ TEST(window) {
   for (unsigned int i = 0; i != xs.size(); ++i)
     xs[i].value = i;
 
-  const SentinelOffsets<X> o(&xs.front(), &xs.back() + 1, [](const X *const x) {
+  const SentinelOffsets<X> o(&xs.front(), &xs.back() + 1, [](const X &x) {
       std::stringstream ss;
-      ss << x->value;
+      ss << x.value;
       return ss.str();
   });
   const contextual_callback<X> unigram = create_unigram_callback<X>();
