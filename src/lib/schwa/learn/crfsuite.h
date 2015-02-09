@@ -3,10 +3,10 @@
 #define SCHWA_LEARN_CRFSUITE_H_
 
 #include <string>
-#include <vector>
 
 #include <schwa/_base.h>
 #include <schwa/canonical-schema.h>
+#include <schwa/learn/io.h>
 #include <schwa/third-party/crfsuite/crfsuite.h>
 
 
@@ -48,7 +48,7 @@ namespace schwa {
       void set_param(const std::string &key, const std::string &val);
 
       template <typename TRANSFORM>
-      void extract(const std::vector<canonical_schema::Doc *> &docs, const TRANSFORM &transformer=TRANSFORM());
+      void extract(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer=TRANSFORM());
 
       void train(const std::string &model_path);
 

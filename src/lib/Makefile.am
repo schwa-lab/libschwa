@@ -130,6 +130,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/feature-transformers.h \
 		schwa/learn/features.h \
 		schwa/learn/features_impl.h \
+		schwa/learn/io.h \
+		schwa/learn/io_impl.h \
 		schwa/learn/lexicon.h \
 		schwa/macros.h \
 		schwa/memory.h \

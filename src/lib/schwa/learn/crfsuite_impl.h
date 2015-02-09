@@ -225,13 +225,18 @@ namespace schwa {
 
     template <typename EXTRACTOR> template <typename TRANSFORM>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::extract(const std::vector<canonical_schema::Doc *> &docs, const TRANSFORM &transformer) {
+    CRFSuiteTrainer<EXTRACTOR>::extract(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer) {
       LOG(INFO) << "CRFSuiteTrainer::exact begin" << std::endl;
       _FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
 
+      canonical_schema::Doc *doc;
+      size_t ndocs_read;
+
       // Run phase 1.
       _extractor.phase1_begin();
-      for (canonical_schema::Doc *doc : docs) {
+      ndocs_read = 0;
+      while ((doc = doc_reader.next()) != nullptr) {
+        ++ndocs_read;
         _extractor.phase1_bod(*doc);
         for (canonical_schema::Sentence &sentence : doc->sentences) {
           _extractor.phase1_bos(sentence);
@@ -244,13 +249,19 @@ namespace schwa {
         _extractor.phase1_eod(*doc);
       }
       _extractor.phase1_end();
+      LOG(INFO) << "ndocs_read=" << ndocs_read << std::endl;
+
+      // Reset the document reader.
+      doc_reader.reset();
 
       // Create a Features instance.
       Features<TRANSFORM, ::schwa::third_party::crfsuite::floatval_t> features(transformer);
 
       // Run phase 2.
       _extractor.phase2_begin();
-      for (canonical_schema::Doc *doc : docs) {
+      ndocs_read = 0;
+      while ((doc = doc_reader.next()) != nullptr) {
+        ++ndocs_read;
         _extractor.phase2_bod(*doc);
         for (canonical_schema::Sentence &sentence : doc->sentences) {
           _extractor.phase2_bos(sentence);
@@ -272,6 +283,7 @@ namespace schwa {
         _extractor.phase2_eod(*doc);
       }
       _extractor.phase2_end();
+      LOG(INFO) << "ndocs_read=" << ndocs_read << std::endl;
       LOG(INFO) << "CRFSuiteTrainer::exact end" << std::endl;
     }
 

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <schwa/canonical-schema.h>
 #include <schwa/config.h>
@@ -21,39 +20,20 @@ namespace tagger {
 
 template <typename TRANSFORMER>
 static void
-train_pos(io::InputStream &in, cs::Doc::Schema &schema, io::OutputStream &model, TRANSFORMER &transformer) {
-  // Construct a docrep readerover the provided stream.
-  dr::Reader reader(in, schema);
-
-  // Read the documents off the input stream into memory.
-  std::vector<cs::Doc *> docs;
-  try {
-    while (true) {
-      cs::Doc *doc = new cs::Doc();
-      if (!(reader >> *doc)) {
-        delete doc;
-        break;
-      }
-      docs.push_back(doc);
-    }
-  }
-  catch (dr::ReaderException &) {
-    LOG(WARNING) << "Failed to read document from '" << in.path() << "'" << std::endl;
-  }
-
+train_pos(io::InputStream &in, cs::Doc::Schema &schema, io::OutputStream &model, TRANSFORMER &transformer, const bool in_memory_docs) {
   // Create the feature extractor.
   POSExtractor extractor;
 
   // Create the trainer.
-  learn::CRFSuiteTrainer<decltype(extractor)> trainer(extractor);
+  learn::CRFSuiteTrainer<POSExtractor> trainer(extractor);
 
-  // Extract the features.
-  trainer.extract<TRANSFORMER>(docs, transformer);
+  {
+    // Construct a resettable docrep reader over the provided stream.
+    learn::ResettableDocrepReader<cs::Doc> doc_reader(in, schema, in_memory_docs);
 
-  // Delete the docs.
-  for (cs::Doc *doc : docs)
-    delete doc;
-  docs.clear();
+    // Extract the features.
+    trainer.extract<TRANSFORMER>(doc_reader, transformer);
+  }
 
   // Train the model.
   trainer.train(model.path());
@@ -73,6 +53,7 @@ main(int argc, char **argv) {
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
   cf::Op<std::string> model_path(cfg, "model", 'm', "The model path", io::STDOUT_STRING);
   cf::Op<size_t> feature_hashing(cfg, "feature-hashing", 'H', "Number of bits to use for feature hashing.", cf::Flags::OPTIONAL);
+  cf::Op<bool> in_memory_docs(cfg, "in-memory", "Read the documents into memory instead of reading multiple times from disk (useful if input is a pipe).", false);
   dr::DocrepGroup dr(cfg, schema);
 
   SCHWA_MAIN(cfg, [&] {
@@ -86,11 +67,11 @@ main(int argc, char **argv) {
     // Create the feature extractor.
     if (feature_hashing.was_mentioned()) {
       schwa::learn::HasherTransform<> transformer(feature_hashing());
-      schwa::tagger::train_pos(in, schema, model, transformer);
+      schwa::tagger::train_pos(in, schema, model, transformer, in_memory_docs());
     }
     else {
       schwa::learn::NoTransform transformer;
-      schwa::tagger::train_pos(in, schema, model, transformer);
+      schwa::tagger::train_pos(in, schema, model, transformer, in_memory_docs());
     }
   })
   return 0;

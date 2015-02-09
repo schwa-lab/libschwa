@@ -6,6 +6,7 @@
 #include <schwa/learn/extract.h>
 #include <schwa/learn/feature-transformers.h>
 #include <schwa/learn/features.h>
+#include <schwa/learn/io.h>
 #include <schwa/learn/lexicon.h>
 
 #endif  // SCHWA_LEARN_H_
