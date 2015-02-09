@@ -37,6 +37,7 @@
 
 #include <math.h>
 #include <memory.h>
+#include <string.h>
 
 #ifdef HAVE_EMMINTRIN_H
 #include <emmintrin.h>

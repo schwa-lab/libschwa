@@ -30,6 +30,7 @@
 #include <malloc.h>
 #endif
 #include <memory.h>
+#include <string.h>
 
 #if     1400 <= _MSC_VER
 #include <intrin.h>
