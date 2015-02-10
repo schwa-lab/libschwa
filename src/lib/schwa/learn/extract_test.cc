@@ -27,28 +27,13 @@ public:
 
 template <typename TRANSFORM>
 static std::vector<std::string>
-_get_crfsuite_vector(const Features<TRANSFORM> &f) {
-  std::stringstream ss;
-  f.dump_crfsuite(ss);
-  ss.seekg(0);
-
+_get_attributes(const Features<TRANSFORM> &f) {
   std::vector<std::string> units;
-  std::string tmp;
-  for (const char c : ss.str()) {
-    if (c == '\t') {
-      if (!tmp.empty()) {
-        units.push_back(tmp);
-        tmp.clear();
-      }
-    }
-    else
-      tmp.push_back(c);
+  for (const auto &pair : f) {
+    std::ostringstream ss;
+    ss << pair.first << ":" << pair.second;
+    units.push_back(ss.str());
   }
-  if (!tmp.empty()) {
-    units.push_back(tmp);
-    tmp.clear();
-  }
-
   std::sort(units.begin(), units.end());
   return units;
 }
@@ -78,7 +63,7 @@ TEST(sentinel_offsets) {
 }
 
 
-TEST(window) {
+TEST(windower) {
   std::vector<X> xs(20);
   for (unsigned int i = 0; i != xs.size(); ++i)
     xs[i].value = i;
@@ -91,9 +76,10 @@ TEST(window) {
   const contextual_callback<X> unigram = create_unigram_callback<X>();
 
   Features<> f;
-  window("n", 0, -2, 3, o, f, unigram);
+  Windower windower("n", -2, 3);
+  windower(o, unigram, f, 0);
 
-  const std::vector<std::string> units = _get_crfsuite_vector(f);
+  const std::vector<std::string> units = _get_attributes(f);
   CHECK_EQUAL(6, units.size());
   CHECK_EQUAL("n[i+1]=1:1", units[0]);
   CHECK_EQUAL("n[i+2]=2:1", units[1]);
@@ -127,7 +113,7 @@ TEST(add_affix_features) {
 
   f.clear();
   add_affix_features(f, 3, 2, u8"Argentina");
-  units = _get_crfsuite_vector(f);
+  units = _get_attributes(f);
   CHECK_EQUAL(5, units.size());
   CHECK_EQUAL("prefix=A:1", units[0]);
   CHECK_EQUAL("prefix=Ar:1", units[1]);
@@ -137,14 +123,14 @@ TEST(add_affix_features) {
 
   f.clear();
   add_affix_features(f, 3, 2, u8"a");
-  units = _get_crfsuite_vector(f);
+  units = _get_attributes(f);
   CHECK_EQUAL(2, units.size());
   CHECK_EQUAL("prefix=a:1", units[0]);
   CHECK_EQUAL("suffix=a:1", units[1]);
 
   f.clear();
   add_affix_features(f, 4, 4, u8"κόσμε");
-  units = _get_crfsuite_vector(f);
+  units = _get_attributes(f);
   CHECK_EQUAL(8, units.size());
   CHECK_EQUAL("prefix=κ:1", units[0]);
   CHECK_EQUAL("prefix=κό:1", units[1]);

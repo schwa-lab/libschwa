@@ -71,7 +71,7 @@ namespace schwa {
     private:
       const int8_t _delta_left;
       const int8_t _delta_right;
-      std::string _prefix;
+      std::string _name;
 
     public:
       Windower(const std::string &name, int8_t delta_left, int8_t delta_right);

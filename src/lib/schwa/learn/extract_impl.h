@@ -52,8 +52,13 @@ namespace schwa {
     Windower::operator ()(const SentinelOffsets<T> &offsets, contextual_callback<T, R> callback, Features<TRANSFORM, VALUE> &features, const size_t i) const {
       std::stringstream attr;
       for (int8_t delta = _delta_left; delta <= _delta_right; ++delta) {
-        attr.str(_prefix);
-        attr << callback(offsets, i, delta);
+        attr.str("");
+        attr << _name << "[i";
+        if (delta > 0)
+          attr << "+" << static_cast<int>(delta);
+        else if (delta < 0)
+          attr << static_cast<int>(delta);
+        attr << "]=" << callback(offsets, i, delta);
         features(attr.str());
       }
     }
