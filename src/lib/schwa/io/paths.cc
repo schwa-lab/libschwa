@@ -2,6 +2,7 @@
 #include <schwa/io/paths.h>
 
 #include <cerrno>
+#include <cstring>  // memcpy, strerror
 #include <memory>
 #include <sstream>
 
@@ -15,7 +16,8 @@
   #include <libproc.h>  // PROC_PIDPATHINFO_MAXSIZE, proc_pidpath
 #endif
 #include <stdlib.h>  // getenv
-#include <string.h>  // memcpy, strerror, strlen, strsep
+#include <string.h>  // strsep
+#include <sys/stat.h>  // mkdir, stat
 #include <unistd.h>  // getpid, readlink
 
 #include <schwa/exception.h>
@@ -32,7 +34,7 @@ abspath_to_argv0(void) {
   if (::proc_pidpath(pid, pathbuf, sizeof(pathbuf)) <= 0) {
     const int errnum = errno;
     std::ostringstream ss;
-    ss << "Call to proc_pidpath failed: " << ::strerror(errnum);
+    ss << "`proc_pidpath` failed: " << std::strerror(errnum);
     throw Exception(ss.str());
   }
   return pathbuf;
@@ -47,7 +49,7 @@ abspath_to_argv0(void) {
   if (r < 0) {
     const int errnum = errno;
     std::ostringstream ss;
-    ss << "Call to readlink failed: " << ::strerror(errnum);
+    ss << "`readlink(\"/proc/self/exe\")` failed: " << std::strerror(errnum);
     throw Exception(ss.str());
   }
   else if (static_cast<size_t>(r) > sizeof(buf)) {
@@ -72,7 +74,7 @@ get_env_paths(std::vector<std::string> &paths, const char *const env_var) {
 
   const size_t orig_env_path_len = ::strlen(orig_env_path);
   std::unique_ptr<char[]> env_path(new char[orig_env_path_len + 1]);
-  ::memcpy(env_path.get(), orig_env_path, orig_env_path_len + 1);
+  std::memcpy(env_path.get(), orig_env_path, orig_env_path_len + 1);
   for (char *ep = env_path.get(), *path = nullptr; (path = ::strsep(&ep, ":")) != nullptr; ) {
     if (*path != '\0')
       paths.push_back(path);
@@ -80,11 +82,82 @@ get_env_paths(std::vector<std::string> &paths, const char *const env_var) {
 }
 
 
+void
+mkdir(const std::string &path) {
+  const int ret = ::mkdir(path.c_str(), 0777);
+  const int errnum = errno;
+  if (ret != 0) {
+    std::ostringstream ss;
+    ss << "`mkdir` failed on '" << path << "': " << std::strerror(errnum);
+    throw IOException(ss.str());
+  }
+}
+
+
+std::string
+path_basename(const std::string &path) {
+  std::unique_ptr<char[]> buf(new char[path.size() + 1]);
+  std::memcpy(buf.get(), path.c_str(), path.size() + 1);
+  return ::basename(buf.get());
+}
+
+
 std::string
 path_dirname(const std::string &path) {
   std::unique_ptr<char[]> buf(new char[path.size() + 1]);
-  ::memcpy(buf.get(), path.c_str(), path.size() + 1);
+  std::memcpy(buf.get(), path.c_str(), path.size() + 1);
   return ::dirname(buf.get());
+}
+
+
+bool
+path_exists(const std::string &path) {
+  struct stat buf;
+  const int ret = ::stat(path.c_str(), &buf);
+  const int errnum = errno;
+  if (ret == 0)
+    return true;
+  else if (errno == ENOENT)
+    return false;
+  else {
+    std::ostringstream ss;
+    ss << "`stat` failed on '" << path << "': " << std::strerror(errnum);
+    throw IOException(ss.str());
+  }
+}
+
+
+bool
+path_is_dir(const std::string &path) {
+  struct stat buf;
+  const int ret = ::stat(path.c_str(), &buf);
+  const int errnum = errno;
+  if (ret == 0)
+    return (buf.st_mode & S_IFDIR) != 0;
+  else if (errno == ENOENT)
+    return false;
+  else {
+    std::ostringstream ss;
+    ss << "`stat` failed on '" << path << "': " << std::strerror(errnum);
+    throw IOException(ss.str());
+  }
+}
+
+
+bool
+path_is_file(const std::string &path) {
+  struct stat buf;
+  const int ret = ::stat(path.c_str(), &buf);
+  const int errnum = errno;
+  if (ret == 0)
+    return (buf.st_mode & S_IFREG) != 0;
+  else if (errno == ENOENT)
+    return false;
+  else {
+    std::ostringstream ss;
+    ss << "`stat` failed on '" << path << "': " << std::strerror(errnum);
+    throw IOException(ss.str());
+  }
 }
 
 

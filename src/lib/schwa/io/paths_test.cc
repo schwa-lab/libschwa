@@ -45,6 +45,21 @@ TEST(get_env_paths) {
 }
 
 
+TEST(path_basename) {
+  std::string path;
+  path = path_basename(".");
+  CHECK_EQUAL(".", path);
+  path = path_basename("../foo");
+  CHECK_EQUAL("foo", path);
+  path = path_basename("/this/is/a/path");
+  CHECK_EQUAL("path", path);
+  path = path_basename("foo");
+  CHECK_EQUAL("foo", path);
+  path = path_basename("./foo");
+  CHECK_EQUAL("foo", path);
+}
+
+
 TEST(path_dirname) {
   std::string path;
   path = path_dirname(".");
@@ -57,6 +72,40 @@ TEST(path_dirname) {
   CHECK_EQUAL(".", path);
   path = path_dirname("./foo");
   CHECK_EQUAL(".", path);
+}
+
+
+TEST(path_exists) {
+  CHECK_EQUAL(true, path_exists("/"));
+  CHECK_EQUAL(true, path_exists("."));
+  CHECK_EQUAL(true, path_exists(".."));
+  CHECK_EQUAL(false, path_exists("./meowmeowmeow"));
+  CHECK_EQUAL(true, path_exists("/tmp"));
+  CHECK_EQUAL(true, path_exists("/dev/null"));
+  CHECK_EQUAL(true, path_exists("/etc/passwd"));
+  CHECK_EQUAL(false, path_exists("\\lolwhatisthis/even~+"));
+}
+
+
+TEST(path_is_dir) {
+  CHECK_EQUAL(true, path_is_dir("/"));
+  CHECK_EQUAL(true, path_is_dir("."));
+  CHECK_EQUAL(true, path_is_dir(".."));
+  CHECK_EQUAL(false, path_is_dir("./meowmeowmeow"));
+  CHECK_EQUAL(false, path_is_dir("/dev/null"));
+  CHECK_EQUAL(false, path_is_dir("/etc/passwd"));
+  CHECK_EQUAL(false, path_is_dir("\\lolwhatisthis/even~+"));
+}
+
+
+TEST(path_is_file) {
+  CHECK_EQUAL(false, path_is_file("/"));
+  CHECK_EQUAL(false, path_is_file("."));
+  CHECK_EQUAL(false, path_is_file(".."));
+  CHECK_EQUAL(false, path_is_file("/tmp"));
+  CHECK_EQUAL(false, path_is_file("/dev/null"));
+  CHECK_EQUAL(true, path_is_file("/etc/passwd"));
+  CHECK_EQUAL(false, path_is_file("\\lolwhatisthis/even~+"));
 }
 
 

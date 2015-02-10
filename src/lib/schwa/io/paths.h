@@ -26,9 +26,40 @@ namespace schwa {
     void get_env_paths(std::vector<std::string> &paths, const char *env_var="PATH");
 
     /**
+     * Creates a directory at \p path. An IOException with an appropriate error message is thrown
+     * if this action is not able to be completed.
+     **/
+    void mkdir(const std::string &path);
+
+    /**
+     * Returns the leaf target of the provided \p path.
+     **/
+    std::string path_basename(const std::string &path);
+
+    /**
      * Returns the directory of the provided \p path.
      **/
     std::string path_dirname(const std::string &path);
+
+    /**
+     * Returns whether or not the path exists. An IOException with an appropriate error message is
+     * thrown when this cannot be determined.
+     **/
+    bool path_exists(const std::string &path);
+
+    /**
+     * Returns whether or not the path exists and is a directory. An IOException with an
+     * appropriate error message is thrown when this cannot be determined.
+     **/
+    bool path_is_dir(const std::string &path);
+
+    /**
+     * Returns whether or not the path exists and is a file. This function will follow symlinks
+     * to their target. That is, if the target of the symlink is a regular file, this function will
+     * return true. An IOException with an appropriate error message is thrown when this cannot be
+     * determined.
+     **/
+    bool path_is_file(const std::string &path);
 
     /**
      * Returns paths \p a and \p b joined together.
