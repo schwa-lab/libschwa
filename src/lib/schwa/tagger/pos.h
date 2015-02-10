@@ -18,11 +18,11 @@ namespace schwa {
 
     private:
       learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
-      learn::Windower2<canonical_schema::Token> _w_im2_i;
-      learn::Windower2<canonical_schema::Token> _w_im1_i;
-      learn::Windower2<canonical_schema::Token> _w_i_ip1;
-      learn::Windower2<canonical_schema::Token> _w_i_ip2;
-      learn::Windower3<canonical_schema::Token> _w_im1_i_ip1;
+      //learn::Windower2<canonical_schema::Token> _w_im2_i;
+      //learn::Windower2<canonical_schema::Token> _w_im1_i;
+      //learn::Windower2<canonical_schema::Token> _w_i_ip1;
+      //learn::Windower2<canonical_schema::Token> _w_i_ip2;
+      //learn::Windower3<canonical_schema::Token> _w_im1_i_ip1;
       learn::Lexicon _lex_token;
       unsigned int _lex_cutoff;
 

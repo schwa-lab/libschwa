@@ -9,11 +9,11 @@ namespace tagger {
 
 POSExtractor::POSExtractor(unsigned int lex_cutoff) :
     _offsets_token_norm_raw(&_get_token_norm_raw),
-    _w_im2_i("w", -2, 0, _offsets_token_norm_raw),
-    _w_im1_i("w", -1, 0, _offsets_token_norm_raw),
-    _w_i_ip1("w",  0, 1, _offsets_token_norm_raw),
-    _w_i_ip2("w",  0, 2, _offsets_token_norm_raw),
-    _w_im1_i_ip1("w", -1, 0, 1, _offsets_token_norm_raw),
+    //_w_im2_i("w", -2, 0, _offsets_token_norm_raw),
+    //_w_im1_i("w", -1, 0, _offsets_token_norm_raw),
+    //_w_i_ip1("w",  0, 1, _offsets_token_norm_raw),
+    //_w_i_ip2("w",  0, 2, _offsets_token_norm_raw),
+    //_w_im1_i_ip1("w", -1, 0, 1, _offsets_token_norm_raw),
     _lex_token("tokens"),
     _lex_cutoff(lex_cutoff)
   { }
