@@ -2,6 +2,7 @@
 #ifndef SCHWA_LEARN_LEXICON_H_
 #define SCHWA_LEARN_LEXICON_H_
 
+#include <iosfwd>
 #include <string>
 #include <unordered_map>
 
@@ -44,6 +45,9 @@ namespace schwa {
       inline bool empty(void) const { return _counts.empty(); }
       inline const std::string &name(void) const { return _name; }
       inline size_t size(void) const { return _counts.size(); }
+
+      void deserialise(std::istream &in);
+      void serialise(std::ostream &out) const;
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(Lexicon);
