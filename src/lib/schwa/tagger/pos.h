@@ -45,6 +45,9 @@ namespace schwa {
       void phase2_eos(canonical_schema::Sentence &) { }
       void phase2_update_history(canonical_schema::Token &, size_t, const std::string &) { }
 
+      std::string get_label(canonical_schema::Token &token) { return token.pos; }
+      void set_label(canonical_schema::Token &token, const std::string &label) { token.pos = label; }
+
       template <typename TRANSFORM, typename VALUE>
       void phase2_extract(canonical_schema::Token &token, size_t i, learn::Features<TRANSFORM, VALUE> &features);
 

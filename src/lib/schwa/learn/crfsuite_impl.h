@@ -272,7 +272,7 @@ namespace schwa {
             _extractor.phase2_extract(token, i++, features);
 
             // Add the features as an item in the current item sequence.
-            _add_item(to_string_helper, features, token.pos);
+            _add_item(to_string_helper, features, _extractor.get_label(token));
           }
 
           _end_item_sequence();
