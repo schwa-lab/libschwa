@@ -10,6 +10,7 @@
 #include <schwa/canonical-schema.h>
 #include <schwa/io/streams.h>
 #include <schwa/learn/io.h>
+#include <schwa/learn/model.h>
 #include <schwa/third-party/crfsuite/crfsuite.h>
 
 
@@ -43,6 +44,7 @@ namespace schwa {
       static int _crfsuite_logging_callback(void *self, const char *format, va_list args);
 
     private:
+      OutputModel &_model;
       EXTRACTOR &_extractor;
       third_party::crfsuite::crfsuite_data_t _data;
       third_party::crfsuite::crfsuite_instance_t _instance;
@@ -58,7 +60,7 @@ namespace schwa {
       void _add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label);
 
     public:
-      CRFSuiteTrainer(EXTRACTOR &extractor, const CRFSuiteTrainerParams &params);
+      CRFSuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFSuiteTrainerParams &params);
       ~CRFSuiteTrainer(void);
 
       std::string get_param(const std::string &key) const;
@@ -68,16 +70,19 @@ namespace schwa {
       void extract(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer=TRANSFORM());
 
       void dump_crfsuite_data(io::OutputStream &out) const;
-      void train(const std::string &model_path);
+      void train(void);
+
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFSuiteTrainer);
     };
 
 
+    // ========================================================================
+    // crfsuite flat file format helper functions
+    // ========================================================================
     void dump_crfsuite_data(std::ostream &out, const third_party::crfsuite::crfsuite_data_t &data);
     void dump_crfsuite_value(std::ostream &out, const char *value);
-
 
   }
 }

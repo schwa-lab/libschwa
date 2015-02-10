@@ -23,12 +23,12 @@ namespace tagger {
 
 template <typename TRANSFORMER>
 static void
-train_pos(io::InputStream &in, cs::Doc::Schema &schema, io::OutputStream &model, TRANSFORMER &transformer, const ln::CRFSuiteTrainerParams &params, const bool retain_docs, const cf::Op<std::string> &extracted_path, const bool extract_only) {
+train_pos(io::InputStream &in, cs::Doc::Schema &schema, tg::POSOutputModel &model, TRANSFORMER &transformer, const ln::CRFSuiteTrainerParams &params, const bool retain_docs, const cf::Op<std::string> &extracted_path, const bool extract_only) {
   // Create the feature extractor.
-  POSExtractor extractor;
+  POSExtractor extractor(model);
 
   // Create the trainer.
-  ln::CRFSuiteTrainer<POSExtractor> trainer(extractor, params);
+  ln::CRFSuiteTrainer<POSExtractor> trainer(extractor, model, params);
 
   {
     // Construct a resettable docrep reader over the provided stream.
@@ -48,7 +48,7 @@ train_pos(io::InputStream &in, cs::Doc::Schema &schema, io::OutputStream &model,
     return;
 
   // Train the model.
-  trainer.train(model.path());
+  trainer.train();
 }
 
 }  // namespace tagger
@@ -63,11 +63,12 @@ main(int argc, char **argv) {
   // Construct an option parser.
   cf::Main cfg("schwa-train-pos", "Schwa Lab POS tag trainer. Linear CRF backed by crfsuite.");
   cf::Op<std::string> input_path(cfg, "input", 'i', "The input path", io::STDIN_STRING);
-  cf::Op<std::string> model_path(cfg, "model", 'm', "The model path", io::STDOUT_STRING);
+  cf::Op<std::string> model_path(cfg, "model", 'm', "The model path");
   cf::Op<size_t> feature_hashing(cfg, "feature-hashing", 'H', "Number of bits to use for feature hashing", cf::Flags::OPTIONAL);
   cf::Op<std::string> extracted_path(cfg, "dump-extracted", "The path to dump the extracted features in crfsuite format", cf::Flags::OPTIONAL);
   cf::Op<bool> extract_only(cfg, "extract-only", "Whether to perform feature extraction only and no training", false);
   cf::Op<bool> retain_docs(cfg, "retain-docs", "Read the documents into memory instead of reading multiple times from disk (useful if input is a pipe)", false);
+  tg::POSModelParams model_params(cfg, "model-params", "The model path path");
   ln::CRFSuiteTrainerParams trainer_params(cfg);
   dr::DocrepGroup dr(cfg, schema);
 
@@ -77,7 +78,7 @@ main(int argc, char **argv) {
 
     // Open the input data and model paths.
     io::InputStream in(input_path());
-    io::OutputStream model(model_path());
+    tg::POSOutputModel model(model_path(), model_params, cfg);
 
     // Create the feature extractor.
     if (feature_hashing.was_mentioned()) {

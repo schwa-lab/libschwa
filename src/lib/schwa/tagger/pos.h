@@ -5,6 +5,7 @@
 #include <string>
 
 #include <schwa/_base.h>
+#include <schwa/config.h>
 #include <schwa/canonical-schema.h>
 #include <schwa/learn.h>
 
@@ -12,22 +13,67 @@
 namespace schwa {
   namespace tagger {
 
-    class POSExtractor {
+    class POSModelParams : public learn::ModelParams {
     public:
-      static constexpr const unsigned int DEFAULT_LEX_CUTOFF = 5;
+      static const unsigned int DEFAULT_RARE_TOKEN_CUTOFF;
+
+      config::Op<std::string> lexicon_path;
+      config::Op<unsigned int> rare_token_cutoff;
+
+      POSModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
+      virtual ~POSModelParams(void);
 
     private:
-      learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
-      //learn::Windower2<canonical_schema::Token> _w_im2_i;
-      //learn::Windower2<canonical_schema::Token> _w_im1_i;
-      //learn::Windower2<canonical_schema::Token> _w_i_ip1;
-      //learn::Windower2<canonical_schema::Token> _w_i_ip2;
-      //learn::Windower3<canonical_schema::Token> _w_im1_i_ip1;
-      learn::Lexicon _lex_token;
-      unsigned int _lex_cutoff;
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(POSModelParams);
+    };
+
+
+    class POSInputModel : public learn::InputModel {
+    protected:
+      std::string _lexicon_path;
+      unsigned int _rare_token_cutoff;
+      learn::Lexicon _lexicon;
 
     public:
-      explicit POSExtractor(unsigned int lex_cutoff=DEFAULT_LEX_CUTOFF);
+      POSInputModel(const std::string &path, POSModelParams &params);
+      virtual ~POSInputModel(void);
+
+      learn::Lexicon &lexicon(void) { return _lexicon; }
+      unsigned int rare_token_cutoff(void) const { return _rare_token_cutoff; }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(POSInputModel);
+    };
+
+
+    class POSOutputModel : public learn::OutputModel {
+    protected:
+      const std::string _lexicon_path;
+      const unsigned int _rare_token_cutoff;
+      learn::Lexicon _lexicon;
+
+    public:
+      POSOutputModel(const std::string &path, const POSModelParams &params, const config::Main &main_config);
+      virtual ~POSOutputModel(void);
+
+      learn::Lexicon &lexicon(void) { return _lexicon; }
+      unsigned int rare_token_cutoff(void) const { return _rare_token_cutoff; }
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(POSOutputModel);
+    };
+
+
+    class POSExtractor {
+    private:
+      const bool _is_train;
+      const unsigned int _rare_token_cutoff;
+      learn::Lexicon &_lexicon;
+      learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
+
+    public:
+      explicit POSExtractor(POSInputModel &model);
+      explicit POSExtractor(POSOutputModel &model);
 
       void phase1_begin(void);
       void phase1_bod(canonical_schema::Doc &) { }

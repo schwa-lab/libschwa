@@ -8,5 +8,6 @@
 #include <schwa/learn/features.h>
 #include <schwa/learn/io.h>
 #include <schwa/learn/lexicon.h>
+#include <schwa/learn/model.h>
 
 #endif  // SCHWA_LEARN_H_

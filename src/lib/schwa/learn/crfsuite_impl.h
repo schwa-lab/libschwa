@@ -44,7 +44,11 @@ namespace schwa {
     // CRFSuiteTrainer
     // ========================================================================
     template <typename EXTRACTOR>
-    CRFSuiteTrainer<EXTRACTOR>::CRFSuiteTrainer(EXTRACTOR &extractor, const CRFSuiteTrainerParams &params) : _extractor(extractor), _trainer(nullptr) {
+    CRFSuiteTrainer<EXTRACTOR>::CRFSuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFSuiteTrainerParams &params) :
+        _model(model),
+        _extractor(extractor),
+        _trainer(nullptr)
+      {
       using namespace ::schwa::third_party::crfsuite;
       int ret;
 
@@ -213,12 +217,12 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::train(const std::string &model_path) {
+    CRFSuiteTrainer<EXTRACTOR>::train(void) {
       using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       LOG(INFO) << "CRFSuiteTrainer::train begin" << std::endl;
-      ret = _trainer->train(_trainer, &_data, model_path.c_str(), -1);
+      ret = _trainer->train(_trainer, &_data, _model.model_path().c_str(), -1);
       if (ret != 0)
         _crfsuite_error("crfsuite_trainer_t::train", ret);
       LOG(INFO) << "CRFSuiteTrainer::train end" << std::endl;

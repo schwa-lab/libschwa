@@ -2,20 +2,79 @@
 #include <schwa/tagger/pos.h>
 
 #include <schwa/io/logging.h>
+#include <schwa/io/paths.h>
 
 
 namespace schwa {
 namespace tagger {
 
-POSExtractor::POSExtractor(unsigned int lex_cutoff) :
-    _offsets_token_norm_raw(&_get_token_norm_raw),
-    //_w_im2_i("w", -2, 0, _offsets_token_norm_raw),
-    //_w_im1_i("w", -1, 0, _offsets_token_norm_raw),
-    //_w_i_ip1("w",  0, 1, _offsets_token_norm_raw),
-    //_w_i_ip2("w",  0, 2, _offsets_token_norm_raw),
-    //_w_im1_i_ip1("w", -1, 0, 1, _offsets_token_norm_raw),
-    _lex_token("tokens"),
-    _lex_cutoff(lex_cutoff)
+// ============================================================================
+// POSModelParams
+// ============================================================================
+const unsigned int POSModelParams::DEFAULT_RARE_TOKEN_CUTOFF = 5;
+
+POSModelParams::POSModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
+    learn::ModelParams(group, name, desc, flags),
+    lexicon_path(*this, "lexicon-path", "Relative path to the lexicon file within the model directory", "./lexicon"),
+    rare_token_cutoff(*this, "rare-word-cutoff", "Tokens which appear less than this number of times during training are considered as rare", DEFAULT_RARE_TOKEN_CUTOFF)
+  { }
+
+POSModelParams::~POSModelParams(void) { }
+
+
+// ============================================================================
+// POSInputModel
+// ============================================================================
+POSInputModel::POSInputModel(const std::string &path, POSModelParams &params) :
+    learn::InputModel(path, params),
+    _lexicon("tokens")
+  {
+  // Set our member variables only after the parent class has loaded the config file.
+  _lexicon_path = io::path_join(_path, params.lexicon_path());
+  _rare_token_cutoff = params.rare_token_cutoff();
+
+  // Load the lexicon.
+  {
+    io::InputStream in(io::path_join(_path, _lexicon_path));
+    _lexicon.deserialise(in);
+  }
+}
+
+POSInputModel::~POSInputModel(void) { }
+
+
+// ============================================================================
+// POSOutputModel
+// ============================================================================
+POSOutputModel::POSOutputModel(const std::string &path, const POSModelParams &params, const config::Main &main_config) :
+    learn::OutputModel(path, params, main_config),
+    _lexicon_path(io::path_join(_path, params.lexicon_path())),
+    _rare_token_cutoff(params.rare_token_cutoff()),
+    _lexicon("tokens")
+  { }
+
+POSOutputModel::~POSOutputModel(void) {
+  io::OutputStream out(_lexicon_path);
+  _lexicon.serialise(out);
+}
+
+
+// ============================================================================
+// POSExtractor
+// ============================================================================
+POSExtractor::POSExtractor(POSInputModel &model) :
+    _is_train(false),
+    _rare_token_cutoff(model.rare_token_cutoff()),
+    _lexicon(model.lexicon()),
+    _offsets_token_norm_raw(&_get_token_norm_raw)
+  { }
+
+
+POSExtractor::POSExtractor(POSOutputModel &model) :
+    _is_train(true),
+    _rare_token_cutoff(model.rare_token_cutoff()),
+    _lexicon(model.lexicon()),
+    _offsets_token_norm_raw(&_get_token_norm_raw)
   { }
 
 
@@ -26,16 +85,16 @@ POSExtractor::phase1_begin(void) {
 
 void
 POSExtractor::phase1_end(void) {
-  // Cull the rare tokens from the lexicon.
-  _lex_token.cull(_lex_cutoff);
   LOG(INFO) << "POSExtractor phase1_end" << std::endl;
 }
 
 
 void
 POSExtractor::phase1_extract(canonical_schema::Token &token, size_t) {
-  // Add the current token to the lexicon.
-  _lex_token.add(_get_token_norm_raw(token));
+  if (_is_train) {
+    // Add the current token to the lexicon.
+    _lexicon.add(_get_token_norm_raw(token));
+  }
 }
 
 

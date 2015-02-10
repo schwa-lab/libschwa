@@ -132,6 +132,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/io.h \
 		schwa/learn/io_impl.h \
 		schwa/learn/lexicon.h \
+		schwa/learn/model.h \
 		schwa/macros.h \
 		schwa/memory.h \
 		schwa/mpl/if.h \
@@ -200,6 +201,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/learn/crfsuite.cc \
 		schwa/learn/extract.cc \
 		schwa/learn/lexicon.cc \
+		schwa/learn/model.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/exception.cc \
 		schwa/port.cc \
