@@ -14,7 +14,7 @@ namespace schwa {
 
     class Lexicon {
     private:
-      const std::string _name;
+      std::string _name;
       std::unordered_map<std::string, unsigned int> _counts;
 
     public:
@@ -25,8 +25,22 @@ namespace schwa {
       inline void clear(void) { _counts.clear(); }
       void cull(unsigned int min_freq);
 
-      inline bool contains(const std::string &utf8) const { return _counts.find(utf8) != _counts.end(); }
-      inline bool contains(const UnicodeString &word) const { return _counts.find(word.to_utf8()) != _counts.end(); }
+      inline unsigned int
+      count(const std::string &utf8) const {
+        const auto &it = _counts.find(utf8);
+        return it == _counts.end() ? 0 : it->second;
+      }
+      inline unsigned int
+      count(const UnicodeString &word) const {
+        return count(word.to_utf8());
+      }
+
+      inline bool
+      contains(const std::string &utf8) const {
+        return _counts.find(utf8) != _counts.end();
+      }
+      inline bool contains(const UnicodeString &word) const { return contains(word.to_utf8()); }
+
       inline bool empty(void) const { return _counts.empty(); }
       inline const std::string &name(void) const { return _name; }
       inline size_t size(void) const { return _counts.size(); }
