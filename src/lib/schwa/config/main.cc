@@ -108,7 +108,7 @@ Main::help_short(std::ostream &out) const {
 
 void
 Main::serialise(std::ostream &out) const {
-  out << "# $";
+  out << "# $ ";
   serialise_cmdline_args(out);
   out << '\n';
   Group::serialise(out);
@@ -117,8 +117,11 @@ Main::serialise(std::ostream &out) const {
 
 void
 Main::serialise_cmdline_args(std::ostream &out) const {
-  for (auto &arg : _cmdline_args)
-    out << " " << utils::shlex_quote(arg);
+  for (size_t i = 0; i != _cmdline_args.size(); ++i) {
+    if (i != 0)
+      out << " ";
+    out << utils::shlex_quote(_cmdline_args[i]);
+  }
 }
 
 
