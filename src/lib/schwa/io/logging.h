@@ -33,7 +33,7 @@ namespace schwa {
       virtual LogLevel threshold(void) const = 0;
       virtual void threshold(const LogLevel threshold)  = 0;
 
-      virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) = 0;
+      virtual Logger &operator ()(LogLevel level, const char *path, unsigned int linenum) = 0;
     };
 
 
@@ -75,7 +75,7 @@ namespace schwa {
       inline LogLevel threshold(void) const override { return _streambuf.threshold(); }
       inline void threshold(const LogLevel threshold) override { _streambuf.threshold(threshold); }
 
-      virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;
+      virtual Logger &operator ()(LogLevel level, const char *path, unsigned int linenum) override;
     };
 
 
@@ -92,7 +92,7 @@ namespace schwa {
       explicit PrettyLogger(const char *path, LogLevel threshold=LogLevel::INFO);
       virtual ~PrettyLogger(void);
 
-      virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;
+      virtual Logger &operator ()(LogLevel level, const char *path, unsigned int linenum) override;
     };
 
 
@@ -124,7 +124,7 @@ namespace schwa {
       inline LogLevel threshold(void) const override { return _streambuf.threshold(); }
       inline void threshold(const LogLevel threshold) override { _streambuf.threshold(threshold); }
 
-      virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;
+      virtual Logger &operator ()(LogLevel level, const char *path, unsigned int linenum) override;
     };
 
 
@@ -137,7 +137,7 @@ namespace schwa {
       explicit ThreadsafePrettyLogger(const char *path, LogLevel threshold=LogLevel::INFO);
       virtual ~ThreadsafePrettyLogger(void);
 
-      virtual Logger &operator ()(LogLevel level, const char *file, unsigned int linenum) override;
+      virtual Logger &operator ()(LogLevel level, const char *path, unsigned int linenum) override;
     };
 
 

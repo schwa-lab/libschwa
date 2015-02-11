@@ -17,6 +17,12 @@
 namespace schwa {
 namespace io {
 
+// Relative path that the C pre-processor sees to the libschwa source code when it's compiling one
+// of the apps. This becomes the prefix for __FILE__ which is not so nice from a pretty logging
+// perspective. The pretty logger attempts to strip this prefix off at runtime.
+static constexpr const char APP_TO_LIB_RELPATH[13] = "./../../lib/";
+
+
 const char *
 loglevel_name(const LogLevel level) {
   switch (level) {
@@ -50,7 +56,7 @@ operator <<(std::ostream &out, const LogLevel level) {
 
 
 size_t
-pretty_log_header(const LogLevel level, const char *file, const unsigned int linenum, char *const buf, const size_t buf_len) {
+pretty_log_header(const LogLevel level, const char *path, const unsigned int linenum, char *const buf, const size_t buf_len) {
   char now_buf[20];
   time_t now;
   timeval now_tv;
@@ -58,16 +64,19 @@ pretty_log_header(const LogLevel level, const char *file, const unsigned int lin
   now = now_tv.tv_sec;
 
   std::strftime(now_buf, sizeof(now_buf), "%FT%T", std::localtime(&now));  // YYYY-MM-DDTHH:mm:ss (19)
-  const size_t len = std::strlen(file);
-  if (len > 35) {
-    file += len - 35;
+  size_t len = std::strlen(path);
+  if (len > sizeof(APP_TO_LIB_RELPATH) - 1 && std::strncmp(path, APP_TO_LIB_RELPATH, sizeof(APP_TO_LIB_RELPATH) - 1) == 0) {
+    path += sizeof(APP_TO_LIB_RELPATH) - 1;
+    len -= sizeof(APP_TO_LIB_RELPATH) - 1;
   }
-  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %35s:%-4u] ", now_buf, static_cast<ssize_t>(now_tv.tv_usec), loglevel_name(level), file, linenum);
+  if (len > 35)
+    path += len - 35;
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %35s:%-4u] ", now_buf, static_cast<ssize_t>(now_tv.tv_usec), loglevel_name(level), path, linenum);
 }
 
 
 size_t
-pretty_log_header_threaded(const LogLevel level, const char *file, const unsigned int linenum, char *const buf, const size_t buf_len) {
+pretty_log_header_threaded(const LogLevel level, const char *path, const unsigned int linenum, char *const buf, const size_t buf_len) {
   char now_buf[20];
   time_t now;
   timeval now_tv;
@@ -83,11 +92,14 @@ pretty_log_header_threaded(const LogLevel level, const char *file, const unsigne
     thread_id.resize(8);
   }
 
-  const size_t len = std::strlen(file);
-  if (len > 25) {
-    file += len - 25;
+  size_t len = std::strlen(path);
+  if (len > sizeof(APP_TO_LIB_RELPATH) - 1 && std::strncmp(path, APP_TO_LIB_RELPATH, sizeof(APP_TO_LIB_RELPATH) - 1) == 0) {
+    path += sizeof(APP_TO_LIB_RELPATH) - 1;
+    len -= sizeof(APP_TO_LIB_RELPATH) - 1;
   }
-  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %25s:%-4u][%-8s] ", now_buf, static_cast<ssize_t>(now_tv.tv_usec), loglevel_name(level), file, linenum, thread_id.c_str());
+  if (len > 25)
+    path += len - 25;
+  return std::snprintf(buf, buf_len, "[%19s.%06zd %-8s %25s:%-4u][%-8s] ", now_buf, static_cast<ssize_t>(now_tv.tv_usec), loglevel_name(level), path, linenum, thread_id.c_str());
 }
 
 
@@ -139,9 +151,9 @@ PrettyLogger::PrettyLogger(const char *path, LogLevel threshold) : BasicLogger(p
 PrettyLogger::~PrettyLogger(void) { }
 
 Logger &
-PrettyLogger::operator ()(const LogLevel level, const char *const file, const unsigned int linenum) {
+PrettyLogger::operator ()(const LogLevel level, const char *const path, const unsigned int linenum) {
   _streambuf.level(level);
-  const size_t used = pretty_log_header(level, file, linenum, _buf, sizeof(_buf));
+  const size_t used = pretty_log_header(level, path, linenum, _buf, sizeof(_buf));
   assert(used == sizeof(_buf) - 1);
   *this << _buf;
   return *this;
@@ -184,10 +196,10 @@ ThreadsafePrettyLogger::ThreadsafePrettyLogger(const char *path, LogLevel thresh
 ThreadsafePrettyLogger::~ThreadsafePrettyLogger(void) { }
 
 Logger &
-ThreadsafePrettyLogger::operator ()(const LogLevel level, const char *const file, const unsigned int linenum) {
+ThreadsafePrettyLogger::operator ()(const LogLevel level, const char *const path, const unsigned int linenum) {
   _streambuf.lock();
   _streambuf.level(level);
-  const size_t used = pretty_log_header_threaded(level, file, linenum, _buf, sizeof(_buf));
+  const size_t used = pretty_log_header_threaded(level, path, linenum, _buf, sizeof(_buf));
   assert(used == sizeof(_buf) - 1);
   *this << _buf;
   return *this;
