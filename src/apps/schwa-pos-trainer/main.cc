@@ -38,8 +38,8 @@ public:
       extracted_path(*this, "dump-extracted", "The path to dump the extracted features in crfsuite format", cf::Flags::OPTIONAL),
       extract_only(*this, "extract-only", "Whether to perform feature extraction only and no training", false),
       retain_docs(*this, "retain-docs", "Read the documents into memory instead of reading multiple times from disk (useful if input is a pipe)", false),
-      model_params(*this, "model-params", "The model path path"),
-      trainer_params(*this),
+      model_params(*this, "model-params", "Parameters controlling the contents of the produced model"),
+      trainer_params(*this, "train-params", "Parameters to the crfsuite training process"),
       dr(*this, schema)
     { }
   virtual ~Main(void) { }

@@ -9,13 +9,13 @@ namespace learn {
 // ========================================================================
 // CRFSuiteTrainerParams
 // ========================================================================
-CRFSuiteTrainerParams::CRFSuiteTrainerParams(config::Group &group) :
-    config::Group(group, "train", "Paramters to the crfsuite training process"),
+CRFSuiteTrainerParams::CRFSuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
+    config::Group(group, name, desc, flags),
     algorithm(*this, "algorithm", "Which training algorithm to use", {"lbfgs", "l2sgd", "ap", "pa", "arow"}, "lbfgs"),
     c2(*this, "c2", "Coefficient for L2 regularisation during LBFGS", 0.707),
-    max_iterations(*this, "max-iterations", "Maximum number of iterations for LBFGS optimisation", 500),
+    max_iterations(*this, "max-iterations", "Maximum number of iterations to run LBFGS", 500),
     num_memories(*this, "num-memories", "The number of inverse Hessian matrices to store during LBFGS", 10),
-    epsilon(*this, "epsilon", "The epsilon parameter for convergence testing dyring LBFGS", 1e-6),
+    epsilon(*this, "epsilon", "The epsilon parameter for convergence testing during LBFGS", 1e-6),
     line_search(*this, "line-search", "Which line search algorithm to use during LBFGS", {"MoreTheunte", "Backtracking", "StrongBacktracking"}, "StrongBacktracking"),
     max_line_search_iterations(*this, "max-line-search-iterations", "The maximum number of line search iterations to perform during LBFGS", 100)
   { }

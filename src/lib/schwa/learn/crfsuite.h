@@ -31,7 +31,7 @@ namespace schwa {
       config::OpChoices<std::string> line_search;
       config::Op<unsigned int> max_line_search_iterations;
 
-      CRFSuiteTrainerParams(config::Group &group);
+      CRFSuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
       virtual ~CRFSuiteTrainerParams(void);
     };
 
