@@ -48,6 +48,25 @@ namespace schwa {
   size_t write_utf8(unicode_t code_point, std::ostream &out);
   size_t write_utf8(const UnicodeString &s, std::ostream &out);
 
+
+  // ==========================================================================
+  // These are all taken from src/ragel/tokenizer/rules/punctuation.rl which
+  // are defined for the purpose of tokenization.
+  // ==========================================================================
+  namespace unicode {
+    bool is_bracket(unicode_t code_point);
+    bool is_colon(unicode_t code_point);
+    bool is_comma(unicode_t code_point);
+    bool is_dash(unicode_t code_point);
+    bool is_ellipsis(unicode_t code_point);
+    bool is_exclamation_mark(unicode_t code_point);
+    bool is_full_stop(unicode_t code_point);
+    bool is_hyphen(unicode_t code_point);
+    bool is_inverted_exclamation_mark(unicode_t code_point);
+    bool is_inverted_question_mark(unicode_t code_point);
+    bool is_question_mark(unicode_t code_point);
+    bool is_semicolon(unicode_t code_point);
+  }  // namespace unicode
 }  // namespace schwa
 
 #include <schwa/unicode_gen.h>
