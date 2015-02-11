@@ -2,6 +2,7 @@
 #ifndef SCHWA_LEARN_CRFSUITE_IMPL_H_
 #define SCHWA_LEARN_CRFSUITE_IMPL_H_
 
+#include <cstring>
 #include <sstream>
 
 #include <schwa/exception.h>
@@ -58,16 +59,16 @@ namespace schwa {
 
       // Initialise the attribute and label dictionaries.
       ret = crfsuite_create_instance("dictionary", reinterpret_cast<void **>(&_data.attrs));
-      if (ret != 0)
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
       ret = crfsuite_create_instance("dictionary", reinterpret_cast<void **>(&_data.labels));
-      if (ret != 0)
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
 
       // Initialise the trainer.
       std::string tid = "train/crf1d/" + params.algorithm();
       ret = crfsuite_create_instance(tid.c_str(), reinterpret_cast<void **>(&_trainer));
-      if (ret != 0) {
+      if (SCHWA_UNLIKELY(ret != 0)) {
         std::ostringstream ss;
         ss << "crfsuite_create_instance(\"" << tid << "\")";
         _crfsuite_error(ss.str(), ret);
@@ -180,7 +181,7 @@ namespace schwa {
 
       // Add the item sequence to the training data.
       ret = crfsuite_data_append(&_data, &_instance);
-      if (ret != 0)
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("crfsuite_data_append", ret);
 
       // Deinitialise the item sequence.
@@ -226,7 +227,7 @@ namespace schwa {
       crfsuite_params_t *const params = _trainer->params(_trainer);
       ret = params->set(params, key.c_str(), val.c_str());
       params->release(params);
-      if (ret != 0) {
+      if (SCHWA_UNLIKELY(ret != 0)) {
         std::ostringstream ss;
         ss << "crfsuite_params_t::set(\"" << key << "\", \"" << val << "\")";
         _crfsuite_error(ss.str(), ret);
@@ -242,7 +243,7 @@ namespace schwa {
 
       LOG2(INFO, _logger) << "CRFSuiteTrainer::train begin" << std::endl;
       ret = _trainer->train(_trainer, &_data, _model.model_path().c_str(), -1);
-      if (ret != 0)
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("crfsuite_trainer_t::train", ret);
       LOG2(INFO, _logger) << "CRFSuiteTrainer::train end" << std::endl;
     }
@@ -329,8 +330,11 @@ namespace schwa {
         _tagger(nullptr),
         _attrs(nullptr),
         _labels(nullptr),
-        _label_sequence(nullptr),
-        _label_sequence_length(0)
+        _item(nullptr),
+        _ntokens_correct(0),
+        _ntokens_total(0),
+        _nsentences_correct(0),
+        _nsentences_total(0)
       {
       using namespace ::schwa::third_party::crfsuite;
       int ret;
@@ -357,13 +361,26 @@ namespace schwa {
       ret = _cmodel->get_labels(_cmodel, &_labels);
       if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("Failed to obtain the labels dictionary from the loaded model", ret);
+
+      // Obtain a copy of the string representation of all of the labels.
+      const int nlabels = _labels->num(_labels);
+      if (nlabels > 0) {
+        _label_strings.resize(nlabels);
+        for (int i = 0; i != nlabels; ++i) {
+          ret = _labels->to_string(_labels, i, &_label_strings[i]);
+          if (SCHWA_UNLIKELY(ret != 0))
+            _crfsuite_error("Failed to obtain the label string from the loaded model", ret);
+        }
+      }
     }
 
     template <typename EXTRACTOR>
     CRFSuiteTagger<EXTRACTOR>::~CRFSuiteTagger(void) {
       using namespace ::schwa::third_party::crfsuite;
 
-      delete [] _label_sequence;
+      // Free the label strings obtained from crfsuite.
+      for (const char *str : _label_strings)
+        _labels->free(_labels, str);
 
       // Deinitialise the model and its related data.
       if (_labels != nullptr) {
@@ -412,7 +429,7 @@ namespace schwa {
 
       // Set the taggers current instance to be this instance.
       ret = _tagger->set(_tagger, &_instance);
-      if (ret != 0)
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("tagger->set", ret);
 
       // Deinitialise the item sequence.
@@ -423,20 +440,26 @@ namespace schwa {
     inline void
     CRFSuiteTagger<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features) {
       using namespace ::schwa::third_party::crfsuite;
+      int ret;
 
-      // Initialise the item with a known number of attributes.
-      crfsuite_item_init_n(_item, features.size());
+      // Initialise the item with an unknown number of attributes.
+      crfsuite_item_init(_item);
 
       // Convert each of the provided features into attribute IDs and add them to the item.
       std::string attr_str;
-      size_t a = 0;
       for (const auto &pair : features) {
         // Convert the feature value into a string and obtain its crfsuite attribute ID.
         attr_str.assign(to_string_helper(pair.first));
-        const int attr_id = _attrs->get(_attrs, attr_str.c_str());
+        const int attr_id = _attrs->to_id(_attrs, attr_str.c_str());
 
-        // Set the attribute data and add the attribute to the item.
-        crfsuite_attribute_set(&_item->contents[a++], attr_id, pair.second);
+        // Set the attribute data and add the attribute to the item, if the attribute was found.
+        if (attr_id >= 0) {
+          crfsuite_attribute_t attr;
+          crfsuite_attribute_set(&attr, attr_id, pair.second);
+          ret = crfsuite_item_append_attribute(_item, &attr);
+          if (SCHWA_UNLIKELY(ret != 0))
+            _crfsuite_error("crfsuite_item_append_attribute", ret);
+        }
       }
 
       // Increment the item pointer to the next pre-allocated item.
@@ -452,8 +475,8 @@ namespace schwa {
 
       // Set the taggers current instance to be this instance.
       floatval_t score;
-      ret = _tagger->viterbi(_tagger, _label_sequence, &score);
-      if (ret != 0)
+      ret = _tagger->viterbi(_tagger, &_label_ids[0], &score);
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("tagger->viterbi", ret);
       return score;
     }
@@ -491,11 +514,8 @@ namespace schwa {
       LOG(INFO) << "CRFSuiteTagger::tag ndocs_read=" << ndocs_read << std::endl;
 
       // Ensure our sequence label array is large enough to house the longest sentence.
-      if (max_sentence_length > _label_sequence_length) {
-        delete [] _label_sequence;
-        _label_sequence = new int[max_sentence_length];
-        _label_sequence_length = max_sentence_length;
-      }
+      if (max_sentence_length > _label_ids.size())
+        _label_ids.resize(max_sentence_length);
 
       // Reset the document reader.
       doc_reader.reset();
@@ -507,8 +527,10 @@ namespace schwa {
       _extractor.phase2_begin();
       for (ndocs_read = 0; (doc = doc_reader.next()) != nullptr; ++ndocs_read) {
         _extractor.phase2_bod(*doc);
+        _nsentences_total += doc->sentences.size();
         for (canonical_schema::Sentence &sentence : doc->sentences) {
           sentence_length = sentence.span.stop - sentence.span.start;
+          _ntokens_total += sentence_length;
 
           _extractor.phase2_bos(sentence);
           _begin_item_sequence(sentence_length);
@@ -528,19 +550,38 @@ namespace schwa {
 
           // Run viterbi over the current item sequence.
           const third_party::crfsuite::floatval_t score = _viterbi();
+          (void)score;
 
-          std::cout << "score=" << score;
+          bool all_tokens_correct = true;
           i = 0;
           for (canonical_schema::Token &token : sentence.span) {
-            std::cout << " " << _label_sequence[i++] << "|" << token.raw;
+            const std::string &label_string = _label_strings[_label_ids[i]];
+            if (label_string == _extractor.get_label(token))
+              ++_ntokens_correct;
+            else
+              all_tokens_correct = false;
+
+            if (i != 0)
+              std::cout << ' ';
+            std::cout << token.raw << '|' << label_string;
+            ++i;
           }
           std::cout << std::endl;
+
+          if (all_tokens_correct)
+            ++_nsentences_correct;
         }
         _extractor.phase2_eod(*doc);
       }
       _extractor.phase2_end();
       LOG(INFO) << "CRFSuiteTagger::tag ndocs_read=" << ndocs_read << std::endl;
       LOG(INFO) << "CRFSuiteTagger::tag end" << std::endl;
+
+      float percentage;
+      percentage = (_ntokens_correct * 100.0f) / _ntokens_total;
+      LOG(INFO) << "tags/token   : " << percentage << "% (" << _ntokens_correct << "/" << _ntokens_total << ")" << std::endl;
+      percentage = (_nsentences_correct * 100.0f) / _nsentences_total;
+      LOG(INFO) << "tags/sentence: " << percentage << "% (" << _nsentences_correct << "/" << _nsentences_total << ")" << std::endl;
     }
 
   }

@@ -4,6 +4,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 #include <schwa/_base.h>
 #include <schwa/config.h>
@@ -93,8 +94,12 @@ namespace schwa {
       third_party::crfsuite::crfsuite_dictionary_t *_labels;
       third_party::crfsuite::crfsuite_instance_t _instance;
       third_party::crfsuite::crfsuite_item_t *_item;
-      int *_label_sequence;
-      size_t _label_sequence_length;
+      std::vector<int> _label_ids;
+      std::vector<const char *> _label_strings;
+      unsigned int _ntokens_correct;
+      unsigned int _ntokens_total;
+      unsigned int _nsentences_correct;
+      unsigned int _nsentences_total;
 
       void _crfsuite_error(const std::string &api_call, int ret);
 
