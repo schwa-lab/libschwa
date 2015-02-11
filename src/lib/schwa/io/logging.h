@@ -157,6 +157,13 @@ namespace schwa {
     #define LOG(level) (*::schwa::io::default_logger)(::schwa::io::LogLevel::level, __FILE__, __LINE__)
     #define LOG2(level, logger)                logger(::schwa::io::LogLevel::level, __FILE__, __LINE__)
 
+    /**
+     * These macros are the same as LOG and LOG2 except they take an enum object at runtime instead
+     * of at compile time.
+     */
+    #define LOGD(level) (*::schwa::io::default_logger)(level, __FILE__, __LINE__)
+    #define LOGD2(level, logger)                logger(level, __FILE__, __LINE__)
+
   }
 }
 

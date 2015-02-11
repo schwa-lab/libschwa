@@ -7,6 +7,7 @@
 #include <schwa/_base.h>
 #include <schwa/config.h>
 #include <schwa/canonical-schema.h>
+#include <schwa/io/logging.h>
 #include <schwa/learn.h>
 
 
@@ -17,6 +18,7 @@ namespace schwa {
     public:
       static const unsigned int DEFAULT_RARE_TOKEN_CUTOFF;
 
+      config::Op<unsigned int> feature_hashing;
       config::Op<std::string> lexicon_path;
       config::Op<unsigned int> rare_token_cutoff;
 
@@ -69,6 +71,7 @@ namespace schwa {
       const bool _is_train;
       const unsigned int _rare_token_cutoff;
       learn::Lexicon &_lexicon;
+      io::Logger &_logger;
       learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
 
     public:

@@ -229,7 +229,8 @@ AC_CONFIG_FILES([
   src/apps/dr-worker-example/Makefile
   src/apps/mp-less/Makefile
   src/apps/schwa-crfsuite/Makefile
-  src/apps/schwa-train-pos/Makefile
+  src/apps/schwa-pos-tagger/Makefile
+  src/apps/schwa-pos-trainer/Makefile
   src/apps/schwa-tokenizer/Makefile
   src/lib/Makefile
   src/lib/schwa/macros.h:src/lib/schwa/macros.h.in

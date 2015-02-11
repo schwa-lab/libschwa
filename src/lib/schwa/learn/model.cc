@@ -44,7 +44,13 @@ ModelParams::deserialise_all(std::istream &in) {
     const std::string value = line.substr(pos + 1);
 
     // Try and find the corresponding config node.
-    config::ConfigNode *const node = find(key);
+    config::ConfigNode *node = nullptr;
+    for (auto &c : _options) {
+      if (c->name() == key) {
+        node = c;
+        break;
+      }
+    }
 
     // Ensure the node can be mentioned.
     if (node == nullptr || !node->accepts_mention()) {
@@ -53,10 +59,11 @@ ModelParams::deserialise_all(std::istream &in) {
       throw ConfigException(ss.str());
     }
 
-    // Assign the value to the node.
-    LOG(INFO) << "node '" << node->name() << " was_mentioned?=" << node->was_mentioned() << std::endl;
-    node->mention();
-    node->assign(value);
+    // Assign the value to the node if it was not already explicitly set.
+    if (!node->was_mentioned()) {
+      node->mention();
+      node->assign(value);
+    }
   }
 }
 
@@ -64,6 +71,8 @@ ModelParams::deserialise_all(std::istream &in) {
 void
 ModelParams::serialise_all(std::ostream &out) const {
   for (auto &c : _options) {
+    if (c->optional() && !c->was_mentioned())
+      continue;
     out << c->name() << '=';
     c->serialise(out);
     out << std::endl;
@@ -106,6 +115,18 @@ InputModel::InputModel(const std::string &path, ModelParams &params) : _path(pat
   else if (!io::path_is_dir(_resources_path)) {
     std::ostringstream ss;
     ss << "Specified resources directory '" << _resources_path << "' exists but is not a directory";
+    throw IOException(ss.str());
+  }
+
+  // Validate the model path.
+  if (!io::path_exists(_model_path)) {
+    std::ostringstream ss;
+    ss << "Specified model file '" << _model_path << "' does not exist";
+    throw IOException(ss.str());
+  }
+  else if (io::path_is_dir(_model_path)) {
+    std::ostringstream ss;
+    ss << "Specified model file '" << _model_path << "' exists but is a directory";
     throw IOException(ss.str());
   }
 }

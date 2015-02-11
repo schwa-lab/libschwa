@@ -45,6 +45,7 @@ namespace schwa {
 
     private:
       OutputModel &_model;
+      io::Logger &_logger;
       EXTRACTOR &_extractor;
       third_party::crfsuite::crfsuite_data_t _data;
       third_party::crfsuite::crfsuite_instance_t _instance;
@@ -52,6 +53,7 @@ namespace schwa {
       third_party::crfsuite::crfsuite_trainer_t *_trainer;
 
       void _crfsuite_error(const std::string &api_call, int ret);
+      void _crfsuite_log(io::LogLevel level, const char *msg);
 
       void _begin_item_sequence(size_t nitems);
       void _end_item_sequence(void);
@@ -72,9 +74,46 @@ namespace schwa {
       void dump_crfsuite_data(io::OutputStream &out) const;
       void train(void);
 
-
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFSuiteTrainer);
+    };
+
+
+    // ========================================================================
+    // CRFSuiteTagger
+    // ========================================================================
+    template <typename EXTRACTOR>
+    class CRFSuiteTagger {
+    private:
+      InputModel &_model;
+      EXTRACTOR &_extractor;
+      third_party::crfsuite::crfsuite_model_t *_cmodel;
+      third_party::crfsuite::crfsuite_tagger_t *_tagger;
+      third_party::crfsuite::crfsuite_dictionary_t *_attrs;
+      third_party::crfsuite::crfsuite_dictionary_t *_labels;
+      third_party::crfsuite::crfsuite_instance_t _instance;
+      third_party::crfsuite::crfsuite_item_t *_item;
+      int *_label_sequence;
+      size_t _label_sequence_length;
+
+      void _crfsuite_error(const std::string &api_call, int ret);
+
+      void _begin_item_sequence(size_t nitems);
+      void _end_item_sequence(void);
+
+      template <typename TO_STRING, typename FEATURES>
+      void _add_item(TO_STRING &to_string_helper, const FEATURES &features);
+      third_party::crfsuite::floatval_t _viterbi(void);
+
+    public:
+      CRFSuiteTagger(EXTRACTOR &extractor, InputModel &model);
+      ~CRFSuiteTagger(void);
+
+      template <typename TRANSFORM>
+      void tag(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer=TRANSFORM());
+
+    private:
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFSuiteTagger);
     };
 
 

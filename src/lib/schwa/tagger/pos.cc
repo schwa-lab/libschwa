@@ -15,6 +15,7 @@ const unsigned int POSModelParams::DEFAULT_RARE_TOKEN_CUTOFF = 5;
 
 POSModelParams::POSModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
     learn::ModelParams(group, name, desc, flags),
+    feature_hashing(*this, "feature-hashing", 'H', "Number of bits to use for feature hashing", config::Flags::OPTIONAL),
     lexicon_path(*this, "lexicon-path", "Relative path to the lexicon file within the model directory", "./lexicon"),
     rare_token_cutoff(*this, "rare-word-cutoff", "Tokens which appear less than this number of times during training are considered as rare", DEFAULT_RARE_TOKEN_CUTOFF)
   { }
@@ -66,6 +67,7 @@ POSExtractor::POSExtractor(POSInputModel &model) :
     _is_train(false),
     _rare_token_cutoff(model.rare_token_cutoff()),
     _lexicon(model.lexicon()),
+    _logger(*io::default_logger),
     _offsets_token_norm_raw(&_get_token_norm_raw)
   { }
 
@@ -74,18 +76,19 @@ POSExtractor::POSExtractor(POSOutputModel &model) :
     _is_train(true),
     _rare_token_cutoff(model.rare_token_cutoff()),
     _lexicon(model.lexicon()),
+    _logger(model.logger()),
     _offsets_token_norm_raw(&_get_token_norm_raw)
   { }
 
 
 void
 POSExtractor::phase1_begin(void) {
-  LOG(INFO) << "POSExtractor phase1_begin" << std::endl;
+  LOG2(INFO, _logger) << "POSExtractor phase1_begin" << std::endl;
 }
 
 void
 POSExtractor::phase1_end(void) {
-  LOG(INFO) << "POSExtractor phase1_end" << std::endl;
+  LOG2(INFO, _logger) << "POSExtractor phase1_end" << std::endl;
 }
 
 
@@ -100,7 +103,7 @@ POSExtractor::phase1_extract(canonical_schema::Token &token, size_t) {
 
 void
 POSExtractor::phase2_begin(void) {
-  LOG(INFO) << "POSExtractor phase2_begin" << std::endl;
+  LOG2(INFO, _logger) << "POSExtractor phase2_begin" << std::endl;
 }
 
 
@@ -112,7 +115,7 @@ POSExtractor::phase2_bos(canonical_schema::Sentence &sentence) {
 
 void
 POSExtractor::phase2_end(void) {
-  LOG(INFO) << "POSExtractor phase2_end" << std::endl;
+  LOG2(INFO, _logger) << "POSExtractor phase2_end" << std::endl;
 }
 
 }  // namespace tagger
