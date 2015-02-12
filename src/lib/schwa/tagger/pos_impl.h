@@ -26,15 +26,31 @@ namespace schwa {
 
       // Is the current token rare?
       if (_lexicon.count(utf8) < _rare_token_cutoff) {
+        // Decode the UTF-8 sequence into to a Unicode string once only.
+        const UnicodeString u = UnicodeString::from_utf8(utf8);
+
         // Prefix and suffix of length up to 4.
         learn::add_affix_features(features, 4, 4, utf8);
 
         // Word form.
-        features("wf[i]=" + learn::word_form(utf8));
-      }
-      else {
-        // Add a feature to say it's not a rare word.
-        features("in_lex=tokens");
+        features("wf[i]=" + learn::word_form(u));
+
+        // Contains a digit, hyphen, or uppercase code point.
+        bool has_digit = false, has_hyphen = false, has_upper = false;
+        for (const unicode_t cp : u) {
+          if (!has_digit && unicode::is_digit(cp))
+            has_digit = true;
+          if (!has_hyphen && (unicode::is_hyphen(cp) || unicode::is_dash(cp)))
+            has_hyphen = true;
+          if (!has_upper && unicode::is_upper(cp))
+            has_upper = true;
+        }
+        if (has_digit)
+          features("has_digit");
+        if (has_hyphen)
+          features("has_hyphen");
+        if (has_upper)
+          features("has_upper");
       }
     }
 
