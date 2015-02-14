@@ -125,8 +125,8 @@ namespace schwa {
     };
 
 
-    std::string word_form(const std::string &utf8);
-    std::string word_form(const UnicodeString &s);
+    std::string word_form(const std::string &utf8, bool compact_adjacent=true);
+    std::string word_form(const UnicodeString &s, bool compact_adjacent=true);
 
 
     template <typename TRANSFORM, typename VALUE>
