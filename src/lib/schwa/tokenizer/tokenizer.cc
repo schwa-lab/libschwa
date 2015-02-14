@@ -355,8 +355,14 @@ Tokenizer::_split(const bool seen_terminator) {
 #endif
   assert(_state.suffix != 0);
   _flush_sentence();
-  _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
-  _create_token(_state.te - _state.suffix, _state.te, _state.n2);
+
+  // Read backwrds the appropriate number of suffix code points.
+  UTF8Decoder decoder(_state.ts.get_bytes(), _state.te.get_bytes());
+  auto it = decoder.crbegin() + _state.suffix;
+  OffsetInputStream<>::iterator split_point = _state.ts + (it.cp_start() - _state.ts.get_bytes());
+
+  _create_token(_state.ts, split_point, _state.n1);
+  _create_token(split_point, _state.te, _state.n2);
   _state.reset();
   if (seen_terminator)
     _seen_terminator = true;
