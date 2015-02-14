@@ -618,9 +618,7 @@ public:
 // ============================================================================
 Interpreter::Interpreter(void) : _pool(4 * 1024), _expr(nullptr) { }
 
-Interpreter::~Interpreter(void) {
-  delete _expr;
-}
+Interpreter::~Interpreter(void) { }
 
 
 Expr *
