@@ -133,6 +133,14 @@ Block::Schema::Schema(void) :
 Block::Schema::~Schema(void) { }
 
 
+NamedEntity::Schema::Schema(void) :
+    dr::Ann::Schema<NamedEntity>("NamedEntity", "NE class"),
+    span(*this, "span", "A slice over the token objects over which this NE spans", dr::FieldMode::READ_WRITE),
+    label(*this, "label", "The NE class label", dr::FieldMode::READ_WRITE)
+  { }
+NamedEntity::Schema::~Schema(void) { }
+
+
 Doc::Schema::Schema(void) :
     dr::Doc::Schema<Doc>("Doc", "The document class"),
     doc_id(*this, "doc_id", "The ID of the document", dr::FieldMode::READ_WRITE),
@@ -147,7 +155,8 @@ Doc::Schema::Schema(void) :
     hyperlinks(*this, "hyperlinks", "The store for the hyperlinks", dr::FieldMode::READ_WRITE),
     list_items(*this, "list_items", "The store for the list items", dr::FieldMode::READ_WRITE),
     lists(*this, "lists", "The store for the lists", dr::FieldMode::READ_WRITE),
-    blocks(*this, "blocks", "The store for the blocks", dr::FieldMode::READ_WRITE)
+    blocks(*this, "blocks", "The store for the blocks", dr::FieldMode::READ_WRITE),
+    named_entities(*this, "named_entities", "The store for the named entities", dr::FieldMode::READ_WRITE)
   { }
 Doc::Schema::~Schema(void) { }
 

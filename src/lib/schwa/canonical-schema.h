@@ -117,6 +117,15 @@ namespace schwa {
     };
 
 
+    class NamedEntity : public dr::Ann {
+    public:
+      dr::Slice<Token *> span;  //!< The span over the tokens that this NE spans.
+      std::string label;        //!< UTF-8 class label for the NE.
+
+      class Schema;
+    };
+
+
     class Doc : public dr::Doc {
     public:
       std::string doc_id;
@@ -133,6 +142,7 @@ namespace schwa {
       dr::Store<ListItem> list_items;
       dr::Store<List> lists;
       dr::Store<Block> blocks;
+      dr::Store<NamedEntity> named_entities;
 
       class Schema;
 
@@ -224,6 +234,16 @@ namespace schwa {
     };
 
 
+    class NamedEntity::Schema : public dr::Ann::Schema<NamedEntity> {
+    public:
+      DR_POINTER(&NamedEntity::span, &Doc::tokens) span;
+      DR_FIELD(&NamedEntity::label) label;
+
+      Schema(void);
+      virtual ~Schema(void);
+    };
+
+
     class Doc::Schema : public dr::Doc::Schema<Doc> {
     public:
       DR_FIELD(&Doc::doc_id) doc_id;
@@ -240,6 +260,7 @@ namespace schwa {
       DR_STORE(&Doc::list_items) list_items;
       DR_STORE(&Doc::lists) lists;
       DR_STORE(&Doc::blocks) blocks;
+      DR_STORE(&Doc::named_entities) named_entities;
 
       Schema(void);
       virtual ~Schema(void);
