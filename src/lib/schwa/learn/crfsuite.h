@@ -30,6 +30,9 @@ namespace schwa {
       config::Op<double> epsilon;
       config::OpChoices<std::string> line_search;
       config::Op<unsigned int> max_line_search_iterations;
+      config::Op<unsigned int> feature_min_freq;
+      config::Op<bool> feature_possible_states;
+      config::Op<bool> feature_possible_transitions;
 
       CRFSuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
       virtual ~CRFSuiteTrainerParams(void);

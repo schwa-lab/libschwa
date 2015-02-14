@@ -75,10 +75,14 @@ namespace schwa {
       }
       _trainer->set_message_callback(_trainer, this, &_crfsuite_logging_callback);
 
+      // Set the feature-related parameters.
+      std::ostringstream ss;
+      ss << params.feature_min_freq(); set_param("feature.minfreq", ss.str()); ss.str("");
+      ss << params.feature_possible_states(); set_param("feature.possible_states", ss.str()); ss.str("");
+      ss << params.feature_possible_transitions(); set_param("feature.possible_transitions", ss.str()); ss.str("");
+
       // Set the LBFGS-related parameters if we're using LBFGS.
       if (params.algorithm() == "lbfgs") {
-        std::ostringstream ss;
-
         ss << params.c2(); set_param("c2", ss.str()); ss.str("");
         ss << params.max_iterations(); set_param("max_iterations", ss.str()); ss.str("");
         ss << params.num_memories(); set_param("num_memories", ss.str()); ss.str("");

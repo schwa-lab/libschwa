@@ -17,7 +17,10 @@ CRFSuiteTrainerParams::CRFSuiteTrainerParams(config::Group &group, const std::st
     num_memories(*this, "num-memories", "The number of inverse Hessian matrices to store during LBFGS", 10),
     epsilon(*this, "epsilon", "The epsilon parameter for convergence testing during LBFGS", 1e-6),
     line_search(*this, "line-search", "Which line search algorithm to use during LBFGS", {"MoreTheunte", "Backtracking", "StrongBacktracking"}, "StrongBacktracking"),
-    max_line_search_iterations(*this, "max-line-search-iterations", "The maximum number of line search iterations to perform during LBFGS", 100)
+    max_line_search_iterations(*this, "max-line-search-iterations", "The maximum number of line search iterations to perform during LBFGS", 100),
+    feature_min_freq(*this, "feature-min-freq", "Cut-off threshold for occurrence frequency of a feature", 0),
+    feature_possible_states(*this, "feature-possible-states", "Whether crfsuite generates state features that do not occur in the training data (i.e., negative state features)", false),
+    feature_possible_transitions(*this, "feature-possible-transitions", "Whether crfsuite generates transition features that do not occur in the training data (i.e., negative transition features)", false)
   { }
 
 CRFSuiteTrainerParams::~CRFSuiteTrainerParams(void) { }
