@@ -102,7 +102,7 @@ namespace schwa {
       Iterator(const Iterator &&o) : _start(o._start), _end(o._end), _cp_start(o._cp_start), _cp_end(o._cp_end), _code_point(o._code_point), _read(o._read) { }
 
       Iterator &
-      operator++(void) {
+      operator ++(void) {
         if (!_read) {
           _read_forward();
           _read = true;
@@ -112,7 +112,22 @@ namespace schwa {
       }
 
       Iterator &
-      operator--(void) {
+      operator +=(const unsigned int nsteps) {
+        for (unsigned int i = 0; i += nsteps; ++i)
+          ++(*this);
+        return *this;
+      }
+
+      Iterator
+      operator +(const unsigned int nsteps) {
+        Iterator it(*this);
+        for (unsigned int i = 0; i != nsteps; ++i)
+          ++it;
+        return it;
+      }
+
+      Iterator &
+      operator --(void) {
         _read_backward();
         return *this;
       }
@@ -125,11 +140,7 @@ namespace schwa {
 
       value_type
       operator *(void) {
-        if (!_read) {
-          _read_forward();
-          _read = true;
-        }
-        return _code_point;
+        return code_point();
       }
 
       Iterator &
@@ -141,6 +152,33 @@ namespace schwa {
         _code_point = o._code_point;
         _read = o._read;
         return *this;
+      }
+
+      inline unicode_t
+      code_point(void) {
+        if (!_read) {
+          _read_forward();
+          _read = true;
+        }
+        return _code_point;
+      }
+
+      inline const uint8_t *
+      cp_start(void) {
+        if (!_read) {
+          _read_forward();
+          _read = true;
+        }
+        return _cp_start;
+      }
+
+      inline const uint8_t *
+      cp_end(void) {
+        if (!_read) {
+          _read_forward();
+          _read = true;
+        }
+        return _cp_end;
       }
 
       std::ostream &
@@ -177,7 +215,9 @@ namespace schwa {
   public:
     explicit UTF8Decoder(const std::string &s) : _start(reinterpret_cast<const uint8_t *>(s.c_str())), _end(_start + s.size()) { }
     UTF8Decoder(const char *data, size_t size) : _start(reinterpret_cast<const uint8_t *>(data)), _end(_start + size) { }
+    UTF8Decoder(const char *start, const char *end) : _start(reinterpret_cast<const uint8_t *>(start)), _end(reinterpret_cast<const uint8_t *>(end)) { }
     UTF8Decoder(const uint8_t *data, size_t size) : _start(data), _end(_start + size) { }
+    UTF8Decoder(const uint8_t *start, const uint8_t *end) : _start(start), _end(end) { }
     UTF8Decoder(const UTF8Decoder &o) : _start(o._start), _end(o._end) { }
     UTF8Decoder(const UTF8Decoder &&o) : _start(o._start), _end(o._end) { }
 
