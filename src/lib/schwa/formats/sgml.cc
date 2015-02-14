@@ -469,8 +469,15 @@ SGMLishParser::parse(Pool &node_pool) {
       // Ensure the tag we're closing is the same tag as what's top-most on the stack of open tags.
       name0 = stack.top()->name();
       name1 = node->name();
-      if (name0->nitems_used() != name1->nitems_used() || std::memcmp(name0->bytes(), name1->bytes(), name0->nitems_used()) != 0)
-        throw ParseError("Encountered an end tag whose name does not match the top of the stack");
+      if (name0->nitems_used() != name1->nitems_used() || std::memcmp(name0->bytes(), name1->bytes(), name0->nitems_used()) != 0) {
+        std::ostringstream ss;
+        ss << "Encountered end tag '";
+        ss.write(reinterpret_cast<const char *>(name1->bytes()), name1->nitems_used());
+        ss << "' which does not match tag '";
+        ss.write(reinterpret_cast<const char *>(name0->bytes()), name0->nitems_used());
+        ss << "' at the top of the stack";
+        throw ParseError(ss.str());
+      }
       // Close the top-most opened tag.
       stack.pop();
       break;
