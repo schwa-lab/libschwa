@@ -6,6 +6,7 @@
 #include <string>
 
 #include <schwa/exception.h>
+#include <schwa/unicode.h>
 #include <schwa/utils/enums.h>
 
 //#define TOKENIZER_DEBUG 1
@@ -166,8 +167,14 @@ Tokenizer::_contraction(void) {
 
   assert(_state.suffix != 0);
   assert(_state.n2 != nullptr);
-  _create_token(_state.ts, _state.te - _state.suffix, _state.n1);
-  _create_token(_state.te - _state.suffix, _state.te, _state.n2);
+
+  // Read backwrds the appropriate number of suffix code points.
+  UTF8Decoder decoder(_state.ts.get_bytes(), _state.te.get_bytes());
+  auto it = decoder.crbegin() + _state.suffix;
+  OffsetInputStream<>::iterator split_point = _state.ts + (it.cp_start() - _state.ts.get_bytes());
+
+  _create_token(_state.ts, split_point, _state.n1);
+  _create_token(split_point, _state.te, _state.n2);
   _state.reset();
 }
 
