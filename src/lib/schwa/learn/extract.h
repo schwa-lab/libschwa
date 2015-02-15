@@ -125,10 +125,6 @@ namespace schwa {
     };
 
 
-    std::string word_form(const std::string &utf8, bool compact_adjacent=true);
-    std::string word_form(const UnicodeString &s, bool compact_adjacent=true);
-
-
     template <typename TRANSFORM, typename VALUE>
     void
     add_affix_features(Features<TRANSFORM, VALUE> &features, size_t nprefix, size_t nsuffix, const std::string &utf8);

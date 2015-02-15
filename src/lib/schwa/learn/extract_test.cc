@@ -90,23 +90,6 @@ TEST(windower) {
 }
 
 
-TEST(word_form) {
-  CHECK_EQUAL("Ll", word_form("hello"));
-  CHECK_EQUAL("Lu", word_form("HELLO"));
-  CHECK_EQUAL("LuLl", word_form("Hello"));
-  CHECK_EQUAL("LlLuLlLuLl", word_form("hElLo"));
-  CHECK_EQUAL("LuLlNd", word_form("Hell9"));
-  CHECK_EQUAL("", word_form(""));
-
-  CHECK_EQUAL("Ll", word_form(UnicodeString(U"hello")));
-  CHECK_EQUAL("Lu", word_form(UnicodeString(U"HELLO")));
-  CHECK_EQUAL("LuLl", word_form(UnicodeString(U"Hello")));
-  CHECK_EQUAL("LlLuLlLuLl", word_form(UnicodeString(U"hElLo")));
-  CHECK_EQUAL("LuLlNd", word_form(UnicodeString(U"Hell9")));
-  CHECK_EQUAL("", word_form(UnicodeString(U"")));
-}
-
-
 TEST(add_affix_features) {
   Features<> f;
   std::vector<std::string> units;

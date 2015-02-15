@@ -1,12 +1,6 @@
 # libschwa unit tests
 /schwa_tests
-/schwa_containers_tests
-/schwa_dr_tests
-/schwa_io_tests
-/schwa_learn_tests
-/schwa_mpl_tests
-/schwa_msgpack_tests
-/schwa_utils_tests
+/schwa_*_tests
 
 # cityhash unit tests
 /cityhash_tests

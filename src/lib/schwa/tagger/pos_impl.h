@@ -2,6 +2,7 @@
 #ifndef SCHWA_TAGGER_POS_IMPL_H_
 #define SCHWA_TAGGER_POS_IMPL_H_
 
+#include <schwa/lex/word-form.h>
 #include <schwa/unicode.h>
 
 
@@ -33,7 +34,7 @@ namespace schwa {
         learn::add_affix_features(features, 4, 4, utf8);
 
         // Word form.
-        features("wf[i]=" + learn::word_form(u));
+        features("wf[i]=" + lex::word_form(u));
 
         // Contains a digit, hyphen, or uppercase code point.
         bool has_digit = false, has_hyphen = false, has_upper = false;

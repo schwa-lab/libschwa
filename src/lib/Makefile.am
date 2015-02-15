@@ -133,6 +133,9 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/io_impl.h \
 		schwa/learn/lexicon.h \
 		schwa/learn/model.h \
+		schwa/lex/brown-clusters.h \
+		schwa/lex/word-embeddings.h \
+		schwa/lex/word-form.h \
 		schwa/macros.h \
 		schwa/memory.h \
 		schwa/mpl/if.h \
@@ -202,6 +205,9 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/learn/extract.cc \
 		schwa/learn/lexicon.cc \
 		schwa/learn/model.cc \
+		schwa/lex/brown-clusters.cc \
+		schwa/lex/word-embeddings.cc \
+		schwa/lex/word-form.cc \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/exception.cc \
 		schwa/port.cc \
@@ -209,6 +215,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/tokenizer/tokenizer.cc \
 		schwa/unicode.cc \
 		schwa/utils/buffer.cc \
+		schwa/utils/string-pool.cc \
 		schwa/utils/shlex.cc \
 		schwa/version.cc
 
@@ -262,7 +269,7 @@ library_includedir = $(includedir)
 nobase_library_include_HEADERS += $(LIBSCHWA_HEADER_FILES)
 
 check_LIBRARIES += libschwa_unittest.a
-check_PROGRAMS += schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
+check_PROGRAMS += schwa_tests schwa_containers_tests schwa_dr_tests schwa_io_tests schwa_learn_tests schwa_lex_tests schwa_mpl_tests schwa_msgpack_tests schwa_utils_tests
 
 LIBSCHWA_TEST_CPPFLAGS = $(LIBSCHWA_BASE_CPPFLAGS) -isystem $(srcdir)/../third-party/unittest-cpp/UnitTest++
 LIBSCHWA_TEST_LDADD = ../third-party/unittest-cpp/UnitTest++/libUnitTest++.la libschwa_unittest.a libschwa.la
@@ -315,6 +322,13 @@ schwa_learn_tests_SOURCES = \
 		schwa/learn/feature-transformers_test.cc \
 		schwa/learn/features_test.cc
 
+schwa_lex_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
+schwa_lex_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
+schwa_lex_tests_SOURCES = \
+		schwa/unittest_main.cc \
+		schwa/lex/word-embeddings_test.cc \
+		schwa/lex/word-form_test.cc
+
 schwa_mpl_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
 schwa_mpl_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_mpl_tests_SOURCES = \
@@ -331,7 +345,9 @@ schwa_utils_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
 schwa_utils_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_utils_tests_SOURCES = \
 		schwa/unittest_main.cc \
-		schwa/utils/shlex_test.cc
+		schwa/utils/shlex_test.cc \
+		schwa/utils/string_test.cc \
+		schwa/utils/string-pool_test.cc
 
 
 # =============================================================================
