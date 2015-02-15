@@ -69,11 +69,13 @@ dump_crfsuite_data(std::ostream &out, const third_party::crfsuite::crfsuite_data
       crfsuite_item_t &item = instance.items[nitem];
       for (int nattr = 0; nattr != item.num_contents; ++nattr) {
         // Output the attribute value.
-        ret = data.attrs->to_string(data.attrs, item.contents[nattr].aid, &str);
+        const crfsuite_attribute_t &attr = item.contents[nattr];
+        ret = data.attrs->to_string(data.attrs, attr.aid, &str);
         assert(ret == 0);
         if (ret == 0) {
           out << '\t';
           dump_crfsuite_value(out, str);
+          out << ':' << attr.value;
         }
         data.attrs->free(data.attrs, str);
       }
