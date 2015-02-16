@@ -16,8 +16,8 @@ namespace schwa {
 
     /**
      * The word embeddings file is expected to be a MessagePack payload of the format
-     * { str : [ float ] }, where all of the token keys are UTF-8 strings, and each of the arrays
-     * of floating point values are the same length.
+     * { token_str : [ embedding_float ] }, where all of the arrays of floating point values are
+     * the same length.
      **/
     class WordEmbeddings {
     public:
@@ -34,6 +34,12 @@ namespace schwa {
       explicit WordEmbeddings(StringPool &string_pool);
       ~WordEmbeddings(void);
 
+      /**
+       * Populate this WordEmbeddings instance with the embeddings contained within the input
+       * stream. The embeddings should be in the format described in the documentation of this
+       * class. The WordEmbeddings inststance can only be loaded once, so a ValueException will be
+       * thrown if it attempts to be loaded more than once.
+       **/
       void load(std::istream &in);
 
       /**

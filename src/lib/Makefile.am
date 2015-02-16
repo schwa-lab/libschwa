@@ -134,6 +134,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/lexicon.h \
 		schwa/learn/model.h \
 		schwa/lex/brown-clusters.h \
+		schwa/lex/brown-clusters_impl.h \
 		schwa/lex/word-embeddings.h \
 		schwa/lex/word-form.h \
 		schwa/macros.h \
@@ -326,6 +327,7 @@ schwa_lex_tests_CPPFLAGS = $(LIBSCHWA_TEST_CPPFLAGS)
 schwa_lex_tests_LDADD = $(LIBSCHWA_TEST_LDADD)
 schwa_lex_tests_SOURCES = \
 		schwa/unittest_main.cc \
+		schwa/lex/brown-clusters_test.cc \
 		schwa/lex/word-embeddings_test.cc \
 		schwa/lex/word-form_test.cc
 
