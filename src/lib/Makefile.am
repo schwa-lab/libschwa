@@ -149,6 +149,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/msgpack.h \
 		schwa/pool.h \
 		schwa/port.h \
+		schwa/tagger/ner.h \
+		schwa/tagger/ner_impl.h \
 		schwa/tagger/pos.h \
 		schwa/tagger/pos_impl.h \
 		schwa/tokenizer/tokenizer.h \
@@ -212,6 +214,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/msgpack/dynamic.cc \
 		schwa/msgpack/exception.cc \
 		schwa/port.cc \
+		schwa/tagger/ner.cc \
 		schwa/tagger/pos.cc \
 		schwa/tokenizer/tokenizer.cc \
 		schwa/unicode.cc \
