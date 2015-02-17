@@ -9,6 +9,7 @@
 #include <schwa/canonical-schema.h>
 #include <schwa/io/logging.h>
 #include <schwa/learn.h>
+#include <schwa/lex/brown-clusters.h>
 
 
 namespace schwa {
@@ -21,6 +22,7 @@ namespace schwa {
       config::Op<unsigned int> feature_hashing;
       config::Op<std::string> lexicon_path;
       config::Op<unsigned int> rare_token_cutoff;
+      config::Op<std::string> brown_clusters_path;
 
       POSModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
       virtual ~POSModelParams(void);
@@ -32,15 +34,19 @@ namespace schwa {
 
     class POSInputModel : public learn::InputModel {
     protected:
+      Pool _pool;
+      StringPool _string_pool;
       std::string _lexicon_path;
       unsigned int _rare_token_cutoff;
       learn::Lexicon _lexicon;
+      lex::BrownClusters _brown_clusters;
 
     public:
       POSInputModel(const std::string &path, POSModelParams &params);
       virtual ~POSInputModel(void);
 
       learn::Lexicon &lexicon(void) { return _lexicon; }
+      lex::BrownClusters &brown_clusters(void) { return _brown_clusters; }
       unsigned int rare_token_cutoff(void) const { return _rare_token_cutoff; }
 
     private:
@@ -50,15 +56,19 @@ namespace schwa {
 
     class POSOutputModel : public learn::OutputModel {
     protected:
+      Pool _pool;
+      StringPool _string_pool;
       const std::string _lexicon_path;
       const unsigned int _rare_token_cutoff;
       learn::Lexicon _lexicon;
+      lex::BrownClusters _brown_clusters;
 
     public:
       POSOutputModel(const std::string &path, const POSModelParams &params, const config::Main &main_config);
       virtual ~POSOutputModel(void);
 
       learn::Lexicon &lexicon(void) { return _lexicon; }
+      lex::BrownClusters &brown_clusters(void) { return _brown_clusters; }
       unsigned int rare_token_cutoff(void) const { return _rare_token_cutoff; }
 
     private:
@@ -71,12 +81,17 @@ namespace schwa {
       const bool _is_train;
       const unsigned int _rare_token_cutoff;
       learn::Lexicon &_lexicon;
+      const lex::BrownClusters &_brown_clusters;
+      const uint8_t *_brown_cluster_path;
+      unsigned int *const _brown_cluster_path_lengths;
+      char *const _brown_cluster_feature;
       io::Logger &_logger;
       learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
 
     public:
       explicit POSExtractor(POSInputModel &model);
       explicit POSExtractor(POSOutputModel &model);
+      ~POSExtractor(void);
 
       void phase1_begin(void);
       void phase1_bod(canonical_schema::Doc &) { }

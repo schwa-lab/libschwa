@@ -2,6 +2,10 @@
 #ifndef SCHWA_TAGGER_POS_IMPL_H_
 #define SCHWA_TAGGER_POS_IMPL_H_
 
+#include <cstdio>
+#include <cstring>
+#include <memory>
+
 #include <schwa/lex/word-form.h>
 #include <schwa/unicode.h>
 
@@ -24,6 +28,17 @@ namespace schwa {
       features("w[i]=" + utf8);
       features("w[i+1]=" + _offsets_token_norm_raw(i,  1));
       features("w[i+2]=" + _offsets_token_norm_raw(i,  2));
+
+      // Add Brown cluster features.
+      const size_t npaths = _brown_clusters.get_paths(utf8, &_brown_cluster_path, _brown_cluster_path_lengths);
+      if (npaths != 0) {
+        const int prefix = std::sprintf(_brown_cluster_feature, "bc[i]=");
+        std::memcpy(_brown_cluster_feature + prefix, _brown_cluster_path, _brown_cluster_path_lengths[npaths - 1]);
+        for (size_t p = 0; p != npaths; ++p) {
+          _brown_cluster_feature[prefix + _brown_cluster_path_lengths[npaths - 1 - p]] = '\0';
+          features(_brown_cluster_feature);
+        }
+      }
 
       // Is the current token rare?
       if (_lexicon.count(utf8) < _rare_token_cutoff) {
