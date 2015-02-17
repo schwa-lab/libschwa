@@ -7,13 +7,14 @@
 
 namespace schwa {
 namespace tagger {
+namespace pos {
 
 // ============================================================================
-// POSModelParams
+// ModelParams
 // ============================================================================
-const unsigned int POSModelParams::DEFAULT_RARE_TOKEN_CUTOFF = 5;
+const unsigned int ModelParams::DEFAULT_RARE_TOKEN_CUTOFF = 5;
 
-POSModelParams::POSModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
+ModelParams::ModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
     learn::ModelParams(group, name, desc, flags),
     feature_hashing(*this, "feature-hashing", 'H', "Number of bits to use for feature hashing", config::Flags::OPTIONAL),
     lexicon_path(*this, "lexicon-path", "Relative path to the lexicon file within the model directory", "./lexicon"),
@@ -21,13 +22,13 @@ POSModelParams::POSModelParams(config::Group &group, const std::string &name, co
     brown_clusters_path(*this, "brown-clusters-path", "Path to the Brown cluster paths file", config::Flags::OPTIONAL)
   { }
 
-POSModelParams::~POSModelParams(void) { }
+ModelParams::~ModelParams(void) { }
 
 
 // ============================================================================
-// POSInputModel
+// InputModel
 // ============================================================================
-POSInputModel::POSInputModel(const std::string &path, POSModelParams &params) :
+InputModel::InputModel(const std::string &path, ModelParams &params) :
     learn::InputModel(path, params),
     _pool(4 * 1024 * 1024),
     _string_pool(_pool),
@@ -51,13 +52,13 @@ POSInputModel::POSInputModel(const std::string &path, POSModelParams &params) :
   }
 }
 
-POSInputModel::~POSInputModel(void) { }
+InputModel::~InputModel(void) { }
 
 
 // ============================================================================
-// POSOutputModel
+// OutputModel
 // ============================================================================
-POSOutputModel::POSOutputModel(const std::string &path, const POSModelParams &params, const config::Main &main_config) :
+OutputModel::OutputModel(const std::string &path, const ModelParams &params, const config::Main &main_config) :
     learn::OutputModel(path, params, main_config),
     _pool(4 * 1024 * 1024),
     _string_pool(_pool),
@@ -73,16 +74,16 @@ POSOutputModel::POSOutputModel(const std::string &path, const POSModelParams &pa
   }
 }
 
-POSOutputModel::~POSOutputModel(void) {
+OutputModel::~OutputModel(void) {
   io::OutputStream out(_lexicon_path);
   _lexicon.serialise(out);
 }
 
 
 // ============================================================================
-// POSExtractor
+// Extractor
 // ============================================================================
-POSExtractor::POSExtractor(POSInputModel &model) :
+Extractor::Extractor(InputModel &model) :
     _is_train(false),
     _rare_token_cutoff(model.rare_token_cutoff()),
     _lexicon(model.lexicon()),
@@ -95,7 +96,7 @@ POSExtractor::POSExtractor(POSInputModel &model) :
   { }
 
 
-POSExtractor::POSExtractor(POSOutputModel &model) :
+Extractor::Extractor(OutputModel &model) :
     _is_train(true),
     _rare_token_cutoff(model.rare_token_cutoff()),
     _lexicon(model.lexicon()),
@@ -107,25 +108,25 @@ POSExtractor::POSExtractor(POSOutputModel &model) :
     _offsets_token_norm_raw(&_get_token_norm_raw)
   { }
 
-POSExtractor::~POSExtractor(void) {
+Extractor::~Extractor(void) {
   delete [] _brown_cluster_feature;
   delete [] _brown_cluster_path_lengths;
 }
 
 
 void
-POSExtractor::phase1_begin(void) {
-  LOG2(INFO, _logger) << "POSExtractor phase1_begin" << std::endl;
+Extractor::phase1_begin(void) {
+  LOG2(INFO, _logger) << "Extractor phase1_begin" << std::endl;
 }
 
 void
-POSExtractor::phase1_end(void) {
-  LOG2(INFO, _logger) << "POSExtractor phase1_end" << std::endl;
+Extractor::phase1_end(void) {
+  LOG2(INFO, _logger) << "Extractor phase1_end" << std::endl;
 }
 
 
 void
-POSExtractor::phase1_extract(canonical_schema::Token &token, size_t) {
+Extractor::phase1_extract(canonical_schema::Token &token, size_t) {
   if (_is_train) {
     // Add the current token to the lexicon.
     _lexicon.add(_get_token_norm_raw(token));
@@ -134,21 +135,22 @@ POSExtractor::phase1_extract(canonical_schema::Token &token, size_t) {
 
 
 void
-POSExtractor::phase2_begin(void) {
-  LOG2(INFO, _logger) << "POSExtractor phase2_begin" << std::endl;
+Extractor::phase2_begin(void) {
+  LOG2(INFO, _logger) << "Extractor phase2_begin" << std::endl;
 }
 
 
 void
-POSExtractor::phase2_bos(canonical_schema::Sentence &sentence) {
+Extractor::phase2_bos(canonical_schema::Sentence &sentence) {
   _offsets_token_norm_raw.set_slice(sentence.span);
 }
 
 
 void
-POSExtractor::phase2_end(void) {
-  LOG2(INFO, _logger) << "POSExtractor phase2_end" << std::endl;
+Extractor::phase2_end(void) {
+  LOG2(INFO, _logger) << "Extractor phase2_end" << std::endl;
 }
 
+}  // namespace pos
 }  // namespace tagger
 }  // namespace schwa

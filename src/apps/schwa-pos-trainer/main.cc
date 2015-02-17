@@ -15,7 +15,7 @@ namespace cs = ::schwa::canonical_schema;
 namespace dr = ::schwa::dr;
 namespace io = ::schwa::io;
 namespace ln = ::schwa::learn;
-namespace tg = ::schwa::tagger;
+namespace pos = ::schwa::tagger::pos;
 
 
 class Main : public cf::Main {
@@ -27,7 +27,7 @@ public:
   cf::Op<std::string> extracted_path;
   cf::Op<bool> extract_only;
   cf::Op<bool> retain_docs;
-  tg::POSModelParams model_params;
+  pos::ModelParams model_params;
   ln::CRFSuiteTrainerParams trainer_params;
   dr::DocrepGroup dr;
 
@@ -48,15 +48,16 @@ public:
 
 namespace schwa {
 namespace tagger {
+namespace pos {
 
 template <typename TRANSFORMER>
 static void
-pos_trainer(const Main &cfg, TRANSFORMER &transformer, POSOutputModel &model) {
+run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
   // Create the feature extractor.
-  POSExtractor extractor(model);
+  Extractor extractor(model);
 
   // Create the trainer.
-  ln::CRFSuiteTrainer<POSExtractor> trainer(extractor, model, cfg.trainer_params);
+  ln::CRFSuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
 
   {
     // Construct a resettable docrep reader over the provided stream.
@@ -80,6 +81,7 @@ pos_trainer(const Main &cfg, TRANSFORMER &transformer, POSOutputModel &model) {
   trainer.train();
 }
 
+}  // namespace pos
 }  // namespace tagger
 }  // namespace schwa
 
@@ -94,16 +96,16 @@ main(int argc, char **argv) {
     cfg.main<io::PrettyLogger>(argc, argv);
 
     // Open the model. The validation of the model path needs to happen as early as possible.
-    tg::POSOutputModel model(cfg.model_path(), cfg.model_params, cfg);
+    pos::OutputModel model(cfg.model_path(), cfg.model_params, cfg);
 
     // Create the feature transformer.
     if (cfg.model_params.feature_hashing.was_mentioned()) {
       ln::HasherTransform<> transformer(cfg.model_params.feature_hashing());
-      tg::pos_trainer(cfg, transformer, model);
+      pos::run_trainer(cfg, transformer, model);
     }
     else {
       ln::NoTransform transformer;
-      tg::pos_trainer(cfg, transformer, model);
+      pos::run_trainer(cfg, transformer, model);
     }
   })
   return 0;
