@@ -101,31 +101,31 @@ OpLogLevel::_validate(const Main &main) {
 
 
 // ============================================================================
-// OpSequenceTagFormat
+// OpSequenceTagEncoding
 // ============================================================================
-OpSequenceTagFormat::OpSequenceTagFormat(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
+OpSequenceTagEncoding::OpSequenceTagEncoding(Group &group, const std::string &name, const std::string &desc, const std::string &default_) :
     OpChoices<std::string>(group, name, desc, {"iob1", "iob2", "bmewo"}, default_),
-    _format(SequenceTagFormat::IOB2)
+    _encoding(SequenceTagEncoding::IOB2)
   { }
 
-OpSequenceTagFormat::OpSequenceTagFormat(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_) :
+OpSequenceTagEncoding::OpSequenceTagEncoding(Group &group, const std::string &name, const char short_name, const std::string &desc, const std::string &default_) :
     OpChoices<std::string>(group, name, short_name, desc, {"iob1", "iob2", "bmewo"}, default_),
-    _format(SequenceTagFormat::IOB2)
+    _encoding(SequenceTagEncoding::IOB2)
   { }
 
-OpSequenceTagFormat::~OpSequenceTagFormat(void) { }
+OpSequenceTagEncoding::~OpSequenceTagEncoding(void) { }
 
 
 bool
-OpSequenceTagFormat::_validate(const Main &main) {
+OpSequenceTagEncoding::_validate(const Main &main) {
   if (!OpChoices<std::string>::_validate(main))
     return false;
   if (_value == "iob1")
-    _format = SequenceTagFormat::IOB1;
+    _encoding = SequenceTagEncoding::IOB1;
   else if (_value == "iob2")
-    _format = SequenceTagFormat::IOB2;
+    _encoding = SequenceTagEncoding::IOB2;
   else if (_value == "bmewo")
-    _format = SequenceTagFormat::BMEWO;
+    _encoding = SequenceTagEncoding::BMEWO;
   else
     return false;
   return true;

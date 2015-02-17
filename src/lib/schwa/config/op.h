@@ -118,21 +118,21 @@ namespace schwa {
     };
 
 
-    class OpSequenceTagFormat : public OpChoices<std::string> {
+    class OpSequenceTagEncoding : public OpChoices<std::string> {
     protected:
-      SequenceTagFormat _format;
+      SequenceTagEncoding _encoding;
 
       virtual bool _validate(const Main &main) override;
 
     public:
-      OpSequenceTagFormat(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
-      OpSequenceTagFormat(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
-      virtual ~OpSequenceTagFormat(void);
+      OpSequenceTagEncoding(Group &group, const std::string &name, const std::string &desc, const std::string &default_);
+      OpSequenceTagEncoding(Group &group, const std::string &name, char short_name, const std::string &desc, const std::string &default_);
+      virtual ~OpSequenceTagEncoding(void);
 
-      inline SequenceTagFormat format(void) const { return _format; }
+      inline SequenceTagEncoding encoding(void) const { return _encoding; }
 
     private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpSequenceTagFormat);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(OpSequenceTagEncoding);
     };
 
 

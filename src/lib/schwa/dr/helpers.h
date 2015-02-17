@@ -230,11 +230,11 @@ namespace schwa {
       }
 
       void
-      operator ()(DOC &doc, const SequenceTagFormat format) const {
-        switch (format) {
-        case SequenceTagFormat::IOB1: do_iob1(doc); break;
-        case SequenceTagFormat::IOB2: do_iob2(doc); break;
-        case SequenceTagFormat::BMEWO: do_bmewo(doc); break;
+      operator ()(DOC &doc, const SequenceTagEncoding encoding) const {
+        switch (encoding) {
+        case SequenceTagEncoding::IOB1: do_iob1(doc); break;
+        case SequenceTagEncoding::IOB2: do_iob2(doc); break;
+        case SequenceTagEncoding::BMEWO: do_bmewo(doc); break;
         }
       }
     };

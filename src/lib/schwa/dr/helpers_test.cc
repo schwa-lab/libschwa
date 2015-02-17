@@ -283,7 +283,7 @@ TEST(test_sequence_tagging) {
 
     reverse_sents(d);
     reverse_chunks(d);
-    tagger(d, SequenceTagFormat::IOB1);
+    tagger(d, SequenceTagEncoding::IOB1);
 
     CHECK_EQUAL("I-X", d.tokens[0].chunk_tag);
     CHECK_EQUAL("I-X", d.tokens[1].chunk_tag);
@@ -318,7 +318,7 @@ TEST(test_sequence_tagging) {
 
     reverse_sents(d);
     reverse_chunks(d);
-    tagger(d, SequenceTagFormat::IOB2);
+    tagger(d, SequenceTagEncoding::IOB2);
 
     CHECK_EQUAL("B-X", d.tokens[0].chunk_tag);
     CHECK_EQUAL("I-X", d.tokens[1].chunk_tag);
@@ -353,7 +353,7 @@ TEST(test_sequence_tagging) {
 
     reverse_sents(d);
     reverse_chunks(d);
-    tagger(d, SequenceTagFormat::BMEWO);
+    tagger(d, SequenceTagEncoding::BMEWO);
 
     CHECK_EQUAL("B-X", d.tokens[0].chunk_tag);
     CHECK_EQUAL("M-X", d.tokens[1].chunk_tag);
