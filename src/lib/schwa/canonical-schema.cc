@@ -8,7 +8,13 @@ namespace canonical_schema {
 // ================================================================================================
 // docrep models
 // ================================================================================================
-Heading::Heading(void) : sentence(nullptr), level(0) { }
+Heading::Heading(void) :
+    sentence(nullptr),
+    level(0),
+    is_author(false),
+    is_dateline(false),
+    is_heading(false)
+  { }
 
 
 ListItem::ListItem(void) : sentence(nullptr), list(nullptr) { }
@@ -95,7 +101,10 @@ Paragraph::Schema::~Schema(void) { }
 Heading::Schema::Schema(void) :
     dr::Ann::Schema<Heading>("Heading", "The heading class"),
     sentence(*this, "sentence", "Pointer to the underlying sentence", dr::FieldMode::READ_WRITE),
-    level(*this, "level", "The level of the heading (e.g. <h1> in HTML would be level 1)", dr::FieldMode::READ_WRITE)
+    level(*this, "level", "The level of the heading (e.g. <h1> in HTML would be level 1)", dr::FieldMode::READ_WRITE),
+    is_author(*this, "is_author", "Is this heading line the name of an author?", dr::FieldMode::READ_WRITE),
+    is_dateline(*this, "is_dateline", "Is this heading line a dateline?", dr::FieldMode::READ_WRITE),
+    is_heading(*this, "is_heading", "Is this heading line some kind of heading?", dr::FieldMode::READ_WRITE)
   { }
 Heading::Schema::~Schema(void) { }
 

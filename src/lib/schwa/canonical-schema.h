@@ -18,6 +18,7 @@ namespace schwa {
     class Hyperlink;
     class List;
     class ListItem;
+    class NamedEntity;
     class Paragraph;
     class Sentence;
     class Token;
@@ -29,6 +30,10 @@ namespace schwa {
       std::string raw;           //!< UTF-8 version of the raw token.
       std::string norm;          //!< If the tokenizer decided to normalise the raw token, this contains the normalised UTF-8 token.
       std::string pos;           //!< UTF-8 POS tag.
+
+      NamedEntity *ne;            // Back-pointer to the gold NE object used during NE training.
+      std::string ne_label;       // Token-level encoding of the gold NE label used during NE training.
+      std::string ne_normalised;  // (norm || raw) with digits and ordinals down-mapped. Used by lexical features during NE training.
 
       class Schema;
     };
@@ -54,6 +59,9 @@ namespace schwa {
     public:
       dr::Pointer<Sentence> sentence;
       unsigned int level;
+      bool is_author;
+      bool is_dateline;
+      bool is_heading;
 
       Heading(void);
 
@@ -187,6 +195,9 @@ namespace schwa {
     public:
       DR_POINTER(&Heading::sentence, &Doc::sentences) sentence;
       DR_FIELD(&Heading::level) level;
+      DR_FIELD(&Heading::is_author) is_author;
+      DR_FIELD(&Heading::is_dateline) is_dateline;
+      DR_FIELD(&Heading::is_heading) is_heading;
 
       Schema(void);
       virtual ~Schema(void);
