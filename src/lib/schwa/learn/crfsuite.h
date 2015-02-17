@@ -12,7 +12,8 @@
 #include <schwa/io/streams.h>
 #include <schwa/learn/io.h>
 #include <schwa/learn/model.h>
-#include <schwa/third-party/crfsuite/crfsuite.h>
+
+#include <crfsuite.h>
 
 
 namespace schwa {
@@ -51,10 +52,10 @@ namespace schwa {
       OutputModel &_model;
       io::Logger &_logger;
       EXTRACTOR &_extractor;
-      third_party::crfsuite::crfsuite_data_t _data;
-      third_party::crfsuite::crfsuite_instance_t _instance;
-      third_party::crfsuite::crfsuite_item_t *_item;
-      third_party::crfsuite::crfsuite_trainer_t *_trainer;
+      crfsuite_data_t _data;
+      crfsuite_instance_t _instance;
+      crfsuite_item_t *_item;
+      crfsuite_trainer_t *_trainer;
 
       void _crfsuite_error(const std::string &api_call, int ret);
       void _crfsuite_log(io::LogLevel level, const char *msg);
@@ -91,12 +92,12 @@ namespace schwa {
     private:
       InputModel &_model;
       EXTRACTOR &_extractor;
-      third_party::crfsuite::crfsuite_model_t *_cmodel;
-      third_party::crfsuite::crfsuite_tagger_t *_tagger;
-      third_party::crfsuite::crfsuite_dictionary_t *_attrs;
-      third_party::crfsuite::crfsuite_dictionary_t *_labels;
-      third_party::crfsuite::crfsuite_instance_t _instance;
-      third_party::crfsuite::crfsuite_item_t *_item;
+      crfsuite_model_t *_cmodel;
+      crfsuite_tagger_t *_tagger;
+      crfsuite_dictionary_t *_attrs;
+      crfsuite_dictionary_t *_labels;
+      crfsuite_instance_t _instance;
+      crfsuite_item_t *_item;
       std::vector<int> _label_ids;
       std::vector<const char *> _label_strings;
       unsigned int _ntokens_correct;
@@ -111,7 +112,7 @@ namespace schwa {
 
       template <typename TO_STRING, typename FEATURES>
       void _add_item(TO_STRING &to_string_helper, const FEATURES &features);
-      third_party::crfsuite::floatval_t _viterbi(void);
+      floatval_t _viterbi(void);
 
     public:
       CRFSuiteTagger(EXTRACTOR &extractor, InputModel &model);
@@ -128,7 +129,7 @@ namespace schwa {
     // ========================================================================
     // crfsuite flat file format helper functions
     // ========================================================================
-    void dump_crfsuite_data(std::ostream &out, const third_party::crfsuite::crfsuite_data_t &data);
+    void dump_crfsuite_data(std::ostream &out, const crfsuite_data_t &data);
     void dump_crfsuite_value(std::ostream &out, const char *value);
 
   }

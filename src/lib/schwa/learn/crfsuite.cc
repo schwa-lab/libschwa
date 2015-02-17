@@ -44,8 +44,7 @@ dump_crfsuite_value(std::ostream &out, const char *const value) {
 
 
 void
-dump_crfsuite_data(std::ostream &out, const third_party::crfsuite::crfsuite_data_t &data) {
-  using namespace ::schwa::third_party::crfsuite;
+dump_crfsuite_data(std::ostream &out, const crfsuite_data_t &data) {
   int ret;
   const char *str;
 
