@@ -86,7 +86,9 @@
     4) Goto 1 until convergence.
 */
 
-#include <schwa/_config.h>
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
 
 #include <float.h>
 #include <stdio.h>

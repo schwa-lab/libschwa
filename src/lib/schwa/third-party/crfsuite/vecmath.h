@@ -33,8 +33,6 @@
 #ifndef SCHWA_THIRD_PARTY_CRFSUITE_VECMATH_H
 #define SCHWA_THIRD_PARTY_CRFSUITE_VECMATH_H
 
-#include <schwa/_config.h>
-
 #include <math.h>
 #include <memory.h>
 #include <string.h>

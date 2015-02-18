@@ -60,7 +60,9 @@ I would like to thank the original author, Jorge Nocedal, who has been
 distributing the effieicnt and explanatory implementation in an open source
 licence.
 */
-#include <schwa/_config.h>
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
 
 #include <stdint.h>
 #include <stdio.h>

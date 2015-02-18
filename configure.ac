@@ -211,7 +211,7 @@ fi
 AC_SUBST([LIBSCHWA_BASE_CPPFLAGS])
 
 dnl Configure autoconf inputs and outputs.
-AC_CONFIG_HEADERS([src/lib/schwa/_config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([
   Makefile
   src/apps/Makefile

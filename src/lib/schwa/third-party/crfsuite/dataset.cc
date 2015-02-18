@@ -30,7 +30,9 @@
 
 /* $Id$ */
 
-#include <schwa/_config.h>
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <schwa/third-party/crfsuite/crfsuite.h>

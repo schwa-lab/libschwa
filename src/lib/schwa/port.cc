@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/port.h>
 
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
 #ifdef HAVE_CXXABI_H
   #include <cxxabi.h>  // __cxa_demangle
 #endif

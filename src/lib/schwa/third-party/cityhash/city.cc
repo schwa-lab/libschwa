@@ -26,6 +26,9 @@
 // writing a program that systematically explores some of the space of
 // possible hash functions, by using SIMD instructions, or by
 // compromising on hash quality.
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
 
 #include <schwa/third-party/cityhash/city.h>
 

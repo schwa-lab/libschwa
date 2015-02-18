@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/io/paths.h>
 
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
 #include <cerrno>
 #include <cstring>  // memcpy, strerror
 #include <memory>

@@ -2,10 +2,6 @@
 #ifndef SCHWA__BASE_H_
 #define SCHWA__BASE_H_
 
-#ifdef HAVE_CONFIG_H
-  #include "_config.h"
-#endif
-
 #include <cstddef>
 #include <cstdint>
 
