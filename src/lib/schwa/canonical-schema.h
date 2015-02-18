@@ -36,6 +36,9 @@ namespace schwa {
       std::string ne_normalised;  // (norm || raw) with digits and ordinals down-mapped. Used by lexical features during NE training.
 
       class Schema;
+
+      inline std::string &get_norm_raw(void) { return norm.empty() ? raw : norm; }
+      inline const std::string &get_norm_raw(void) const { return norm.empty() ? raw : norm; }
     };
 
 

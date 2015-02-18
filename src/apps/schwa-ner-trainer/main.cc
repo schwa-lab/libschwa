@@ -57,14 +57,21 @@ run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
   // Create the trainer.
   ln::CRFSuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
 
+  // Construct a resettable docrep reader over the provided stream.
+  std::unique_ptr<ln::ResettableDocrepReader<cs::Doc>> doc_reader;
   {
-    // Construct a resettable docrep reader over the provided stream.
     io::InputStream in(cfg.input_path());
-    ln::ResettableDocrepReader<cs::Doc> doc_reader(in, cfg.schema, true);
+    doc_reader.reset(new ln::ResettableDocrepReader<cs::Doc>(in, cfg.schema, true));
 
-    // Extract the features.
-    trainer.extract<TRANSFORMER>(doc_reader, transformer);
+    // Read and pre-process all of the documents.
+    for (cs::Doc *doc = doc_reader->next(); doc != nullptr; doc = doc_reader->next()) {
+      ner::preprocess_doc(*doc, model.brown_clusters());
+    }
+    doc_reader->reset();
   }
+
+  // Extract the features for the 1st stage classifier.
+  trainer.extract<TRANSFORMER>(*doc_reader, transformer);
 
   // Optionally dump out the extracted features.
   if (cfg.extracted_path.was_mentioned()) {

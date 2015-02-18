@@ -74,6 +74,15 @@ namespace schwa {
       };
 
 
+      /**
+       * Preprocesses a document before use in any of the NER tools. This performs a bunch of
+       * things such as attempting to truecase all-caps sentences, and performing some
+       * normalisation on token surface forms to provide some generalisation to the NER model, such
+       * as normalising all numbers and ordinals to a common value.
+       **/
+      void preprocess_doc(canonical_schema::Doc &doc, const lex::BrownClusters &brown_clusters);
+
+
       class Extractor {
       private:
         const bool _is_train;
@@ -117,7 +126,7 @@ namespace schwa {
       private:
         static inline const std::string &
         _get_token_norm_raw(const canonical_schema::Token &t) {
-          return t.norm.empty() ? t.raw : t.norm;
+          return t.get_norm_raw();
         }
 
         static inline const std::string &

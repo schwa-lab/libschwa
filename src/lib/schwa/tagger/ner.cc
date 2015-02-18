@@ -147,14 +147,107 @@ Extractor::phase1_bod(cs::Doc &doc) {
     REVERSE_GOLD_NES(doc);
     SEQUENCE_TAG_GOLD_NES(doc, _tag_encoding);
   }
+}
 
+
+void
+Extractor::phase1_bos(cs::Sentence &sentence) {
+  _offsets_token_ne_normalised.set_slice(sentence.span);
+  _offsets_token_norm_raw.set_slice(sentence.span);
+}
+
+
+void
+Extractor::phase2_begin(void) {
+  LOG2(INFO, _logger) << "Extractor phase2_begin" << std::endl;
+}
+
+
+void
+Extractor::phase2_bos(cs::Sentence &sentence) {
+  _offsets_token_ne_normalised.set_slice(sentence.span);
+  _offsets_token_norm_raw.set_slice(sentence.span);
+}
+
+
+void
+Extractor::phase2_end(void) {
+  LOG2(INFO, _logger) << "Extractor phase2_end" << std::endl;
+}
+
+
+// ============================================================================
+// preprocess_doc
+// ============================================================================
+static void
+attempt_truecase_token(cs::Token &token, cs::Sentence &sentence, const lex::BrownClusters &brown_clusters, const std::unordered_map<UnicodeString, std::unordered_map<std::string, unsigned int>> &capitalisation_counts) {
+  // Compute the possible truecased forms of the token: all lower, all upper, or initial upper.
+  const std::string &orig = token.get_norm_raw();
+  const UnicodeString lower = UnicodeString::from_utf8(orig).to_lower();
+  const UnicodeString title = UnicodeString::from_utf8(orig).to_title();
+  const UnicodeString upper = UnicodeString::from_utf8(orig).to_upper();
+  std::array<std::string, 3> options = {{
+      lower.to_utf8(),
+      title.to_utf8(),
+      upper.to_utf8()
+  }};
+
+  // Get the frequencies of the three capitalisation variants from the Brown clusters, and sort them in ascending order of frequency.
+  std::array<std::tuple<unsigned int, std::string *>, 3> brown_counts = {{
+      std::make_tuple(brown_clusters.get_frequency(options[0]), &options[0]),
+      std::make_tuple(brown_clusters.get_frequency(options[1]), &options[1]),
+      std::make_tuple(brown_clusters.get_frequency(options[2]), &options[2])
+  }};
+  std::sort(brown_counts.begin(), brown_counts.end());
+
+  // Assign the most likely word based on the frequency counts, optionally indicating that the document-local counts should be used instead.
+  bool fallback_to_local_counts = false;
+  if (&token == sentence.span.start) {
+    if (std::get<0>(brown_counts[2]) == 0)
+      fallback_to_local_counts = true;
+    else if (std::get<1>(brown_counts[2]) == &options[0])
+      token.ne_normalised = *std::get<1>(brown_counts[1]);
+    else
+      token.ne_normalised = *std::get<1>(brown_counts[2]);
+  }
+  else {
+    if (std::get<0>(brown_counts[2]) == 0)
+      fallback_to_local_counts = true;
+    else
+      token.ne_normalised = *std::get<1>(brown_counts[2]);
+  }
+
+  // Do we need to fall back to the document-local counts as the word is unseen in Brown?
+  if (fallback_to_local_counts) {
+    const auto &it = capitalisation_counts.find(lower);
+    if (it == capitalisation_counts.end()) {
+      if (&token == sentence.span.start)
+        token.ne_normalised = options[1];
+      else
+        token.ne_normalised = options[0];
+    }
+    else {
+      unsigned int freq = 0;
+      for (const auto &pair : it->second) {
+        if (pair.second > freq) {
+          token.ne_normalised = pair.first;
+          freq = pair.second;
+        }
+      }
+    }
+  }
+}
+
+
+void
+preprocess_doc(cs::Doc &doc, const lex::BrownClusters &brown_clusters) {
   // Perform an initial pass over the sentences to see which ones are all uppercase.
   std::vector<bool> sent_contains_lower(doc.sentences.size());
   for (size_t s = 0; s != doc.sentences.size(); ++s) {
     cs::Sentence &sentence = doc.sentences[s];
     bool contains_lower = false;
     for (cs::Token &token : sentence.span) {
-      for (const unicode_t cp : UTF8Decoder(_get_token_norm_raw(token))) {
+      for (const unicode_t cp : UTF8Decoder(token.get_norm_raw())) {
         if (unicode::is_lower(cp)) {
           contains_lower = true;
           break;
@@ -173,7 +266,7 @@ Extractor::phase1_bod(cs::Doc &doc) {
       continue;
     cs::Sentence &sentence = doc.sentences[s];
     for (cs::Token &token : sentence.span) {
-      const std::string &orig = _get_token_norm_raw(token);
+      const std::string &orig = token.get_norm_raw();
       const UnicodeString lower = UnicodeString::from_utf8(orig).to_lower();
       capitalisation_counts[lower][orig] += 1;
     }
@@ -190,66 +283,12 @@ Extractor::phase1_bod(cs::Doc &doc) {
     if (sent_contains_lower[s]) {
       // No truecasing required for normal looking sentences.
       for (cs::Token &token : sentence.span)
-        token.ne_normalised = _get_token_norm_raw(token);
+        token.ne_normalised = token.get_norm_raw();
     }
     else {
       // Attempt to truecase the uppercase sentence.
-      for (cs::Token &token : sentence.span) {
-        const std::string &orig = _get_token_norm_raw(token);
-        const UnicodeString lower = UnicodeString::from_utf8(orig).to_lower();
-        const UnicodeString title = UnicodeString::from_utf8(orig).to_title();
-        const UnicodeString upper = UnicodeString::from_utf8(orig).to_upper();
-        std::array<std::string, 3> options = {{
-            lower.to_utf8(),
-            title.to_utf8(),
-            upper.to_utf8()
-        }};
-
-        // Get the frequencies of the three capitalisation variants from the Brown clusters, and sort them in ascending order of frequency.
-        std::array<std::tuple<unsigned int, std::string *>, 3> brown_counts = {{
-            std::make_tuple(_brown_clusters.get_frequency(options[0]), &options[0]),
-            std::make_tuple(_brown_clusters.get_frequency(options[1]), &options[1]),
-            std::make_tuple(_brown_clusters.get_frequency(options[2]), &options[2])
-        }};
-        std::sort(brown_counts.begin(), brown_counts.end());
-
-        // Assign the most likely word based on the frequency counts, optionally indicating that the document-local counts should be used instead.
-        bool fallback_to_local_counts = false;
-        if (&token == sentence.span.start) {
-          if (std::get<0>(brown_counts[2]) == 0)
-            fallback_to_local_counts = true;
-          else if (std::get<1>(brown_counts[2]) == &options[0])
-            token.ne_normalised = *std::get<1>(brown_counts[1]);
-          else
-            token.ne_normalised = *std::get<1>(brown_counts[2]);
-        }
-        else {
-          if (std::get<0>(brown_counts[2]) == 0)
-            fallback_to_local_counts = true;
-          else
-            token.ne_normalised = *std::get<1>(brown_counts[2]);
-        }
-
-        // Do we need to fall back to the document-local counts as the word is unseen in Brown?
-        if (fallback_to_local_counts) {
-          const auto &it = capitalisation_counts.find(lower);
-          if (it == capitalisation_counts.end()) {
-            if (&token == sentence.span.start)
-              token.ne_normalised = options[1];
-            else
-              token.ne_normalised = options[0];
-          }
-          else {
-            unsigned int freq = 0;
-            for (const auto &pair : it->second) {
-              if (pair.second > freq) {
-                token.ne_normalised = pair.first;
-                freq = pair.second;
-              }
-            }
-          }
-        }
-      }  // for each token
+      for (cs::Token &token : sentence.span)
+        attempt_truecase_token(token, sentence, brown_clusters, capitalisation_counts);
     }  // end else
 
     // Replace all digits with "9" and all orginals with "9th".
@@ -277,32 +316,6 @@ Extractor::phase1_bod(cs::Doc &doc) {
       token.ne_normalised = ne_normalised;
     }  // for each token
   }  // for each sentence
-}
-
-
-void
-Extractor::phase1_bos(cs::Sentence &sentence) {
-  _offsets_token_ne_normalised.set_slice(sentence.span);
-  _offsets_token_norm_raw.set_slice(sentence.span);
-}
-
-
-void
-Extractor::phase2_begin(void) {
-  LOG2(INFO, _logger) << "Extractor phase2_begin" << std::endl;
-}
-
-
-void
-Extractor::phase2_bos(cs::Sentence &sentence) {
-  _offsets_token_ne_normalised.set_slice(sentence.span);
-  _offsets_token_norm_raw.set_slice(sentence.span);
-}
-
-
-void
-Extractor::phase2_end(void) {
-  LOG2(INFO, _logger) << "Extractor phase2_end" << std::endl;
 }
 
 }  // namesapce ner
