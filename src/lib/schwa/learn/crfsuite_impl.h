@@ -51,6 +51,7 @@ namespace schwa {
         _extractor(extractor),
         _trainer(nullptr)
       {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       // Initialise crfsuite data.
@@ -58,16 +59,16 @@ namespace schwa {
 
       // Initialise the attribute and label dictionaries.
       ret = crfsuite_create_instance("dictionary", reinterpret_cast<void **>(&_data.attrs));
-      if (SCHWA_UNLIKELY(ret != 1))
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
       ret = crfsuite_create_instance("dictionary", reinterpret_cast<void **>(&_data.labels));
-      if (SCHWA_UNLIKELY(ret != 1))
+      if (SCHWA_UNLIKELY(ret != 0))
         _crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
 
       // Initialise the trainer.
       std::string tid = "train/crf1d/" + params.algorithm();
       ret = crfsuite_create_instance(tid.c_str(), reinterpret_cast<void **>(&_trainer));
-      if (SCHWA_UNLIKELY(ret != 1)) {
+      if (SCHWA_UNLIKELY(ret != 0)) {
         std::ostringstream ss;
         ss << "crfsuite_create_instance(\"" << tid << "\")";
         _crfsuite_error(ss.str(), ret);
@@ -93,6 +94,8 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     CRFSuiteTrainer<EXTRACTOR>::~CRFSuiteTrainer(void) {
+      using namespace ::schwa::third_party::crfsuite;
+
       // Deinitialise the trainer.
       if (_trainer != nullptr) {
         _trainer->release(_trainer);
@@ -167,6 +170,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
+      using namespace ::schwa::third_party::crfsuite;
       // Initialise the item sequence with a known number of items.
       crfsuite_instance_init_n(&_instance, nitems);
       _item = _instance.items;
@@ -176,6 +180,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::_end_item_sequence(void) {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       // Add the item sequence to the training data.
@@ -191,6 +196,7 @@ namespace schwa {
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label) {
+      using namespace ::schwa::third_party::crfsuite;
 
       // Initialise the item with a known number of attributes.
       crfsuite_item_init_n(_item, features.size());
@@ -219,6 +225,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::set_param(const std::string &key, const std::string &val) {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       crfsuite_params_t *const params = _trainer->params(_trainer);
@@ -235,6 +242,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::train(void) {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       LOG2(INFO, _logger) << "CRFSuiteTrainer::train begin" << std::endl;
@@ -308,7 +316,7 @@ namespace schwa {
       doc_reader.reset();
 
       // Create a Features instance.
-      Features<TRANSFORM, floatval_t> features(transformer);
+      Features<TRANSFORM, ::schwa::third_party::crfsuite::floatval_t> features(transformer);
 
       // Run phase 2.
       _extractor.phase2_begin();
@@ -365,6 +373,7 @@ namespace schwa {
         _nsentences_correct(0),
         _nsentences_total(0)
       {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       // Open the crfsuite model.
@@ -404,6 +413,8 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     CRFSuiteTagger<EXTRACTOR>::~CRFSuiteTagger(void) {
+      using namespace ::schwa::third_party::crfsuite;
+
       // Free the label strings obtained from crfsuite.
       for (const char *str : _label_strings)
         _labels->free(_labels, str);
@@ -440,6 +451,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTagger<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
+      using namespace ::schwa::third_party::crfsuite;
       // Initialise the item sequence with a known number of items.
       crfsuite_instance_init_n(&_instance, nitems);
       _item = _instance.items;
@@ -449,6 +461,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTagger<EXTRACTOR>::_end_item_sequence(void) {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       // Set the taggers current instance to be this instance.
@@ -463,6 +476,7 @@ namespace schwa {
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
     CRFSuiteTagger<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features) {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       // Initialise the item with an unknown number of attributes.
@@ -491,8 +505,9 @@ namespace schwa {
 
 
     template <typename EXTRACTOR>
-    inline floatval_t
+    inline ::schwa::third_party::crfsuite::floatval_t
     CRFSuiteTagger<EXTRACTOR>::_viterbi(void) {
+      using namespace ::schwa::third_party::crfsuite;
       int ret;
 
       // Set the taggers current instance to be this instance.
@@ -543,7 +558,7 @@ namespace schwa {
       doc_reader.reset();
 
       // Create a Features instance.
-      Features<TRANSFORM, floatval_t> features(transformer);
+      Features<TRANSFORM, ::schwa::third_party::crfsuite::floatval_t> features(transformer);
 
       // Run phase 2.
       _extractor.phase2_begin();
@@ -571,7 +586,7 @@ namespace schwa {
           _extractor.phase2_eos(sentence);
 
           // Run viterbi over the current item sequence.
-          const floatval_t score = _viterbi();
+          const third_party::crfsuite::floatval_t score = _viterbi();
           (void)score;
 
           bool all_tokens_correct = true;
