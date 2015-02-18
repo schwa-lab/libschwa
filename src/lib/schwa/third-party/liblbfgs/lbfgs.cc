@@ -73,11 +73,11 @@ licence.
 #define inline  __inline
 #endif/*_MSC_VER*/
 
-#if     defined(__SSE2__) && SCHWA_THIRD_PARTY_LIBLBFGS_LBFGS_FLOAT == 64
+#if defined(HAVE_SSE) && SCHWA_THIRD_PARTY_LIBLBFGS_LBFGS_FLOAT == 64
 /* Use SSE2 optimization for 64bit double precision. */
 #include <schwa/third-party/liblbfgs/arithmetic_sse_double.h>
 
-#elif   defined(__SSE__) && SCHWA_THIRD_PARTY_LIBLBFGS_LBFGS_FLOAT == 32
+#elif defined(HAVE_SSE) && SCHWA_THIRD_PARTY_LIBLBFGS_LBFGS_FLOAT == 32
 /* Use SSE optimization for 32bit float precision. */
 #include <schwa/third-party/liblbfgs/arithmetic_sse_float.h>
 
@@ -214,7 +214,7 @@ static void owlqn_project(
     );
 
 
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+#ifdef HAVE_SSE
 static int round_out_variables(int n)
 {
     n += 7;
@@ -222,13 +222,13 @@ static int round_out_variables(int n)
     n *= 8;
     return n;
 }
-#endif/*defined(USE_SSE)*/
+#endif
 
 lbfgsfloatval_t* lbfgs_malloc(int n)
 {
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+#ifdef HAVE_SSE
     n = round_out_variables(n);
-#endif/*defined(USE_SSE)*/
+#endif
     return (lbfgsfloatval_t*)vecalloc(sizeof(lbfgsfloatval_t) * n);
 }
 
@@ -277,23 +277,23 @@ int lbfgs(
     cd.proc_evaluate = proc_evaluate;
     cd.proc_progress = proc_progress;
 
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+#ifdef HAVE_SSE
     /* Round out the number of variables. */
     n = round_out_variables(n);
-#endif/*defined(USE_SSE)*/
+#endif
 
     /* Check the input parameters for errors. */
     if (n <= 0) {
         return LBFGSERR_INVALID_N;
     }
-#if     defined(USE_SSE) && (defined(__SSE__) || defined(__SSE2__))
+#ifdef HAVE_SSE
     if (n % 8 != 0) {
         return LBFGSERR_INVALID_N_SSE;
     }
     if ((uintptr_t)(const void*)x % 16 != 0) {
         return LBFGSERR_INVALID_X_SSE;
     }
-#endif/*defined(USE_SSE)*/
+#endif
     if (param.epsilon < 0.) {
         return LBFGSERR_INVALID_EPSILON;
     }

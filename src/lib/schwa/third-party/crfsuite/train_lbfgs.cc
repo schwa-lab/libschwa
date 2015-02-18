@@ -242,7 +242,7 @@ int crfsuite_train_lbfgs(
     lbfgs_parameter_init(&lbfgsparam);
 
     /* Allocate an array that stores the current weights. */
-    w = (floatval_t*)calloc(sizeof(floatval_t), K);
+    w = lbfgs_malloc(K);
     if (w == NULL) {
 		ret = CRFSUITEERR_OUTOFMEMORY;
 		goto error_exit;
@@ -334,7 +334,7 @@ int crfsuite_train_lbfgs(
 
 error_exit:
 	free(lbfgsi.best_w);
-	free(w);
+	lbfgs_free(w);
 	*ptr_w = NULL;
 	return ret;
 }

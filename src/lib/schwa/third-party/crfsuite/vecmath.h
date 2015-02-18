@@ -345,7 +345,7 @@ inline static void vecexp(double *values, const int n)
     }
 }
 
-#endif /*HAVE_SSE*/
+#endif
 
 } } }
 
