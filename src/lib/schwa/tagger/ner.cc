@@ -1,6 +1,9 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <schwa/tagger/ner.h>
 
+#include <algorithm>
+#include <array>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -194,16 +197,55 @@ Extractor::phase1_bod(cs::Doc &doc) {
       for (cs::Token &token : sentence.span) {
         const std::string &orig = _get_token_norm_raw(token);
         const UnicodeString lower = UnicodeString::from_utf8(orig).to_lower();
-        const auto &it = capitalisation_counts.find(lower);
-        if (it == capitalisation_counts.end()) {
-          token.ne_normalised = lower.to_utf8();
+        const UnicodeString title = UnicodeString::from_utf8(orig).to_title();
+        const UnicodeString upper = UnicodeString::from_utf8(orig).to_upper();
+        std::array<std::string, 3> options = {{
+            lower.to_utf8(),
+            title.to_utf8(),
+            upper.to_utf8()
+        }};
+
+        // Get the frequencies of the three capitalisation variants from the Brown clusters, and sort them in ascending order of frequency.
+        std::array<std::tuple<unsigned int, std::string *>, 3> brown_counts = {{
+            std::make_tuple(_brown_clusters.get_frequency(options[0]), &options[0]),
+            std::make_tuple(_brown_clusters.get_frequency(options[1]), &options[1]),
+            std::make_tuple(_brown_clusters.get_frequency(options[2]), &options[2])
+        }};
+        std::sort(brown_counts.begin(), brown_counts.end());
+
+        // Assign the most likely word based on the frequency counts, optionally indicating that the document-local counts should be used instead.
+        bool fallback_to_local_counts = false;
+        if (&token == sentence.span.start) {
+          if (std::get<0>(brown_counts[2]) == 0)
+            fallback_to_local_counts = true;
+          else if (std::get<1>(brown_counts[2]) == &options[0])
+            token.ne_normalised = *std::get<1>(brown_counts[1]);
+          else
+            token.ne_normalised = *std::get<1>(brown_counts[2]);
         }
         else {
-          unsigned int freq = 0;
-          for (const auto &pair : it->second) {
-            if (pair.second > freq) {
-              token.ne_normalised = pair.first;
-              freq = pair.second;
+          if (std::get<0>(brown_counts[2]) == 0)
+            fallback_to_local_counts = true;
+          else
+            token.ne_normalised = *std::get<1>(brown_counts[2]);
+        }
+
+        // Do we need to fall back to the document-local counts as the word is unseen in Brown?
+        if (fallback_to_local_counts) {
+          const auto &it = capitalisation_counts.find(lower);
+          if (it == capitalisation_counts.end()) {
+            if (&token == sentence.span.start)
+              token.ne_normalised = options[1];
+            else
+              token.ne_normalised = options[0];
+          }
+          else {
+            unsigned int freq = 0;
+            for (const auto &pair : it->second) {
+              if (pair.second > freq) {
+                token.ne_normalised = pair.first;
+                freq = pair.second;
+              }
             }
           }
         }
