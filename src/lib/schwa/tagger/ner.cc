@@ -92,8 +92,9 @@ OutputModel::~OutputModel(void) { }
 // ============================================================================
 // Extractor
 // ============================================================================
-Extractor::Extractor(InputModel &model) :
+Extractor::Extractor(InputModel &model, bool is_second_stage) :
     _is_train(false),
+    _is_second_stage(is_second_stage),
     _tag_encoding(model.tag_encoding()),
     _brown_clusters(model.brown_clusters()),
     _brown_cluster_path(nullptr),
@@ -106,8 +107,9 @@ Extractor::Extractor(InputModel &model) :
   { }
 
 
-Extractor::Extractor(OutputModel &model) :
+Extractor::Extractor(OutputModel &model, bool is_second_stage) :
     _is_train(true),
+    _is_second_stage(is_second_stage),
     _tag_encoding(model.tag_encoding()),
     _brown_clusters(model.brown_clusters()),
     _brown_cluster_path(nullptr),
@@ -126,21 +128,15 @@ Extractor::~Extractor(void) {
 
 
 void
-Extractor::phase1_begin(void) {
-  LOG2(INFO, _logger) << "Extractor phase1_begin" << std::endl;
-}
-
-
-void
-Extractor::phase1_end(void) {
-  LOG2(INFO, _logger) << "Extractor phase1_end" << std::endl;
-}
-
-
-void
-Extractor::phase1_bod(cs::Doc &doc) {
+Extractor::phase2_bod(cs::Doc &doc) {
   static const auto REVERSE_GOLD_NES = DR_REVERSE_SLICES(&cs::Doc::named_entities, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Token::ne);
   static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
+
+  // Move the 1st stage CRF tagging decisions from the ne_label attribute to the ne_label_crf1 attribute.
+  if (_is_second_stage) {
+    for (cs::Token &token : doc.tokens)
+      token.ne_label_crf1 = token.ne_label;
+  }
 
   // Reverse the gold NEs down onto the tokens, as well as the encoded NE label.
   if (_is_train) {
@@ -151,28 +147,9 @@ Extractor::phase1_bod(cs::Doc &doc) {
 
 
 void
-Extractor::phase1_bos(cs::Sentence &sentence) {
-  _offsets_token_ne_normalised.set_slice(sentence.span);
-  _offsets_token_norm_raw.set_slice(sentence.span);
-}
-
-
-void
-Extractor::phase2_begin(void) {
-  LOG2(INFO, _logger) << "Extractor phase2_begin" << std::endl;
-}
-
-
-void
 Extractor::phase2_bos(cs::Sentence &sentence) {
   _offsets_token_ne_normalised.set_slice(sentence.span);
   _offsets_token_norm_raw.set_slice(sentence.span);
-}
-
-
-void
-Extractor::phase2_end(void) {
-  LOG2(INFO, _logger) << "Extractor phase2_end" << std::endl;
 }
 
 

@@ -1,11 +1,14 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #include <schwa/canonical-schema.h>
 #include <schwa/config.h>
 #include <schwa/dr/config.h>
+#include <schwa/exception.h>
 #include <schwa/io/logging.h>
 #include <schwa/learn.h>
 #include <schwa/tagger/ner.h>
@@ -48,34 +51,37 @@ namespace schwa {
 namespace tagger {
 namespace ner {
 
-template <typename TRANSFORMER>
-static void
-run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
-  // Create the feature extractor.
-  Extractor extractor(model);
 
-  // Create the trainer.
+static std::string
+get_fold_suffix(const unsigned int fold) {
+  std::ostringstream ss;
+  ss << ".fold" << fold;
+  return ss.str();
+}
+
+
+template <typename IT, typename TRANSFORMER>
+static void
+run_trainer1(const Main &cfg, Extractor &extractor, OutputModel &model, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const int fold=-1) {
+  // Construct the path suffix if we're training a fold.
+  std::string suffix;
+  if (fold >= 0)
+    suffix = get_fold_suffix(fold);
+
+  if (fold >= 0)
+    LOG(INFO) << "Training 1st stage NER classifier for fold " << fold << std::endl;
+  else
+    LOG(INFO) << "Training 1st stage NER classifier for all training data" << std::endl;
+
+  // Create the trainer for the 1st stage classifier.
   ln::CRFSuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
 
-  // Construct a resettable docrep reader over the provided stream.
-  std::unique_ptr<ln::ResettableDocrepReader<cs::Doc>> doc_reader;
-  {
-    io::InputStream in(cfg.input_path());
-    doc_reader.reset(new ln::ResettableDocrepReader<cs::Doc>(in, cfg.schema, true));
-
-    // Read and pre-process all of the documents.
-    for (cs::Doc *doc = doc_reader->next(); doc != nullptr; doc = doc_reader->next()) {
-      ner::preprocess_doc(*doc, model.brown_clusters());
-    }
-    doc_reader->reset();
-  }
-
   // Extract the features for the 1st stage classifier.
-  trainer.extract<TRANSFORMER>(*doc_reader, transformer);
+  trainer.extract<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
 
   // Optionally dump out the extracted features.
   if (cfg.extracted_path.was_mentioned()) {
-    io::OutputStream out(cfg.extracted_path());
+    io::OutputStream out(cfg.extracted_path() + suffix);
     trainer.dump_crfsuite_data(out);
   }
 
@@ -83,8 +89,99 @@ run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
     return;
 
   // Train the model.
-  trainer.train_folds(10);
+  if (fold >= 0)
+    trainer.set_model_filename_suffix(suffix);
   trainer.train();
+}
+
+
+template <typename IT, typename TRANSFORMER>
+static void
+run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const unsigned int fold) {
+  LOG(INFO) << "Tagging with 1st stage NER classifier for fold " << fold << std::endl;
+
+  // Create the tagger for the 1st stage classifier.
+  ln::CRFSuiteTagger<Extractor> tagger(extractor, model_path + get_fold_suffix(fold));
+
+  // Extract the features for the 1st stage classifier.
+  tagger.tag<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
+  tagger.dump_accuracy();
+}
+
+
+template <typename TRANSFORMER>
+static void
+run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
+  static constexpr const unsigned int NFOLDS = 10;
+
+  // Read in each of the docrep documents from the input stream, and pre-process them.
+  std::vector<cs::Doc *> docs;
+  {
+    io::InputStream in(cfg.input_path());
+    dr::Reader reader(in, cfg.schema);
+    while (true) {
+      cs::Doc *doc = new cs::Doc();
+      if (reader >> *doc) {
+        ner::preprocess_doc(*doc, model.brown_clusters());
+        docs.push_back(doc);
+      }
+      else {
+        delete doc;
+        break;
+      }
+    }
+  }
+
+  // Ensure we have enough documents for training.
+  if (docs.size() < NFOLDS) {
+    std::ostringstream ss;
+    ss << "Not enough documents (" << docs.size() << ") to perform training. Need at least " << NFOLDS << ".";
+    throw ValueException(ss.str());
+  }
+
+  // Split the docs into folds.
+  unsigned int fold_size = docs.size() / NFOLDS;
+  if (docs.size() % NFOLDS != 0)
+    ++fold_size;
+
+  // 1st stage classifier.
+  {
+    // Create the feature extractor for the 1st stage classifier.
+    Extractor extractor(model, false);
+
+    // Train a full model.
+    run_trainer1(cfg, extractor, model, docs.begin(), docs.end(), transformer);
+
+    // Train 10-fold models.
+    for (unsigned int f = 0; f != NFOLDS; ++f) {
+      std::vector<cs::Doc *> fold_docs, nonfold_docs;
+      fold_docs.reserve(fold_size);
+      nonfold_docs.reserve((NFOLDS - 1) * fold_size);
+
+      // Place the documents that aren't in the current fold into a vector for use as training data.
+      auto it = docs.begin();
+      for (unsigned int f2 = 0; f2 != NFOLDS; ++f2) {
+        for (unsigned int s = 0; s != fold_size && it != docs.end(); ++s, ++it) {
+          if (f2 == f)
+            fold_docs.push_back(*it);
+          else
+            nonfold_docs.push_back(*it);
+        }
+      }
+
+      // Train the fold model.
+      run_trainer1(cfg, extractor, model, nonfold_docs.begin(), nonfold_docs.end(), transformer, f);
+
+      // Tag the fold with the trained model.
+      if (!cfg.extract_only())
+        run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, f);
+    }
+  }
+
+  // Delete the read in docs.
+  for (cs::Doc *doc : docs)
+    delete doc;
+  docs.clear();
 }
 
 }  // namespace ner

@@ -51,16 +51,24 @@ run_tagger(const TaggerMain &cfg, TRANSFORMER &transformer, InputModel &model) {
   Extractor extractor(model);
 
   // Create the tagger.
-  ln::CRFSuiteTagger<Extractor> tagger(extractor, model);
+  ln::CRFSuiteTagger<Extractor> tagger(extractor, model.model_path());
 
-  {
-    // Construct a resettable docrep reader over the provided stream.
-    io::InputStream in(cfg.input_path());
-    ln::ResettableDocrepReader<cs::Doc> doc_reader(in, cfg.schema, cfg.retain_docs());
-
-    // Extract the features.
-    tagger.tag<TRANSFORMER>(doc_reader, transformer);
+  // Read in the docs and tag them, one by one.
+  io::InputStream in(cfg.input_path());
+  dr::Reader reader(in, cfg.schema);
+  while (true) {
+    cs::Doc *doc = new cs::Doc();
+    if (reader >> *doc) {
+      tagger.tag(*doc, transformer);
+      delete doc;
+    }
+    else {
+      delete doc;
+      break;
+    }
   }
+
+  tagger.dump_accuracy();
 }
 
 }  // namespace pos

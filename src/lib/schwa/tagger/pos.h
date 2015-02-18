@@ -102,10 +102,8 @@ namespace schwa {
         void phase1_eos(canonical_schema::Sentence &) { };
         void phase1_extract(canonical_schema::Token &token, size_t i);
 
-        void phase2_begin(void);
         void phase2_bod(canonical_schema::Doc &) { }
         void phase2_bos(canonical_schema::Sentence &sentence);
-        void phase2_end(void);
         void phase2_eod(canonical_schema::Doc &) { }
         void phase2_eos(canonical_schema::Sentence &) { }
         void phase2_update_history(canonical_schema::Token &, size_t, const std::string &) { }

@@ -135,20 +135,8 @@ Extractor::phase1_extract(canonical_schema::Token &token, size_t) {
 
 
 void
-Extractor::phase2_begin(void) {
-  LOG2(INFO, _logger) << "Extractor phase2_begin" << std::endl;
-}
-
-
-void
 Extractor::phase2_bos(canonical_schema::Sentence &sentence) {
   _offsets_token_norm_raw.set_slice(sentence.span);
-}
-
-
-void
-Extractor::phase2_end(void) {
-  LOG2(INFO, _logger) << "Extractor phase2_end" << std::endl;
 }
 
 }  // namespace pos

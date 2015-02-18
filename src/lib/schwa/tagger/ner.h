@@ -86,6 +86,7 @@ namespace schwa {
       class Extractor {
       private:
         const bool _is_train;
+        const bool _is_second_stage;
         const SequenceTagEncoding _tag_encoding;
         const lex::BrownClusters &_brown_clusters;
         const uint8_t *_brown_cluster_path;
@@ -97,22 +98,20 @@ namespace schwa {
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
 
       public:
-        explicit Extractor(InputModel &model);
-        explicit Extractor(OutputModel &model);
+        explicit Extractor(InputModel &model, bool is_second_stage);
+        explicit Extractor(OutputModel &model, bool is_second_stage);
         ~Extractor(void);
 
-        void phase1_begin(void);
-        void phase1_bod(canonical_schema::Doc &doc);
-        void phase1_bos(canonical_schema::Sentence &sentence);
-        void phase1_end(void);
+        void phase1_begin(void) { }
+        void phase1_bod(canonical_schema::Doc &) { }
+        void phase1_bos(canonical_schema::Sentence &) { }
+        void phase1_end(void) { }
         void phase1_eod(canonical_schema::Doc &) { };
         void phase1_eos(canonical_schema::Sentence &) { };
         void phase1_extract(canonical_schema::Token &, size_t) { }
 
-        void phase2_begin(void);
-        void phase2_bod(canonical_schema::Doc &) { }
+        void phase2_bod(canonical_schema::Doc &doc);
         void phase2_bos(canonical_schema::Sentence &sentence);
-        void phase2_end(void);
         void phase2_eod(canonical_schema::Doc &) { }
         void phase2_eos(canonical_schema::Sentence &) { }
         void phase2_update_history(canonical_schema::Token &, size_t, const std::string &) { }

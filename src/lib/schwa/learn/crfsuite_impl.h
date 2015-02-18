@@ -5,7 +5,6 @@
 #include <cstring>
 #include <sstream>
 
-#include <schwa/exception.h>
 #include <schwa/io/logging.h>
 #include <schwa/learn/features.h>
 
@@ -17,7 +16,7 @@ namespace schwa {
     // Helper to convert feature names to strings (e.g. feature hashed features)
     // ========================================================================
     template <typename T>
-    class _FeatureToStringHelper {
+    class FeatureToStringHelper {
     private:
       std::ostringstream _ss;
 
@@ -32,7 +31,7 @@ namespace schwa {
     };
 
     template <>
-    class _FeatureToStringHelper<std::string> {
+    class FeatureToStringHelper<std::string> {
     public:
       inline std::string
       operator ()(const std::string &obj) {
@@ -51,7 +50,7 @@ namespace schwa {
         _extractor(extractor),
         _trainer(nullptr)
       {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
       int ret;
 
       // Initialise crfsuite data.
@@ -60,10 +59,10 @@ namespace schwa {
       // Initialise the attribute and label dictionaries.
       ret = crfsuite_create_instance("dictionary", reinterpret_cast<void **>(&_data.attrs));
       if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
+        throw_crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
       ret = crfsuite_create_instance("dictionary", reinterpret_cast<void **>(&_data.labels));
       if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
+        throw_crfsuite_error("crfsuite_create_instance(\"dictionary\")", ret);
 
       // Initialise the trainer.
       std::string tid = "train/crf1d/" + params.algorithm();
@@ -71,7 +70,7 @@ namespace schwa {
       if (SCHWA_UNLIKELY(ret != 0)) {
         std::ostringstream ss;
         ss << "crfsuite_create_instance(\"" << tid << "\")";
-        _crfsuite_error(ss.str(), ret);
+        throw_crfsuite_error(ss.str(), ret);
       }
       _trainer->set_message_callback(_trainer, this, &_crfsuite_logging_callback);
 
@@ -94,7 +93,7 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     CRFSuiteTrainer<EXTRACTOR>::~CRFSuiteTrainer(void) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
 
       // Deinitialise the trainer.
       if (_trainer != nullptr) {
@@ -153,15 +152,6 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::_crfsuite_error(const std::string &api_call, const int ret) {
-      std::ostringstream ss;
-      ss << "crfsuite API call `" << api_call << "` failed (ret=" << ret << ")";
-      throw Exception(ss.str());
-    }
-
-
-    template <typename EXTRACTOR>
-    inline void
     CRFSuiteTrainer<EXTRACTOR>::_crfsuite_log(const io::LogLevel level, const char *const msg) {
       LOGD2(level, _logger) << "CRFSuiteTrainer::_crfsuite_logging_callback " << msg << std::endl;
     }
@@ -170,7 +160,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
       // Initialise the item sequence with a known number of items.
       crfsuite_instance_init_n(&_instance, nitems);
       _item = _instance.items;
@@ -180,13 +170,13 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::_end_item_sequence(void) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
       int ret;
 
       // Add the item sequence to the training data.
       ret = crfsuite_data_append(&_data, &_instance);
       if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("crfsuite_data_append", ret);
+        throw_crfsuite_error("crfsuite_data_append", ret);
 
       // Deinitialise the item sequence.
       crfsuite_instance_finish(&_instance);
@@ -196,7 +186,7 @@ namespace schwa {
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
 
       // Initialise the item with a known number of attributes.
       crfsuite_item_init_n(_item, features.size());
@@ -225,7 +215,7 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::set_param(const std::string &key, const std::string &val) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
       int ret;
 
       crfsuite_params_t *const params = _trainer->params(_trainer);
@@ -234,7 +224,7 @@ namespace schwa {
       if (SCHWA_UNLIKELY(ret != 0)) {
         std::ostringstream ss;
         ss << "crfsuite_params_t::set(\"" << key << "\", \"" << val << "\")";
-        _crfsuite_error(ss.str(), ret);
+        throw_crfsuite_error(ss.str(), ret);
       }
     }
 
@@ -242,94 +232,56 @@ namespace schwa {
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::train(void) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
       int ret;
 
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::train begin" << std::endl;
-      ret = _trainer->train(_trainer, &_data, _model.model_path().c_str(), -1);
+      // Construct the path to the model file.
+      const std::string path = _model.model_path() + _model_filename_suffix;
+
+      // Train the model.
+      LOG2(INFO, _logger) << "CRFSuiteTrainer::train begin (path=" << path << ")" << std::endl;
+      ret = _trainer->train(_trainer, &_data, path.c_str(), -1);
       if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("crfsuite_trainer_t::train", ret);
+        throw_crfsuite_error("crfsuite_trainer_t::train", ret);
       LOG2(INFO, _logger) << "CRFSuiteTrainer::train end" << std::endl;
     }
 
 
-    template <typename EXTRACTOR>
+    template <typename EXTRACTOR> template <typename IT, typename TRANSFORM>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::train_folds(const unsigned int nfolds) {
-      int ret;
-
-      // Split the data linearly into nfolds groups.
-      const size_t ninstances = static_cast<unsigned int>(_data.num_instances);
-      unsigned int fold_size = ninstances / nfolds;
-      if (ninstances % fold_size != 0)
-        fold_size += 1;
-      unsigned int i = 0;
-      for (unsigned int f = 0; f != nfolds; ++f) {
-        for (unsigned int s = 0; s != fold_size; ++s) {
-          if (i == ninstances)
-            break;
-          _data.instances[i++].group = f;
-        }
-      }
-
-      // Train nfolds times, holding out one fold per iteration.
-      for (unsigned int f = 0; f != nfolds; ++f) {
-        std::ostringstream path;
-        path << _model.model_path() << ".fold" << f;
-
-        LOG2(INFO, _logger) << "CRFSuiteTrainer::train_folds fold " << (f + 1) << "/" << nfolds << " begin (" << path.str() << ")" << std::endl;
-        ret = _trainer->train(_trainer, &_data, path.str().c_str(), f);
-        if (SCHWA_UNLIKELY(ret != 0))
-          _crfsuite_error("crfsuite_trainer_t::train_folds", ret);
-        LOG2(INFO, _logger) << "CRFSuiteTrainer::train_folds fold " << (f + 1) << "/" << nfolds << " end" << std::endl;
-      }
-    }
-
-
-    template <typename EXTRACTOR> template <typename TRANSFORM>
-    inline void
-    CRFSuiteTrainer<EXTRACTOR>::extract(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer) {
+    CRFSuiteTrainer<EXTRACTOR>::extract(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer) {
       LOG2(INFO, _logger) << "CRFSuiteTrainer::exact begin" << std::endl;
-      _FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
-
-      canonical_schema::Doc *doc;
-      size_t ndocs_read;
 
       // Run phase 1.
       _extractor.phase1_begin();
-      for (ndocs_read = 0; (doc = doc_reader.next()) != nullptr; ++ndocs_read) {
-        _extractor.phase1_bod(*doc);
-        for (canonical_schema::Sentence &sentence : doc->sentences) {
+      for (IT it = docs_begin; it != docs_end; ++it) {
+        canonical_schema::Doc &doc = **it;
+        _extractor.phase1_bod(doc);
+        for (canonical_schema::Sentence &sentence : doc.sentences) {
           _extractor.phase1_bos(sentence);
-          size_t i = 0;
-          for (canonical_schema::Token &token : sentence.span) {
-            _extractor.phase1_extract(token, i++);
-          }
+          for (canonical_schema::Token &token : sentence.span)
+            _extractor.phase1_extract(token, &token - sentence.span.start);
           _extractor.phase1_eos(sentence);
         }
-        _extractor.phase1_eod(*doc);
+        _extractor.phase1_eod(doc);
       }
       _extractor.phase1_end();
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::extract ndocs_read=" << ndocs_read << std::endl;
-
-      // Reset the document reader.
-      doc_reader.reset();
 
       // Create a Features instance.
-      Features<TRANSFORM, ::schwa::third_party::crfsuite::floatval_t> features(transformer);
+      Features<TRANSFORM, third_party::crfsuite::floatval_t> features(transformer);
+      FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
 
       // Run phase 2.
-      _extractor.phase2_begin();
-      for (ndocs_read = 0; (doc = doc_reader.next()) != nullptr; ++ndocs_read) {
-        _extractor.phase2_bod(*doc);
-        for (canonical_schema::Sentence &sentence : doc->sentences) {
+      for (IT it = docs_begin; it != docs_end; ++it) {
+        canonical_schema::Doc &doc = **it;
+        _extractor.phase2_bod(doc);
+        for (canonical_schema::Sentence &sentence : doc.sentences) {
           _extractor.phase2_bos(sentence);
           _begin_item_sequence(sentence.span.stop - sentence.span.start);
 
-          size_t i = 0;
           for (canonical_schema::Token &token : sentence.span) {
             // Extract the features for the current token.
-            _extractor.phase2_extract(token, i++, features);
+            _extractor.phase2_extract(token, &token - sentence.span.start, features);
 
             // Add the features as an item in the current item sequence.
             _add_item(to_string_helper, features, _extractor.get_label(token));
@@ -339,10 +291,8 @@ namespace schwa {
           _end_item_sequence();
           _extractor.phase2_eos(sentence);
         }
-        _extractor.phase2_eod(*doc);
+        _extractor.phase2_eod(doc);
       }
-      _extractor.phase2_end();
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::extract ndocs_read=" << ndocs_read << std::endl;
       LOG2(INFO, _logger) << "CRFSuiteTrainer::exact end" << std::endl;
     }
 
@@ -360,114 +310,39 @@ namespace schwa {
     // CRFSuiteTagger
     // ========================================================================
     template <typename EXTRACTOR>
-    CRFSuiteTagger<EXTRACTOR>::CRFSuiteTagger(EXTRACTOR &extractor, InputModel &model) :
-        _model(model),
+    CRFSuiteTagger<EXTRACTOR>::CRFSuiteTagger(EXTRACTOR &extractor, const std::string &model_path) :
         _extractor(extractor),
-        _cmodel(nullptr),
-        _tagger(nullptr),
-        _attrs(nullptr),
-        _labels(nullptr),
+        _cmodel(model_path),
         _item(nullptr),
         _ntokens_correct(0),
         _ntokens_total(0),
         _nsentences_correct(0),
         _nsentences_total(0)
-      {
-      using namespace ::schwa::third_party::crfsuite;
-      int ret;
-
-      // Open the crfsuite model.
-      ret = crfsuite_create_instance_from_file(_model.model_path().c_str(), reinterpret_cast<void **>(&_cmodel));
-      if (SCHWA_UNLIKELY(ret != 0)) {
-        std::ostringstream ss;
-        ss << "crfsuite_create_instance_from_file(\"" << _model.model_path() << "\")";
-        _crfsuite_error(ss.str(), ret);
-      }
-
-      // Open a reference to the tagger instance for the loaded model.
-      ret = _cmodel->get_tagger(_cmodel, &_tagger);
-      if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("Failed to obtain the tagger from the loaded model", ret);
-
-      // Open a reference to the attributes dictionary for the loaded model.
-      ret = _cmodel->get_attrs(_cmodel, &_attrs);
-      if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("Failed to obtain the attributes dictionary from the loaded model", ret);
-
-      // Open a reference to the labels dictionary for the loaded model.
-      ret = _cmodel->get_labels(_cmodel, &_labels);
-      if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("Failed to obtain the labels dictionary from the loaded model", ret);
-
-      // Obtain a copy of the string representation of all of the labels.
-      const int nlabels = _labels->num(_labels);
-      if (nlabels > 0) {
-        _label_strings.resize(nlabels);
-        for (int i = 0; i != nlabels; ++i) {
-          ret = _labels->to_string(_labels, i, &_label_strings[i]);
-          if (SCHWA_UNLIKELY(ret != 0))
-            _crfsuite_error("Failed to obtain the label string from the loaded model", ret);
-        }
-      }
-    }
+      { }
 
     template <typename EXTRACTOR>
-    CRFSuiteTagger<EXTRACTOR>::~CRFSuiteTagger(void) {
-      using namespace ::schwa::third_party::crfsuite;
-
-      // Free the label strings obtained from crfsuite.
-      for (const char *str : _label_strings)
-        _labels->free(_labels, str);
-
-      // Deinitialise the model and its related data.
-      if (_labels != nullptr) {
-        _labels->release(_labels);
-        _labels = nullptr;
-      }
-      if (_attrs != nullptr) {
-        _attrs->release(_attrs);
-        _attrs = nullptr;
-      }
-      if (_tagger != nullptr) {
-        _tagger->release(_tagger);
-        _tagger = nullptr;
-      }
-      if (_cmodel != nullptr) {
-        _cmodel->release(_cmodel);
-        _cmodel = nullptr;
-      }
-    }
-
-
-    template <typename EXTRACTOR>
-    inline void
-    CRFSuiteTagger<EXTRACTOR>::_crfsuite_error(const std::string &api_call, const int ret) {
-      std::ostringstream ss;
-      ss << "crfsuite API call `" << api_call << "` failed (ret=" << ret << ")";
-      throw Exception(ss.str());
-    }
+    CRFSuiteTagger<EXTRACTOR>::~CRFSuiteTagger(void) { }
 
 
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTagger<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
       // Initialise the item sequence with a known number of items.
       crfsuite_instance_init_n(&_instance, nitems);
       _item = _instance.items;
+
+      // Ensure our sequence label array is large enough to house the longest sentence.
+      if (nitems > _label_ids.size())
+        _label_ids.resize(nitems);
     }
 
 
     template <typename EXTRACTOR>
     inline void
     CRFSuiteTagger<EXTRACTOR>::_end_item_sequence(void) {
-      using namespace ::schwa::third_party::crfsuite;
-      int ret;
-
       // Set the taggers current instance to be this instance.
-      ret = _tagger->set(_tagger, &_instance);
-      if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("tagger->set", ret);
+      _cmodel.set_instance(_instance);
 
       // Deinitialise the item sequence.
       crfsuite_instance_finish(&_instance);
@@ -476,7 +351,7 @@ namespace schwa {
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
     CRFSuiteTagger<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features) {
-      using namespace ::schwa::third_party::crfsuite;
+      using namespace third_party::crfsuite;
       int ret;
 
       // Initialise the item with an unknown number of attributes.
@@ -487,7 +362,7 @@ namespace schwa {
       for (const auto &pair : features) {
         // Convert the feature value into a string and obtain its crfsuite attribute ID.
         attr_str.assign(to_string_helper(pair.first));
-        const int attr_id = _attrs->to_id(_attrs, attr_str.c_str());
+        const int attr_id = _cmodel.get_attr_id(attr_str);
 
         // Set the attribute data and add the attribute to the item, if the attribute was found.
         if (attr_id >= 0) {
@@ -495,7 +370,7 @@ namespace schwa {
           crfsuite_attribute_set(&attr, attr_id, pair.second);
           ret = crfsuite_item_append_attribute(_item, &attr);
           if (SCHWA_UNLIKELY(ret != 0))
-            _crfsuite_error("crfsuite_item_append_attribute", ret);
+            throw_crfsuite_error("crfsuite_item_append_attribute", ret);
         }
       }
 
@@ -504,115 +379,80 @@ namespace schwa {
     }
 
 
-    template <typename EXTRACTOR>
-    inline ::schwa::third_party::crfsuite::floatval_t
-    CRFSuiteTagger<EXTRACTOR>::_viterbi(void) {
-      using namespace ::schwa::third_party::crfsuite;
-      int ret;
+    template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
+    inline void
+    CRFSuiteTagger<EXTRACTOR>::_tag(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
+      // Run phase 2.
+      _extractor.phase2_bod(doc);
+      _nsentences_total += doc.sentences.size();
+      for (canonical_schema::Sentence &sentence : doc.sentences) {
+        const size_t sentence_length = sentence.span.stop - sentence.span.start;
+        _extractor.phase2_bos(sentence);
+        _begin_item_sequence(sentence_length);
+        _ntokens_total += sentence_length;
 
-      // Set the taggers current instance to be this instance.
-      floatval_t score;
-      ret = _tagger->viterbi(_tagger, &_label_ids[0], &score);
-      if (SCHWA_UNLIKELY(ret != 0))
-        _crfsuite_error("tagger->viterbi", ret);
-      return score;
+        for (canonical_schema::Token &token : sentence.span) {
+          // Extract the features for the current token.
+          _extractor.phase2_extract(token, &token - sentence.span.start, features);
+
+          // Add the features as an item in the current item sequence.
+          _add_item(to_string_helper, features);
+          features.clear();
+        }
+
+        _end_item_sequence();
+        _extractor.phase2_eos(sentence);
+
+        // Run viterbi over the current item sequence.
+        third_party::crfsuite::floatval_t score;
+        _cmodel.viterbi(&_label_ids[0], &score);
+
+        bool all_tokens_correct = true;
+        for (canonical_schema::Token &token : sentence.span) {
+          const int label_id = _label_ids[&token - sentence.span.start];
+          const std::string label_string = _cmodel.get_label_string(label_id);
+          if (label_string == _extractor.get_label(token))
+            ++_ntokens_correct;
+          else
+            all_tokens_correct = false;
+          _extractor.set_label(token, label_string);
+        }
+
+        if (all_tokens_correct)
+          ++_nsentences_correct;
+      }
+      _extractor.phase2_eod(doc);
+    }
+
+
+    template <typename EXTRACTOR> template <typename IT, typename TRANSFORM>
+    inline void
+    CRFSuiteTagger<EXTRACTOR>::tag(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer) {
+      FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
+      Features<TRANSFORM, third_party::crfsuite::floatval_t> features(transformer);
+
+      for (IT it = docs_begin; it != docs_end; ++it) {
+        canonical_schema::Doc &doc = **it;
+        _tag(doc, to_string_helper, features);
+      }
     }
 
 
     template <typename EXTRACTOR> template <typename TRANSFORM>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::tag(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer) {
-      LOG(INFO) << "CRFSuiteTagger::tag begin" << std::endl;
-      _FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
+    CRFSuiteTagger<EXTRACTOR>::tag(canonical_schema::Doc &doc, const TRANSFORM &transformer) {
+      FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
+      Features<TRANSFORM, third_party::crfsuite::floatval_t> features(transformer);
+      _tag(doc, to_string_helper, features);
+    }
 
-      canonical_schema::Doc *doc;
-      size_t ndocs_read;
-      size_t max_sentence_length = 0, sentence_length;
 
-      // Run phase 1.
-      _extractor.phase1_begin();
-      for (ndocs_read = 0; (doc = doc_reader.next()) != nullptr; ++ndocs_read) {
-        _extractor.phase1_bod(*doc);
-        for (canonical_schema::Sentence &sentence : doc->sentences) {
-          sentence_length = sentence.span.stop - sentence.span.start;
-          if (sentence_length > max_sentence_length)
-            max_sentence_length = sentence_length;
-
-          _extractor.phase1_bos(sentence);
-          size_t i = 0;
-          for (canonical_schema::Token &token : sentence.span) {
-            _extractor.phase1_extract(token, i++);
-          }
-          _extractor.phase1_eos(sentence);
-        }
-        _extractor.phase1_eod(*doc);
-      }
-      _extractor.phase1_end();
-      LOG(INFO) << "CRFSuiteTagger::tag ndocs_read=" << ndocs_read << std::endl;
-
-      // Ensure our sequence label array is large enough to house the longest sentence.
-      if (max_sentence_length > _label_ids.size())
-        _label_ids.resize(max_sentence_length);
-
-      // Reset the document reader.
-      doc_reader.reset();
-
-      // Create a Features instance.
-      Features<TRANSFORM, ::schwa::third_party::crfsuite::floatval_t> features(transformer);
-
-      // Run phase 2.
-      _extractor.phase2_begin();
-      for (ndocs_read = 0; (doc = doc_reader.next()) != nullptr; ++ndocs_read) {
-        _extractor.phase2_bod(*doc);
-        _nsentences_total += doc->sentences.size();
-        for (canonical_schema::Sentence &sentence : doc->sentences) {
-          sentence_length = sentence.span.stop - sentence.span.start;
-          _ntokens_total += sentence_length;
-
-          _extractor.phase2_bos(sentence);
-          _begin_item_sequence(sentence_length);
-
-          size_t i = 0;
-          for (canonical_schema::Token &token : sentence.span) {
-            // Extract the features for the current token.
-            _extractor.phase2_extract(token, i++, features);
-
-            // Add the features as an item in the current item sequence.
-            _add_item(to_string_helper, features);
-            features.clear();
-          }
-
-          _end_item_sequence();
-          _extractor.phase2_eos(sentence);
-
-          // Run viterbi over the current item sequence.
-          const third_party::crfsuite::floatval_t score = _viterbi();
-          (void)score;
-
-          bool all_tokens_correct = true;
-          i = 0;
-          for (canonical_schema::Token &token : sentence.span) {
-            const std::string &label_string = _label_strings[_label_ids[i]];
-            if (label_string == _extractor.get_label(token))
-              ++_ntokens_correct;
-            else
-              all_tokens_correct = false;
-
-            if (i != 0)
-              std::cout << ' ';
-            std::cout << token.raw << '|' << label_string;
-            ++i;
-          }
-          std::cout << std::endl;
-
-          if (all_tokens_correct)
-            ++_nsentences_correct;
-        }
-        _extractor.phase2_eod(*doc);
-      }
-      _extractor.phase2_end();
-      LOG(INFO) << "CRFSuiteTagger::tag ndocs_read=" << ndocs_read << std::endl;
-      LOG(INFO) << "CRFSuiteTagger::tag end" << std::endl;
+    template <typename EXTRACTOR>
+    inline void
+    CRFSuiteTagger<EXTRACTOR>::dump_accuracy(void) const {
+      // Ensure we actually have something to report back about.
+      if (_ntokens_total == 0)
+        return;
 
       float percentage;
       percentage = (_ntokens_correct * 100.0f) / _ntokens_total;

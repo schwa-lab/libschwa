@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <schwa/canonical-schema.h>
 #include <schwa/config.h>
@@ -50,23 +51,17 @@ namespace schwa {
 namespace tagger {
 namespace pos {
 
-template <typename TRANSFORMER>
+template <typename IT, typename TRANSFORMER>
 static void
-run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
+run_trainer(const Main &cfg, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, OutputModel &model) {
   // Create the feature extractor.
   Extractor extractor(model);
 
   // Create the trainer.
   ln::CRFSuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
 
-  {
-    // Construct a resettable docrep reader over the provided stream.
-    io::InputStream in(cfg.input_path());
-    ln::ResettableDocrepReader<cs::Doc> doc_reader(in, cfg.schema, cfg.retain_docs());
-
-    // Extract the features.
-    trainer.extract<TRANSFORMER>(doc_reader, transformer);
-  }
+  // Extract the features.
+  trainer.extract<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
 
   // Optionally dump out the extracted features.
   if (cfg.extracted_path.was_mentioned()) {
@@ -79,6 +74,36 @@ run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
 
   // Train the model.
   trainer.train();
+}
+
+
+template <typename TRANSFORMER>
+static void
+run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
+  // Read in each of the docrep documents from the input stream.
+  std::vector<cs::Doc *> docs;
+  {
+    io::InputStream in(cfg.input_path());
+    dr::Reader reader(in, cfg.schema);
+    while (true) {
+      cs::Doc *doc = new cs::Doc();
+      if (reader >> *doc) {
+        docs.push_back(doc);
+      }
+      else {
+        delete doc;
+        break;
+      }
+    }
+  }
+
+  // Run the training process over the docs.
+  run_trainer(cfg, docs.begin(), docs.end(), transformer, model);
+
+  // Delete the read in docs.
+  for (cs::Doc *doc : docs)
+    delete doc;
+  docs.clear();
 }
 
 }  // namespace pos

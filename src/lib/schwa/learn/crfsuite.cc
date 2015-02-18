@@ -1,6 +1,9 @@
 #include <schwa/learn/crfsuite.h>
 
 #include <iostream>
+#include <sstream>
+
+#include <schwa/exception.h>
 
 
 namespace schwa {
@@ -24,6 +27,91 @@ CRFSuiteTrainerParams::CRFSuiteTrainerParams(config::Group &group, const std::st
   { }
 
 CRFSuiteTrainerParams::~CRFSuiteTrainerParams(void) { }
+
+
+// ========================================================================
+// CRFsuiteLoadedModel
+// ========================================================================
+CRFsuiteLoadedModel::CRFsuiteLoadedModel(const std::string &model_path) :
+    _model(nullptr),
+    _tagger(nullptr),
+    _attrs(nullptr),
+    _labels(nullptr)
+  {
+  using namespace ::schwa::third_party::crfsuite;
+  int ret;
+
+  // Open the crfsuite model.
+  ret = crfsuite_create_instance_from_file(model_path.c_str(), reinterpret_cast<void **>(&_model));
+  if (SCHWA_UNLIKELY(ret != 0)) {
+    std::ostringstream ss;
+    ss << "crfsuite_create_instance_from_file(\"" << model_path << "\")";
+    throw_crfsuite_error(ss.str(), ret);
+  }
+
+  // Open a reference to the tagger instance for the loaded model.
+  ret = _model->get_tagger(_model, &_tagger);
+  if (SCHWA_UNLIKELY(ret != 0))
+    throw_crfsuite_error("Failed to obtain the tagger from the loaded model", ret);
+
+  // Open a reference to the attributes dictionary for the loaded model.
+  ret = _model->get_attrs(_model, &_attrs);
+  if (SCHWA_UNLIKELY(ret != 0))
+    throw_crfsuite_error("Failed to obtain the attributes dictionary from the loaded model", ret);
+
+  // Open a reference to the labels dictionary for the loaded model.
+  ret = _model->get_labels(_model, &_labels);
+  if (SCHWA_UNLIKELY(ret != 0))
+    throw_crfsuite_error("Failed to obtain the labels dictionary from the loaded model", ret);
+
+  // Obtain a copy of the string representation of all of the labels.
+  const int nlabels = _labels->num(_labels);
+  if (nlabels > 0) {
+    _label_strings.resize(nlabels);
+    for (int i = 0; i != nlabels; ++i) {
+      ret = _labels->to_string(_labels, i, &_label_strings[i]);
+      if (SCHWA_UNLIKELY(ret != 0))
+        throw_crfsuite_error("Failed to obtain the label string from the loaded model", ret);
+    }
+  }
+}
+
+CRFsuiteLoadedModel::~CRFsuiteLoadedModel(void) {
+  using namespace ::schwa::third_party::crfsuite;
+
+  // Free the label strings obtained from crfsuite.
+  for (const char *str : _label_strings)
+    _labels->free(_labels, str);
+
+  // Deinitialise the model and its related data.
+  if (_labels != nullptr) {
+    _labels->release(_labels);
+    _labels = nullptr;
+  }
+  if (_attrs != nullptr) {
+    _attrs->release(_attrs);
+    _attrs = nullptr;
+  }
+  if (_tagger != nullptr) {
+    _tagger->release(_tagger);
+    _tagger = nullptr;
+  }
+  if (_model != nullptr) {
+    _model->release(_model);
+    _model = nullptr;
+  }
+}
+
+
+// ========================================================================
+// CRFsuite API helpers.
+// ========================================================================
+void
+throw_crfsuite_error(const std::string &api_call, const int ret) {
+  std::ostringstream ss;
+  ss << "CRFsuite API call `" << api_call << "` failed (ret=" << ret << ")";
+  throw Exception(ss.str());
+}
 
 
 

@@ -29,6 +29,23 @@ Extractor::phase2_extract(canonical_schema::Token &token, const size_t i, learn:
   // Word form.
   features("wf[i]=" + lex::word_form(u));
 
+  // Contains a digit, hyphen, or uppercase code point.
+  bool has_digit = false, has_hyphen = false, has_upper = false;
+  for (const unicode_t cp : u) {
+    if (!has_digit && unicode::is_digit(cp))
+      has_digit = true;
+    if (!has_hyphen && (unicode::is_hyphen(cp) || unicode::is_dash(cp)))
+      has_hyphen = true;
+    if (!has_upper && unicode::is_upper(cp))
+      has_upper = true;
+  }
+  if (has_digit)
+    features("has_digit");
+  if (has_hyphen)
+    features("has_hyphen");
+  if (has_upper)
+    features("has_upper");
+
   // Compute features that are in a +/-2 window of i.
   std::stringstream ss_ctx1, ss_ctx2;
   ss_ctx1 << "ctx[i]_1=";

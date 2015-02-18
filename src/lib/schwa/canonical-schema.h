@@ -33,6 +33,7 @@ namespace schwa {
 
       NamedEntity *ne;            // Back-pointer to the gold NE object used during NE training.
       std::string ne_label;       // Token-level encoding of the gold NE label used during NE training.
+      std::string ne_label_crf1;  // Token-level encoding of the gold NE label used during NE training.
       std::string ne_normalised;  // (norm || raw) with digits and ordinals down-mapped. Used by lexical features during NE training.
 
       class Schema;
