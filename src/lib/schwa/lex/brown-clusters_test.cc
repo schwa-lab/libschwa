@@ -62,6 +62,7 @@ TEST(brown_clusters_normal_load) {
   npaths = brown_clusters.get_paths("meow", &path, &lengths[0]);
   CHECK_EQUAL(0, npaths);
   CHECK_EQUAL(6, sp.size());
+  CHECK_EQUAL(0, brown_clusters.get_frequency("meow"));
 
   npaths = brown_clusters.get_paths("hello", &path, &lengths[0]);
   CHECK_EQUAL(3, npaths);
@@ -70,6 +71,7 @@ TEST(brown_clusters_normal_load) {
   CHECK_EQUAL(4, lengths[0]);
   CHECK_EQUAL(6, lengths[1]);
   CHECK_EQUAL(8, lengths[2]);
+  CHECK_EQUAL(5, brown_clusters.get_frequency("hello"));
 
   npaths = brown_clusters.get_paths("Hello", &path, &lengths[0]);
   CHECK_EQUAL(3, npaths);
@@ -78,10 +80,12 @@ TEST(brown_clusters_normal_load) {
   CHECK_EQUAL(4, lengths[0]);
   CHECK_EQUAL(6, lengths[1]);
   CHECK_EQUAL(8, lengths[2]);
+  CHECK_EQUAL(10, brown_clusters.get_frequency("Hello"));
 
   npaths = brown_clusters.get_paths("woRld", &path, &lengths[0]);
   CHECK_EQUAL(0, npaths);
   CHECK_EQUAL(6, sp.size());
+  CHECK_EQUAL(0, brown_clusters.get_frequency("woRld"));
 
   npaths = brown_clusters.get_paths("world", &path, &lengths[0]);
   CHECK_EQUAL(4, npaths);
@@ -91,6 +95,7 @@ TEST(brown_clusters_normal_load) {
   CHECK_EQUAL( 6, lengths[1]);
   CHECK_EQUAL(10, lengths[2]);
   CHECK_EQUAL(17, lengths[3]);
+  CHECK_EQUAL(100, brown_clusters.get_frequency("world"));
 }
 
 

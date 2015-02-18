@@ -4,6 +4,7 @@
 
 #include <array>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include <schwa/_base.h>
@@ -28,7 +29,7 @@ namespace schwa {
       StringPool &_string_pool;
       unsigned int _min_freq;
       std::vector<unsigned int> _path_lengths;
-      std::unordered_map<const uint8_t *, const uint8_t *, uint8str_hash, uint8str_equal_to> _map;
+      std::unordered_map<const uint8_t *, std::tuple<const uint8_t *, unsigned int>, uint8str_hash, uint8str_equal_to> _map;
 
     public:
       explicit BrownClusters(StringPool &string_pool, unsigned int min_freq=DEFAULT_MIN_FREQ);
@@ -55,6 +56,11 @@ namespace schwa {
        * BrownClusters::npaths items.
        **/
       size_t get_paths(const std::string &word, const uint8_t **path, unsigned int *lengths) const;
+
+      /**
+       * Get the frequency of a word in the Brown cluster training data.
+       **/
+      unsigned int  get_frequency(const std::string &word) const;
 
       inline bool empty(void) const { return _map.empty(); }
       inline unsigned int min_freq(void) const { return _min_freq; }

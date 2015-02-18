@@ -50,7 +50,7 @@ BrownClusters::load(std::istream &in) {
       // Keep the token if it occurs at least min_freq times.
       if (freq >= _min_freq) {
         const uint8_t *canonical_token = _string_pool.get(token);
-        _map.emplace(canonical_token, canonical_path);
+        _map.emplace(canonical_token, std::make_tuple(canonical_path, freq));
       }
     }
   }
@@ -75,8 +75,8 @@ BrownClusters::get_paths(const std::string &word, const uint8_t **const path, un
     return 0;
 
   // Set the path pointer to the canonical path string.
-  *path = it->second;
-  const unsigned int path_length = std::strlen(reinterpret_cast<const char *>(it->second));
+  *path = std::get<0>(it->second);
+  const unsigned int path_length = std::strlen(reinterpret_cast<const char *>(*path));
 
   // Work out what path lengths this path can utilise.
   size_t npaths;
@@ -86,6 +86,14 @@ BrownClusters::get_paths(const std::string &word, const uint8_t **const path, un
     lengths[npaths] = std::min(_path_lengths[npaths], path_length);
   }
   return npaths;
+}
+
+
+unsigned int
+BrownClusters::get_frequency(const std::string &word) const {
+  // Lookup the word in the map and return zero paths if it's not found.
+  const auto &it = _map.find(reinterpret_cast<const uint8_t *>(word.c_str()));
+  return (it == _map.end()) ? 0 : std::get<1>(it->second);
 }
 
 }  // namespace lex
