@@ -245,6 +245,39 @@ namespace schwa {
     }
 
 
+    template <typename EXTRACTOR>
+    inline void
+    CRFSuiteTrainer<EXTRACTOR>::train_folds(const unsigned int nfolds) {
+      int ret;
+
+      // Split the data linearly into nfolds groups.
+      const size_t ninstances = static_cast<unsigned int>(_data.num_instances);
+      unsigned int fold_size = ninstances / nfolds;
+      if (ninstances % fold_size != 0)
+        fold_size += 1;
+      unsigned int i = 0;
+      for (unsigned int f = 0; f != nfolds; ++f) {
+        for (unsigned int s = 0; s != fold_size; ++s) {
+          if (i == ninstances)
+            break;
+          _data.instances[i++].group = f;
+        }
+      }
+
+      // Train nfolds times, holding out one fold per iteration.
+      for (unsigned int f = 0; f != nfolds; ++f) {
+        std::ostringstream path;
+        path << _model.model_path() << ".fold" << f;
+
+        LOG2(INFO, _logger) << "CRFSuiteTrainer::train_folds fold " << (f + 1) << "/" << nfolds << " begin (" << path.str() << ")" << std::endl;
+        ret = _trainer->train(_trainer, &_data, path.str().c_str(), f);
+        if (SCHWA_UNLIKELY(ret != 0))
+          _crfsuite_error("crfsuite_trainer_t::train_folds", ret);
+        LOG2(INFO, _logger) << "CRFSuiteTrainer::train_folds fold " << (f + 1) << "/" << nfolds << " end" << std::endl;
+      }
+    }
+
+
     template <typename EXTRACTOR> template <typename TRANSFORM>
     inline void
     CRFSuiteTrainer<EXTRACTOR>::extract(ResettableDocrepReader<canonical_schema::Doc> &doc_reader, const TRANSFORM &transformer) {

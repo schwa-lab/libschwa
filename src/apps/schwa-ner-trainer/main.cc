@@ -76,6 +76,7 @@ run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
     return;
 
   // Train the model.
+  trainer.train_folds(10);
   trainer.train();
 }
 

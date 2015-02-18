@@ -78,6 +78,7 @@ namespace schwa {
 
       void dump_crfsuite_data(io::OutputStream &out) const;
       void train(void);
+      void train_folds(unsigned int nfolds);
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFSuiteTrainer);
