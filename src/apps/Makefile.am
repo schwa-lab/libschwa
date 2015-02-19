@@ -12,6 +12,7 @@ SUBDIRS = \
 		mp-less \
 		schwa-crfsuite \
 		schwa-tokenizer \
+		schwa-ner-tagger \
 		schwa-ner-trainer \
 		schwa-pos-tagger \
 		schwa-pos-trainer
