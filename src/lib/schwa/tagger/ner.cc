@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -92,6 +93,13 @@ OutputModel::~OutputModel(void) { }
 // ============================================================================
 // Extractor
 // ============================================================================
+const RE2 Extractor::RE_ACRONYM("[A-Z]{2,}\\.?|([A-Z]\\.){2,}|[A-Z]+&[A-Z]+\\.?|([A-Z]\\.)+&([A-Z]+\\.)+");
+const RE2 Extractor::RE_ORDINAL("\\pN+(?:st|ST|nd|ND|rd|RD|th|TH)");  // Identifying an ordinal expression.
+const RE2 Extractor::RE_ROMAN_NUMERAL("M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})");
+const RE2 Extractor::RE_PERSON_INITIAL_1("[A-Z]\\.");    // Match "Cricket: P. Smith and A. Fitz blah blah"
+const RE2 Extractor::RE_PERSON_INITIAL_2("[A-Z][a-z]+");
+
+
 Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) :
     _is_train(false),
     _is_second_stage(is_second_stage),
@@ -105,8 +113,9 @@ Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) 
     _logger(*io::default_logger),
     _offsets_token_ne_normalised(&_get_token_ne_normalised),
     _offsets_token_norm_raw(&_get_token_norm_raw)
-  { }
-
+  {
+  _check_regular_expressions();
+}
 
 Extractor::Extractor(OutputModel &model, bool is_second_stage, bool is_threaded) :
     _is_train(true),
@@ -121,11 +130,23 @@ Extractor::Extractor(OutputModel &model, bool is_second_stage, bool is_threaded)
     _logger(model.logger()),
     _offsets_token_ne_normalised(&_get_token_ne_normalised),
     _offsets_token_norm_raw(&_get_token_norm_raw)
-  { }
+  {
+  _check_regular_expressions();
+}
 
 Extractor::~Extractor(void) {
   delete [] _brown_cluster_feature;
   delete [] _brown_cluster_path_lengths;
+}
+
+
+void
+Extractor::_check_regular_expressions(void) const {
+  assert(RE_ACRONYM.ok());
+  assert(RE_ORDINAL.ok());
+  assert(RE_ROMAN_NUMERAL.ok());
+  assert(RE_PERSON_INITIAL_1.ok());
+  assert(RE_PERSON_INITIAL_2.ok());
 }
 
 
@@ -258,9 +279,6 @@ preprocess_doc(cs::Doc &doc, const lex::BrownClusters &brown_clusters) {
     }
   }
 
-  // Regex for identifying an ordinal expression.
-  static const RE2 RE_ORDINAL("\\pN+(?:st|ST|nd|ND|rd|RD|th|TH)");
-
   // Perform some lexical cleaning and normalisation.
   uint8_t utf8[4];
   for (size_t s = 0; s != doc.sentences.size(); ++s) {
@@ -283,7 +301,7 @@ preprocess_doc(cs::Doc &doc, const lex::BrownClusters &brown_clusters) {
       ne_normalised.reserve(token.ne_normalised.size());
 
       // Is it an ordinal?
-      if (RE2::FullMatch(token.ne_normalised, RE_ORDINAL)) {
+      if (RE2::FullMatch(token.ne_normalised, Extractor::RE_ORDINAL)) {
         // Replace the whole token value with "9th".
         ne_normalised = "9th";
       }

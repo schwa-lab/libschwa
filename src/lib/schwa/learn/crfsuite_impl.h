@@ -281,7 +281,7 @@ namespace schwa {
 
           for (canonical_schema::Token &token : sentence.span) {
             // Extract the features for the current token.
-            _extractor.phase2_extract(token, &token - sentence.span.start, features);
+            _extractor.phase2_extract(sentence, token, features);
 
             // Add the features as an item in the current item sequence.
             _add_item(to_string_helper, features, _extractor.get_label(token));
@@ -393,7 +393,7 @@ namespace schwa {
 
         for (canonical_schema::Token &token : sentence.span) {
           // Extract the features for the current token.
-          _extractor.phase2_extract(token, &token - sentence.span.start, features);
+          _extractor.phase2_extract(sentence, token, features);
 
           // Add the features as an item in the current item sequence.
           _add_item(to_string_helper, features);

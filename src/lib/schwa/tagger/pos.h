@@ -112,7 +112,7 @@ namespace schwa {
         void set_label(canonical_schema::Token &token, const std::string &label) { token.pos = label; }
 
         template <typename TRANSFORM, typename VALUE>
-        void phase2_extract(canonical_schema::Token &token, size_t i, learn::Features<TRANSFORM, VALUE> &features);
+        void phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features);
 
       private:
         static inline const std::string &

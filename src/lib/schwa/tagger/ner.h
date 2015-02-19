@@ -11,6 +11,7 @@
 #include <schwa/learn.h>
 #include <schwa/lex/brown-clusters.h>
 #include <schwa/lex/word-embeddings.h>
+#include <schwa/third-party/re2/re2.h>
 
 
 namespace schwa {
@@ -84,6 +85,13 @@ namespace schwa {
 
 
       class Extractor {
+      public:
+        static const third_party::re2::RE2 RE_ACRONYM;
+        static const third_party::re2::RE2 RE_ORDINAL;
+        static const third_party::re2::RE2 RE_ROMAN_NUMERAL;
+        static const third_party::re2::RE2 RE_PERSON_INITIAL_1;
+        static const third_party::re2::RE2 RE_PERSON_INITIAL_2;
+
       private:
         const bool _is_train;
         const bool _is_second_stage;
@@ -97,6 +105,8 @@ namespace schwa {
         io::Logger &_logger;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_ne_normalised;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
+
+        void _check_regular_expressions(void) const;
 
       public:
         Extractor(InputModel &model, bool is_second_stage, bool is_threaded);
@@ -121,7 +131,7 @@ namespace schwa {
         void set_label(canonical_schema::Token &token, const std::string &label) { token.ne_label = label; }
 
         template <typename TRANSFORM, typename VALUE>
-        void phase2_extract(canonical_schema::Token &token, size_t i, learn::Features<TRANSFORM, VALUE> &features);
+        void phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features);
 
         static void do_phase2_bod(canonical_schema::Doc &doc, bool is_second_stage, bool is_train, SequenceTagEncoding tag_encoding);
 

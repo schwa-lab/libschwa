@@ -17,8 +17,11 @@ namespace ner {
 // ========================================================================
 template <typename TRANSFORM, typename VALUE>
 inline void
-Extractor::phase2_extract(canonical_schema::Token &token, const size_t i, learn::Features<TRANSFORM, VALUE> &features) {
+Extractor::phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features) {
+  using ::schwa::third_party::re2::RE2;
+
   // Decode the UTF-8 sequence into to a Unicode string once only.
+  const size_t i = &token - sentence.span.start;
   const std::string &utf8 = _get_token_ne_normalised(token);
   const UnicodeString u = UnicodeString::from_utf8(utf8);
   std::stringstream ss;
@@ -45,6 +48,24 @@ Extractor::phase2_extract(canonical_schema::Token &token, const size_t i, learn:
     features("has_hyphen");
   if (has_upper)
     features("has_upper");
+
+  // Person-initial features to help match "Cricket: P. Smith and A. Fitz blah blah"
+  //                                                 ^^^^^^^^     ^^^^^^^
+  if (sentence.span.start + i != sentence.span.stop && RE2::FullMatch(utf8, RE_PERSON_INITIAL_1) && RE2::FullMatch(_get_token_ne_normalised(*(sentence.span.start + i + 1)), RE_PERSON_INITIAL_2))
+    features("person_initial_1");
+  if (i != 0 && RE2::FullMatch(utf8, RE_PERSON_INITIAL_2) && RE2::FullMatch(_get_token_ne_normalised(*(sentence.span.start + i - 1)), RE_PERSON_INITIAL_1))
+    features("person_initial_2");
+
+  // Does the token look like an acronym?
+  if (RE2::FullMatch(utf8, RE_ACRONYM))
+    features("acronym");
+
+  // Is the current token a roman numeral looking thing which occurs after a possessive or capitalised word?
+  if (i != 0 && RE2::FullMatch(utf8, RE_ROMAN_NUMERAL)) {
+    const std::string &prev_ne_normalised = _get_token_ne_normalised(*(sentence.span.start + i - 1));
+    if (RE2::FullMatch(prev_ne_normalised, RE_PERSON_INITIAL_2) || prev_ne_normalised == "'s")
+      features("roman_numeral");
+  }
 
   // Compute features that are in a +/-2 window of i.
   std::stringstream ss_ctx1, ss_ctx2;

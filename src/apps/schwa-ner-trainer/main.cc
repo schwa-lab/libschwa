@@ -39,10 +39,10 @@ public:
   dr::DocrepGroup dr;
 
   Main(void) :
-      cf::Main("schwa-ner-trainer", "Schwa Lab NER tag trainer. Linear CRF backed by crfsuite."),
+      cf::Main("schwa-ner-trainer", "Schwa Lab NER tag trainer. Linear CRF backed by CRFsuite."),
       input_path(*this, "input", 'i', "The input path", io::STDIN_STRING),
       model_path(*this, "model", 'm', "The model path"),
-      extracted_path(*this, "dump-extracted", "The path to dump the extracted features in crfsuite format", cf::Flags::OPTIONAL),
+      extracted_path(*this, "dump-extracted", "The path to dump the extracted features in CRFsuite format", cf::Flags::OPTIONAL),
       extract_only(*this, "extract-only", "Whether to perform feature extraction only and no training", false),
       model_params(*this, "model-params", "Parameters controlling the contents of the produced model"),
       trainer_params(*this, "train-params", "Parameters to the crfsuite training process"),
@@ -116,7 +116,7 @@ run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_b
 
 template <typename TRANSFORMER>
 static void
-run_fold(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::vector<cs::Doc *> &docs, const int _fold) {
+run_fold1(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::vector<cs::Doc *> &docs, const int _fold) {
   // Create the feature extractor for the 1st stage classifier.
   Extractor extractor(model, false, true);
 
@@ -199,7 +199,7 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
 
     std::vector<std::thread> threads;
     for (int i = -1; i != NFOLDS; ++i)
-      threads.push_back(std::thread(&run_fold<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs), i));
+      threads.push_back(std::thread(&run_fold1<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs), i));
     for (auto &thread : threads)
       thread.join();
   }

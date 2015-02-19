@@ -155,6 +155,7 @@ namespace schwa {
       dr::Store<List> lists;
       dr::Store<Block> blocks;
       dr::Store<NamedEntity> named_entities;
+      dr::Store<NamedEntity> named_entities_crf1;
 
       class Schema;
 
@@ -276,6 +277,7 @@ namespace schwa {
       DR_STORE(&Doc::lists) lists;
       DR_STORE(&Doc::blocks) blocks;
       DR_STORE(&Doc::named_entities) named_entities;
+
 
       Schema(void);
       virtual ~Schema(void);
