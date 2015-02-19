@@ -87,6 +87,7 @@ namespace schwa {
       private:
         const bool _is_train;
         const bool _is_second_stage;
+        const bool _is_threaded;
         const SequenceTagEncoding _tag_encoding;
         const lex::BrownClusters &_brown_clusters;
         const uint8_t *_brown_cluster_path;
@@ -98,8 +99,8 @@ namespace schwa {
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
 
       public:
-        explicit Extractor(InputModel &model, bool is_second_stage);
-        explicit Extractor(OutputModel &model, bool is_second_stage);
+        Extractor(InputModel &model, bool is_second_stage, bool is_threaded);
+        Extractor(OutputModel &model, bool is_second_stage, bool is_threaded);
         ~Extractor(void);
 
         void phase1_begin(void) { }
@@ -121,6 +122,8 @@ namespace schwa {
 
         template <typename TRANSFORM, typename VALUE>
         void phase2_extract(canonical_schema::Token &token, size_t i, learn::Features<TRANSFORM, VALUE> &features);
+
+        static void do_phase2_bod(canonical_schema::Doc &doc, bool is_second_stage, bool is_train, SequenceTagEncoding tag_encoding);
 
       private:
         static inline const std::string &

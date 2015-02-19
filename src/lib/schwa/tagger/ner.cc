@@ -92,9 +92,10 @@ OutputModel::~OutputModel(void) { }
 // ============================================================================
 // Extractor
 // ============================================================================
-Extractor::Extractor(InputModel &model, bool is_second_stage) :
+Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) :
     _is_train(false),
     _is_second_stage(is_second_stage),
+    _is_threaded(is_threaded),
     _tag_encoding(model.tag_encoding()),
     _brown_clusters(model.brown_clusters()),
     _brown_cluster_path(nullptr),
@@ -107,9 +108,10 @@ Extractor::Extractor(InputModel &model, bool is_second_stage) :
   { }
 
 
-Extractor::Extractor(OutputModel &model, bool is_second_stage) :
+Extractor::Extractor(OutputModel &model, bool is_second_stage, bool is_threaded) :
     _is_train(true),
     _is_second_stage(is_second_stage),
+    _is_threaded(is_threaded),
     _tag_encoding(model.tag_encoding()),
     _brown_clusters(model.brown_clusters()),
     _brown_cluster_path(nullptr),
@@ -128,21 +130,28 @@ Extractor::~Extractor(void) {
 
 
 void
-Extractor::phase2_bod(cs::Doc &doc) {
+Extractor::do_phase2_bod(cs::Doc &doc, const bool is_second_stage, const bool is_train, const SequenceTagEncoding tag_encoding) {
   static const auto REVERSE_GOLD_NES = DR_REVERSE_SLICES(&cs::Doc::named_entities, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Token::ne);
   static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
 
   // Move the 1st stage CRF tagging decisions from the ne_label attribute to the ne_label_crf1 attribute.
-  if (_is_second_stage) {
+  if (is_second_stage) {
     for (cs::Token &token : doc.tokens)
       token.ne_label_crf1 = token.ne_label;
   }
 
   // Reverse the gold NEs down onto the tokens, as well as the encoded NE label.
-  if (_is_train) {
+  if (is_train) {
     REVERSE_GOLD_NES(doc);
-    SEQUENCE_TAG_GOLD_NES(doc, _tag_encoding);
+    SEQUENCE_TAG_GOLD_NES(doc, tag_encoding);
   }
+}
+
+
+void
+Extractor::phase2_bod(cs::Doc &doc) {
+  if (!_is_threaded)
+    do_phase2_bod(doc, _is_second_stage, _is_train, _tag_encoding);
 }
 
 

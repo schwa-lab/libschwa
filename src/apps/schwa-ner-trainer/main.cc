@@ -1,8 +1,11 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <cassert>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <schwa/canonical-schema.h>
@@ -19,6 +22,8 @@ namespace dr = ::schwa::dr;
 namespace io = ::schwa::io;
 namespace ln = ::schwa::learn;
 namespace ner = ::schwa::tagger::ner;
+
+static constexpr const unsigned int NFOLDS = 10;
 
 
 class Main : public cf::Main {
@@ -111,8 +116,51 @@ run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_b
 
 template <typename TRANSFORMER>
 static void
-run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
-  static constexpr const unsigned int NFOLDS = 10;
+run_fold(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::vector<cs::Doc *> &docs, const int _fold) {
+  // Create the feature extractor for the 1st stage classifier.
+  Extractor extractor(model, false, true);
+
+  // If we aren't running a fold, just train on all of the documents.
+  if (_fold < 0) {
+    // Train the model.
+    run_trainer1(cfg, extractor, model, docs.begin(), docs.end(), transformer);
+    return;
+  }
+  const unsigned int fold = static_cast<unsigned int>(_fold);
+
+  // Split the docs into folds.
+  unsigned int fold_size = docs.size() / NFOLDS;
+  if (docs.size() % NFOLDS != 0)
+    ++fold_size;
+
+  std::vector<cs::Doc *> fold_docs, nonfold_docs;
+  fold_docs.reserve(fold_size);
+  nonfold_docs.reserve((NFOLDS - 1) * fold_size);
+
+  // Place the documents that aren't in the current fold into a vector for use as training data.
+  auto it = docs.begin();
+  for (unsigned int f = 0; f != NFOLDS; ++f) {
+    for (unsigned int s = 0; s != fold_size && it != docs.end(); ++s, ++it) {
+      if (f == fold)
+        fold_docs.push_back(*it);
+      else
+        nonfold_docs.push_back(*it);
+    }
+  }
+
+  // Train the model.
+  run_trainer1(cfg, extractor, model, nonfold_docs.begin(), nonfold_docs.end(), transformer, fold);
+
+  // Tag the fold with the trained model.
+  if (!cfg.extract_only())
+    run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
+}
+
+
+template <typename TRANSFORMER>
+static void
+run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel &model) {
+  assert(transformers.size() == NFOLDS + 1);
 
   // Read in each of the docrep documents from the input stream, and pre-process them.
   std::vector<cs::Doc *> docs;
@@ -146,36 +194,14 @@ run_trainer(const Main &cfg, TRANSFORMER &transformer, OutputModel &model) {
 
   // 1st stage classifier.
   {
-    // Create the feature extractor for the 1st stage classifier.
-    Extractor extractor(model, false);
+    for (cs::Doc *doc : docs)
+      Extractor::do_phase2_bod(*doc, false, true, model.tag_encoding());
 
-    // Train a full model.
-    run_trainer1(cfg, extractor, model, docs.begin(), docs.end(), transformer);
-
-    // Train 10-fold models.
-    for (unsigned int f = 0; f != NFOLDS; ++f) {
-      std::vector<cs::Doc *> fold_docs, nonfold_docs;
-      fold_docs.reserve(fold_size);
-      nonfold_docs.reserve((NFOLDS - 1) * fold_size);
-
-      // Place the documents that aren't in the current fold into a vector for use as training data.
-      auto it = docs.begin();
-      for (unsigned int f2 = 0; f2 != NFOLDS; ++f2) {
-        for (unsigned int s = 0; s != fold_size && it != docs.end(); ++s, ++it) {
-          if (f2 == f)
-            fold_docs.push_back(*it);
-          else
-            nonfold_docs.push_back(*it);
-        }
-      }
-
-      // Train the fold model.
-      run_trainer1(cfg, extractor, model, nonfold_docs.begin(), nonfold_docs.end(), transformer, f);
-
-      // Tag the fold with the trained model.
-      if (!cfg.extract_only())
-        run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, f);
-    }
+    std::vector<std::thread> threads;
+    for (int i = -1; i != NFOLDS; ++i)
+      threads.push_back(std::thread(&run_fold<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs), i));
+    for (auto &thread : threads)
+      thread.join();
   }
 
   // Delete the read in docs.
@@ -196,19 +222,19 @@ main(int argc, char **argv) {
 
   SCHWA_MAIN(cfg, [&] {
     // Parse argv.
-    cfg.main<io::PrettyLogger>(argc, argv);
+    cfg.main<io::ThreadsafePrettyLogger>(argc, argv);
 
     // Open the model. The validation of the model path needs to happen as early as possible.
     ner::OutputModel model(cfg.model_path(), cfg.model_params, cfg);
 
     // Create the feature transformer.
     if (cfg.model_params.feature_hashing.was_mentioned()) {
-      ln::HasherTransform<> transformer(cfg.model_params.feature_hashing());
-      ner::run_trainer(cfg, transformer, model);
+      std::vector<ln::HasherTransform<>> transformers(NFOLDS + 1, ln::HasherTransform<>(cfg.model_params.feature_hashing()));
+      ner::run_trainer(cfg, transformers, model);
     }
     else {
-      ln::NoTransform transformer;
-      ner::run_trainer(cfg, transformer, model);
+      std::vector<ln::NoTransform> transformers(NFOLDS + 1);
+      ner::run_trainer(cfg, transformers, model);
     }
   })
   return 0;
