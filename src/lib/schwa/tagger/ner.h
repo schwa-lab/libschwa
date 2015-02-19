@@ -2,7 +2,10 @@
 #ifndef SCHWA_TAGGER_NER_H_
 #define SCHWA_TAGGER_NER_H_
 
+#include <list>
 #include <string>
+#include <tuple>
+#include <unordered_map>
 
 #include <schwa/_base.h>
 #include <schwa/config.h>
@@ -105,6 +108,7 @@ namespace schwa {
         io::Logger &_logger;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_ne_normalised;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
+        std::unordered_map<std::string, std::list<std::tuple<std::string, unsigned int>>> _token_tag_counts;
 
         void _check_regular_expressions(void) const;
 
@@ -123,9 +127,9 @@ namespace schwa {
 
         void phase2_bod(canonical_schema::Doc &doc);
         void phase2_bos(canonical_schema::Sentence &sentence);
-        void phase2_eod(canonical_schema::Doc &) { }
+        void phase2_eod(canonical_schema::Doc &doc);
         void phase2_eos(canonical_schema::Sentence &) { }
-        void phase2_update_history(canonical_schema::Token &, size_t, const std::string &) { }
+        void phase2_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string);
 
         std::string get_label(canonical_schema::Token &token) { return token.ne_label; }
         void set_label(canonical_schema::Token &token, const std::string &label) { token.ne_label = label; }

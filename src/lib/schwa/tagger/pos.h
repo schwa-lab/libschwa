@@ -106,7 +106,7 @@ namespace schwa {
         void phase2_bos(canonical_schema::Sentence &sentence);
         void phase2_eod(canonical_schema::Doc &) { }
         void phase2_eos(canonical_schema::Sentence &) { }
-        void phase2_update_history(canonical_schema::Token &, size_t, const std::string &) { }
+        void phase2_update_history(canonical_schema::Sentence &, canonical_schema::Token &, const std::string &) { }
 
         std::string get_label(canonical_schema::Token &token) { return token.pos; }
         void set_label(canonical_schema::Token &token, const std::string &label) { token.pos = label; }

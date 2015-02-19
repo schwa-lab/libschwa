@@ -145,6 +145,20 @@ Extractor::phase2_extract(canonical_schema::Sentence &sentence, canonical_schema
     }
   }
 
+  // Extended prediction history (Ratinov & Roth, CoNLL 2009).
+  {
+    const auto &it = _token_tag_counts.find(utf8);
+    if (it != _token_tag_counts.end()) {
+      third_party::crfsuite::floatval_t total = 0;
+      for (const auto &pair : it->second)
+        total += std::get<1>(pair);
+      for (const auto &pair : it->second) {
+        ss << "eph=" << std::get<0>(pair);
+        features(ss.str(), std::get<1>(pair)/total);
+        ss.str("");
+      }
+    }
+  }
 }
 
 }  // namespace ner

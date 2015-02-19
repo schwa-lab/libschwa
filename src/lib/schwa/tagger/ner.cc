@@ -183,6 +183,32 @@ Extractor::phase2_bos(cs::Sentence &sentence) {
 }
 
 
+void
+Extractor::phase2_eod(cs::Doc &) {
+  // Reset the token-tag counts per document.
+  _token_tag_counts.clear();
+}
+
+
+void
+Extractor::phase2_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string) {
+  // Don't include the first token in a sentence as it's ambiguous to begin with.
+  if (&token != sentence.span.start) {
+    auto &list = _token_tag_counts[token.ne_normalised];
+    bool found = false;
+    for (auto &pair : list) {
+      if (std::get<0>(pair) == label_string) {
+        std::get<1>(pair) += 1;
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+      list.push_back(std::make_tuple(label_string, 1));
+  }
+}
+
+
 // ============================================================================
 // preprocess_doc
 // ============================================================================

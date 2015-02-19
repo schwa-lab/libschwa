@@ -290,6 +290,10 @@ namespace schwa {
 
           _end_item_sequence();
           _extractor.phase2_eos(sentence);
+
+          // Update the history.
+          for (canonical_schema::Token &token : sentence.span)
+            _extractor.phase2_update_history(sentence, token, _extractor.get_label(token));
         }
         _extractor.phase2_eod(doc);
       }
@@ -415,7 +419,9 @@ namespace schwa {
             ++_ntokens_correct;
           else
             all_tokens_correct = false;
+
           _extractor.set_label(token, label_string);
+          _extractor.phase2_update_history(sentence, token, label_string);
         }
 
         if (all_tokens_correct)
