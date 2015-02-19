@@ -59,7 +59,7 @@ namespace schwa {
       io::Logger *_logger;
 
     public:
-      OutputModel(const std::string &path, const ModelParams &params, const config::Main &main_config);
+      OutputModel(const std::string &path, const ModelParams &params, const config::Main &main_config, bool threadsafe_logging=false);
       virtual ~OutputModel(void);
 
       inline io::Logger &logger(void) const { return *_logger; }

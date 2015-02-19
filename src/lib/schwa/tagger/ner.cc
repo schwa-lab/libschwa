@@ -66,7 +66,7 @@ InputModel::~InputModel(void) { }
 // OutputModel
 // ============================================================================
 OutputModel::OutputModel(const std::string &path, const ModelParams &params, const config::Main &main_config) :
-    learn::OutputModel(path, params, main_config),
+    learn::OutputModel(path, params, main_config, true),
     _pool(4 * 1024 * 1024),
     _string_pool(_pool),
     _brown_clusters(_string_pool),

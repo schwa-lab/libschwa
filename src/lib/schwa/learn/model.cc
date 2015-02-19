@@ -137,7 +137,7 @@ InputModel::~InputModel(void) { }
 // ============================================================================
 // OutputModel
 // ============================================================================
-OutputModel::OutputModel(const std::string &path, const ModelParams &params, const config::Main &main_config) :
+OutputModel::OutputModel(const std::string &path, const ModelParams &params, const config::Main &main_config, const bool threadsafe_logging) :
     _path(path),
     _resources_path(io::path_join(_path, params.resources_path())),
     _model_path(io::path_join(_path, params.model_path())),
@@ -170,7 +170,10 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
 
   // Open the log path and create a logger over it.
   _log = new io::OutputStream(io::path_join(_path, params.log_path()));
-  _logger = new io::PrettyLogger(*_log);
+  if (threadsafe_logging)
+    _logger = new io::ThreadsafePrettyLogger(*_log);
+  else
+    _logger = new io::PrettyLogger(*_log);
   _logger->threshold(params.log_level.level());
 
   // Validate or create the resources directory.
