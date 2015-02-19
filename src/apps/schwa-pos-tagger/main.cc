@@ -51,7 +51,7 @@ run_tagger(const TaggerMain &cfg, TRANSFORMER &transformer, InputModel &model) {
   Extractor extractor(model);
 
   // Create the tagger.
-  ln::CRFSuiteTagger<Extractor> tagger(extractor, model.model_path());
+  ln::CRFsuiteTagger<Extractor> tagger(extractor, model.model_path());
 
   // Read in the docs and tag them, one by one.
   io::InputStream in(cfg.input_path());

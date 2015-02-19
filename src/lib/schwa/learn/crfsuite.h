@@ -32,9 +32,9 @@ namespace schwa {
 
 
     // ========================================================================
-    // CRFSuiteTrainerParams
+    // CRFsuiteTrainerParams
     // ========================================================================
-    class CRFSuiteTrainerParams : public config::Group {
+    class CRFsuiteTrainerParams : public config::Group {
     public:
       config::OpChoices<std::string> algorithm;
       config::Op<double> c2;
@@ -47,16 +47,16 @@ namespace schwa {
       config::Op<bool> feature_possible_states;
       config::Op<bool> feature_possible_transitions;
 
-      CRFSuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
-      virtual ~CRFSuiteTrainerParams(void);
+      CRFsuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
+      virtual ~CRFsuiteTrainerParams(void);
     };
 
 
     // ========================================================================
-    // CRFSuiteTrainer
+    // CRFsuiteTrainer
     // ========================================================================
     template <typename EXTRACTOR>
-    class CRFSuiteTrainer {
+    class CRFsuiteTrainer {
     private:
       static int _crfsuite_logging_callback(void *self, const char *format, va_list args);
 
@@ -79,8 +79,8 @@ namespace schwa {
       void _add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label);
 
     public:
-      CRFSuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFSuiteTrainerParams &params);
-      ~CRFSuiteTrainer(void);
+      CRFsuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFsuiteTrainerParams &params);
+      ~CRFsuiteTrainer(void);
 
       void set_model_filename_suffix(const std::string &suffix) { _model_filename_suffix = suffix; }
       std::string get_param(const std::string &key) const;
@@ -93,7 +93,7 @@ namespace schwa {
       void train(void);
 
     private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFSuiteTrainer);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFsuiteTrainer);
     };
 
 
@@ -139,10 +139,10 @@ namespace schwa {
 
 
     // ========================================================================
-    // CRFSuiteTagger
+    // CRFsuiteTagger
     // ========================================================================
     template <typename EXTRACTOR>
-    class CRFSuiteTagger {
+    class CRFsuiteTagger {
     private:
       EXTRACTOR &_extractor;
       CRFsuiteLoadedModel _cmodel;
@@ -164,8 +164,8 @@ namespace schwa {
       void _tag(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
 
     public:
-      CRFSuiteTagger(EXTRACTOR &extractor, const std::string &model_path);
-      ~CRFSuiteTagger(void);
+      CRFsuiteTagger(EXTRACTOR &extractor, const std::string &model_path);
+      ~CRFsuiteTagger(void);
 
       template <typename IT, typename TRANSFORM>
       void tag(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer=TRANSFORM());
@@ -175,7 +175,7 @@ namespace schwa {
       void dump_accuracy(void) const;
 
     private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFSuiteTagger);
+      SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFsuiteTagger);
     };
 
 

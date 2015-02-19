@@ -29,7 +29,7 @@ public:
   cf::Op<bool> extract_only;
   cf::Op<bool> retain_docs;
   pos::ModelParams model_params;
-  ln::CRFSuiteTrainerParams trainer_params;
+  ln::CRFsuiteTrainerParams trainer_params;
   dr::DocrepGroup dr;
 
   Main(void) :
@@ -58,7 +58,7 @@ run_trainer(const Main &cfg, const IT docs_begin, const IT docs_end, TRANSFORMER
   Extractor extractor(model);
 
   // Create the trainer.
-  ln::CRFSuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
+  ln::CRFsuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
 
   // Extract the features.
   trainer.extract<IT, TRANSFORMER>(docs_begin, docs_end, transformer);

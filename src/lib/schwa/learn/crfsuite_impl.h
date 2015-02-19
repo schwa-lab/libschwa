@@ -41,10 +41,10 @@ namespace schwa {
 
 
     // ========================================================================
-    // CRFSuiteTrainer
+    // CRFsuiteTrainer
     // ========================================================================
     template <typename EXTRACTOR>
-    CRFSuiteTrainer<EXTRACTOR>::CRFSuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFSuiteTrainerParams &params) :
+    CRFsuiteTrainer<EXTRACTOR>::CRFsuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFsuiteTrainerParams &params) :
         _model(model),
         _logger(model.logger()),
         _extractor(extractor),
@@ -92,7 +92,7 @@ namespace schwa {
     }
 
     template <typename EXTRACTOR>
-    CRFSuiteTrainer<EXTRACTOR>::~CRFSuiteTrainer(void) {
+    CRFsuiteTrainer<EXTRACTOR>::~CRFsuiteTrainer(void) {
       using namespace third_party::crfsuite;
 
       // Deinitialise the trainer.
@@ -118,7 +118,7 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline int
-    CRFSuiteTrainer<EXTRACTOR>::_crfsuite_logging_callback(void *const self, const char *const format, va_list args) {
+    CRFsuiteTrainer<EXTRACTOR>::_crfsuite_logging_callback(void *const self, const char *const format, va_list args) {
       // Write the log string to the bufffer.
       char buffer[2048];
 #pragma GCC diagnostic push
@@ -130,18 +130,18 @@ namespace schwa {
       if (nchars < 0) {
         std::ostringstream ss;
         ss << "Call to `vsnprintf` failed in crfsuite logging callback (ret=" << nchars << ")";
-        static_cast<CRFSuiteTrainer<EXTRACTOR> *>(self)->_crfsuite_log(io::LogLevel::WARNING, ss.str().c_str());
+        static_cast<CRFsuiteTrainer<EXTRACTOR> *>(self)->_crfsuite_log(io::LogLevel::WARNING, ss.str().c_str());
       }
       else if (static_cast<unsigned int>(nchars) >= sizeof(buffer)) {
         std::ostringstream ss;
         ss << "Log message too large for buffer in crfsuite logging callback (nchars=" << nchars << ")";
-        static_cast<CRFSuiteTrainer<EXTRACTOR> *>(self)->_crfsuite_log(io::LogLevel::WARNING, ss.str().c_str());
+        static_cast<CRFsuiteTrainer<EXTRACTOR> *>(self)->_crfsuite_log(io::LogLevel::WARNING, ss.str().c_str());
       }
       else {
         // If the last character written was a newline, log the line. Ignore otherwise.
         if (buffer[nchars - 1] == '\n') {
           buffer[nchars - 1] = '\0';
-          static_cast<CRFSuiteTrainer<EXTRACTOR> *>(self)->_crfsuite_log(io::LogLevel::INFO, buffer);
+          static_cast<CRFsuiteTrainer<EXTRACTOR> *>(self)->_crfsuite_log(io::LogLevel::INFO, buffer);
         }
       }
 
@@ -152,14 +152,14 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::_crfsuite_log(const io::LogLevel level, const char *const msg) {
-      LOGD2(level, _logger) << "CRFSuiteTrainer::_crfsuite_logging_callback " << msg << std::endl;
+    CRFsuiteTrainer<EXTRACTOR>::_crfsuite_log(const io::LogLevel level, const char *const msg) {
+      LOGD2(level, _logger) << "CRFsuiteTrainer::_crfsuite_logging_callback " << msg << std::endl;
     }
 
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
+    CRFsuiteTrainer<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
       using namespace third_party::crfsuite;
       // Initialise the item sequence with a known number of items.
       crfsuite_instance_init_n(&_instance, nitems);
@@ -169,7 +169,7 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::_end_item_sequence(void) {
+    CRFsuiteTrainer<EXTRACTOR>::_end_item_sequence(void) {
       using namespace third_party::crfsuite;
       int ret;
 
@@ -185,7 +185,7 @@ namespace schwa {
 
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label) {
+    CRFsuiteTrainer<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label) {
       using namespace third_party::crfsuite;
 
       // Initialise the item with a known number of attributes.
@@ -214,7 +214,7 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::set_param(const std::string &key, const std::string &val) {
+    CRFsuiteTrainer<EXTRACTOR>::set_param(const std::string &key, const std::string &val) {
       using namespace third_party::crfsuite;
       int ret;
 
@@ -231,7 +231,7 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::train(void) {
+    CRFsuiteTrainer<EXTRACTOR>::train(void) {
       using namespace third_party::crfsuite;
       int ret;
 
@@ -239,18 +239,18 @@ namespace schwa {
       const std::string path = _model.model_path() + _model_filename_suffix;
 
       // Train the model.
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::train begin (path=" << path << ")" << std::endl;
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::train begin (path=" << path << ")" << std::endl;
       ret = _trainer->train(_trainer, &_data, path.c_str(), -1);
       if (SCHWA_UNLIKELY(ret != 0))
         throw_crfsuite_error("crfsuite_trainer_t::train", ret);
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::train end" << std::endl;
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::train end" << std::endl;
     }
 
 
     template <typename EXTRACTOR> template <typename IT, typename TRANSFORM>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::extract(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer) {
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::exact begin" << std::endl;
+    CRFsuiteTrainer<EXTRACTOR>::extract(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer) {
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::exact begin" << std::endl;
 
       // Run phase 1.
       _extractor.phase1_begin();
@@ -293,24 +293,24 @@ namespace schwa {
         }
         _extractor.phase2_eod(doc);
       }
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::exact end" << std::endl;
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::exact end" << std::endl;
     }
 
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTrainer<EXTRACTOR>::dump_crfsuite_data(io::OutputStream &out) const {
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::dump_crfsuite_data begin" << std::endl;
+    CRFsuiteTrainer<EXTRACTOR>::dump_crfsuite_data(io::OutputStream &out) const {
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::dump_crfsuite_data begin" << std::endl;
       learn::dump_crfsuite_data(out, _data);
-      LOG2(INFO, _logger) << "CRFSuiteTrainer::dump_crfsuite_data end" << std::endl;
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::dump_crfsuite_data end" << std::endl;
     }
 
 
     // ========================================================================
-    // CRFSuiteTagger
+    // CRFsuiteTagger
     // ========================================================================
     template <typename EXTRACTOR>
-    CRFSuiteTagger<EXTRACTOR>::CRFSuiteTagger(EXTRACTOR &extractor, const std::string &model_path) :
+    CRFsuiteTagger<EXTRACTOR>::CRFsuiteTagger(EXTRACTOR &extractor, const std::string &model_path) :
         _extractor(extractor),
         _cmodel(model_path),
         _item(nullptr),
@@ -321,12 +321,12 @@ namespace schwa {
       { }
 
     template <typename EXTRACTOR>
-    CRFSuiteTagger<EXTRACTOR>::~CRFSuiteTagger(void) { }
+    CRFsuiteTagger<EXTRACTOR>::~CRFsuiteTagger(void) { }
 
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
+    CRFsuiteTagger<EXTRACTOR>::_begin_item_sequence(const size_t nitems) {
       using namespace third_party::crfsuite;
       // Initialise the item sequence with a known number of items.
       crfsuite_instance_init_n(&_instance, nitems);
@@ -340,7 +340,7 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::_end_item_sequence(void) {
+    CRFsuiteTagger<EXTRACTOR>::_end_item_sequence(void) {
       // Set the taggers current instance to be this instance.
       _cmodel.set_instance(_instance);
 
@@ -350,7 +350,7 @@ namespace schwa {
 
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features) {
+    CRFsuiteTagger<EXTRACTOR>::_add_item(TO_STRING &to_string_helper, const FEATURES &features) {
       using namespace third_party::crfsuite;
       int ret;
 
@@ -381,7 +381,7 @@ namespace schwa {
 
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::_tag(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
+    CRFsuiteTagger<EXTRACTOR>::_tag(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
       // Run phase 2.
       _extractor.phase2_bod(doc);
       _nsentences_total += doc.sentences.size();
@@ -427,7 +427,7 @@ namespace schwa {
 
     template <typename EXTRACTOR> template <typename IT, typename TRANSFORM>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::tag(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer) {
+    CRFsuiteTagger<EXTRACTOR>::tag(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer) {
       FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
       Features<TRANSFORM, third_party::crfsuite::floatval_t> features(transformer);
 
@@ -440,7 +440,7 @@ namespace schwa {
 
     template <typename EXTRACTOR> template <typename TRANSFORM>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::tag(canonical_schema::Doc &doc, const TRANSFORM &transformer) {
+    CRFsuiteTagger<EXTRACTOR>::tag(canonical_schema::Doc &doc, const TRANSFORM &transformer) {
       FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
       Features<TRANSFORM, third_party::crfsuite::floatval_t> features(transformer);
       _tag(doc, to_string_helper, features);
@@ -449,7 +449,7 @@ namespace schwa {
 
     template <typename EXTRACTOR>
     inline void
-    CRFSuiteTagger<EXTRACTOR>::dump_accuracy(void) const {
+    CRFsuiteTagger<EXTRACTOR>::dump_accuracy(void) const {
       // Ensure we actually have something to report back about.
       if (_ntokens_total == 0)
         return;

@@ -69,7 +69,7 @@ run_tagger(const Main &cfg, TRANSFORMER &transformer, InputModel &model) {
   Extractor extractor1(model, false, false);
 
   // Create the tagger.
-  ln::CRFSuiteTagger<Extractor> tagger1(extractor1, model.model_path());
+  ln::CRFsuiteTagger<Extractor> tagger1(extractor1, model.model_path());
 
   static const auto SEQUENCE_UNTAG_CRF1_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
   static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);

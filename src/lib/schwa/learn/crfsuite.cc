@@ -10,9 +10,9 @@ namespace schwa {
 namespace learn {
 
 // ========================================================================
-// CRFSuiteTrainerParams
+// CRFsuiteTrainerParams
 // ========================================================================
-CRFSuiteTrainerParams::CRFSuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
+CRFsuiteTrainerParams::CRFsuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
     config::Group(group, name, desc, flags),
     algorithm(*this, "algorithm", "Which training algorithm to use", {"lbfgs", "l2sgd", "ap", "pa", "arow"}, "lbfgs"),
     c2(*this, "c2", "Coefficient for L2 regularisation during LBFGS", 0.707),
@@ -26,7 +26,7 @@ CRFSuiteTrainerParams::CRFSuiteTrainerParams(config::Group &group, const std::st
     feature_possible_transitions(*this, "feature-possible-transitions", "Whether crfsuite generates transition features that do not occur in the training data (i.e., negative transition features)", false)
   { }
 
-CRFSuiteTrainerParams::~CRFSuiteTrainerParams(void) { }
+CRFsuiteTrainerParams::~CRFsuiteTrainerParams(void) { }
 
 
 // ========================================================================

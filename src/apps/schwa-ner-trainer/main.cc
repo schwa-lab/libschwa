@@ -35,7 +35,7 @@ public:
   cf::Op<std::string> extracted_path;
   cf::Op<bool> extract_only;
   ner::ModelParams model_params;
-  ln::CRFSuiteTrainerParams trainer_params;
+  ln::CRFsuiteTrainerParams trainer_params;
   dr::DocrepGroup dr;
 
   Main(void) :
@@ -79,7 +79,7 @@ run_trainer1(const Main &cfg, Extractor &extractor, OutputModel &model, const IT
     LOG(INFO) << "Training 1st stage NER classifier for all training data" << std::endl;
 
   // Create the trainer for the 1st stage classifier.
-  ln::CRFSuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
+  ln::CRFsuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
 
   // Extract the features for the 1st stage classifier.
   trainer.extract<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
@@ -106,7 +106,7 @@ run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_b
   LOG(INFO) << "Tagging with 1st stage NER classifier for fold " << fold << std::endl;
 
   // Create the tagger for the 1st stage classifier.
-  ln::CRFSuiteTagger<Extractor> tagger(extractor, model_path + get_fold_suffix(fold));
+  ln::CRFsuiteTagger<Extractor> tagger(extractor, model_path + get_fold_suffix(fold));
 
   // Extract the features for the 1st stage classifier.
   tagger.tag<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
