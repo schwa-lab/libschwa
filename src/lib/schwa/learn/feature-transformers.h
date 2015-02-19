@@ -34,6 +34,8 @@ namespace schwa {
 
     public:
       explicit HasherTransform(value_type nbits, const HASHER &hasher=HASHER()) : _nbits(nbits), _modulus(1 << nbits), _hasher(hasher) { }
+      HasherTransform(const HasherTransform &o) : _nbits(o._nbits), _modulus(o._modulus), _hasher(o._hasher) { }
+      HasherTransform(const HasherTransform &&o) : _nbits(o._nbits), _modulus(o._modulus), _hasher(o._hasher) { }
 
       inline value_type modulus(void) const { return _modulus; }
       inline value_type nbits(void) const { return _nbits; }
@@ -47,9 +49,6 @@ namespace schwa {
       invert(const std::string &feature) const {
         return _hasher(feature) % 2 == 0;
       }
-
-    private:
-      SCHWA_DISALLOW_COPY_AND_ASSIGN(HasherTransform);
     };
 
   }
