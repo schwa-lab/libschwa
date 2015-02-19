@@ -60,7 +60,7 @@ namespace schwa {
       /**
        * Get the frequency of a word in the Brown cluster training data.
        **/
-      unsigned int  get_frequency(const std::string &word) const;
+      unsigned int get_frequency(const std::string &word) const;
 
       inline bool empty(void) const { return _map.empty(); }
       inline unsigned int min_freq(void) const { return _min_freq; }
