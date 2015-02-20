@@ -78,6 +78,17 @@ namespace schwa {
       template <typename TO_STRING, typename FEATURES>
       void _add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label);
 
+      void _extract_phase1_sentence(canonical_schema::Sentence &sentence);
+      void _extract_phase1_with_blocks(canonical_schema::Doc &doc);
+      void _extract_phase1_without_blocks(canonical_schema::Doc &doc);
+
+      template <typename TO_STRING, typename FEATURES>
+      void _extract_phase2_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features);
+      template <typename TO_STRING, typename FEATURES>
+      void _extract_phase2_with_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
+      template <typename TO_STRING, typename FEATURES>
+      void _extract_phase2_without_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
+
     public:
       CRFsuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFsuiteTrainerParams &params);
       ~CRFsuiteTrainer(void);
@@ -161,7 +172,11 @@ namespace schwa {
       void _add_item(TO_STRING &to_string_helper, const FEATURES &features);
 
       template <typename TO_STRING, typename FEATURES>
-      void _tag(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
+      void _tag_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features);
+      template <typename TO_STRING, typename FEATURES>
+      void _tag_with_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
+      template <typename TO_STRING, typename FEATURES>
+      void _tag_without_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
 
     public:
       CRFsuiteTagger(EXTRACTOR &extractor, const std::string &model_path);

@@ -247,22 +247,109 @@ namespace schwa {
     }
 
 
+    template <typename EXTRACTOR>
+    inline void
+    CRFsuiteTrainer<EXTRACTOR>::_extract_phase1_sentence(canonical_schema::Sentence &sentence) {
+      _extractor.phase1_bos(sentence);
+      for (canonical_schema::Token &token : sentence.span)
+        _extractor.phase1_extract(token, &token - sentence.span.start);
+      _extractor.phase1_eos(sentence);
+    }
+
+
+    template <typename EXTRACTOR>
+    inline void
+    CRFsuiteTrainer<EXTRACTOR>::_extract_phase1_with_blocks(canonical_schema::Doc &doc) {
+      // Paragraphs first followed by headings. This is because headings are typically more ambiguous.
+      for (canonical_schema::Block &block : doc.blocks) {
+        if (block.paragraph == nullptr)
+          continue;
+        for (canonical_schema::Sentence &sentence : block.paragraph->span)
+          _extract_phase1_sentence(sentence);
+      }
+
+      // Headings.
+      for (canonical_schema::Block &block : doc.blocks) {
+        if (block.heading == nullptr)
+          continue;
+        _extract_phase1_sentence(*block.heading->sentence);
+      }
+    }
+
+
+    template <typename EXTRACTOR>
+    inline void
+    CRFsuiteTrainer<EXTRACTOR>::_extract_phase1_without_blocks(canonical_schema::Doc &doc) {
+      for (canonical_schema::Sentence &sentence : doc.sentences)
+        _extract_phase1_sentence(sentence);
+    }
+
+
+    template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
+    inline void
+    CRFsuiteTrainer<EXTRACTOR>::_extract_phase2_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features) {
+      _extractor.phase2_bos(sentence);
+      _begin_item_sequence(sentence.span.stop - sentence.span.start);
+
+      for (canonical_schema::Token &token : sentence.span) {
+        // Extract the features for the current token.
+        _extractor.phase2_extract(sentence, token, features);
+
+        // Add the features as an item in the current item sequence.
+        _add_item(to_string_helper, features, _extractor.get_label(token));
+        features.clear();
+      }
+
+      _end_item_sequence();
+      _extractor.phase2_eos(sentence);
+
+      // Update the history.
+      for (canonical_schema::Token &token : sentence.span)
+        _extractor.phase2_update_history(sentence, token, _extractor.get_label(token));
+    }
+
+
+    template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
+    inline void
+    CRFsuiteTrainer<EXTRACTOR>::_extract_phase2_with_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
+      for (canonical_schema::Block &block : doc.blocks) {
+        if (block.paragraph == nullptr)
+          continue;
+        for (canonical_schema::Sentence &sentence : block.paragraph->span)
+          _extract_phase2_sentence(sentence, to_string_helper, features);
+      }
+
+      // Headings.
+      for (canonical_schema::Block &block : doc.blocks) {
+        if (block.heading == nullptr)
+          continue;
+        _extract_phase2_sentence(*block.heading->sentence, to_string_helper, features);
+      }
+    }
+
+
+    template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
+    inline void
+    CRFsuiteTrainer<EXTRACTOR>::_extract_phase2_without_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
+      for (canonical_schema::Sentence &sentence : doc.sentences)
+        _extract_phase2_sentence(sentence, to_string_helper, features);
+    }
+
+
     template <typename EXTRACTOR> template <typename IT, typename TRANSFORM>
     inline void
     CRFsuiteTrainer<EXTRACTOR>::extract(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer) {
-      LOG2(INFO, _logger) << "CRFsuiteTrainer::exact begin" << std::endl;
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::extract begin" << std::endl;
 
       // Run phase 1.
       _extractor.phase1_begin();
       for (IT it = docs_begin; it != docs_end; ++it) {
         canonical_schema::Doc &doc = **it;
         _extractor.phase1_bod(doc);
-        for (canonical_schema::Sentence &sentence : doc.sentences) {
-          _extractor.phase1_bos(sentence);
-          for (canonical_schema::Token &token : sentence.span)
-            _extractor.phase1_extract(token, &token - sentence.span.start);
-          _extractor.phase1_eos(sentence);
-        }
+        if (doc.blocks.empty())
+          _extract_phase1_without_blocks(doc);
+        else
+          _extract_phase1_with_blocks(doc);
         _extractor.phase1_eod(doc);
       }
       _extractor.phase1_end();
@@ -275,29 +362,13 @@ namespace schwa {
       for (IT it = docs_begin; it != docs_end; ++it) {
         canonical_schema::Doc &doc = **it;
         _extractor.phase2_bod(doc);
-        for (canonical_schema::Sentence &sentence : doc.sentences) {
-          _extractor.phase2_bos(sentence);
-          _begin_item_sequence(sentence.span.stop - sentence.span.start);
-
-          for (canonical_schema::Token &token : sentence.span) {
-            // Extract the features for the current token.
-            _extractor.phase2_extract(sentence, token, features);
-
-            // Add the features as an item in the current item sequence.
-            _add_item(to_string_helper, features, _extractor.get_label(token));
-            features.clear();
-          }
-
-          _end_item_sequence();
-          _extractor.phase2_eos(sentence);
-
-          // Update the history.
-          for (canonical_schema::Token &token : sentence.span)
-            _extractor.phase2_update_history(sentence, token, _extractor.get_label(token));
-        }
+        if (doc.blocks.empty())
+          _extract_phase2_without_blocks(doc, to_string_helper, features);
+        else
+          _extract_phase2_with_blocks(doc, to_string_helper, features);
         _extractor.phase2_eod(doc);
       }
-      LOG2(INFO, _logger) << "CRFsuiteTrainer::exact end" << std::endl;
+      LOG2(INFO, _logger) << "CRFsuiteTrainer::extract end" << std::endl;
     }
 
 
@@ -385,49 +456,71 @@ namespace schwa {
 
     template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
     inline void
-    CRFsuiteTagger<EXTRACTOR>::_tag(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
-      // Run phase 2.
-      _extractor.phase2_bod(doc);
-      _nsentences_total += doc.sentences.size();
-      for (canonical_schema::Sentence &sentence : doc.sentences) {
-        const size_t sentence_length = sentence.span.stop - sentence.span.start;
-        _extractor.phase2_bos(sentence);
-        _begin_item_sequence(sentence_length);
-        _ntokens_total += sentence_length;
+    CRFsuiteTagger<EXTRACTOR>::_tag_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features) {
+      const size_t sentence_length = sentence.span.stop - sentence.span.start;
+      _extractor.phase2_bos(sentence);
+      _begin_item_sequence(sentence_length);
+      _nsentences_total += 1;
+      _ntokens_total += sentence_length;
 
-        for (canonical_schema::Token &token : sentence.span) {
-          // Extract the features for the current token.
-          _extractor.phase2_extract(sentence, token, features);
+      for (canonical_schema::Token &token : sentence.span) {
+        // Extract the features for the current token.
+        _extractor.phase2_extract(sentence, token, features);
 
-          // Add the features as an item in the current item sequence.
-          _add_item(to_string_helper, features);
-          features.clear();
-        }
-
-        _end_item_sequence();
-        _extractor.phase2_eos(sentence);
-
-        // Run viterbi over the current item sequence.
-        third_party::crfsuite::floatval_t score;
-        _cmodel.viterbi(&_label_ids[0], &score);
-
-        bool all_tokens_correct = true;
-        for (canonical_schema::Token &token : sentence.span) {
-          const int label_id = _label_ids[&token - sentence.span.start];
-          const std::string label_string = _cmodel.get_label_string(label_id);
-          if (label_string == _extractor.get_label(token))
-            ++_ntokens_correct;
-          else
-            all_tokens_correct = false;
-
-          _extractor.set_label(token, label_string);
-          _extractor.phase2_update_history(sentence, token, label_string);
-        }
-
-        if (all_tokens_correct)
-          ++_nsentences_correct;
+        // Add the features as an item in the current item sequence.
+        _add_item(to_string_helper, features);
+        features.clear();
       }
-      _extractor.phase2_eod(doc);
+
+      _end_item_sequence();
+      _extractor.phase2_eos(sentence);
+
+      // Run viterbi over the current item sequence.
+      third_party::crfsuite::floatval_t score;
+      _cmodel.viterbi(&_label_ids[0], &score);
+
+      bool all_tokens_correct = true;
+      for (canonical_schema::Token &token : sentence.span) {
+        const int label_id = _label_ids[&token - sentence.span.start];
+        const std::string label_string = _cmodel.get_label_string(label_id);
+        if (label_string == _extractor.get_label(token))
+          ++_ntokens_correct;
+        else
+          all_tokens_correct = false;
+
+        _extractor.set_label(token, label_string);
+        _extractor.phase2_update_history(sentence, token, label_string);
+      }
+
+      if (all_tokens_correct)
+        ++_nsentences_correct;
+    }
+
+
+    template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
+    inline void
+    CRFsuiteTagger<EXTRACTOR>::_tag_with_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
+      for (canonical_schema::Block &block : doc.blocks) {
+        if (block.paragraph == nullptr)
+          continue;
+        for (canonical_schema::Sentence &sentence : block.paragraph->span)
+          _tag_sentence(sentence, to_string_helper, features);
+      }
+
+      // Headings.
+      for (canonical_schema::Block &block : doc.blocks) {
+        if (block.heading == nullptr)
+          continue;
+        _tag_sentence(*block.heading->sentence, to_string_helper, features);
+      }
+    }
+
+
+    template <typename EXTRACTOR> template <typename TO_STRING, typename FEATURES>
+    inline void
+    CRFsuiteTagger<EXTRACTOR>::_tag_without_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features) {
+      for (canonical_schema::Sentence &sentence : doc.sentences)
+        _tag_sentence(sentence, to_string_helper, features);
     }
 
 
@@ -439,7 +532,12 @@ namespace schwa {
 
       for (IT it = docs_begin; it != docs_end; ++it) {
         canonical_schema::Doc &doc = **it;
-        _tag(doc, to_string_helper, features);
+        _extractor.phase2_bod(doc);
+        if (doc.blocks.empty())
+          _tag_without_blocks(doc, to_string_helper, features);
+        else
+          _tag_with_blocks(doc, to_string_helper, features);
+        _extractor.phase2_eod(doc);
       }
     }
 
@@ -449,7 +547,12 @@ namespace schwa {
     CRFsuiteTagger<EXTRACTOR>::tag(canonical_schema::Doc &doc, const TRANSFORM &transformer) {
       FeatureToStringHelper<typename TRANSFORM::value_type> to_string_helper;
       Features<TRANSFORM, third_party::crfsuite::floatval_t> features(transformer);
-      _tag(doc, to_string_helper, features);
+      _extractor.phase2_bod(doc);
+      if (doc.blocks.empty())
+        _tag_without_blocks(doc, to_string_helper, features);
+      else
+        _tag_with_blocks(doc, to_string_helper, features);
+      _extractor.phase2_eod(doc);
     }
 
 
