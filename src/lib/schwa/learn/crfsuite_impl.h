@@ -403,7 +403,7 @@ inline void
 CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR>::extract_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features) {
   // Start the item sequence.
   const size_t sentence_length = sentence.span.stop - sentence.span.start;
-  _extractor.phase1_bos(sentence);
+  _extractor.phase3_bos(sentence);
   _begin_item_sequence(sentence_length);
 
   for (canonical_schema::Token &token : sentence.span) {
@@ -417,7 +417,7 @@ CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR>::extract_sentence(canonical_sch
 
   // End the item sequence.
   _end_item_sequence();
-  _extractor.phase1_eos(sentence);
+  _extractor.phase3_eos(sentence);
 
   // Ensure our sequence label array is large enough to house the sentence.
   if (sentence_length > _label_ids.size())
