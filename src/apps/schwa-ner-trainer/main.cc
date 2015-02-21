@@ -195,7 +195,7 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
   // 1st stage classifier.
   {
     for (cs::Doc *doc : docs)
-      Extractor::do_phase2_bod(*doc, false, true, model.tag_encoding());
+      Extractor::prepare_doc(*doc, false, true, model.tag_encoding());
 
     std::vector<std::thread> threads;
     for (int i = -1; i != NFOLDS; ++i)
