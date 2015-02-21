@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import print_function
 import sys
 
 import msgpack
@@ -22,7 +23,7 @@ def main(in_file, out_file):
     embeddings[word] = tuple(float(v) for v in it)
 
   # Pack the map to the output stream, using only floating point precision.
-  msgpack.pack(embeddings, out_file, use_single_float=True)
+  msgpack.pack(embeddings, out_file)
 
   print('# dimensions:', dimensions, file=sys.stderr)
   print('# words     :', len(embeddings), file=sys.stderr)

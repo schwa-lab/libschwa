@@ -16,22 +16,24 @@ namespace schwa {
 
     /**
      * The word embeddings file is expected to be a MessagePack payload of the format
-     * { token_str : [ embedding_float ] }, where all of the arrays of floating point values are
+     * { token_str : [ embedding_double ] }, where all of the arrays of floating point values are
      * the same length.
      **/
     class WordEmbeddings {
     public:
+      static const double DEFAULT_SIGMA;
       static const std::string UNKNOWN_WORD_KEY;
 
     private:
       StringPool &_string_pool;
-      float *_embeddings;
-      float *_unknown_embeddings;
-      uint32_t _ndimensions;
-      std::unordered_map<const uint8_t *, const float *, uint8str_hash, uint8str_equal_to> _map;
+      double *_embeddings;           //<! Pointer to the giant array of all embedding values.
+      double *_unknown_embeddings;   //!< Cached copy of the pointer to the "*UNKNOWN*" embeddings.
+      double _sigma;                 //!< Scaling hyperparameter.
+      uint32_t _ndimensions;         //!< The number of dimensions.
+      std::unordered_map<const uint8_t *, const double *, uint8str_hash, uint8str_equal_to> _map;
 
     public:
-      explicit WordEmbeddings(StringPool &string_pool);
+      explicit WordEmbeddings(StringPool &string_pool, double sigma=DEFAULT_SIGMA);
       ~WordEmbeddings(void);
 
       /**
@@ -48,7 +50,7 @@ namespace schwa {
        * via the WordEmbeddings::ndimensions method. If no embeddings are found (should not happen
        * assuming there is an "*UNKNOWN*" embedding), this method returns nullptr.
        **/
-      const float *get_embeddings(const std::string &word) const;
+      const double *get_embeddings(const std::string &word) const;
 
       inline bool empty(void) const { return _map.empty(); }
       inline uint32_t ndimensions(void) const { return _ndimensions; }

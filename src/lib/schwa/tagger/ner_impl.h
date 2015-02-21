@@ -134,7 +134,7 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
     }
 
     // Add word embedding values for w_{i}
-    const float *embeddings = _word_embeddings.get_embeddings(norm);
+    const double *embeddings = _word_embeddings.get_embeddings(norm);
     if (SCHWA_LIKELY(embeddings != nullptr)) {
       char buf[14];  // we[i+2]=ddddd
       const int prefix = std::sprintf(buf, "we[i%+d]=", offset);
