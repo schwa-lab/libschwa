@@ -159,6 +159,20 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
       }
     }
   }
+
+  // Gazetteer match.
+  static constexpr const char GAZ_PREFIXES[4] = {'W', 'B', 'E', 'M'};
+  uint8_t gaz = _gazetteer_match[i];
+  if (gaz != 0) {
+    for (uint8_t i = 0; i != 4; ++i) {
+      if ((gaz & 0x01) != 0) {
+        ss << "gaz=" << GAZ_PREFIXES[i];
+        features(ss.str());
+        ss.str("");
+      }
+      gaz >>= 1;
+    }
+  }
 }
 
 }  // namespace ner

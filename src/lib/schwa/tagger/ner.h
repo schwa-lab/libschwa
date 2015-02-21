@@ -6,6 +6,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 #include <schwa/_base.h>
 #include <schwa/config.h>
@@ -13,6 +14,7 @@
 #include <schwa/io/logging.h>
 #include <schwa/learn.h>
 #include <schwa/lex/brown-clusters.h>
+#include <schwa/lex/gazetteer.h>
 #include <schwa/lex/word-embeddings.h>
 #include <schwa/third-party/re2/re2.h>
 
@@ -26,7 +28,9 @@ namespace schwa {
         config::OpSequenceTagEncoding tag_encoding;
         config::Op<unsigned int> feature_hashing;
         config::Op<std::string> brown_clusters_path;
+        config::Op<std::string> gazetteer_path;
         config::Op<std::string> word_embeddings_path;
+        config::Op<double> word_embeddings_sigma;
 
         ModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
         virtual ~ModelParams(void);
@@ -41,6 +45,7 @@ namespace schwa {
         Pool _pool;
         StringPool _string_pool;
         lex::BrownClusters _brown_clusters;
+        lex::Gazetteer _gazetteer;
         lex::WordEmbeddings _word_embeddings;
         SequenceTagEncoding _tag_encoding;
 
@@ -49,6 +54,7 @@ namespace schwa {
         virtual ~InputModel(void);
 
         const lex::BrownClusters &brown_clusters(void) const { return _brown_clusters; }
+        const lex::Gazetteer &gazetteer(void) const { return _gazetteer; }
         SequenceTagEncoding tag_encoding(void) const { return _tag_encoding; }
         const lex::WordEmbeddings &word_embeddings(void) const { return _word_embeddings; }
 
@@ -62,6 +68,7 @@ namespace schwa {
         Pool _pool;
         StringPool _string_pool;
         lex::BrownClusters _brown_clusters;
+        lex::Gazetteer _gazetteer;
         lex::WordEmbeddings _word_embeddings;
         SequenceTagEncoding _tag_encoding;
 
@@ -70,6 +77,7 @@ namespace schwa {
         virtual ~OutputModel(void);
 
         const lex::BrownClusters &brown_clusters(void) const { return _brown_clusters; }
+        const lex::Gazetteer &gazetteer(void) const { return _gazetteer; }
         SequenceTagEncoding tag_encoding(void) const { return _tag_encoding; }
         const lex::WordEmbeddings &word_embeddings(void) const { return _word_embeddings; }
 
@@ -104,6 +112,8 @@ namespace schwa {
         const uint8_t *_brown_cluster_path;
         unsigned int *const _brown_cluster_path_lengths;
         char *const _brown_cluster_feature;
+        const lex::Gazetteer &_gazetteer;
+        std::vector<uint8_t> _gazetteer_match;
         const lex::WordEmbeddings &_word_embeddings;
         io::Logger &_logger;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_ne_normalised;

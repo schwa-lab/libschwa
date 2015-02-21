@@ -30,7 +30,9 @@ ModelParams::ModelParams(config::Group &group, const std::string &name, const st
     tag_encoding(*this, "tag-encoding", 'E', "Sequence tag encoding scheme to use", "bmewo"),
     feature_hashing(*this, "feature-hashing", 'H', "Number of bits to use for feature hashing", config::Flags::OPTIONAL),
     brown_clusters_path(*this, "brown-cluster-path", "Absolute path to the Brown clusters file", "lex-data/brown-clusters/rcv1.c1000"),
-    word_embeddings_path(*this, "word-embeddings-path", "Absolute path to the word embeddings file", "lex-data/word-embeddings/cw.50dim.unscalled")
+    gazetteer_path(*this, "gazetteer-path", "Absolute path to the country-related n-gram gazetter file", "lex-data/gazetteers/countries"),
+    word_embeddings_path(*this, "word-embeddings-path", "Absolute path to the word embeddings file", "lex-data/word-embeddings/cw.50dim.unscalled.double"),
+    word_embeddings_sigma(*this, "word-embeddings-sigma", "Scaling factor for scaling the embeddings values", lex::WordEmbeddings::DEFAULT_SIGMA)
   { }
 
 ModelParams::~ModelParams(void) { }
@@ -44,13 +46,20 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
     _pool(4 * 1024 * 1024),
     _string_pool(_pool),
     _brown_clusters(_string_pool),
-    _word_embeddings(_string_pool),
+    _gazetteer(_string_pool),
+    _word_embeddings(_string_pool, params.word_embeddings_sigma()),
     _tag_encoding(params.tag_encoding.encoding())
   {
   // Load the Brown clusters.
   {
     io::InputStream in(params.brown_clusters_path());
     _brown_clusters.load(in);
+  }
+
+  // Load the gazetteer.
+  {
+    io::InputStream in(params.gazetteer_path());
+    _gazetteer.load(in);
   }
 
   // Load the word embeddings.
@@ -71,13 +80,20 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
     _pool(4 * 1024 * 1024),
     _string_pool(_pool),
     _brown_clusters(_string_pool),
-    _word_embeddings(_string_pool),
+    _gazetteer(_string_pool),
+    _word_embeddings(_string_pool, params.word_embeddings_sigma()),
     _tag_encoding(params.tag_encoding.encoding())
   {
   // Load the Brown clusters.
   {
     io::InputStream in(params.brown_clusters_path());
     _brown_clusters.load(in);
+  }
+
+  // Load the gazetteer.
+  {
+    io::InputStream in(params.gazetteer_path());
+    _gazetteer.load(in);
   }
 
   // Load the word embeddings.
@@ -109,6 +125,7 @@ Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) 
     _brown_cluster_path(nullptr),
     _brown_cluster_path_lengths(new unsigned int[_brown_clusters.npaths()]),
     _brown_cluster_feature(new char[8 + _brown_clusters.path_lengths().back() + 1]),
+    _gazetteer(model.gazetteer()),
     _word_embeddings(model.word_embeddings()),
     _logger(*io::default_logger),
     _offsets_token_ne_normalised(&_get_token_ne_normalised),
@@ -126,6 +143,7 @@ Extractor::Extractor(OutputModel &model, bool is_second_stage, bool is_threaded)
     _brown_cluster_path(nullptr),
     _brown_cluster_path_lengths(new unsigned int[_brown_clusters.npaths()]),
     _brown_cluster_feature(new char[8 + _brown_clusters.path_lengths().back() + 1]),
+    _gazetteer(model.gazetteer()),
     _word_embeddings(model.word_embeddings()),
     _logger(model.logger()),
     _offsets_token_ne_normalised(&_get_token_ne_normalised),
@@ -181,6 +199,58 @@ Extractor::phase2_bos(cs::Sentence &sentence) {
   // Update the token offsets objects to know about the new sentence.
   _offsets_token_ne_normalised.set_slice(sentence.span);
   _offsets_token_norm_raw.set_slice(sentence.span);
+
+  // How many tokens long is the sentence?
+  const size_t sentence_length = sentence.span.stop - sentence.span.start;
+  _gazetteer_match.resize(sentence_length);
+
+  // Reset the gazetteer match flags.
+  std::fill(_gazetteer_match.begin(), _gazetteer_match.end(), 0);
+
+  // Lookup n-gram gazetteer matches for all n-grams in the sentence.
+  for (cs::Token &token0 : sentence.span) {
+    // Are there any potential gazetteer n-gram matches for the current token?
+    const std::vector<std::vector<const uint8_t *>> *ngrams = _gazetteer.get_ngrams(_get_token_ne_normalised(token0));
+    if (ngrams == nullptr)
+      continue;
+
+    // Consider each n-gram.
+    const size_t t = &token0 - sentence.span.start;
+    for (const std::vector<const uint8_t *> &ngram : *ngrams) {
+      // Can the n-gram fit?
+      if (t + ngram.size() > sentence_length)
+        continue;
+
+      // Check each of the tokens in turn.
+      cs::Token *it_t = &token0;
+      auto it_n = ngram.begin();
+      bool success = true;
+      for (unsigned int i = 0; i != ngram.size(); ++i, ++it_t, ++it_n) {
+        const std::string &norm_t = _get_token_ne_normalised(*it_t);
+        const char *norm_n = reinterpret_cast<const char *>(*it_n);
+        if (norm_t != norm_n) {
+          success = false;
+          break;
+        }
+      }
+      if (!success)
+        continue;
+
+      // If we found a match in the gazetteer, indicate that we found at match for each of the tokens in the n-gram.
+      for (unsigned int i = 0; i != ngram.size(); ++i) {
+        uint8_t m;
+        if (ngram.size() == 1)
+          m = (1 << 0);
+        else if (i == 0)
+          m = (1 << 1);
+        else if (i == ngram.size() - 1)
+          m = (1 << 2);
+        else
+          m = (1 << 3);
+        _gazetteer_match[t + i] |= m;
+      }
+    }
+  }
 }
 
 

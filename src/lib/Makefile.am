@@ -137,6 +137,7 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/phases_impl.h \
 		schwa/lex/brown-clusters.h \
 		schwa/lex/brown-clusters_impl.h \
+		schwa/lex/gazetteer.h \
 		schwa/lex/word-embeddings.h \
 		schwa/lex/word-form.h \
 		schwa/macros.h \
@@ -211,6 +212,7 @@ LIBSCHWA_SOURCE_FILES = \
 		schwa/learn/lexicon.cc \
 		schwa/learn/model.cc \
 		schwa/lex/brown-clusters.cc \
+		schwa/lex/gazetteer.cc \
 		schwa/lex/word-embeddings.cc \
 		schwa/lex/word-form.cc \
 		schwa/msgpack/dynamic.cc \
