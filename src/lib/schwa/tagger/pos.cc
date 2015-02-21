@@ -84,7 +84,6 @@ OutputModel::~OutputModel(void) {
 // Extractor
 // ============================================================================
 Extractor::Extractor(InputModel &model) :
-    _is_train(false),
     _rare_token_cutoff(model.rare_token_cutoff()),
     _lexicon(model.lexicon()),
     _brown_clusters(model.brown_clusters()),
@@ -97,7 +96,6 @@ Extractor::Extractor(InputModel &model) :
 
 
 Extractor::Extractor(OutputModel &model) :
-    _is_train(true),
     _rare_token_cutoff(model.rare_token_cutoff()),
     _lexicon(model.lexicon()),
     _brown_clusters(model.brown_clusters()),
@@ -126,16 +124,14 @@ Extractor::phase1_end(void) {
 
 
 void
-Extractor::phase1_extract(canonical_schema::Token &token, size_t) {
-  if (_is_train) {
-    // Add the current token to the lexicon.
-    _lexicon.add(_get_token_norm_raw(token));
-  }
+Extractor::phase1_extract(canonical_schema::Sentence &, canonical_schema::Token &token) {
+  // Add the current token to the lexicon.
+  _lexicon.add(_get_token_norm_raw(token));
 }
 
 
 void
-Extractor::phase2_bos(canonical_schema::Sentence &sentence) {
+Extractor::phase3_bos(canonical_schema::Sentence &sentence) {
   _offsets_token_norm_raw.set_slice(sentence.span);
 }
 

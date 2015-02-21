@@ -151,7 +151,7 @@ Extractor::_check_regular_expressions(void) const {
 
 
 void
-Extractor::do_phase2_bod(cs::Doc &doc, const bool is_second_stage, const bool is_train, const SequenceTagEncoding tag_encoding) {
+Extractor::prepare_doc(cs::Doc &doc, const bool is_second_stage, const bool is_train, const SequenceTagEncoding tag_encoding) {
   static const auto REVERSE_GOLD_NES = DR_REVERSE_SLICES(&cs::Doc::named_entities, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Token::ne);
   static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
 
@@ -172,26 +172,36 @@ Extractor::do_phase2_bod(cs::Doc &doc, const bool is_second_stage, const bool is
 void
 Extractor::phase2_bod(cs::Doc &doc) {
   if (!_is_threaded)
-    do_phase2_bod(doc, _is_second_stage, _is_train, _tag_encoding);
+    prepare_doc(doc, _is_second_stage, _is_train, _tag_encoding);
 }
 
 
 void
 Extractor::phase2_bos(cs::Sentence &sentence) {
+  // Update the token offsets objects to know about the new sentence.
   _offsets_token_ne_normalised.set_slice(sentence.span);
   _offsets_token_norm_raw.set_slice(sentence.span);
 }
 
 
 void
-Extractor::phase2_eod(cs::Doc &) {
-  // Reset the token-tag counts per document.
-  _token_tag_counts.clear();
+Extractor::phase2_extract(cs::Sentence &sentence, cs::Token &token) {
+  // FIXME Find the identical token forms for use in the context aggregation
+  (void)sentence;
+  (void)token;
 }
 
 
 void
-Extractor::phase2_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string) {
+Extractor::phase3_bos(cs::Sentence &sentence) {
+  // Update the token offsets objects to know about the new sentence.
+  _offsets_token_ne_normalised.set_slice(sentence.span);
+  _offsets_token_norm_raw.set_slice(sentence.span);
+}
+
+
+void
+Extractor::phase3_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string) {
   // Don't include the first token in a sentence as it's ambiguous to begin with.
   if (&token != sentence.span.start) {
     auto &list = _token_tag_counts[token.ne_normalised];
@@ -207,6 +217,14 @@ Extractor::phase2_update_history(canonical_schema::Sentence &sentence, canonical
       list.push_back(std::make_tuple(label_string, 1));
   }
 }
+
+
+void
+Extractor::phase3_eod(cs::Doc &) {
+  // Reset the token-tag counts per document.
+  _token_tag_counts.clear();
+}
+
 
 
 // ============================================================================

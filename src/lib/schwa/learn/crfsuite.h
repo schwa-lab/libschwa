@@ -12,6 +12,7 @@
 #include <schwa/io/streams.h>
 #include <schwa/learn/io.h>
 #include <schwa/learn/model.h>
+#include <schwa/learn/phases.h>
 #include <schwa/third-party/crfsuite/crfsuite.h>
 
 
@@ -25,7 +26,7 @@ namespace schwa {
 
 
     // ========================================================================
-    // crfsuite flat file format helper functions
+    // CRFsuite flat file format helper functions
     // ========================================================================
     void dump_crfsuite_data(std::ostream &out, const third_party::crfsuite::crfsuite_data_t &data);
     void dump_crfsuite_value(std::ostream &out, const char *value);
@@ -53,6 +54,38 @@ namespace schwa {
 
 
     // ========================================================================
+    // CRFsuiteTrainerPhase3SentenceExtractor
+    // ========================================================================
+    template <typename EXTRACTOR>
+    class CRFsuiteTrainerPhase3SentenceExtractor {
+    public:
+      static constexpr const unsigned int PHASE = 3;
+      using extractor_type = EXTRACTOR;
+
+    private:
+      extractor_type &_extractor;
+      third_party::crfsuite::crfsuite_data_t &_data;
+      third_party::crfsuite::crfsuite_instance_t _instance;
+      third_party::crfsuite::crfsuite_item_t *_item;
+
+      void _begin_item_sequence(size_t nitems);
+      void _end_item_sequence(void);
+
+      template <typename TO_STRING, typename FEATURES>
+      void _add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label);
+
+    public:
+      CRFsuiteTrainerPhase3SentenceExtractor(extractor_type &extractor, third_party::crfsuite::crfsuite_data_t &data);
+      ~CRFsuiteTrainerPhase3SentenceExtractor(void);
+
+      inline extractor_type &extractor(void) { return _extractor; }
+
+      template <typename TO_STRING, typename FEATURES>
+      void extract_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features);
+    };
+
+
+    // ========================================================================
     // CRFsuiteTrainer
     // ========================================================================
     template <typename EXTRACTOR>
@@ -64,43 +97,32 @@ namespace schwa {
       OutputModel &_model;
       io::Logger &_logger;
       EXTRACTOR &_extractor;
+      BasicSenteceExtractor<EXTRACTOR, 1> _sentence_extractor1;
+      BasicSenteceExtractor<EXTRACTOR, 2> _sentence_extractor2;
+      CRFsuiteTrainerPhase3SentenceExtractor<EXTRACTOR> _sentence_extractor3;
+      ExtractionPhaseRunner<BasicSenteceExtractor<EXTRACTOR, 1>> _phase1_runner;
+      ExtractionPhaseRunner<BasicSenteceExtractor<EXTRACTOR, 2>> _phase2_runner;
+      ExtractionPhaseRunner<CRFsuiteTrainerPhase3SentenceExtractor<EXTRACTOR>> _phase3_runner;
       std::string _model_filename_suffix;
       third_party::crfsuite::crfsuite_data_t _data;
-      third_party::crfsuite::crfsuite_instance_t _instance;
-      third_party::crfsuite::crfsuite_item_t *_item;
       third_party::crfsuite::crfsuite_trainer_t *_trainer;
 
       void _crfsuite_log(io::LogLevel level, const char *msg);
-
-      void _begin_item_sequence(size_t nitems);
-      void _end_item_sequence(void);
-
-      template <typename TO_STRING, typename FEATURES>
-      void _add_item(TO_STRING &to_string_helper, const FEATURES &features, const std::string &label);
-
-      void _extract_phase1_sentence(canonical_schema::Sentence &sentence);
-      void _extract_phase1_with_blocks(canonical_schema::Doc &doc);
-      void _extract_phase1_without_blocks(canonical_schema::Doc &doc);
-
-      template <typename TO_STRING, typename FEATURES>
-      void _extract_phase2_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features);
-      template <typename TO_STRING, typename FEATURES>
-      void _extract_phase2_with_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
-      template <typename TO_STRING, typename FEATURES>
-      void _extract_phase2_without_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
 
     public:
       CRFsuiteTrainer(EXTRACTOR &extractor, OutputModel &model, const CRFsuiteTrainerParams &params);
       ~CRFsuiteTrainer(void);
 
-      void set_model_filename_suffix(const std::string &suffix) { _model_filename_suffix = suffix; }
+      void dump_crfsuite_data(io::OutputStream &out) const;
+
       std::string get_param(const std::string &key) const;
       void set_param(const std::string &key, const std::string &val);
+
+      void set_model_filename_suffix(const std::string &suffix) { _model_filename_suffix = suffix; }
 
       template <typename IT, typename TRANSFORM>
       void extract(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer=TRANSFORM());
 
-      void dump_crfsuite_data(io::OutputStream &out) const;
       void train(void);
 
     private:
@@ -150,12 +172,16 @@ namespace schwa {
 
 
     // ========================================================================
-    // CRFsuiteTagger
+    // CRFsuiteTaggerPhase3SentenceExtractor
     // ========================================================================
     template <typename EXTRACTOR>
-    class CRFsuiteTagger {
+    class CRFsuiteTaggerPhase3SentenceExtractor {
+    public:
+      static constexpr const unsigned int PHASE = 3;
+      using extractor_type = EXTRACTOR;
+
     private:
-      EXTRACTOR &_extractor;
+      extractor_type &_extractor;
       CRFsuiteLoadedModel _cmodel;
       third_party::crfsuite::crfsuite_instance_t _instance;
       third_party::crfsuite::crfsuite_item_t *_item;
@@ -171,12 +197,28 @@ namespace schwa {
       template <typename TO_STRING, typename FEATURES>
       void _add_item(TO_STRING &to_string_helper, const FEATURES &features);
 
+    public:
+      CRFsuiteTaggerPhase3SentenceExtractor(extractor_type &extractor, const std::string &model_path);
+      ~CRFsuiteTaggerPhase3SentenceExtractor(void);
+
+      void dump_accuracy(void) const;
+      inline extractor_type &extractor(void) { return _extractor; }
+
       template <typename TO_STRING, typename FEATURES>
-      void _tag_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features);
-      template <typename TO_STRING, typename FEATURES>
-      void _tag_with_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
-      template <typename TO_STRING, typename FEATURES>
-      void _tag_without_blocks(canonical_schema::Doc &doc, TO_STRING &to_string_helper, FEATURES &features);
+      void extract_sentence(canonical_schema::Sentence &sentence, TO_STRING &to_string_helper, FEATURES &features);
+    };
+
+
+    // ========================================================================
+    // CRFsuiteTagger
+    // ========================================================================
+    template <typename EXTRACTOR>
+    class CRFsuiteTagger {
+    private:
+      BasicSenteceExtractor<EXTRACTOR, 2> _sentence_extractor2;
+      CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR> _sentence_extractor3;
+      ExtractionPhaseRunner<BasicSenteceExtractor<EXTRACTOR, 2>> _phase2_runner;
+      ExtractionPhaseRunner<CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR>> _phase3_runner;
 
     public:
       CRFsuiteTagger(EXTRACTOR &extractor, const std::string &model_path);

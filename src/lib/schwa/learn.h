@@ -9,5 +9,6 @@
 #include <schwa/learn/io.h>
 #include <schwa/learn/lexicon.h>
 #include <schwa/learn/model.h>
+#include <schwa/learn/phases.h>
 
 #endif  // SCHWA_LEARN_H_

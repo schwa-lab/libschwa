@@ -17,7 +17,7 @@ namespace ner {
 // ========================================================================
 template <typename TRANSFORM, typename VALUE>
 inline void
-Extractor::phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features) {
+Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features) {
   using ::schwa::third_party::re2::RE2;
 
   // Decode the UTF-8 sequence into to a Unicode string once only.

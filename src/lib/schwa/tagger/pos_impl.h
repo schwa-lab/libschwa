@@ -19,7 +19,7 @@ namespace pos {
 // ========================================================================
 template <typename TRANSFORM, typename VALUE>
 inline void
-Extractor::phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features) {
+Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features) {
   // Get the utf8 text of the current token.
   const size_t i = &token - sentence.span.start;
   const std::string &utf8 = _get_token_norm_raw(token);

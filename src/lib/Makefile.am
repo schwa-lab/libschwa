@@ -133,6 +133,8 @@ LIBSCHWA_HEADER_FILES = \
 		schwa/learn/io_impl.h \
 		schwa/learn/lexicon.h \
 		schwa/learn/model.h \
+		schwa/learn/phases.h \
+		schwa/learn/phases_impl.h \
 		schwa/lex/brown-clusters.h \
 		schwa/lex/brown-clusters_impl.h \
 		schwa/lex/word-embeddings.h \

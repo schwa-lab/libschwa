@@ -123,21 +123,26 @@ namespace schwa {
         void phase1_end(void) { }
         void phase1_eod(canonical_schema::Doc &) { };
         void phase1_eos(canonical_schema::Sentence &) { };
-        void phase1_extract(canonical_schema::Token &, size_t) { }
+        void phase1_extract(canonical_schema::Sentence &, canonical_schema::Token &) { }
+
+        static void prepare_doc(canonical_schema::Doc &doc, bool is_second_stage, bool is_train, SequenceTagEncoding tag_encoding);
 
         void phase2_bod(canonical_schema::Doc &doc);
         void phase2_bos(canonical_schema::Sentence &sentence);
-        void phase2_eod(canonical_schema::Doc &doc);
+        void phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token);
         void phase2_eos(canonical_schema::Sentence &) { }
-        void phase2_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string);
+        void phase2_eod(canonical_schema::Doc &) { }
+
+        void phase3_bod(canonical_schema::Doc &) { }
+        void phase3_bos(canonical_schema::Sentence &sentence);
+        template <typename TRANSFORM, typename VALUE>
+        void phase3_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features);
+        void phase3_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string);
+        void phase3_eos(canonical_schema::Sentence &) { }
+        void phase3_eod(canonical_schema::Doc &doc);
 
         std::string get_label(canonical_schema::Token &token) { return token.ne_label; }
         void set_label(canonical_schema::Token &token, const std::string &label) { token.ne_label = label; }
-
-        template <typename TRANSFORM, typename VALUE>
-        void phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features);
-
-        static void do_phase2_bod(canonical_schema::Doc &doc, bool is_second_stage, bool is_train, SequenceTagEncoding tag_encoding);
 
       private:
         static inline const std::string &

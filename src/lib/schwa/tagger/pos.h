@@ -79,7 +79,6 @@ namespace schwa {
 
       class Extractor {
       private:
-        const bool _is_train;
         const unsigned int _rare_token_cutoff;
         learn::Lexicon &_lexicon;
         const lex::BrownClusters &_brown_clusters;
@@ -97,22 +96,27 @@ namespace schwa {
         void phase1_begin(void);
         void phase1_bod(canonical_schema::Doc &) { }
         void phase1_bos(canonical_schema::Sentence &) { }
-        void phase1_end(void);
-        void phase1_eod(canonical_schema::Doc &) { };
+        void phase1_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token);
         void phase1_eos(canonical_schema::Sentence &) { };
-        void phase1_extract(canonical_schema::Token &token, size_t i);
+        void phase1_eod(canonical_schema::Doc &) { };
+        void phase1_end(void);
 
         void phase2_bod(canonical_schema::Doc &) { }
-        void phase2_bos(canonical_schema::Sentence &sentence);
-        void phase2_eod(canonical_schema::Doc &) { }
+        void phase2_bos(canonical_schema::Sentence &) { }
+        void phase2_extract(canonical_schema::Sentence &, canonical_schema::Token &) { }
         void phase2_eos(canonical_schema::Sentence &) { }
-        void phase2_update_history(canonical_schema::Sentence &, canonical_schema::Token &, const std::string &) { }
+        void phase2_eod(canonical_schema::Doc &) { }
+
+        void phase3_bod(canonical_schema::Doc &) { }
+        void phase3_bos(canonical_schema::Sentence &sentence);
+        template <typename TRANSFORM, typename VALUE>
+        void phase3_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features);
+        void phase3_update_history(canonical_schema::Sentence &, canonical_schema::Token &, const std::string &) { }
+        void phase3_eos(canonical_schema::Sentence &) { }
+        void phase3_eod(canonical_schema::Doc &) { }
 
         std::string get_label(canonical_schema::Token &token) { return token.pos; }
         void set_label(canonical_schema::Token &token, const std::string &label) { token.pos = label; }
-
-        template <typename TRANSFORM, typename VALUE>
-        void phase2_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features);
 
       private:
         static inline const std::string &
