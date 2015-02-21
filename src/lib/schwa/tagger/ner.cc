@@ -313,6 +313,18 @@ attempt_truecase_token(cs::Token &token, cs::Sentence &sentence, const lex::Brow
       upper.to_utf8()
   }};
 
+  // If there's a title-case version of the word in the document, that's pretty indicative.
+  {
+    const auto &it = capitalisation_counts.find(lower);
+    if (it != capitalisation_counts.end()) {
+      const auto &it2 = it->second.find(options[1]);
+      if (it2 != it->second.end()) {
+        token.ne_normalised = options[1];
+        return;
+      }
+    }
+  }
+
   // Get the frequencies of the three capitalisation variants from the Brown clusters, and sort them in ascending order of frequency.
   std::array<std::tuple<unsigned int, std::string *>, 3> brown_counts = {{
       std::make_tuple(brown_clusters.get_frequency(options[0]), &options[0]),
@@ -387,6 +399,9 @@ preprocess_doc(cs::Doc &doc, const lex::BrownClusters &brown_clusters) {
       continue;
     cs::Sentence &sentence = doc.sentences[s];
     for (cs::Token &token : sentence.span) {
+      // Don't trust the capitalisation of the first token in the sentence.
+      if (&token == sentence.span.start)
+        continue;
       const std::string &orig = token.get_norm_raw();
       const UnicodeString lower = UnicodeString::from_utf8(orig).to_lower();
       capitalisation_counts[lower][orig] += 1;
