@@ -92,32 +92,6 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   features(ss_ctx1.str());
   features(ss_ctx2.str());
 
-  // If the word contains a hyphen, add each of the components split by the hyphen.
-  if (u.size() > 1) {
-    UnicodeString part;
-    part.reserve(u.size());
-    unsigned int part_count = 0;
-    for (size_t j = 0; j != u.size(); ++j) {
-      const unicode_t cp = u[j];
-      if (unicode::is_hyphen(cp)) {
-        if (!part.empty()) {
-          ss << "w[i]_part" << part_count << "=" << part.to_utf8();
-          features(ss.str());
-          ss.str("");
-          ++part_count;
-          part.clear();
-        }
-      }
-      else
-        part.push_back(cp);
-    }
-    if (part.size() != 0 && part.size() != u.size()) {
-      ss << "w[i]_part" << part_count << "=" << part.to_utf8();
-      features(ss.str());
-      ss.str("");
-    }
-  }
-
   for (int offset = 0; offset != 1; ++offset) {
     const std::string &norm = _offsets_token_norm_raw(i, offset);
     if (norm == learn::SENTINEL)
