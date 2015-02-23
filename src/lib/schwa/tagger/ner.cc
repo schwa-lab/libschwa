@@ -419,18 +419,21 @@ preprocess_doc(cs::Doc &doc, const lex::BrownClusters &brown_clusters) {
   std::vector<bool> sent_contains_lower(doc.sentences.size());
   for (size_t s = 0; s != doc.sentences.size(); ++s) {
     cs::Sentence &sentence = doc.sentences[s];
-    bool contains_lower = false;
+    bool contains_lower = false, contains_alpha = false;
     for (cs::Token &token : sentence.span) {
       for (const unicode_t cp : UTF8Decoder(token.get_norm_raw())) {
         if (unicode::is_lower(cp)) {
           contains_lower = true;
+          contains_alpha = true;
           break;
         }
+        else if (unicode::is_alpha(cp))
+          contains_alpha = true;
       }
       if (contains_lower)
         break;
     }
-    sent_contains_lower[s] = contains_lower;
+    sent_contains_lower[s] = !(!contains_lower && contains_alpha);
   }
 
   // Construct capitalisation distribution counts for each token in the document that's not in an all uppercase sentence.
@@ -440,12 +443,12 @@ preprocess_doc(cs::Doc &doc, const lex::BrownClusters &brown_clusters) {
       continue;
     cs::Sentence &sentence = doc.sentences[s];
     for (cs::Token &token : sentence.span) {
-      // Don't trust the capitalisation of the first token in the sentence.
-      if (&token == sentence.span.start)
-        continue;
       const std::string &orig = token.get_norm_raw();
-      const UnicodeString lower = UnicodeString::from_utf8(orig).to_lower();
-      capitalisation_counts[lower][orig] += 1;
+      const UnicodeString u = UnicodeString::from_utf8(orig);
+      // Don't trust the capitalisation of the first token in the sentence, unless it's all-caps.
+      if (&token == sentence.span.start && !u.is_upper())
+        continue;
+      capitalisation_counts[u.to_lower()][orig] += 1;
     }
   }
 
