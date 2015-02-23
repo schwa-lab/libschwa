@@ -74,7 +74,6 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   for (int offset = -2; offset != 3; ++offset) {
     const std::string &ne_normalised = _offsets_token_ne_normalised(i, offset);
     const bool is_sentinel = ne_normalised == learn::SENTINEL;
-    //std::cout << "i=" << i << " offset=" << offset << " ne_normalised='" << ne_normalised << "' is_sentinel=" << is_sentinel << std::endl;
 
     // Add the NE-normalised token w_{i+j}.
     ss << ((offset < 0) ? "w[i" : "w[i+") << offset << "]=" << ne_normalised;
@@ -121,34 +120,40 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
 
   for (int offset = 0; offset != 1; ++offset) {
     const std::string &norm = _offsets_token_norm_raw(i, offset);
+    if (norm == learn::SENTINEL)
+      continue;
 
-    // Add Brown cluster paths for w_{i}.
-    const size_t npaths = _brown_clusters.get_paths(norm, &_brown_cluster_path, _brown_cluster_path_lengths);
-    if (npaths != 0) {
-      const int prefix = std::sprintf(_brown_cluster_feature, "bc[i%+d]=", offset);
-      std::memcpy(_brown_cluster_feature + prefix, _brown_cluster_path, _brown_cluster_path_lengths[npaths - 1]);
-      for (size_t p = 0; p != npaths; ++p) {
-        _brown_cluster_feature[prefix + _brown_cluster_path_lengths[npaths - 1 - p]] = '\0';
-        features(_brown_cluster_feature);
+    if (_feature_flags.use_brown_cluster_features) {
+      // Add Brown cluster paths for w_{i}.
+      const size_t npaths = _brown_clusters.get_paths(norm, &_brown_cluster_path, _brown_cluster_path_lengths);
+      if (npaths != 0) {
+        const int prefix = std::sprintf(_brown_cluster_feature, "bc[i%+d]=", offset);
+        std::memcpy(_brown_cluster_feature + prefix, _brown_cluster_path, _brown_cluster_path_lengths[npaths - 1]);
+        for (size_t p = 0; p != npaths; ++p) {
+          _brown_cluster_feature[prefix + _brown_cluster_path_lengths[npaths - 1 - p]] = '\0';
+          features(_brown_cluster_feature);
+        }
       }
     }
 
-    // Add word embedding values for w_{i}
-    const double *embeddings = _word_embeddings.get_embeddings(norm);
-    if (SCHWA_LIKELY(embeddings != nullptr)) {
-      char buf[14];  // we[i+2]=ddddd
-      const int prefix = std::sprintf(buf, "we[i%+d]=", offset);
-      for (uint32_t j = 0; j != _word_embeddings.ndimensions(); ++j) {
-        std::sprintf(buf + prefix, "%u", j);
-        features(buf, embeddings[j]);
+    if (_feature_flags.use_word_embeddings_features) {
+      // Add word embedding values for w_{i}
+      const double *embeddings = _word_embeddings.get_embeddings(norm);
+      if (SCHWA_LIKELY(embeddings != nullptr)) {
+        char buf[14];  // we[i+2]=ddddd
+        const int prefix = std::sprintf(buf, "we[i%+d]=", offset);
+        for (uint32_t j = 0; j != _word_embeddings.ndimensions(); ++j) {
+          std::sprintf(buf + prefix, "%u", j);
+          features(buf, embeddings[j]);
+        }
       }
     }
   }
 
   // Extended prediction history (Ratinov & Roth, CoNLL 2009).
-  {
-    const auto &it = _token_tag_counts.find(utf8);
-    if (it != _token_tag_counts.end()) {
+  if (_feature_flags.use_extended_prediction_history_features) {
+    const auto &it = _token_label_counts.find(utf8);
+    if (it != _token_label_counts.end()) {
       third_party::crfsuite::floatval_t total = 0;
       for (const auto &pair : it->second)
         total += std::get<1>(pair);
@@ -161,16 +166,40 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   }
 
   // Gazetteer match.
-  static constexpr const char GAZ_PREFIXES[4] = {'W', 'B', 'E', 'M'};
-  uint8_t gaz = _gazetteer_match[i];
-  if (gaz != 0) {
-    for (uint8_t i = 0; i != 4; ++i) {
-      if ((gaz & 0x01) != 0) {
-        ss << "gaz=" << GAZ_PREFIXES[i];
-        features(ss.str());
-        ss.str("");
+  if (_feature_flags.use_gazetteer_features) {
+    static constexpr const char GAZ_PREFIXES[4] = {'W', 'B', 'E', 'M'};
+    uint8_t gaz = _gazetteer_match[i];
+    if (gaz != 0) {
+      for (uint8_t i = 0; i != 4; ++i) {
+        if ((gaz & 0x01) != 0) {
+          ss << "gaz=" << GAZ_PREFIXES[i];
+          features(ss.str());
+          ss.str("");
+        }
+        gaz >>= 1;
       }
-      gaz >>= 1;
+    }
+  }
+
+  // Context aggregation of the surrounding tokens.
+  if (_feature_flags.use_context_aggregation_features) {
+    const UnicodeString lower = u.to_lower();
+    const auto &it = _token_context_aggregations.find(lower);
+    if (it != _token_context_aggregations.end()) {
+      for (const auto &pair : it->second) {
+        if (pair.first == &token)
+          continue;
+        for (ptrdiff_t i = 0; i != 4; ++i) {
+          ss << "ctxagg_w[i";
+          if (i < 2)
+            ss << (-2 + i);
+          else
+            ss << "+" << (i - 1);
+          ss << "]=" << (pair.second[i] == nullptr ? learn::SENTINEL : _get_token_ne_normalised(*pair.second[i]));
+          features.add_unique(ss.str());
+          ss.str("");
+        }
+      }
     }
   }
 }

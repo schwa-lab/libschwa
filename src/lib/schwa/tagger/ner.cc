@@ -32,10 +32,27 @@ ModelParams::ModelParams(config::Group &group, const std::string &name, const st
     brown_clusters_path(*this, "brown-cluster-path", "Absolute path to the Brown clusters file", "lex-data/brown-clusters/rcv1.c1000"),
     gazetteer_path(*this, "gazetteer-path", "Absolute path to the country-related n-gram gazetter file", "lex-data/gazetteers/countries"),
     word_embeddings_path(*this, "word-embeddings-path", "Absolute path to the word embeddings file", "lex-data/word-embeddings/cw.50dim.unscalled.double"),
-    word_embeddings_sigma(*this, "word-embeddings-sigma", "Scaling factor for scaling the embeddings values", lex::WordEmbeddings::DEFAULT_SIGMA)
+    word_embeddings_sigma(*this, "word-embeddings-sigma", "Scaling factor for scaling the embeddings values", lex::WordEmbeddings::DEFAULT_SIGMA),
+    use_brown_cluster_features(*this, "use-brown-cluster-features", "Whether or not to use the Brown cluster features", true),
+    use_context_aggregation_features(*this, "use-context-aggregation-features", "Whether or not to use the context aggregation features", true),
+    use_extended_prediction_history_features(*this, "use-extended-prediction-history-features", "Whether or not to use the extended prediction-history features", true),
+    use_gazetteer_features(*this, "use-gazetteer-features", "Whether or not to use the gazetteer features", true),
+    use_word_embeddings_features(*this, "use-word-embeddings-features", "Whether or not to use the word embeddings features", true)
   { }
 
 ModelParams::~ModelParams(void) { }
+
+
+// ============================================================================
+// FeatureFlags
+// ============================================================================
+FeatureFlags::FeatureFlags(void) :
+    use_brown_cluster_features(false),
+    use_context_aggregation_features(false),
+    use_extended_prediction_history_features(false),
+    use_gazetteer_features(false),
+    use_word_embeddings_features(false)
+  { }
 
 
 // ============================================================================
@@ -67,6 +84,13 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
     io::InputStream in(params.word_embeddings_path());
     _word_embeddings.load(in);
   }
+
+  // Set the feature flags.
+  _feature_flags.use_brown_cluster_features = params.use_brown_cluster_features();
+  _feature_flags.use_context_aggregation_features = params.use_context_aggregation_features();
+  _feature_flags.use_extended_prediction_history_features = params.use_extended_prediction_history_features();
+  _feature_flags.use_gazetteer_features = params.use_gazetteer_features();
+  _feature_flags.use_word_embeddings_features = params.use_word_embeddings_features();
 }
 
 InputModel::~InputModel(void) { }
@@ -101,6 +125,13 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
     io::InputStream in(params.word_embeddings_path());
     _word_embeddings.load(in);
   }
+
+  // Set the feature flags.
+  _feature_flags.use_brown_cluster_features = params.use_brown_cluster_features();
+  _feature_flags.use_context_aggregation_features = params.use_context_aggregation_features();
+  _feature_flags.use_extended_prediction_history_features = params.use_extended_prediction_history_features();
+  _feature_flags.use_gazetteer_features = params.use_gazetteer_features();
+  _feature_flags.use_word_embeddings_features = params.use_word_embeddings_features();
 }
 
 OutputModel::~OutputModel(void) { }
@@ -121,6 +152,7 @@ Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) 
     _is_second_stage(is_second_stage),
     _is_threaded(is_threaded),
     _tag_encoding(model.tag_encoding()),
+    _feature_flags(model.feature_flags()),
     _brown_clusters(model.brown_clusters()),
     _brown_cluster_path(nullptr),
     _brown_cluster_path_lengths(new unsigned int[_brown_clusters.npaths()]),
@@ -139,6 +171,7 @@ Extractor::Extractor(OutputModel &model, bool is_second_stage, bool is_threaded)
     _is_second_stage(is_second_stage),
     _is_threaded(is_threaded),
     _tag_encoding(model.tag_encoding()),
+    _feature_flags(model.feature_flags()),
     _brown_clusters(model.brown_clusters()),
     _brown_cluster_path(nullptr),
     _brown_cluster_path_lengths(new unsigned int[_brown_clusters.npaths()]),
@@ -257,8 +290,15 @@ Extractor::phase2_bos(cs::Sentence &sentence) {
 void
 Extractor::phase2_extract(cs::Sentence &sentence, cs::Token &token) {
   // FIXME Find the identical token forms for use in the context aggregation
-  (void)sentence;
-  (void)token;
+  const UnicodeString lower = UnicodeString::from_utf8(_get_token_ne_normalised(token)).to_lower();
+  auto &array = _token_context_aggregations[lower][&token];
+
+  const ptrdiff_t sentence_length = sentence.span.stop - sentence.span.start;
+  const ptrdiff_t i = &token - sentence.span.start;
+  array[0] = (i >= 2) ? &token - 2 : nullptr;
+  array[1] = (i >= 1) ? &token - 1 : nullptr;
+  array[2] = (i <= sentence_length - 2) ? &token + 1 : nullptr;
+  array[3] = (i <= sentence_length - 3) ? &token + 2 : nullptr;
 }
 
 
@@ -274,7 +314,7 @@ void
 Extractor::phase3_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string) {
   // Don't include the first token in a sentence as it's ambiguous to begin with.
   if (&token != sentence.span.start) {
-    auto &list = _token_tag_counts[token.ne_normalised];
+    auto &list = _token_label_counts[token.ne_normalised];
     bool found = false;
     for (auto &pair : list) {
       if (std::get<0>(pair) == label_string) {
@@ -291,8 +331,9 @@ Extractor::phase3_update_history(canonical_schema::Sentence &sentence, canonical
 
 void
 Extractor::phase3_eod(cs::Doc &) {
-  // Reset the token-tag counts per document.
-  _token_tag_counts.clear();
+  // Reset the per-document aggregations.
+  _token_label_counts.clear();
+  _token_context_aggregations.clear();
 }
 
 

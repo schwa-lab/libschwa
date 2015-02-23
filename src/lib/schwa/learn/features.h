@@ -43,6 +43,13 @@ namespace schwa {
         return _values[_transformer(key)] += delta;
       }
 
+      inline void
+      add_unique(const std::string &key, const value_type delta=1.0f) {
+        const auto &it = _values.find(_transformer(key));
+        if (it == _values.end())
+          _values.emplace_hint(it, _transformer(key), delta);
+      }
+
       inline void clear(void) { _values.clear(); }
 
       inline bool empty(void) const { return _values.empty(); }

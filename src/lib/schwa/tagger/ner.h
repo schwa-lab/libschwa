@@ -2,6 +2,7 @@
 #ifndef SCHWA_TAGGER_NER_H_
 #define SCHWA_TAGGER_NER_H_
 
+#include <array>
 #include <list>
 #include <string>
 #include <tuple>
@@ -32,11 +33,30 @@ namespace schwa {
         config::Op<std::string> word_embeddings_path;
         config::Op<double> word_embeddings_sigma;
 
+        config::Op<bool> use_brown_cluster_features;
+        config::Op<bool> use_context_aggregation_features;
+        config::Op<bool> use_extended_prediction_history_features;
+        config::Op<bool> use_gazetteer_features;
+        config::Op<bool> use_word_embeddings_features;
+
         ModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
         virtual ~ModelParams(void);
 
       private:
         SCHWA_DISALLOW_COPY_AND_ASSIGN(ModelParams);
+      };
+
+
+      class FeatureFlags {
+      public:
+        bool use_brown_cluster_features;
+        bool use_context_aggregation_features;
+        bool use_extended_prediction_history_features;
+        bool use_gazetteer_features;
+        bool use_word_embeddings_features;
+
+      public:
+        FeatureFlags(void);
       };
 
 
@@ -48,12 +68,14 @@ namespace schwa {
         lex::Gazetteer _gazetteer;
         lex::WordEmbeddings _word_embeddings;
         SequenceTagEncoding _tag_encoding;
+        FeatureFlags _feature_flags;
 
       public:
         InputModel(const std::string &path, ModelParams &params);
         virtual ~InputModel(void);
 
         const lex::BrownClusters &brown_clusters(void) const { return _brown_clusters; }
+        const FeatureFlags &feature_flags(void) const { return _feature_flags; }
         const lex::Gazetteer &gazetteer(void) const { return _gazetteer; }
         SequenceTagEncoding tag_encoding(void) const { return _tag_encoding; }
         const lex::WordEmbeddings &word_embeddings(void) const { return _word_embeddings; }
@@ -71,12 +93,14 @@ namespace schwa {
         lex::Gazetteer _gazetteer;
         lex::WordEmbeddings _word_embeddings;
         SequenceTagEncoding _tag_encoding;
+        FeatureFlags _feature_flags;
 
       public:
         OutputModel(const std::string &path, const ModelParams &params, const config::Main &main_config);
         virtual ~OutputModel(void);
 
         const lex::BrownClusters &brown_clusters(void) const { return _brown_clusters; }
+        const FeatureFlags &feature_flags(void) const { return _feature_flags; }
         const lex::Gazetteer &gazetteer(void) const { return _gazetteer; }
         SequenceTagEncoding tag_encoding(void) const { return _tag_encoding; }
         const lex::WordEmbeddings &word_embeddings(void) const { return _word_embeddings; }
@@ -108,17 +132,19 @@ namespace schwa {
         const bool _is_second_stage;
         const bool _is_threaded;
         const SequenceTagEncoding _tag_encoding;
+        const FeatureFlags &_feature_flags;
         const lex::BrownClusters &_brown_clusters;
         const uint8_t *_brown_cluster_path;
         unsigned int *const _brown_cluster_path_lengths;
         char *const _brown_cluster_feature;
-        const lex::Gazetteer &_gazetteer;
-        std::vector<uint8_t> _gazetteer_match;
+        const lex::Gazetteer &_gazetteer;                     //!< The country-related word n-gram gazetteer.
+        std::vector<uint8_t> _gazetteer_match;                //!< Token-indexed flags of gazetteer hit flags.
         const lex::WordEmbeddings &_word_embeddings;
         io::Logger &_logger;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_ne_normalised;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
-        std::unordered_map<std::string, std::list<std::tuple<std::string, unsigned int>>> _token_tag_counts;
+        std::unordered_map<std::string, std::list<std::tuple<std::string, unsigned int>>> _token_label_counts;  //!< Map of each token to each of the labels it was given in the document, with the number of times this happened.
+        std::unordered_map<UnicodeString, std::unordered_map<canonical_schema::Token *, std::array<canonical_schema::Token *, 4>>> _token_context_aggregations;  //!< { lower : { w : [ w_{i-2}, w_{i-1}, w_{i+1}, w_{i+2} ] } }
 
         void _check_regular_expressions(void) const;
 
