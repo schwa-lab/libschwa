@@ -26,7 +26,7 @@ namespace schwa {
 
     private:
       StringPool &_string_pool;
-      double *_embeddings;           //<! Pointer to the giant array of all embedding values.
+      double *_embeddings;           //!< Pointer to the giant array of all embedding values.
       double *_unknown_embeddings;   //!< Cached copy of the pointer to the "*UNKNOWN*" embeddings.
       double _sigma;                 //!< Scaling hyperparameter.
       uint32_t _ndimensions;         //!< The number of dimensions.
