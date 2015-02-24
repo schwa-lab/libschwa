@@ -202,7 +202,7 @@ Extractor::_check_regular_expressions(void) const {
 
 
 void
-Extractor::prepare_doc(cs::Doc &doc, const bool is_second_stage, const bool is_train, const SequenceTagEncoding tag_encoding) {
+Extractor::prepare_doc(cs::Doc &doc, const bool is_train, const bool is_second_stage, const SequenceTagEncoding tag_encoding) {
   static const auto REVERSE_GOLD_NES = DR_REVERSE_SLICES(&cs::Doc::named_entities, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Token::ne);
   static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
 
@@ -223,7 +223,7 @@ Extractor::prepare_doc(cs::Doc &doc, const bool is_second_stage, const bool is_t
 void
 Extractor::phase2_bod(cs::Doc &doc) {
   if (!_is_threaded)
-    prepare_doc(doc, _is_second_stage, _is_train, _tag_encoding);
+    prepare_doc(doc, _is_train, _is_second_stage, _tag_encoding);
 }
 
 

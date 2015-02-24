@@ -161,7 +161,7 @@ namespace schwa {
         void phase1_eos(canonical_schema::Sentence &) { };
         void phase1_extract(canonical_schema::Sentence &, canonical_schema::Token &) { }
 
-        static void prepare_doc(canonical_schema::Doc &doc, bool is_second_stage, bool is_train, SequenceTagEncoding tag_encoding);
+        static void prepare_doc(canonical_schema::Doc &doc, bool is_train, bool is_second_stage, SequenceTagEncoding tag_encoding);
 
         void phase2_bod(canonical_schema::Doc &doc);
         void phase2_bos(canonical_schema::Sentence &sentence);

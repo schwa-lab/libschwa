@@ -35,6 +35,8 @@ public:
   cf::Op<std::string> input_path;
   cf::Op<std::string> model_path;
   cf::Op<std::string> extracted_path;
+  cf::Op<bool> crf1_only;
+  cf::Op<bool> crf2_only;
   cf::Op<bool> extract_only;
   cf::Op<unsigned int> nthreads;
   ner::ModelParams model_params;
@@ -46,6 +48,8 @@ public:
       input_path(*this, "input", 'i', "The input path", io::STDIN_STRING),
       model_path(*this, "model", 'm', "The model path"),
       extracted_path(*this, "dump-extracted", "The path to dump the extracted features in CRFsuite format", cf::Flags::OPTIONAL),
+      crf1_only(*this, "crf1-only", "Whether only the 1st stage CRF training should happen", false),
+      crf2_only(*this, "crf2-only", "Whether only the 2nd stage CRF training should happen", false),
       extract_only(*this, "extract-only", "Whether to perform feature extraction only and no training", false),
       nthreads(*this, "nthreads", 'j', "How many threads to use to train the 1st stage CRFs", NFOLDS + 1),
       model_params(*this, "model-params", "Parameters controlling the contents of the produced model"),
@@ -69,6 +73,32 @@ get_fold_suffix(const unsigned int fold) {
   std::ostringstream ss;
   ss << ".fold" << fold;
   return ss.str();
+}
+
+
+static void
+split_docs_into_folds(const std::vector<cs::Doc *> &docs, const unsigned int fold, std::vector<cs::Doc *> &fold_docs, std::vector<cs::Doc *> &nonfold_docs) {
+  // Split the docs into folds.
+  unsigned int fold_size = docs.size() / NFOLDS;
+  if (docs.size() % NFOLDS != 0)
+    ++fold_size;
+
+  // Allocate space for the documents which are in and not in the current fold.
+  fold_docs.clear();
+  fold_docs.reserve(fold_size);
+  nonfold_docs.clear();
+  nonfold_docs.reserve((NFOLDS - 1) * fold_size);
+
+  // Separate out the documents which are part of this fold from the ones that are not.
+  auto it = docs.begin();
+  for (unsigned int f = 0; f != NFOLDS; ++f) {
+    for (unsigned int s = 0; s != fold_size && it != docs.end(); ++s, ++it) {
+      if (f == fold)
+        fold_docs.push_back(*it);
+      else
+        nonfold_docs.push_back(*it);
+    }
+  }
 }
 
 
@@ -109,7 +139,32 @@ run_trainer1(const Main &cfg, Extractor &extractor, OutputModel &model, const IT
 
 template <typename IT, typename TRANSFORMER>
 static void
-run_tagger1(const Main &cfg, Extractor &extractor, const std::string &model_path, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const unsigned int fold) {
+run_trainer2(const Main &cfg, Extractor &extractor, OutputModel &model, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer) {
+  LOG(INFO) << "Training 2nd stage NER classifier" << std::endl;
+
+  // Create the trainer for the 1st stage classifier.
+  ln::CRFsuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
+
+  // Extract the features for the 1st stage classifier.
+  trainer.extract<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
+
+  // Optionally dump out the extracted features.
+  if (cfg.extracted_path.was_mentioned()) {
+    io::OutputStream out(cfg.extracted_path());
+    trainer.dump_crfsuite_data(out);
+  }
+
+  if (cfg.extract_only())
+    return;
+
+  // Train the model.
+  trainer.train();
+}
+
+
+template <typename IT, typename TRANSFORMER>
+static void
+run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const unsigned int fold) {
   LOG(INFO) << "Tagging with 1st stage NER classifier for fold " << fold << std::endl;
 
   // Create the tagger for the 1st stage classifier.
@@ -118,15 +173,6 @@ run_tagger1(const Main &cfg, Extractor &extractor, const std::string &model_path
   // Extract the features for the 1st stage classifier.
   tagger.tag<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
   tagger.dump_accuracy();
-
-  // Untag the results of the tagging into the `named_entities_crf1` store, and then re-apply them on the `ne_label_crf1` Token attribute.
-  static const auto SEQUENCE_UNTAG_CRF1_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
-  static const auto SEQUENCE_TAG_CRF1_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf1);
-  for (IT it = docs_begin; it != docs_end; ++it) {
-    auto &doc = **it;
-    SEQUENCE_UNTAG_CRF1_NES(doc);
-    SEQUENCE_TAG_CRF1_NES(doc, cfg.model_params.tag_encoding.encoding());
-  }
 }
 
 
@@ -144,32 +190,15 @@ run_fold1(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::ve
   }
   const unsigned int fold = static_cast<unsigned int>(_fold);
 
-  // Split the docs into folds.
-  unsigned int fold_size = docs.size() / NFOLDS;
-  if (docs.size() % NFOLDS != 0)
-    ++fold_size;
-
+  // Allocate space for the documents which are in and not in the current fold.
   std::vector<cs::Doc *> fold_docs, nonfold_docs;
-  fold_docs.reserve(fold_size);
-  nonfold_docs.reserve((NFOLDS - 1) * fold_size);
+  split_docs_into_folds(docs, fold, fold_docs, nonfold_docs);
 
-  // Place the documents that aren't in the current fold into a vector for use as training data.
-  auto it = docs.begin();
-  for (unsigned int f = 0; f != NFOLDS; ++f) {
-    for (unsigned int s = 0; s != fold_size && it != docs.end(); ++s, ++it) {
-      if (f == fold)
-        fold_docs.push_back(*it);
-      else
-        nonfold_docs.push_back(*it);
-    }
-  }
-
-  // Train the model.
+  // Train a model on the documents that are not in the current fold.
   run_trainer1(cfg, extractor, model, nonfold_docs.begin(), nonfold_docs.end(), transformer, fold);
 
-  // Tag the fold with the trained model.
-  if (!cfg.extract_only())
-    run_tagger1(cfg, extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
+  // Tag the documents which are in the current fold with the newly trained model.
+  run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
 }
 
 
@@ -227,15 +256,11 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
     throw ValueException(ss.str());
   }
 
-  // Split the docs into folds.
-  unsigned int fold_size = docs.size() / NFOLDS;
-  if (docs.size() % NFOLDS != 0)
-    ++fold_size;
-
   // 1st stage classifier.
-  {
+  if (!cfg.crf2_only()) {
+    // Prepare the docs, running with threads and without 2nd stage CRF.
     for (cs::Doc *doc : docs)
-      Extractor::prepare_doc(*doc, false, true, model.tag_encoding());
+      Extractor::prepare_doc(*doc, true, false, model.tag_encoding());
 
     // Push work onto the the thread work queue.
     for (int fold = -1; fold != NFOLDS; ++fold)
@@ -249,6 +274,27 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
       threads.push_back(std::thread(&run_fold1_thread<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs)));
     for (auto &thread : threads)
       thread.join();
+  }
+
+  // 2nd stage classifier.
+  if (!cfg.crf1_only()) {
+    // If we're only running the 2nd stage CRF, tag the documents with the 1st stage models.
+    if (cfg.crf2_only()) {
+      std::vector<cs::Doc *> fold_docs, nonfold_docs;
+      Extractor extractor(model, false, true);
+      for (unsigned int fold = 0; fold != NFOLDS; ++fold) {
+        split_docs_into_folds(docs, fold, fold_docs, nonfold_docs);
+        run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformers[0], fold);
+      }
+    }
+
+    // Prepare the docs, running without threads and with 2nd stage CRF.
+    for (cs::Doc *doc : docs)
+      Extractor::prepare_doc(*doc, true, true, model.tag_encoding());
+
+    // Create the feature extractor for the 2nd stage classifier and run it with the trainer.
+    Extractor extractor(model, true, false);
+    run_trainer2(cfg, extractor, model, docs.begin(), docs.end(), transformers[0]);
   }
 
   // Delete the read in docs.
