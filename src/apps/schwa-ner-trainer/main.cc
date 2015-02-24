@@ -3,6 +3,8 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -34,6 +36,7 @@ public:
   cf::Op<std::string> model_path;
   cf::Op<std::string> extracted_path;
   cf::Op<bool> extract_only;
+  cf::Op<unsigned int> nthreads;
   ner::ModelParams model_params;
   ln::CRFsuiteTrainerParams trainer_params;
   dr::DocrepGroup dr;
@@ -44,6 +47,7 @@ public:
       model_path(*this, "model", 'm', "The model path"),
       extracted_path(*this, "dump-extracted", "The path to dump the extracted features in CRFsuite format", cf::Flags::OPTIONAL),
       extract_only(*this, "extract-only", "Whether to perform feature extraction only and no training", false),
+      nthreads(*this, "nthreads", 'j', "How many threads to use to train the 1st stage CRFs", NFOLDS + 1),
       model_params(*this, "model-params", "Parameters controlling the contents of the produced model"),
       trainer_params(*this, "train-params", "Parameters to the crfsuite training process"),
       dr(*this, schema)
@@ -55,6 +59,9 @@ public:
 namespace schwa {
 namespace tagger {
 namespace ner {
+
+static std::queue<int> thread_work_queue;
+static std::mutex thread_work_queue_mutex;
 
 
 static std::string
@@ -102,7 +109,7 @@ run_trainer1(const Main &cfg, Extractor &extractor, OutputModel &model, const IT
 
 template <typename IT, typename TRANSFORMER>
 static void
-run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const unsigned int fold) {
+run_tagger1(const Main &cfg, Extractor &extractor, const std::string &model_path, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const unsigned int fold) {
   LOG(INFO) << "Tagging with 1st stage NER classifier for fold " << fold << std::endl;
 
   // Create the tagger for the 1st stage classifier.
@@ -111,6 +118,15 @@ run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_b
   // Extract the features for the 1st stage classifier.
   tagger.tag<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
   tagger.dump_accuracy();
+
+  // Untag the results of the tagging into the `named_entities_crf1` store, and then re-apply them on the `ne_label_crf1` Token attribute.
+  static const auto SEQUENCE_UNTAG_CRF1_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
+  static const auto SEQUENCE_TAG_CRF1_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf1);
+  for (IT it = docs_begin; it != docs_end; ++it) {
+    auto &doc = **it;
+    SEQUENCE_UNTAG_CRF1_NES(doc);
+    SEQUENCE_TAG_CRF1_NES(doc, cfg.model_params.tag_encoding.encoding());
+  }
 }
 
 
@@ -153,7 +169,31 @@ run_fold1(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::ve
 
   // Tag the fold with the trained model.
   if (!cfg.extract_only())
-    run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
+    run_tagger1(cfg, extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
+}
+
+
+template <typename TRANSFORMER>
+static void
+run_fold1_thread(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::vector<cs::Doc *> &docs) {
+  // Loop until there's no more work to do on the work queue.
+  int fold = 0;
+  bool finished = false;
+  while (!finished) {
+    // Critical section while we examine the thread work queue.
+    {
+      std::lock_guard<std::mutex> lock(thread_work_queue_mutex);
+      if (thread_work_queue.empty())
+        finished = true;
+      else {
+        fold = thread_work_queue.front();
+        thread_work_queue.pop();
+      }
+    }
+
+    if (!finished)
+      run_fold1<TRANSFORMER>(cfg, model, transformer, docs, fold);
+  }
 }
 
 
@@ -197,9 +237,16 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
     for (cs::Doc *doc : docs)
       Extractor::prepare_doc(*doc, false, true, model.tag_encoding());
 
+    // Push work onto the the thread work queue.
+    for (int fold = -1; fold != NFOLDS; ++fold)
+      thread_work_queue.push(fold);
+
+    // Fire up n threads (n \in [1, NFOLDS + 1]) and wait for them to finish.
+    const unsigned int nthreads = std::max(1u, std::min(NFOLDS + 1, cfg.nthreads()));
+    LOG(DEBUG) << "Firing up " << nthreads << " threads..." << std::endl;
     std::vector<std::thread> threads;
-    for (int i = -1; i != NFOLDS; ++i)
-      threads.push_back(std::thread(&run_fold1<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs), i));
+    for (unsigned int i = 0; i != nthreads; ++i)
+      threads.push_back(std::thread(&run_fold1_thread<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs)));
     for (auto &thread : threads)
       thread.join();
   }

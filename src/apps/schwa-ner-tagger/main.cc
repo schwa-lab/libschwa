@@ -77,6 +77,7 @@ run_tagger(const Main &cfg, TRANSFORMER &transformer, InputModel &model) {
 
   // Tag all of the docs.
   for (cs::Doc *doc : docs) {
+    Extractor::prepare_doc(*doc, false, false, model.tag_encoding());
     tagger1.tag(*doc, transformer);
     SEQUENCE_UNTAG_CRF1_NES(*doc);
     SEQUENCE_TAG_GOLD_NES(*doc, SequenceTagEncoding::IOB2);
