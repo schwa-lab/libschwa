@@ -40,7 +40,8 @@ public:
   cf::Op<bool> extract_only;
   cf::Op<unsigned int> nthreads;
   ner::ModelParams model_params;
-  ln::CRFsuiteTrainerParams trainer_params;
+  ln::CRFsuiteTrainerParams crf1_trainer_params;
+  ln::CRFsuiteTrainerParams crf2_trainer_params;
   dr::DocrepGroup dr;
 
   Main(void) :
@@ -53,7 +54,8 @@ public:
       extract_only(*this, "extract-only", "Whether to perform feature extraction only and no training", false),
       nthreads(*this, "nthreads", 'j', "How many threads to use to train the 1st stage CRFs", NFOLDS + 1),
       model_params(*this, "model-params", "Parameters controlling the contents of the produced model"),
-      trainer_params(*this, "train-params", "Parameters to the crfsuite training process"),
+      crf1_trainer_params(*this, "crf1-train-params", "Parameters to the CRFsuite training process for the 1st stage CRF"),
+      crf2_trainer_params(*this, "crf2-train-params", "Parameters to the CRFsuite training process for the 2nd stage CRF"),
       dr(*this, schema)
     { }
   virtual ~Main(void) { }
@@ -69,9 +71,11 @@ static std::mutex thread_work_queue_mutex;
 
 
 static std::string
-get_fold_suffix(const unsigned int fold) {
+get_crf1_model_suffix(const int fold) {
   std::ostringstream ss;
-  ss << ".fold" << fold;
+  ss << ".crf1";
+  if (fold >= 0)
+    ss << ".fold" << fold;
   return ss.str();
 }
 
@@ -106,17 +110,15 @@ template <typename IT, typename TRANSFORMER>
 static void
 run_trainer1(const Main &cfg, Extractor &extractor, OutputModel &model, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const int fold=-1) {
   // Construct the path suffix if we're training a fold.
-  std::string suffix;
-  if (fold >= 0)
-    suffix = get_fold_suffix(fold);
+  const std::string suffix = get_crf1_model_suffix(fold);
 
   if (fold >= 0)
     LOG(INFO) << "Training 1st stage NER classifier for fold " << fold << std::endl;
   else
-    LOG(INFO) << "Training 1st stage NER classifier for all training data" << std::endl;
+    LOG(INFO) << "Training 1st stage NER classifier using all training data" << std::endl;
 
   // Create the trainer for the 1st stage classifier.
-  ln::CRFsuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
+  ln::CRFsuiteTrainer<Extractor> trainer(extractor, model, cfg.crf1_trainer_params);
 
   // Extract the features for the 1st stage classifier.
   trainer.extract<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
@@ -131,8 +133,7 @@ run_trainer1(const Main &cfg, Extractor &extractor, OutputModel &model, const IT
     return;
 
   // Train the model.
-  if (fold >= 0)
-    trainer.set_model_filename_suffix(suffix);
+  trainer.set_model_filename_suffix(suffix);
   trainer.train();
 }
 
@@ -143,7 +144,7 @@ run_trainer2(const Main &cfg, Extractor &extractor, OutputModel &model, const IT
   LOG(INFO) << "Training 2nd stage NER classifier" << std::endl;
 
   // Create the trainer for the 1st stage classifier.
-  ln::CRFsuiteTrainer<Extractor> trainer(extractor, model, cfg.trainer_params);
+  ln::CRFsuiteTrainer<Extractor> trainer(extractor, model, cfg.crf2_trainer_params);
 
   // Extract the features for the 1st stage classifier.
   trainer.extract<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
@@ -168,7 +169,7 @@ run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_b
   LOG(INFO) << "Tagging with 1st stage NER classifier for fold " << fold << std::endl;
 
   // Create the tagger for the 1st stage classifier.
-  ln::CRFsuiteTagger<Extractor> tagger(extractor, model_path + get_fold_suffix(fold));
+  ln::CRFsuiteTagger<Extractor> tagger(extractor, model_path + get_crf1_model_suffix(fold));
 
   // Extract the features for the 1st stage classifier.
   tagger.tag<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
@@ -287,10 +288,6 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
         run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformers[0], fold);
       }
     }
-
-    // Prepare the docs, running without threads and with 2nd stage CRF.
-    for (cs::Doc *doc : docs)
-      Extractor::prepare_doc(*doc, true, true, model.tag_encoding());
 
     // Create the feature extractor for the 2nd stage classifier and run it with the trainer.
     Extractor extractor(model, true, false);

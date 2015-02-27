@@ -15,7 +15,7 @@ namespace learn {
 CRFsuiteTrainerParams::CRFsuiteTrainerParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags) :
     config::Group(group, name, desc, flags),
     algorithm(*this, "algorithm", "Which training algorithm to use", {"lbfgs", "l2sgd", "ap", "pa", "arow"}, "lbfgs"),
-    c2(*this, "c2", "Coefficient for L2 regularisation during LBFGS", 0.707),
+    c2(*this, "c2", "Coefficient for L2 regularisation during LBFGS", 0.100),
     max_iterations(*this, "max-iterations", "Maximum number of iterations to run LBFGS", 500),
     num_memories(*this, "num-memories", "The number of inverse Hessian matrices to store during LBFGS", 10),
     epsilon(*this, "epsilon", "The epsilon parameter for convergence testing during LBFGS", 1e-6),

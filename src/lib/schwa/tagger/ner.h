@@ -3,9 +3,7 @@
 #define SCHWA_TAGGER_NER_H_
 
 #include <array>
-#include <list>
 #include <string>
-#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -143,8 +141,13 @@ namespace schwa {
         io::Logger &_logger;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_ne_normalised;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_norm_raw;
-        std::unordered_map<std::string, std::list<std::tuple<std::string, unsigned int>>> _token_label_counts;  //!< Map of each token to each of the labels it was given in the document, with the number of times this happened.
+        learn::SentinelOffsets<canonical_schema::Token> _offsets_token_ne_label_crf1;
+        std::unordered_map<std::string, std::unordered_map<std::string, unsigned int>> _token_label_counts;  //!< Map of each token to each of the labels it was given in the document, with the number of times this happened.
+        std::unordered_map<UnicodeString, std::unordered_map<std::string, unsigned int>> _token_maj_counts;    //!< Counts for the 2nd stage CRF token majority features.
+        std::vector<std::string> _entity_maj;
+        std::vector<std::string> _superentity_maj;
         std::unordered_map<UnicodeString, std::unordered_map<canonical_schema::Token *, std::array<canonical_schema::Token *, 4>>> _token_context_aggregations;  //!< { lower : { w : [ w_{i-2}, w_{i-1}, w_{i+1}, w_{i+2} ] } }
+        canonical_schema::Doc *_phase3_doc;
 
         void _check_regular_expressions(void) const;
 
@@ -169,7 +172,7 @@ namespace schwa {
         void phase2_eos(canonical_schema::Sentence &) { }
         void phase2_eod(canonical_schema::Doc &) { }
 
-        void phase3_bod(canonical_schema::Doc &) { }
+        void phase3_bod(canonical_schema::Doc &doc) { _phase3_doc = &doc; }
         void phase3_bos(canonical_schema::Sentence &sentence);
         template <typename TRANSFORM, typename VALUE>
         void phase3_extract(canonical_schema::Sentence &sentence, canonical_schema::Token &token, learn::Features<TRANSFORM, VALUE> &features);
@@ -189,6 +192,11 @@ namespace schwa {
         static inline const std::string &
         _get_token_ne_normalised(const canonical_schema::Token &t) {
           return t.ne_normalised;
+        }
+
+        static inline const std::string &
+        _get_token_ne_label_crf1(const canonical_schema::Token &t) {
+          return t.ne_label_crf1;
         }
 
         SCHWA_DISALLOW_COPY_AND_ASSIGN(Extractor);

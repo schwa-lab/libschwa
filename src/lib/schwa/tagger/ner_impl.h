@@ -24,6 +24,7 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   const size_t i = &token - sentence.span.start;
   const std::string &utf8 = _get_token_ne_normalised(token);
   const UnicodeString u = UnicodeString::from_utf8(utf8);
+  const UnicodeString lower = u.to_lower();
   std::stringstream ss;
 
   // Prefix and suffix of length up to 4.
@@ -92,34 +93,28 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   features(ss_ctx1.str());
   features(ss_ctx2.str());
 
-  for (int offset = 0; offset != 1; ++offset) {
-    const std::string &norm = _offsets_token_norm_raw(i, offset);
-    if (norm == learn::SENTINEL)
-      continue;
-
-    if (_feature_flags.use_brown_cluster_features) {
-      // Add Brown cluster paths for w_{i}.
-      const size_t npaths = _brown_clusters.get_paths(norm, &_brown_cluster_path, _brown_cluster_path_lengths);
-      if (npaths != 0) {
-        const int prefix = std::sprintf(_brown_cluster_feature, "bc[i%+d]=", offset);
-        std::memcpy(_brown_cluster_feature + prefix, _brown_cluster_path, _brown_cluster_path_lengths[npaths - 1]);
-        for (size_t p = 0; p != npaths; ++p) {
-          _brown_cluster_feature[prefix + _brown_cluster_path_lengths[npaths - 1 - p]] = '\0';
-          features(_brown_cluster_feature);
-        }
+  // Add Brown cluster paths for w_{i}.
+  if (_feature_flags.use_brown_cluster_features) {
+    const size_t npaths = _brown_clusters.get_paths(utf8, &_brown_cluster_path, _brown_cluster_path_lengths);
+    if (npaths != 0) {
+      const int prefix = std::sprintf(_brown_cluster_feature, "bc[i%+d]=", 0);
+      std::memcpy(_brown_cluster_feature + prefix, _brown_cluster_path, _brown_cluster_path_lengths[npaths - 1]);
+      for (size_t p = 0; p != npaths; ++p) {
+        _brown_cluster_feature[prefix + _brown_cluster_path_lengths[npaths - 1 - p]] = '\0';
+        features(_brown_cluster_feature);
       }
     }
+  }
 
-    if (_feature_flags.use_word_embeddings_features) {
-      // Add word embedding values for w_{i}
-      const double *embeddings = _word_embeddings.get_embeddings(norm);
-      if (SCHWA_LIKELY(embeddings != nullptr)) {
-        char buf[14];  // we[i+2]=ddddd
-        const int prefix = std::sprintf(buf, "we[i%+d]=", offset);
-        for (uint32_t j = 0; j != _word_embeddings.ndimensions(); ++j) {
-          std::sprintf(buf + prefix, "%u", j);
-          features(buf, embeddings[j]);
-        }
+  // Add word embedding values for w_{i}
+  if (_feature_flags.use_word_embeddings_features) {
+    const double *embeddings = _word_embeddings.get_embeddings(utf8);
+    if (SCHWA_LIKELY(embeddings != nullptr)) {
+      char buf[14];  // we[i+2]=ddddd
+      const int prefix = std::sprintf(buf, "we[i%+d]=", 0);
+      for (uint32_t j = 0; j != _word_embeddings.ndimensions(); ++j) {
+        std::sprintf(buf + prefix, "%u", j);
+        features(buf, embeddings[j]);
       }
     }
   }
@@ -130,10 +125,10 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
     if (it != _token_label_counts.end()) {
       third_party::crfsuite::floatval_t total = 0;
       for (const auto &pair : it->second)
-        total += std::get<1>(pair);
+        total += pair.second;
       for (const auto &pair : it->second) {
-        ss << "eph=" << std::get<0>(pair);
-        features(ss.str(), std::get<1>(pair)/total);
+        ss << "eph=" << pair.first;
+        features(ss.str(), pair.second/total);
         ss.str("");
       }
     }
@@ -157,7 +152,6 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
 
   // Context aggregation of the surrounding tokens.
   if (_feature_flags.use_context_aggregation_features) {
-    const UnicodeString lower = u.to_lower();
     const auto &it = _token_context_aggregations.find(lower);
     if (it != _token_context_aggregations.end()) {
       for (const auto &pair : it->second) {
@@ -173,6 +167,53 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
           features.add_unique(ss.str());
           ss.str("");
         }
+      }
+    }
+  }
+
+  // Are we on the 2nd stage CRF?
+  if (_is_second_stage) {
+    // Token majority from 1st stage CRF.
+    {
+      const auto &it = _token_maj_counts.find(lower);
+      unsigned int max_count = 0;
+      std::string max_label;
+      for (const auto &pair : it->second) {
+        if (pair.second > max_count || (pair.second == max_count && pair.first == token.ne_label_crf1)) {
+          max_label = pair.first;
+          max_count = pair.second;
+        }
+      }
+      ss << "token_maj=" << max_label;
+      features(ss.str());
+      ss.str("");
+    }
+
+    // Entity majority from 1st stage CRF.
+    {
+      const std::string entity_maj = _entity_maj[&token - &_phase3_doc->tokens.front()];
+      if (!entity_maj.empty())
+        features("entity_maj=" + entity_maj);
+    }
+
+    // Superentity majority from 1st stage CRF.
+    {
+      const std::string superentity_maj = _superentity_maj[&token - &_phase3_doc->tokens.front()];
+      if (!superentity_maj.empty())
+        features("superentity_maj=" + superentity_maj);
+    }
+
+    // Use the NEs from the 1st stage CRF in a +/-2 window.
+    {
+      for (int offset = -2; offset != 3; ++offset) {
+        ss << "crf1_ne[i";
+        if (i < 2)
+          ss << (-2 + i);
+        else
+          ss << "+" << (i - 1);
+        ss << "]=" << _offsets_token_ne_label_crf1(i, offset);
+        features(ss.str());
+        ss.str("");
       }
     }
   }

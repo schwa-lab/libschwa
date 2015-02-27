@@ -29,7 +29,7 @@ ModelParams::ModelParams(config::Group &group, const std::string &name, const st
     learn::ModelParams(group, name, desc, flags),
     tag_encoding(*this, "tag-encoding", 'E', "Sequence tag encoding scheme to use", "bmewo"),
     feature_hashing(*this, "feature-hashing", 'H', "Number of bits to use for feature hashing", config::Flags::OPTIONAL),
-    brown_clusters_path(*this, "brown-cluster-path", "Absolute path to the Brown clusters file", "lex-data/brown-clusters/rcv1.c1000"),
+    brown_clusters_path(*this, "brown-cluster-path", "Absolute path to the Brown clusters file", "lex-data/brown-clusters/english-wikitext.c1000"),
     gazetteer_path(*this, "gazetteer-path", "Absolute path to the country-related n-gram gazetter file", "lex-data/gazetteers/countries"),
     word_embeddings_path(*this, "word-embeddings-path", "Absolute path to the word embeddings file", "lex-data/word-embeddings/cw.50dim.unscalled.double"),
     word_embeddings_sigma(*this, "word-embeddings-sigma", "Scaling factor for scaling the embeddings values", lex::WordEmbeddings::DEFAULT_SIGMA),
@@ -161,7 +161,8 @@ Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) 
     _word_embeddings(model.word_embeddings()),
     _logger(*io::default_logger),
     _offsets_token_ne_normalised(&_get_token_ne_normalised),
-    _offsets_token_norm_raw(&_get_token_norm_raw)
+    _offsets_token_norm_raw(&_get_token_norm_raw),
+    _offsets_token_ne_label_crf1(&_get_token_ne_label_crf1)
   {
   _check_regular_expressions();
 }
@@ -180,7 +181,8 @@ Extractor::Extractor(OutputModel &model, bool is_second_stage, bool is_threaded)
     _word_embeddings(model.word_embeddings()),
     _logger(model.logger()),
     _offsets_token_ne_normalised(&_get_token_ne_normalised),
-    _offsets_token_norm_raw(&_get_token_norm_raw)
+    _offsets_token_norm_raw(&_get_token_norm_raw),
+    _offsets_token_ne_label_crf1(&_get_token_ne_label_crf1)
   {
   _check_regular_expressions();
 }
@@ -205,11 +207,13 @@ void
 Extractor::prepare_doc(cs::Doc &doc, const bool is_train, const bool is_second_stage, const SequenceTagEncoding tag_encoding) {
   static const auto REVERSE_GOLD_NES = DR_REVERSE_SLICES(&cs::Doc::named_entities, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Token::ne);
   static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
+  static const auto SEQUENCE_TAG_CRF1_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf1);
+  static const auto SEQUENCE_UNTAG_CRF1_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
 
   // Move the 1st stage CRF tagging decisions from the ne_label attribute to the ne_label_crf1 attribute.
   if (is_second_stage) {
-    for (cs::Token &token : doc.tokens)
-      token.ne_label_crf1 = token.ne_label;
+    SEQUENCE_UNTAG_CRF1_NES(doc);
+    SEQUENCE_TAG_CRF1_NES(doc, tag_encoding);
   }
 
   // Reverse the gold NEs down onto the tokens, as well as the encoded NE label.
@@ -222,8 +226,123 @@ Extractor::prepare_doc(cs::Doc &doc, const bool is_train, const bool is_second_s
 
 void
 Extractor::phase2_bod(cs::Doc &doc) {
+  // Prepare the doc if we're not running in a multithreaded context.
   if (!_is_threaded)
     prepare_doc(doc, _is_train, _is_second_stage, _tag_encoding);
+
+  // Only 2nd stage CRF things from here on.
+  if (!_is_second_stage)
+    return;
+
+  // Entity majority and super-entity majority counts.
+  std::unordered_map<UnicodeString, std::unordered_map<std::string, unsigned int>> entity_counts, superentity_counts;
+  std::stringstream ss;
+  for (const cs::NamedEntity &ne : doc.named_entities_crf1) {
+    // Construct all possible n-gram strings.
+    const size_t ntokens = ne.span.stop - ne.span.start;
+    for (size_t start = 0; start != ntokens; ++start) {
+      for (size_t stop = start + 1; stop != ntokens + 1; ++stop) {
+        // Construct the n-gram string.
+        for (size_t i = start; i != stop; ++i) {
+          if (i != start)
+            ss << ' ';
+          ss << ne.span.start[i].ne_normalised;
+        }
+        const UnicodeString lower = UnicodeString::from_utf8(ss.str()).to_lower();
+        ss.str("");
+
+        // Increment the count of the sub-n-gram and possibly the full n-gram.
+        superentity_counts[lower][ne.label] += 1;
+        if (stop - start == ntokens)
+          entity_counts[lower][ne.label] += 1;
+      }
+    }
+  }
+
+  // Place the most frequent entity label on each of the tokens covered by the entity.
+  _entity_maj.resize(doc.tokens.size());
+  _superentity_maj.resize(doc.tokens.size());
+  for (const cs::NamedEntity &ne : doc.named_entities_crf1) {
+    // Construct the entity n-gram string.
+    for (const cs::Token &token : ne.span) {
+      if (&token != ne.span.start)
+        ss << ' ';
+      ss << token.ne_normalised;
+    }
+    const UnicodeString lower = UnicodeString::from_utf8(ss.str()).to_lower();
+    ss.str("");
+
+    // Find the most frequent label for this case-normalised entity n-gram.
+    unsigned int max_count = 0;
+    std::string max_label;
+    for (const auto &pair : entity_counts[lower]) {
+      if (pair.second > max_count || (pair.second == max_count && pair.first == ne.label)) {
+        max_label = pair.first;
+        max_count = pair.second;
+      }
+    }
+
+    // Assign the most frequent label to the tokens that this named entity spans.
+    for (const cs::Token &token : ne.span)
+      _entity_maj[&token - &doc.tokens.front()] = max_label;
+
+    // Find the most frequent label for this case-normalised superentity n-gram.
+    max_count = 0;
+    for (const auto &pair : entity_counts[lower]) {
+      if (pair.second > max_count || (pair.second == max_count && pair.first == ne.label)) {
+        max_label = pair.first;
+        max_count = pair.second;
+      }
+    }
+
+    // Assign the most frequent label to the tokens that this named entity spans.
+    for (const cs::Token &token : ne.span)
+      _superentity_maj[&token - &doc.tokens.front()] = max_label;
+  }
+
+  // Place the most frequent entity label on each of the tokens not covered by an entity.
+  for (size_t i = 0; i != _entity_maj.size(); ++i) {
+    if (!_entity_maj[i].empty())
+      continue;
+
+    // Find the most frequent label for this token as a 1-gram named entity.
+    const UnicodeString lower = UnicodeString::from_utf8(doc.tokens[i].ne_normalised).to_lower();
+    const auto &it = entity_counts.find(lower);
+    if (it == entity_counts.end())
+      continue;
+
+    unsigned int max_count = 0;
+    std::string max_label;
+    for (const auto &pair : entity_counts[lower]) {
+      if (pair.second > max_count) {
+        max_label = pair.first;
+        max_count = pair.second;
+      }
+    }
+    _entity_maj[i] = max_label;
+  }
+
+  // Place the most frequent superentity label on each of the tokens not covered by an entity.
+  for (size_t i = 0; i != _superentity_maj.size(); ++i) {
+    if (!_superentity_maj[i].empty())
+      continue;
+
+    // Find the most frequent label for this token as a 1-gram named entity.
+    const UnicodeString lower = UnicodeString::from_utf8(doc.tokens[i].ne_normalised).to_lower();
+    const auto &it = entity_counts.find(lower);
+    if (it == entity_counts.end())
+      continue;
+
+    unsigned int max_count = 0;
+    std::string max_label;
+    for (const auto &pair : entity_counts[lower]) {
+      if (pair.second > max_count) {
+        max_label = pair.first;
+        max_count = pair.second;
+      }
+    }
+    _superentity_maj[i] = max_label;
+  }
 }
 
 
@@ -232,6 +351,7 @@ Extractor::phase2_bos(cs::Sentence &sentence) {
   // Update the token offsets objects to know about the new sentence.
   _offsets_token_ne_normalised.set_slice(sentence.span);
   _offsets_token_norm_raw.set_slice(sentence.span);
+  _offsets_token_ne_label_crf1.set_slice(sentence.span);
 
   // How many tokens long is the sentence?
   const size_t sentence_length = sentence.span.stop - sentence.span.start;
@@ -289,7 +409,7 @@ Extractor::phase2_bos(cs::Sentence &sentence) {
 
 void
 Extractor::phase2_extract(cs::Sentence &sentence, cs::Token &token) {
-  // FIXME Find the identical token forms for use in the context aggregation
+  // Find the identical token forms for use in the context aggregation
   const UnicodeString lower = UnicodeString::from_utf8(_get_token_ne_normalised(token)).to_lower();
   auto &array = _token_context_aggregations[lower][&token];
 
@@ -299,6 +419,11 @@ Extractor::phase2_extract(cs::Sentence &sentence, cs::Token &token) {
   array[1] = (i >= 1) ? &token - 1 : nullptr;
   array[2] = (i <= sentence_length - 2) ? &token + 1 : nullptr;
   array[3] = (i <= sentence_length - 3) ? &token + 2 : nullptr;
+
+  // Token majority features from the 1st stage CRF.
+  if (_is_second_stage) {
+    _token_maj_counts[lower][token.ne_label_crf1] += 1;
+  }
 }
 
 
@@ -307,25 +432,15 @@ Extractor::phase3_bos(cs::Sentence &sentence) {
   // Update the token offsets objects to know about the new sentence.
   _offsets_token_ne_normalised.set_slice(sentence.span);
   _offsets_token_norm_raw.set_slice(sentence.span);
+  _offsets_token_ne_label_crf1.set_slice(sentence.span);
 }
 
 
 void
 Extractor::phase3_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string) {
   // Don't include the first token in a sentence as it's ambiguous to begin with.
-  if (&token != sentence.span.start) {
-    auto &list = _token_label_counts[token.ne_normalised];
-    bool found = false;
-    for (auto &pair : list) {
-      if (std::get<0>(pair) == label_string) {
-        std::get<1>(pair) += 1;
-        found = true;
-        break;
-      }
-    }
-    if (!found)
-      list.push_back(std::make_tuple(label_string, 1));
-  }
+  if (&token != sentence.span.start)
+    _token_label_counts[token.ne_normalised][label_string] += 1;
 }
 
 
@@ -334,6 +449,13 @@ Extractor::phase3_eod(cs::Doc &) {
   // Reset the per-document aggregations.
   _token_label_counts.clear();
   _token_context_aggregations.clear();
+
+  // Reset the 2nd stage CRF per-document aggregations.
+  if (_is_second_stage) {
+    _token_maj_counts.clear();
+    _entity_maj.clear();
+    _superentity_maj.clear();
+  }
 }
 
 
