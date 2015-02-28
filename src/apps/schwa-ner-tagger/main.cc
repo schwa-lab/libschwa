@@ -2,7 +2,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <schwa/canonical-schema.h>
 #include <schwa/config.h>
@@ -29,6 +28,7 @@ public:
   cf::Op<std::string> conll_path;
   cf::Op<std::string> model_path;
   ner::ModelParams model_params;
+  cf::Op<bool> crf1_only;
   dr::DocrepGroup dr;
 
   Main(void) :
@@ -38,6 +38,7 @@ public:
       conll_path(*this, "conll", 'c', "The output path for the CoNLL formatted tags", cf::Flags::OPTIONAL),
       model_path(*this, "model", 'm', "The model path"),
       model_params(*this, "model-params", "The model path path"),
+      crf1_only(*this, "crf1-only", "Whether only the 1st stage CRF tagging should happen", false),
       dr(*this, schema)
     { }
   virtual ~Main(void) { }
@@ -48,83 +49,64 @@ namespace schwa {
 namespace tagger {
 namespace ner {
 
-template <typename TRANSFORMER>
-static void
-run_tagger1(TRANSFORMER &transformer, InputModel &model, const std::vector<cs::Doc *> &docs) {
-  // Create the 1st stage feature extractor.
-  Extractor extractor(model, false, false);
 
-  // Create the tagger.
-  ln::CRFsuiteTagger<Extractor> tagger(extractor, model.model_path() + ".crf1");
-
-  // Tag all of the docs.
-  tagger.tag(docs.begin(), docs.end(), transformer);
-  tagger.dump_accuracy();
-}
-
-
-template <typename TRANSFORMER>
-static void
-run_tagger2(TRANSFORMER &transformer, InputModel &model, const std::vector<cs::Doc *> &docs) {
-  // Create the 1st stage feature extractor.
-  Extractor extractor(model, true, false);
-
-  // Create the tagger.
-  ln::CRFsuiteTagger<Extractor> tagger(extractor, model.model_path());
-
-  // Tag all of the docs.
-  tagger.tag(docs.begin(), docs.end(), transformer);
-  tagger.dump_accuracy();
-}
+static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
+static const auto SEQUENCE_TAG_CRF2_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf2);
+static const auto SEQUENCE_UNTAG_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
 
 
 template <typename TRANSFORMER>
 static void
 run_tagger(Main &cfg, TRANSFORMER &transformer, InputModel &model) {
-  // Read in each of the docrep documents from the input stream, and pre-process them.
-  std::vector<cs::Doc *> docs;
-  {
-    io::InputStream in(cfg.input_path());
-    dr::Reader reader(in, cfg.schema);
-    while (true) {
-      cs::Doc *doc = new cs::Doc();
-      if (reader >> *doc) {
-        ner::preprocess_doc(*doc, model.brown_clusters());
-        docs.push_back(doc);
-      }
-      else {
-        delete doc;
-        break;
-      }
-    }
-  }
-
-  // Run the two taggers.
-  run_tagger1(transformer, model, docs);
-  run_tagger2(transformer, model, docs);
-
-  static const auto SEQUENCE_UNTAG_CRF2_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
-  static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
-  static const auto SEQUENCE_TAG_CRF2_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf2);
-
-  // Open up the appropriate output streams.
+  // Open the docrep output stream.
   io::OutputStream out(cfg.output_path());
   dr::Writer writer(out, cfg.schema);
-  io::OutputStream *conll_out = nullptr;
+
+  // Open the CoNLL output stream, if requested.
+  std::unique_ptr<io::OutputStream> conll_out;
   if (cfg.conll_path.was_mentioned())
-    conll_out = new io::OutputStream(cfg.conll_path());
+    conll_out.reset(new io::OutputStream(cfg.conll_path()));
 
-  for (cs::Doc *doc : docs) {
-    // Untag the 2nd stage CRF sequence labels.
-    doc->named_entities.clear();
-    SEQUENCE_UNTAG_CRF2_NES(*doc);
+  // Create the 1st stage feature extractor and tagger.
+  Extractor extractor1(model, false, false);
+  ln::CRFsuiteTagger<Extractor> tagger1(extractor1, model.model_path() + ".crf1");
 
-    // Write the doc back out as docrep.
-    writer << *doc;
+  // Create the 2nd stage feature extractor and tagger.
+  Extractor extractor2(model, true, false);
+  std::unique_ptr<ln::CRFsuiteTagger<Extractor>> tagger2;
+  if (!cfg.crf1_only())
+    tagger2.reset(new ln::CRFsuiteTagger<Extractor>(extractor2, model.model_path()));
 
-    // If we want CoNLL output as well, write it out.
-    if (conll_out != nullptr) {
+  // Read in each of the docrep documents from the input stream, and pre-process them.
+  io::InputStream in(cfg.input_path());
+  dr::Reader reader(in, cfg.schema);
+  while (true) {
+    // Read in the doc.
+    std::unique_ptr<cs::Doc> doc(new cs::Doc());
+    if (!(reader >> *doc))
+      break;
+
+    // Pre-process the doc.
+    ner::preprocess_doc(*doc, model.brown_clusters());
+
+    // Run the 1st stage CRF and optionally the 2nd stage CRF.
+    tagger1.tag(*doc, transformer);
+    if (!cfg.crf1_only())
+      tagger2->tag(*doc, transformer);
+
+    // Do we want CoNLL output?
+    if (conll_out == nullptr) {
+      // Untag the CRF sequence labels.
+      doc->named_entities.clear();
+      SEQUENCE_UNTAG_NES(*doc);
+    }
+    else {
+      // Sequence tag the gold named entities.
       SEQUENCE_TAG_GOLD_NES(*doc, SequenceTagEncoding::IOB2);
+
+      // Untag the CRF sequence labels and tag them back onto the tokens.
+      doc->named_entities.clear();
+      SEQUENCE_UNTAG_NES(*doc);
       SEQUENCE_TAG_CRF2_NES(*doc, SequenceTagEncoding::IOB2);
 
       **conll_out << "-DOCSTART- -DOCSTART- -X- O O" << std::endl;
@@ -137,15 +119,10 @@ run_tagger(Main &cfg, TRANSFORMER &transformer, InputModel &model) {
         **conll_out << std::endl;
       }
     }
+
+    // Write out the doc as docrep.
+    writer << *doc;
   }
-
-  // Close the CoNLL output stream.
-  delete conll_out;
-
-  // Delete the read in docs.
-  for (cs::Doc *doc : docs)
-    delete doc;
-  docs.clear();
 }
 
 }  // namespace ner

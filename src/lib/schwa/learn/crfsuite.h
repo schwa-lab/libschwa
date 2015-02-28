@@ -186,10 +186,6 @@ namespace schwa {
       third_party::crfsuite::crfsuite_instance_t _instance;
       third_party::crfsuite::crfsuite_item_t *_item;
       std::vector<int> _label_ids;
-      unsigned int _ntokens_correct;
-      unsigned int _ntokens_total;
-      unsigned int _nsentences_correct;
-      unsigned int _nsentences_total;
 
       void _begin_item_sequence(size_t nitems);
       void _end_item_sequence(void);
@@ -201,7 +197,6 @@ namespace schwa {
       CRFsuiteTaggerPhase3SentenceExtractor(extractor_type &extractor, const std::string &model_path);
       ~CRFsuiteTaggerPhase3SentenceExtractor(void);
 
-      void dump_accuracy(void) const;
       inline extractor_type &extractor(void) { return _extractor; }
 
       template <typename TO_STRING, typename FEATURES>
@@ -228,8 +223,6 @@ namespace schwa {
       void tag(const IT docs_begin, const IT docs_end, const TRANSFORM &transformer=TRANSFORM());
       template <typename TRANSFORM>
       void tag(canonical_schema::Doc &doc, const TRANSFORM &transformer=TRANSFORM());
-
-      void dump_accuracy(void) const;
 
     private:
       SCHWA_DISALLOW_COPY_AND_ASSIGN(CRFsuiteTagger);

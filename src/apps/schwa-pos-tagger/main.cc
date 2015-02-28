@@ -57,18 +57,12 @@ run_tagger(const TaggerMain &cfg, TRANSFORMER &transformer, InputModel &model) {
   io::InputStream in(cfg.input_path());
   dr::Reader reader(in, cfg.schema);
   while (true) {
-    cs::Doc *doc = new cs::Doc();
-    if (reader >> *doc) {
+    std::unique_ptr<cs::Doc> doc(new cs::Doc());
+    if (reader >> *doc)
       tagger.tag(*doc, transformer);
-      delete doc;
-    }
-    else {
-      delete doc;
+    else
       break;
-    }
   }
-
-  tagger.dump_accuracy();
 }
 
 }  // namespace pos

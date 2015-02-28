@@ -335,11 +335,7 @@ template <typename EXTRACTOR>
 CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR>::CRFsuiteTaggerPhase3SentenceExtractor(extractor_type &extractor, const std::string &model_path) :
     _extractor(extractor),
     _cmodel(model_path),
-    _item(nullptr),
-    _ntokens_correct(0),
-    _ntokens_total(0),
-    _nsentences_correct(0),
-    _nsentences_total(0)
+    _item(nullptr)
   { }
 
 template <typename EXTRACTOR>
@@ -427,7 +423,6 @@ CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR>::extract_sentence(canonical_sch
   third_party::crfsuite::floatval_t score;
   _cmodel.viterbi(&_label_ids[0], &score);
 
-  bool all_tokens_correct = true;
   for (canonical_schema::Token &token : sentence.span) {
     // Set the string representation of the assigned label on the token.
     const int label_id = _label_ids[&token - sentence.span.start];
@@ -436,34 +431,7 @@ CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR>::extract_sentence(canonical_sch
 
     // Update history.
     _extractor.phase3_update_history(sentence, token, label_string);
-
-    // Keep track of some accuracy counts.
-    if (label_string == _extractor.get_label(token))
-      ++_ntokens_correct;
-    else
-      all_tokens_correct = false;
   }
-
-  // Keep track of some accuracy counts.
-  if (all_tokens_correct)
-    ++_nsentences_correct;
-  _nsentences_total += 1;
-  _ntokens_total += sentence_length;
-}
-
-
-template <typename EXTRACTOR>
-inline void
-CRFsuiteTaggerPhase3SentenceExtractor<EXTRACTOR>::dump_accuracy(void) const {
-  // Ensure we actually have something to report back about.
-  if (_ntokens_total == 0)
-    return;
-
-  float percentage;
-  percentage = (_ntokens_correct * 100.0f) / _ntokens_total;
-  LOG(INFO) << "tags/token   : " << percentage << "% (" << _ntokens_correct << "/" << _ntokens_total << ")" << std::endl;
-  percentage = (_nsentences_correct * 100.0f) / _nsentences_total;
-  LOG(INFO) << "tags/sentence: " << percentage << "% (" << _nsentences_correct << "/" << _nsentences_total << ")" << std::endl;
 }
 
 
@@ -504,13 +472,6 @@ CRFsuiteTagger<EXTRACTOR>::tag(canonical_schema::Doc &doc, const TRANSFORM &tran
 
   _phase2_runner.extract(doc);
   _phase3_runner.extract(doc, to_string_helper, features);
-}
-
-
-template <typename EXTRACTOR>
-inline void
-CRFsuiteTagger<EXTRACTOR>::dump_accuracy(void) const {
-  _sentence_extractor3.dump_accuracy();
 }
 
 }  // namespace learn

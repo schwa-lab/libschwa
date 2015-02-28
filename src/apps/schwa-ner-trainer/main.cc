@@ -38,6 +38,7 @@ public:
   cf::Op<bool> crf1_only;
   cf::Op<bool> crf2_only;
   cf::Op<bool> extract_only;
+  cf::Op<bool> single_fold_only;
   cf::Op<unsigned int> nthreads;
   ner::ModelParams model_params;
   ln::CRFsuiteTrainerParams crf1_trainer_params;
@@ -52,6 +53,7 @@ public:
       crf1_only(*this, "crf1-only", "Whether only the 1st stage CRF training should happen", false),
       crf2_only(*this, "crf2-only", "Whether only the 2nd stage CRF training should happen", false),
       extract_only(*this, "extract-only", "Whether to perform feature extraction only and no training", false),
+      single_fold_only(*this, "single-fold-only", "When performing crf1-only training, whether to train only a single fold or all folds", false),
       nthreads(*this, "nthreads", 'j', "How many threads to use to train the 1st stage CRFs", NFOLDS + 1),
       model_params(*this, "model-params", "Parameters controlling the contents of the produced model"),
       crf1_trainer_params(*this, "crf1-train-params", "Parameters to the CRFsuite training process for the 1st stage CRF"),
@@ -173,7 +175,6 @@ run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_b
 
   // Extract the features for the 1st stage classifier.
   tagger.tag<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
-  tagger.dump_accuracy();
 }
 
 
@@ -197,6 +198,9 @@ run_fold1(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::ve
 
   // Train a model on the documents that are not in the current fold.
   run_trainer1(cfg, extractor, model, nonfold_docs.begin(), nonfold_docs.end(), transformer, fold);
+
+  if (cfg.extract_only())
+    return;
 
   // Tag the documents which are in the current fold with the newly trained model.
   run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
@@ -263,18 +267,25 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
     for (cs::Doc *doc : docs)
       Extractor::prepare_doc(*doc, true, false, model.tag_encoding());
 
-    // Push work onto the the thread work queue.
-    for (int fold = -1; fold != NFOLDS; ++fold)
-      thread_work_queue.push(fold);
+    // Do we only need to train a single fold or all folds?
+    if (cfg.single_fold_only()) {
+      // Train over all of the documents.
+      run_fold1<TRANSFORMER>(cfg, model, transformers[0], docs, -1);
+    }
+    else {
+      // Push work onto the the thread work queue.
+      for (int fold = -1; fold != NFOLDS; ++fold)
+        thread_work_queue.push(fold);
 
-    // Fire up n threads (n \in [1, NFOLDS + 1]) and wait for them to finish.
-    const unsigned int nthreads = std::max(1u, std::min(NFOLDS + 1, cfg.nthreads()));
-    LOG(DEBUG) << "Firing up " << nthreads << " threads..." << std::endl;
-    std::vector<std::thread> threads;
-    for (unsigned int i = 0; i != nthreads; ++i)
-      threads.push_back(std::thread(&run_fold1_thread<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs)));
-    for (auto &thread : threads)
-      thread.join();
+      // Fire up n threads (n \in [1, NFOLDS + 1]) and wait for them to finish.
+      const unsigned int nthreads = std::max(1u, std::min(NFOLDS + 1, cfg.nthreads()));
+      LOG(DEBUG) << "Firing up " << nthreads << " threads..." << std::endl;
+      std::vector<std::thread> threads;
+      for (unsigned int i = 0; i != nthreads; ++i)
+        threads.push_back(std::thread(&run_fold1_thread<TRANSFORMER>, std::ref(cfg), std::ref(model), std::ref(transformers[i + 1]), std::ref(docs)));
+      for (auto &thread : threads)
+        thread.join();
+    }
   }
 
   // 2nd stage classifier.
