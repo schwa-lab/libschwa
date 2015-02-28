@@ -50,7 +50,7 @@ namespace tagger {
 namespace ner {
 
 
-static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
+static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf1);
 static const auto SEQUENCE_TAG_CRF2_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf2);
 static const auto SEQUENCE_UNTAG_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
 
@@ -109,12 +109,12 @@ run_tagger(Main &cfg, TRANSFORMER &transformer, InputModel &model) {
       SEQUENCE_UNTAG_NES(*doc);
       SEQUENCE_TAG_CRF2_NES(*doc, SequenceTagEncoding::IOB2);
 
-      **conll_out << "-DOCSTART- -DOCSTART- -X- O O" << std::endl;
+      **conll_out << "-DOCSTART- -X- -X- O O" << std::endl;
       **conll_out << std::endl;
       for (const cs::Sentence &sentence : doc->sentences) {
         for (const cs::Token &token : sentence.span) {
           **conll_out << token.raw << ' ' << token.ne_normalised << ' ' << token.pos << ' ';
-          **conll_out << token.ne_label << ' ' << token.ne_label_crf2 << std::endl;
+          **conll_out << token.ne_label_crf1 << ' ' << token.ne_label_crf2 << std::endl;
         }
         **conll_out << std::endl;
       }
