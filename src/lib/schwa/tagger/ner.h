@@ -135,8 +135,8 @@ namespace schwa {
         const uint8_t *_brown_cluster_path;
         unsigned int *const _brown_cluster_path_lengths;
         char *const _brown_cluster_feature;
-        const lex::Gazetteer &_gazetteer;                     //!< The country-related word n-gram gazetteer.
-        std::vector<uint8_t> _gazetteer_match;                //!< Token-indexed flags of gazetteer hit flags.
+        const lex::Gazetteer &_gazetteer;                      //!< The country-related word n-gram gazetteer.
+        std::vector<std::vector<uint8_t>> _gazetteer_matches;  //!< Token-indexed flags of gazetteer hit flags.
         const lex::WordEmbeddings &_word_embeddings;
         io::Logger &_logger;
         learn::SentinelOffsets<canonical_schema::Token> _offsets_token_ne_normalised;

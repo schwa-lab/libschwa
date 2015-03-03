@@ -137,15 +137,19 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   // Gazetteer match.
   if (_feature_flags.use_gazetteer_features) {
     static constexpr const char GAZ_PREFIXES[4] = {'W', 'B', 'E', 'M'};
-    uint8_t gaz = _gazetteer_match[i];
-    if (gaz != 0) {
-      for (uint8_t i = 0; i != 4; ++i) {
-        if ((gaz & 0x01) != 0) {
-          ss << "gaz=" << GAZ_PREFIXES[i];
-          features(ss.str());
-          ss.str("");
+    char buf[11];  // gaz[ddd]=p
+    for (unsigned int gaz = 0; gaz != _gazetteer.ngazetteers(); ++gaz) {
+      uint8_t m = _gazetteer_matches[gaz][i];
+      if (m == 0)
+        continue;
+      const int prefix = std::sprintf(buf, "gaz[%u]=", gaz);
+      buf[prefix + 1] = '\0';
+      for (uint8_t p = 0; p != 4; ++p) {
+        if ((m & 0x01) != 0) {
+          buf[prefix] = GAZ_PREFIXES[p];
+          features(buf);
         }
-        gaz >>= 1;
+        m >>= 1;
       }
     }
   }

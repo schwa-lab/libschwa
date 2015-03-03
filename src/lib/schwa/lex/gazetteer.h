@@ -20,9 +20,11 @@ namespace schwa {
      **/
     class Gazetteer {
     private:
+      using map_type = std::unordered_map<const uint8_t *, std::vector<std::vector<const uint8_t *>>, uint8str_hash, uint8str_equal_to>;
+
       StringPool &_string_pool;
       unsigned int _longest_ngram;
-      std::unordered_map<const uint8_t *, std::vector<std::vector<const uint8_t *>>, uint8str_hash, uint8str_equal_to> _map;
+      std::vector<map_type *> _maps;
 
     public:
       explicit Gazetteer(StringPool &string_pool);
@@ -30,9 +32,10 @@ namespace schwa {
 
       void load(std::istream &in);
 
-      const std::vector<std::vector<const uint8_t *>> *get_ngrams(const std::string &token0) const;
+      const std::vector<std::vector<const uint8_t *>> *get_ngrams(unsigned int ngazetter, const std::string &token0) const;
 
       inline unsigned int longest_ngram(void) const { return _longest_ngram; }
+      inline unsigned int ngazetteers(void) const { return _maps.size(); }
       inline StringPool &string_pool(void) { return _string_pool; }
       inline const StringPool &string_pool(void) const { return _string_pool; }
     };
