@@ -178,7 +178,7 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   // Are we on the 2nd stage CRF?
   if (_is_second_stage) {
     // Token majority from 1st stage CRF.
-    {
+    if (_feature_flags.use_token_majority_features) {
       const auto &it = _token_maj_counts.find(lower);
       unsigned int max_count = 0;
       std::string max_label;
@@ -194,21 +194,21 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
     }
 
     // Entity majority from 1st stage CRF.
-    {
+    if (_feature_flags.use_entity_majority_features) {
       const std::string entity_maj = _entity_maj[&token - &_phase3_doc->tokens.front()];
       if (!entity_maj.empty())
         features("entity_maj=" + entity_maj);
     }
 
     // Superentity majority from 1st stage CRF.
-    {
+    if (_feature_flags.use_superentity_majority_features) {
       const std::string superentity_maj = _superentity_maj[&token - &_phase3_doc->tokens.front()];
       if (!superentity_maj.empty())
         features("superentity_maj=" + superentity_maj);
     }
 
     // Use the NEs from the 1st stage CRF in a +/-2 window.
-    {
+    if (_feature_flags.use_surrounding_label_features) {
       for (int offset = -2; offset != 3; ++offset) {
         ss << "crf1_ne[i";
         if (i < 2)
@@ -219,6 +219,12 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
         features(ss.str());
         ss.str("");
       }
+    }
+
+    if (_feature_flags.use_crf1_label_feature) {
+      ss << "crf1_ne=" << token.ne_label_crf1;
+      features(ss.str());
+      ss.str("");
     }
   }
 }

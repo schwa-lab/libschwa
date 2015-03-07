@@ -34,10 +34,15 @@ ModelParams::ModelParams(config::Group &group, const std::string &name, const st
     word_embeddings_path(*this, "word-embeddings-path", "Absolute path to the word embeddings file", "lex-data/word-embeddings/cw.50dim.unscalled.double"),
     word_embeddings_sigma(*this, "word-embeddings-sigma", "Scaling factor for scaling the embeddings values", lex::WordEmbeddings::DEFAULT_SIGMA),
     use_brown_cluster_features(*this, "use-brown-cluster-features", "Whether or not to use the Brown cluster features", true),
-    use_context_aggregation_features(*this, "use-context-aggregation-features", "Whether or not to use the context aggregation features", true),
+    use_context_aggregation_features(*this, "use-context-aggregation-features", "Whether or not to use the context aggregation features", false),
     use_extended_prediction_history_features(*this, "use-extended-prediction-history-features", "Whether or not to use the extended prediction-history features", true),
     use_gazetteer_features(*this, "use-gazetteer-features", "Whether or not to use the gazetteer features", true),
-    use_word_embeddings_features(*this, "use-word-embeddings-features", "Whether or not to use the word embeddings features", true)
+    use_word_embeddings_features(*this, "use-word-embeddings-features", "Whether or not to use the word embeddings features", true),
+    use_token_majority_features(*this, "use-token-majority-features", "Whether or not to use the 2nd stage CRF token majority features", true),
+    use_entity_majority_features(*this, "use-entity-majority-features", "Whether or not to use the 2nd stage CRF entity majority features", true),
+    use_superentity_majority_features(*this, "use-superentity-majority-features", "Whether or not to use the 2nd stage CRF superentity majority features", true),
+    use_surrounding_label_features(*this, "use-surrounding-label-features", "Whether or not to use the 2nd stage CRF surrounding label features", true),
+    use_crf1_label_feature(*this, "use-crf1-label-feature", "Whether or not to use the 2nd stage CRF CRF1 label feature", true)
   { }
 
 ModelParams::~ModelParams(void) { }
@@ -51,7 +56,12 @@ FeatureFlags::FeatureFlags(void) :
     use_context_aggregation_features(false),
     use_extended_prediction_history_features(false),
     use_gazetteer_features(false),
-    use_word_embeddings_features(false)
+    use_word_embeddings_features(false),
+    use_token_majority_features(false),
+    use_entity_majority_features(false),
+    use_superentity_majority_features(false),
+    use_surrounding_label_features(false),
+    use_crf1_label_feature(false)
   { }
 
 
@@ -91,6 +101,11 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
   _feature_flags.use_extended_prediction_history_features = params.use_extended_prediction_history_features();
   _feature_flags.use_gazetteer_features = params.use_gazetteer_features();
   _feature_flags.use_word_embeddings_features = params.use_word_embeddings_features();
+  _feature_flags.use_token_majority_features = params.use_token_majority_features();
+  _feature_flags.use_entity_majority_features = params.use_entity_majority_features();
+  _feature_flags.use_superentity_majority_features = params.use_superentity_majority_features();
+  _feature_flags.use_surrounding_label_features = params.use_surrounding_label_features();
+  _feature_flags.use_crf1_label_feature = params.use_crf1_label_feature();
 }
 
 InputModel::~InputModel(void) { }
@@ -132,6 +147,11 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
   _feature_flags.use_extended_prediction_history_features = params.use_extended_prediction_history_features();
   _feature_flags.use_gazetteer_features = params.use_gazetteer_features();
   _feature_flags.use_word_embeddings_features = params.use_word_embeddings_features();
+  _feature_flags.use_token_majority_features = params.use_token_majority_features();
+  _feature_flags.use_entity_majority_features = params.use_entity_majority_features();
+  _feature_flags.use_superentity_majority_features = params.use_superentity_majority_features();
+  _feature_flags.use_surrounding_label_features = params.use_surrounding_label_features();
+  _feature_flags.use_crf1_label_feature = params.use_crf1_label_feature();
 }
 
 OutputModel::~OutputModel(void) { }
@@ -383,6 +403,10 @@ Extractor::phase3_bos(cs::Sentence &sentence) {
   _offsets_token_ne_normalised.set_slice(sentence.span);
   _offsets_token_norm_raw.set_slice(sentence.span);
   _offsets_token_ne_label_crf1.set_slice(sentence.span);
+
+  // Everything from here is for the gazetteer features.
+  if (!_feature_flags.use_gazetteer_features)
+    return;
 
   // How many tokens long is the sentence?
   const size_t sentence_length = sentence.span.stop - sentence.span.start;

@@ -37,6 +37,12 @@ namespace schwa {
         config::Op<bool> use_gazetteer_features;
         config::Op<bool> use_word_embeddings_features;
 
+        config::Op<bool> use_token_majority_features;
+        config::Op<bool> use_entity_majority_features;
+        config::Op<bool> use_superentity_majority_features;
+        config::Op<bool> use_surrounding_label_features;
+        config::Op<bool> use_crf1_label_feature;
+
         ModelParams(config::Group &group, const std::string &name, const std::string &desc, config::Flags flags=config::Flags::NONE);
         virtual ~ModelParams(void);
 
@@ -52,6 +58,11 @@ namespace schwa {
         bool use_extended_prediction_history_features;
         bool use_gazetteer_features;
         bool use_word_embeddings_features;
+        bool use_token_majority_features;
+        bool use_entity_majority_features;
+        bool use_superentity_majority_features;
+        bool use_surrounding_label_features;
+        bool use_crf1_label_feature;
 
       public:
         FeatureFlags(void);
