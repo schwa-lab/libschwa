@@ -73,9 +73,10 @@ static std::mutex thread_work_queue_mutex;
 
 
 static std::string
-get_crf1_model_suffix(const int fold) {
+get_crf1_model_suffix(const Main &cfg, const int fold) {
   std::ostringstream ss;
-  ss << ".crf1";
+  if (!cfg.crf1_only())
+    ss << ".crf1";
   if (fold >= 0)
     ss << ".fold" << fold;
   return ss.str();
@@ -112,7 +113,7 @@ template <typename IT, typename TRANSFORMER>
 static void
 run_trainer1(const Main &cfg, Extractor &extractor, OutputModel &model, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const int fold=-1) {
   // Construct the path suffix if we're training a fold.
-  const std::string suffix = get_crf1_model_suffix(fold);
+  const std::string suffix = get_crf1_model_suffix(cfg, fold);
 
   if (fold >= 0)
     LOG(INFO) << "Training 1st stage NER classifier for fold " << fold << std::endl;
@@ -167,11 +168,11 @@ run_trainer2(const Main &cfg, Extractor &extractor, OutputModel &model, const IT
 
 template <typename IT, typename TRANSFORMER>
 static void
-run_tagger1(Extractor &extractor, const std::string &model_path, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const unsigned int fold) {
+run_tagger1(const Main &cfg, Extractor &extractor, const std::string &model_path, const IT docs_begin, const IT docs_end, TRANSFORMER &transformer, const unsigned int fold) {
   LOG(INFO) << "Tagging with 1st stage NER classifier for fold " << fold << std::endl;
 
   // Create the tagger for the 1st stage classifier.
-  ln::CRFsuiteTagger<Extractor> tagger(extractor, model_path + get_crf1_model_suffix(fold));
+  ln::CRFsuiteTagger<Extractor> tagger(extractor, model_path + get_crf1_model_suffix(cfg, fold));
 
   // Extract the features for the 1st stage classifier.
   tagger.tag<IT, TRANSFORMER>(docs_begin, docs_end, transformer);
@@ -203,7 +204,7 @@ run_fold1(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::ve
     return;
 
   // Tag the documents which are in the current fold with the newly trained model.
-  run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
+  run_tagger1(cfg, extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformer, fold);
 }
 
 
@@ -296,7 +297,7 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
       Extractor extractor(model, false, true);
       for (unsigned int fold = 0; fold != NFOLDS; ++fold) {
         split_docs_into_folds(docs, fold, fold_docs, nonfold_docs);
-        run_tagger1(extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformers[0], fold);
+        run_tagger1(cfg, extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformers[0], fold);
       }
     }
 
