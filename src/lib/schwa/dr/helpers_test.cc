@@ -4,7 +4,11 @@
 #include <sstream>
 #include <vector>
 
+#include <schwa/canonical-schema.h>
 #include <schwa/dr.h>
+#include <schwa/enums.h>
+
+namespace cs = ::schwa::canonical_schema;
 
 
 namespace schwa {
@@ -399,6 +403,112 @@ TEST(test_sequence_tagging) {
       CHECK_EQUAL(d.chunks[i].span.stop, d.untagged_chunks[i + 2].span.stop);
     }
   }
+}
+
+
+TEST(test_sequence_tagging2) {
+  static const auto TAGGER = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label);
+  static const auto UNTAGGER = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities_crf1, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
+
+  // Taken from OntoNotes 5 bc/cctv/00/cctv_0000@0000@cctv@bc@en@on.
+  static const char *TOKENS[27] = {
+    "As", "its", "neighbor", "on", "Lantau", "Island", ",", "Hong", "Kong", "International", "Airport",
+    "had", "to", "change", "its", "flight", "routes", "to", "make", "this", "area", "a", "no", "-",
+    "fly", "zone", ".",
+  };
+  static const char *BMEWO_LABELS[27] = {
+    "O", "O", "O", "O", "B-LOC", "E-LOC", "O", "B-ORG", "M-ORG", "M-ORG", "E-ORG",
+    "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O",
+    "O", "O", "O",
+  };
+  static const char *IOB2_LABELS[27] = {
+    "O", "O", "O", "O", "B-LOC", "I-LOC", "O", "B-ORG", "I-ORG", "I-ORG", "I-ORG",
+    "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O",
+    "O", "O", "O",
+  };
+
+  // Construct the document structure.
+  cs::Doc doc;
+  doc.tokens.create(27);
+  for (size_t i = 0; i != 27; ++i)
+    doc.tokens[i].raw = TOKENS[i];
+  doc.sentences.create(1);
+  doc.sentences[0].span.start = &doc.tokens.front();
+  doc.sentences[0].span.stop = doc.sentences[0].span.start + 27;
+  doc.named_entities.create(2);
+  doc.named_entities[0].span.start = &doc.tokens.front() + 4;
+  doc.named_entities[0].span.stop = doc.named_entities[0].span.start + 2;
+  doc.named_entities[0].label = "LOC";
+  doc.named_entities[1].span.start = &doc.tokens.front() + 7;
+  doc.named_entities[1].span.stop = doc.named_entities[1].span.start + 4;
+  doc.named_entities[1].label = "ORG";
+
+  // BMEWO tag the NE labels onto the tokens.
+  TAGGER(doc, SequenceTagEncoding::BMEWO);
+  for (size_t i = 0; i != 27; ++i)
+    CHECK_EQUAL(BMEWO_LABELS[i], doc.tokens[i].ne_label);
+
+  // Untag the BMEWO tags.
+  doc.named_entities_crf1.clear();
+  UNTAGGER(doc);
+  CHECK_EQUAL(2, doc.named_entities_crf1.size());
+  for (size_t i = 0; i != 2; ++i) {
+    CHECK_EQUAL(doc.named_entities[i].span.start, doc.named_entities_crf1[i].span.start);
+    CHECK_EQUAL(doc.named_entities[i].span.stop, doc.named_entities_crf1[i].span.stop);
+    CHECK_EQUAL(doc.named_entities[i].label, doc.named_entities_crf1[i].label);
+  }
+
+  // IOB2 tag the NE labels onto the tokens.
+  TAGGER(doc, SequenceTagEncoding::IOB2);
+  for (size_t i = 0; i != 27; ++i)
+    CHECK_EQUAL(IOB2_LABELS[i], doc.tokens[i].ne_label);
+
+  // Untag the IOB2 tags.
+  doc.named_entities_crf1.clear();
+  UNTAGGER(doc);
+  CHECK_EQUAL(2, doc.named_entities_crf1.size());
+  for (size_t i = 0; i != 2; ++i) {
+    CHECK_EQUAL(doc.named_entities[i].span.start, doc.named_entities_crf1[i].span.start);
+    CHECK_EQUAL(doc.named_entities[i].span.stop, doc.named_entities_crf1[i].span.stop);
+    CHECK_EQUAL(doc.named_entities[i].label, doc.named_entities_crf1[i].label);
+  }
+}
+
+
+TEST(test_sequence_tagging3) {
+  static const auto UNTAGGER = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
+
+  static const char *TOKENS[22] = {
+    "I", "went", "to", "China", "and", "saw", "WW", "II", "Landmarks", "on",
+    "the", "Great", "Earth", "of", "China", ":", "Eternal", "Memories", "of", "Taihang",
+    "Mountain", ".",
+  };
+  static const char *BMEWO_LABELS[22] = {
+    "O", "O", "O", "E-ORG", "O", "O", "B-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART",
+    "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART", "M-WORK_OF_ART",
+    "E-WORK_OF_ART", "O",
+  };
+
+  // Construct the document structure.
+  cs::Doc doc;
+  doc.tokens.create(22);
+  for (size_t i = 0; i != 22; ++i) {
+    doc.tokens[i].raw = TOKENS[i];
+    doc.tokens[i].ne_label = BMEWO_LABELS[i];
+  }
+  doc.sentences.create(1);
+  doc.sentences[0].span.start = &doc.tokens.front();
+  doc.sentences[0].span.stop = doc.sentences[0].span.start + 22;
+
+  // BMEWO tag the NE labels onto the tokens.
+  UNTAGGER(doc);
+  CHECK_EQUAL(2, doc.named_entities.size());
+  CHECK_EQUAL("ORG", doc.named_entities[0].label);
+  CHECK_EQUAL(&doc.tokens[3], doc.named_entities[0].span.start);
+  CHECK_EQUAL(&doc.tokens[4], doc.named_entities[0].span.stop);
+  CHECK_EQUAL("WORK_OF_ART", doc.named_entities[1].label);
+  CHECK_EQUAL(&doc.tokens[6], doc.named_entities[1].span.start);
+  CHECK_EQUAL(&doc.tokens[21], doc.named_entities[1].span.stop);
 }
 
 }  // SUITE

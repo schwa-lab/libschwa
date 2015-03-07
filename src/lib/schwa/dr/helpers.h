@@ -285,21 +285,23 @@ namespace schwa {
 
           // For each TARGET covered by the sentence...
           for (TARGET *start = slice.start; start != slice.stop; ++start) {
-            std::string klass = start->*tag_attr;
-            if (klass.empty() || klass == "O")
+            std::string tag = start->*tag_attr;
+            if (tag.empty() || tag == "O")
               continue;
 
-            klass = klass.substr(2);
-            char prev_prefix = klass[0];
+            char prev_prefix = tag[0];
+            const std::string klass = tag.substr(2);
 
             TARGET *stop;
             for (stop = start + 1; stop != slice.stop; ++stop) {
               if (prev_prefix == 'W' || prev_prefix == 'E')
                 break;
-              const std::string &klass2 = stop->*tag_attr;
-              if (klass2.empty() || klass2 == "O" || klass2[0] == 'B' || klass2[0] == 'W' || klass2.substr(2) != klass)
+
+              const std::string &tag2 = stop->*tag_attr;
+              const char prefix = tag2[0];
+              if (tag2.empty() || tag2 == "O" || prefix == 'B' || prefix == 'W' || tag2.substr(2) != klass)
                 break;
-              prev_prefix = klass2[0];
+              prev_prefix = prefix;
             }
 
             (doc.*span_store).create(1);
