@@ -468,10 +468,9 @@ Extractor::phase3_bos(cs::Sentence &sentence) {
 
 
 void
-Extractor::phase3_update_history(canonical_schema::Sentence &sentence, canonical_schema::Token &token, const std::string &label_string) {
-  // Don't include the first token in a sentence as it's ambiguous to begin with.
-  if (&token != sentence.span.start)
-    _token_label_counts[token.ne_normalised][label_string] += 1;
+Extractor::phase3_update_history(canonical_schema::Sentence &, canonical_schema::Token &token, const std::string &label_string) {
+  // Increment the <token, label> pair frequency counter.
+  _token_label_counts[token.ne_normalised][label_string] += 1;
 }
 
 
