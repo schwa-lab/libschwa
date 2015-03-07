@@ -22,6 +22,90 @@ namespace schwa {
 namespace tagger {
 namespace ner {
 
+static const std::vector<std::string> GAZETTEER_PATHS = {{
+  "lex-data/gazetteers/countries",
+  "lex-data/gazetteers/illinois/ArtWork",
+  "lex-data/gazetteers/illinois/Building",
+  "lex-data/gazetteers/illinois/Building.SubArea",
+  "lex-data/gazetteers/illinois/Clothes",
+  "lex-data/gazetteers/illinois/CollectiveNouns",
+  "lex-data/gazetteers/illinois/Colors",
+  "lex-data/gazetteers/illinois/CompetitionsBattlesEvents",
+  "lex-data/gazetteers/illinois/Conduits",
+  "lex-data/gazetteers/illinois/Corporations",
+  "lex-data/gazetteers/illinois/CriminalActs",
+  "lex-data/gazetteers/illinois/Currency",
+  "lex-data/gazetteers/illinois/Diseases",
+  "lex-data/gazetteers/illinois/EthnicGroups",
+  "lex-data/gazetteers/illinois/Films",
+  "lex-data/gazetteers/illinois/Government.Australia",
+  "lex-data/gazetteers/illinois/Government.Canada",
+  "lex-data/gazetteers/illinois/Government.Germany",
+  "lex-data/gazetteers/illinois/Government",
+  "lex-data/gazetteers/illinois/Government.HongKong",
+  "lex-data/gazetteers/illinois/Government.India",
+  "lex-data/gazetteers/illinois/Government.NewZealand",
+  "lex-data/gazetteers/illinois/Government.Norway",
+  "lex-data/gazetteers/illinois/Government.Sweden",
+  "lex-data/gazetteers/illinois/Government.Switzerland",
+  "lex-data/gazetteers/illinois/Government.UK",
+  "lex-data/gazetteers/illinois/Government.US",
+  "lex-data/gazetteers/illinois/Languages",
+  "lex-data/gazetteers/illinois/LiteraryGenre",
+  "lex-data/gazetteers/illinois/Locations.Cities.Canada",
+  "lex-data/gazetteers/illinois/Locations.Cities.Europe",
+  "lex-data/gazetteers/illinois/Locations.Cities",
+  "lex-data/gazetteers/illinois/Locations.Cities.India",
+  "lex-data/gazetteers/illinois/Locations.Cities.Japan",
+  "lex-data/gazetteers/illinois/Locations.Cities.US",
+  "lex-data/gazetteers/illinois/Locations.Counties.US",
+  "lex-data/gazetteers/illinois/Locations.Countries",
+  "lex-data/gazetteers/illinois/Locations.Generic",
+  "lex-data/gazetteers/illinois/Locations",
+  "lex-data/gazetteers/illinois/Locations.Regions",
+  "lex-data/gazetteers/illinois/Locations.States",
+  "lex-data/gazetteers/illinois/ManMadeObjects",
+  "lex-data/gazetteers/illinois/ManufacturingPlants",
+  "lex-data/gazetteers/illinois/MarketIndices",
+  "lex-data/gazetteers/illinois/Measurements",
+  "lex-data/gazetteers/illinois/Nationalities",
+  "lex-data/gazetteers/illinois/NumberCardinal",
+  "lex-data/gazetteers/illinois/NumberOrdinal",
+  "lex-data/gazetteers/illinois/Organizations.EducationalInstitutions",
+  "lex-data/gazetteers/illinois/Organizations",
+  "lex-data/gazetteers/illinois/Organizations.OnStockExchange",
+  "lex-data/gazetteers/illinois/Organizations.Terrorist",
+  "lex-data/gazetteers/illinois/Parks",
+  "lex-data/gazetteers/illinois/Paths",
+  "lex-data/gazetteers/illinois/People.Famous",
+  "lex-data/gazetteers/illinois/People.FirstNames",
+  "lex-data/gazetteers/illinois/People.Gender.Female",
+  "lex-data/gazetteers/illinois/People.Gender.Male",
+  "lex-data/gazetteers/illinois/People",
+  "lex-data/gazetteers/illinois/People.Judges",
+  "lex-data/gazetteers/illinois/People.Monarchs",
+  "lex-data/gazetteers/illinois/People.Politicians",
+  "lex-data/gazetteers/illinois/People.Politicians.US",
+  "lex-data/gazetteers/illinois/People.Politicians.US.Presidents",
+  "lex-data/gazetteers/illinois/People.Politicians.US.VicePresidents",
+  "lex-data/gazetteers/illinois/Person",
+  "lex-data/gazetteers/illinois/Person.Hyponyms",
+  "lex-data/gazetteers/illinois/Person.JobsTitles",
+  "lex-data/gazetteers/illinois/PhysicalBarriers",
+  "lex-data/gazetteers/illinois/PoliticalParties",
+  "lex-data/gazetteers/illinois/Temporal",
+  "lex-data/gazetteers/illinois/TV.Programs",
+  "lex-data/gazetteers/illinois/Vehicles",
+  "lex-data/gazetteers/illinois/Weapons.Aircraft",
+  "lex-data/gazetteers/illinois/Weapons.Artillery",
+  "lex-data/gazetteers/illinois/Weapons.Firearms",
+  "lex-data/gazetteers/illinois/Weapons",
+  "lex-data/gazetteers/illinois/Weapons.Melee",
+  "lex-data/gazetteers/illinois/Weapons.Missile",
+  "lex-data/gazetteers/illinois/Weapons.Torpedoes",
+}};
+
+
 // ============================================================================
 // ModelParams
 // ============================================================================
@@ -85,8 +169,12 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
 
   // Load the gazetteer.
   {
-    io::InputStream in(params.gazetteer_path());
-    _gazetteer.load(in);
+    //io::InputStream in(params.gazetteer_path());
+    //_gazetteer.load(in);
+    for (const std::string &path : GAZETTEER_PATHS) {
+      io::InputStream in(path);
+      _gazetteer.load(in);
+    }
   }
 
   // Load the word embeddings.
@@ -131,8 +219,12 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
 
   // Load the gazetteer.
   {
-    io::InputStream in(params.gazetteer_path());
-    _gazetteer.load(in);
+    //io::InputStream in(params.gazetteer_path());
+    //_gazetteer.load(in);
+    for (const std::string &path : GAZETTEER_PATHS) {
+      io::InputStream in(path);
+      _gazetteer.load(in);
+    }
   }
 
   // Load the word embeddings.
