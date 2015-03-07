@@ -255,8 +255,11 @@ OutputModel::~OutputModel(void) { }
 const RE2 Extractor::RE_ACRONYM("[A-Z]{2,}\\.?|([A-Z]\\.){2,}|[A-Z]+&[A-Z]+\\.?|([A-Z]\\.)+&([A-Z]+\\.)+");
 const RE2 Extractor::RE_ORDINAL("\\pN+(?:st|ST|nd|ND|rd|RD|th|TH)");  // Identifying an ordinal expression.
 const RE2 Extractor::RE_ROMAN_NUMERAL("M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})");
-const RE2 Extractor::RE_PERSON_INITIAL_1("[A-Z]\\.");    // Match "Cricket: P. Smith and A. Fitz blah blah"
-const RE2 Extractor::RE_PERSON_INITIAL_2("[A-Z][a-z]+");
+const RE2 Extractor::RE_PERSON_INITIAL_1("[A-Z]\\.");
+const RE2 Extractor::RE_PERSON_INITIAL_2("(([A-Z]\\.)?(al-|d'|Mc|O'))?[A-Z][a-z]+");
+
+const RE2 Extractor::RE_TEMPORAL("Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|January|Febuary|March|April|May|June|July|August|September|October|November|December");
+const RE2 Extractor::RE_WHO_PRONOUN("who(m|se)?");
 
 
 Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) :

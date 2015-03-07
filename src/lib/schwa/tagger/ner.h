@@ -136,6 +136,9 @@ namespace schwa {
         static const third_party::re2::RE2 RE_PERSON_INITIAL_1;
         static const third_party::re2::RE2 RE_PERSON_INITIAL_2;
 
+        static const third_party::re2::RE2 RE_TEMPORAL;
+        static const third_party::re2::RE2 RE_WHO_PRONOUN;
+
       private:
         const bool _is_train;
         const bool _is_second_stage;

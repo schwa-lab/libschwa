@@ -57,6 +57,18 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   if (i != 0 && RE2::FullMatch(utf8, RE_PERSON_INITIAL_2) && RE2::FullMatch(_get_token_ne_normalised(*(sentence.span.start + i - 1)), RE_PERSON_INITIAL_1))
     features("person_initial_2");
 
+#if 0
+  // Obvious start-of-sentence surname attribution: Duran , whose 99-99 record
+  //                                                ^^^^^
+  if (i == 0 && sentence.span.stop - sentence.span.start >= 3 && _get_token_ne_normalised(sentence.span.start[1]) == "," && RE2::FullMatch(_get_token_ne_normalised(sentence.span.start[2]), RE_WHO_PRONOUN) && RE2::FullMatch(utf8, RE_PERSON_INITIAL_2))
+    features("person_who");
+#endif
+
+  // Obvious locations: ... at Lord 's
+  //                           ^^^^
+  if (i != 0 && _get_token_ne_normalised(*(sentence.span.start + i - 1)) == "at" && RE2::FullMatch(utf8, RE_PERSON_INITIAL_2) && !RE2::FullMatch(utf8, RE_TEMPORAL))
+    features("at_location");
+
   // Does the token look like an acronym?
   if (RE2::FullMatch(utf8, RE_ACRONYM))
     features("acronym");
