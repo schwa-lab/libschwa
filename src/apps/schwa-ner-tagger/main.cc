@@ -29,6 +29,7 @@ public:
   cf::Op<std::string> model_path;
   ner::ModelParams model_params;
   cf::Op<bool> crf1_only;
+  cf::OpSequenceTagEncoding conll_tag_encoding;
   dr::DocrepGroup dr;
 
   Main(void) :
@@ -39,6 +40,7 @@ public:
       model_path(*this, "model", 'm', "The model path"),
       model_params(*this, "model-params", "The model path path"),
       crf1_only(*this, "crf1-only", "Whether only the 1st stage CRF tagging should happen", false),
+      conll_tag_encoding(*this, "conll-tag-encoding", "Which sequence tag encoding to use for the CoNLL output", "iob1"),
       dr(*this, schema)
     { }
   virtual ~Main(void) { }
@@ -50,6 +52,7 @@ namespace tagger {
 namespace ner {
 
 
+static const auto REVERSE_NES = DR_REVERSE_SLICES(&cs::Doc::named_entities, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Token::ne);
 static const auto SEQUENCE_TAG_GOLD_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf1);
 static const auto SEQUENCE_TAG_CRF2_NES = DR_SEQUENCE_TAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::Doc::tokens, &cs::NamedEntity::span, &cs::Sentence::span, &cs::Token::ne, &cs::NamedEntity::label, &cs::Token::ne_label_crf2);
 static const auto SEQUENCE_UNTAG_NES = DR_SEQUENCE_UNTAGGER(&cs::Doc::named_entities, &cs::Doc::sentences, &cs::NamedEntity::span, &cs::Sentence::span, &cs::NamedEntity::label, &cs::Token::ne_label);
@@ -68,8 +71,11 @@ run_tagger(Main &cfg, TRANSFORMER &transformer, InputModel &model) {
     conll_out.reset(new io::OutputStream(cfg.conll_path()));
 
   // Create the 1st stage feature extractor and tagger.
+  std::string crf1_model_path = model.model_path();
+  if (!cfg.crf1_only())
+    crf1_model_path += ".crf1";
   Extractor extractor1(model, false, false);
-  ln::CRFsuiteTagger<Extractor> tagger1(extractor1, model.model_path() + ".crf1");
+  ln::CRFsuiteTagger<Extractor> tagger1(extractor1, crf1_model_path);
 
   // Create the 2nd stage feature extractor and tagger.
   Extractor extractor2(model, true, false);
@@ -101,13 +107,17 @@ run_tagger(Main &cfg, TRANSFORMER &transformer, InputModel &model) {
       SEQUENCE_UNTAG_NES(*doc);
     }
     else {
-      // Sequence tag the gold named entities.
-      SEQUENCE_TAG_GOLD_NES(*doc, SequenceTagEncoding::IOB2);
+      const SequenceTagEncoding conll_tag_encoding = cfg.conll_tag_encoding.encoding();
+
+      // Sequence tag the gold named entities into the `ne_label_crf1` attribute.
+      REVERSE_NES(*doc);
+      SEQUENCE_TAG_GOLD_NES(*doc, conll_tag_encoding);
 
       // Untag the CRF sequence labels and tag them back onto the tokens.
       doc->named_entities.clear();
       SEQUENCE_UNTAG_NES(*doc);
-      SEQUENCE_TAG_CRF2_NES(*doc, SequenceTagEncoding::IOB2);
+      REVERSE_NES(*doc);
+      SEQUENCE_TAG_CRF2_NES(*doc, conll_tag_encoding);
 
       **conll_out << "-DOCSTART- -X- -X- O O" << std::endl;
       **conll_out << std::endl;
