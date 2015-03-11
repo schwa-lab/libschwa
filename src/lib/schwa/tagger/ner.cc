@@ -162,13 +162,13 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
     _tag_encoding(params.tag_encoding.encoding())
   {
   // Load the Brown clusters.
-  {
+  if (params.use_brown_cluster_features()) {
     io::InputStream in(params.brown_clusters_path());
     _brown_clusters.load(in);
   }
 
   // Load the gazetteer.
-  {
+  if (params.use_gazetteer_features()) {
     //io::InputStream in(params.gazetteer_path());
     //_gazetteer.load(in);
     for (const std::string &path : GAZETTEER_PATHS) {
@@ -178,7 +178,7 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
   }
 
   // Load the word embeddings.
-  {
+  if (params.use_word_embeddings_features()) {
     io::InputStream in(params.word_embeddings_path());
     _word_embeddings.load(in);
   }
@@ -212,13 +212,13 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
     _tag_encoding(params.tag_encoding.encoding())
   {
   // Load the Brown clusters.
-  {
+  if (params.use_brown_cluster_features()) {
     io::InputStream in(params.brown_clusters_path());
     _brown_clusters.load(in);
   }
 
   // Load the gazetteer.
-  {
+  if (params.use_gazetteer_features()) {
     //io::InputStream in(params.gazetteer_path());
     //_gazetteer.load(in);
     for (const std::string &path : GAZETTEER_PATHS) {
@@ -228,7 +228,7 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
   }
 
   // Load the word embeddings.
-  {
+  if (params.use_word_embeddings_features()) {
     io::InputStream in(params.word_embeddings_path());
     _word_embeddings.load(in);
   }
