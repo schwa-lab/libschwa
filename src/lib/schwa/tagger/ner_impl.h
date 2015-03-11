@@ -191,7 +191,7 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   if (_is_second_stage) {
     // Token majority from 1st stage CRF.
     if (_feature_flags.use_token_majority_features) {
-      const auto &it = _token_maj_counts.find(lower);
+      const auto &it = _token_maj_counts.find(u);
       unsigned int max_count = 0;
       std::string max_label;
       for (const auto &pair : it->second) {

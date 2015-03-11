@@ -365,13 +365,13 @@ Extractor::phase2_bod(cs::Doc &doc) {
             ss << ' ';
           ss << ne.span.start[i].ne_normalised;
         }
-        const UnicodeString lower = UnicodeString::from_utf8(ss.str()).to_lower();
+        const UnicodeString ngram = UnicodeString::from_utf8(ss.str());
         ss.str("");
 
         // Increment the count of the sub-n-gram and possibly the full n-gram.
-        superentity_counts[lower][ne.label] += 1;
+        superentity_counts[ngram][ne.label] += 1;
         if (stop - start == ntokens)
-          entity_counts[lower][ne.label] += 1;
+          entity_counts[ngram][ne.label] += 1;
       }
     }
   }
@@ -386,13 +386,13 @@ Extractor::phase2_bod(cs::Doc &doc) {
         ss << ' ';
       ss << token.ne_normalised;
     }
-    const UnicodeString lower = UnicodeString::from_utf8(ss.str()).to_lower();
+    const UnicodeString ngram = UnicodeString::from_utf8(ss.str());
     ss.str("");
 
     // Find the most frequent label for this case-normalised entity n-gram.
     unsigned int max_count = 0;
     std::string max_label;
-    for (const auto &pair : entity_counts[lower]) {
+    for (const auto &pair : entity_counts[ngram]) {
       if (pair.second > max_count || (pair.second == max_count && pair.first == ne.label)) {
         max_label = pair.first;
         max_count = pair.second;
@@ -405,7 +405,7 @@ Extractor::phase2_bod(cs::Doc &doc) {
 
     // Find the most frequent label for this case-normalised superentity n-gram.
     max_count = 0;
-    for (const auto &pair : entity_counts[lower]) {
+    for (const auto &pair : entity_counts[ngram]) {
       if (pair.second > max_count || (pair.second == max_count && pair.first == ne.label)) {
         max_label = pair.first;
         max_count = pair.second;
@@ -423,14 +423,14 @@ Extractor::phase2_bod(cs::Doc &doc) {
       continue;
 
     // Find the most frequent label for this token as a 1-gram named entity.
-    const UnicodeString lower = UnicodeString::from_utf8(doc.tokens[i].ne_normalised).to_lower();
-    const auto &it = entity_counts.find(lower);
+    const UnicodeString ngram = UnicodeString::from_utf8(doc.tokens[i].ne_normalised);
+    const auto &it = entity_counts.find(ngram);
     if (it == entity_counts.end())
       continue;
 
     unsigned int max_count = 0;
     std::string max_label;
-    for (const auto &pair : entity_counts[lower]) {
+    for (const auto &pair : entity_counts[ngram]) {
       if (pair.second > max_count) {
         max_label = pair.first;
         max_count = pair.second;
@@ -445,14 +445,14 @@ Extractor::phase2_bod(cs::Doc &doc) {
       continue;
 
     // Find the most frequent label for this token as a 1-gram named entity.
-    const UnicodeString lower = UnicodeString::from_utf8(doc.tokens[i].ne_normalised).to_lower();
-    const auto &it = entity_counts.find(lower);
+    const UnicodeString ngram = UnicodeString::from_utf8(doc.tokens[i].ne_normalised);
+    const auto &it = entity_counts.find(ngram);
     if (it == entity_counts.end())
       continue;
 
     unsigned int max_count = 0;
     std::string max_label;
-    for (const auto &pair : entity_counts[lower]) {
+    for (const auto &pair : entity_counts[ngram]) {
       if (pair.second > max_count) {
         max_label = pair.first;
         max_count = pair.second;
@@ -475,8 +475,8 @@ Extractor::phase2_bos(cs::Sentence &sentence) {
 void
 Extractor::phase2_extract(cs::Sentence &sentence, cs::Token &token) {
   // Find the identical token forms for use in the context aggregation
-  const UnicodeString lower = UnicodeString::from_utf8(_get_token_ne_normalised(token)).to_lower();
-  auto &array = _token_context_aggregations[lower][&token];
+  const UnicodeString ngram = UnicodeString::from_utf8(_get_token_ne_normalised(token));
+  auto &array = _token_context_aggregations[ngram.to_lower()][&token];
 
   const ptrdiff_t sentence_length = sentence.span.stop - sentence.span.start;
   const ptrdiff_t i = &token - sentence.span.start;
@@ -487,7 +487,7 @@ Extractor::phase2_extract(cs::Sentence &sentence, cs::Token &token) {
 
   // Token majority features from the 1st stage CRF.
   if (_is_second_stage) {
-    _token_maj_counts[lower][token.ne_label_crf1] += 1;
+    _token_maj_counts[ngram][token.ne_label_crf1] += 1;
   }
 }
 
