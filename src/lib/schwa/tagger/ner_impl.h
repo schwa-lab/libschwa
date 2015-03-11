@@ -27,8 +27,8 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
   const UnicodeString lower = u.to_lower();
   std::stringstream ss;
 
-  // Prefix and suffix of length up to 4.
-  learn::add_affix_features(features, 4, 4, utf8);
+  // Prefix and suffix.
+  learn::add_affix_features(features, 5, 5, utf8);
 
   // Word form.
   features("wf[i]=" + lex::word_form(u));
