@@ -1,10 +1,13 @@
 /* -*- Mode: C++; indent-tabs-mode: nil -*- */
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <random>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -39,6 +42,7 @@ public:
   cf::Op<bool> crf2_only;
   cf::Op<bool> extract_only;
   cf::Op<bool> single_fold_only;
+  cf::Op<unsigned int> fold_random_seed;
   cf::Op<unsigned int> nthreads;
   ner::ModelParams model_params;
   ln::CRFsuiteTrainerParams crf1_trainer_params;
@@ -54,6 +58,7 @@ public:
       crf2_only(*this, "crf2-only", "Whether only the 2nd stage CRF training should happen", false),
       extract_only(*this, "extract-only", "Whether to perform feature extraction only and no training", false),
       single_fold_only(*this, "single-fold-only", "When performing crf1-only training, whether to train only a single fold or all folds", false),
+      fold_random_seed(*this, "fold-random-seed", "The seen value to use for the random stuffling of the documents before the folds are created", std::chrono::system_clock::now().time_since_epoch().count()),
       nthreads(*this, "nthreads", 'j', "How many threads to use to train the 1st stage CRFs", NFOLDS + 1),
       model_params(*this, "model-params", "Parameters controlling the contents of the produced model"),
       crf1_trainer_params(*this, "crf1-train-params", "Parameters to the CRFsuite training process for the 1st stage CRF"),
@@ -84,7 +89,7 @@ get_crf1_model_suffix(const Main &cfg, const int fold) {
 
 
 static void
-split_docs_into_folds(const std::vector<cs::Doc *> &docs, const unsigned int fold, std::vector<cs::Doc *> &fold_docs, std::vector<cs::Doc *> &nonfold_docs) {
+split_docs_into_folds(const Main &cfg, std::vector<cs::Doc *> docs, const unsigned int fold, std::vector<cs::Doc *> &fold_docs, std::vector<cs::Doc *> &nonfold_docs) {
   // Split the docs into folds.
   unsigned int fold_size = docs.size() / NFOLDS;
   if (docs.size() % NFOLDS != 0)
@@ -95,6 +100,10 @@ split_docs_into_folds(const std::vector<cs::Doc *> &docs, const unsigned int fol
   fold_docs.reserve(fold_size);
   nonfold_docs.clear();
   nonfold_docs.reserve((NFOLDS - 1) * fold_size);
+
+  // Shuffle the documents randomly.
+  LOG(INFO) << "Randomly stuffling the documents using seed value " << cfg.fold_random_seed() << std::endl;
+  std::shuffle(docs.begin(), docs.end(), std::default_random_engine(cfg.fold_random_seed()));
 
   // Separate out the documents which are part of this fold from the ones that are not.
   auto it = docs.begin();
@@ -195,7 +204,7 @@ run_fold1(const Main &cfg, OutputModel &model, TRANSFORMER &transformer, std::ve
 
   // Allocate space for the documents which are in and not in the current fold.
   std::vector<cs::Doc *> fold_docs, nonfold_docs;
-  split_docs_into_folds(docs, fold, fold_docs, nonfold_docs);
+  split_docs_into_folds(cfg, docs, fold, fold_docs, nonfold_docs);
 
   // Train a model on the documents that are not in the current fold.
   run_trainer1(cfg, extractor, model, nonfold_docs.begin(), nonfold_docs.end(), transformer, fold);
@@ -296,7 +305,7 @@ run_trainer(const Main &cfg, std::vector<TRANSFORMER> &transformers, OutputModel
       std::vector<cs::Doc *> fold_docs, nonfold_docs;
       Extractor extractor(model, false, true);
       for (unsigned int fold = 0; fold != NFOLDS; ++fold) {
-        split_docs_into_folds(docs, fold, fold_docs, nonfold_docs);
+        split_docs_into_folds(cfg, docs, fold, fold_docs, nonfold_docs);
         run_tagger1(cfg, extractor, model.model_path(), fold_docs.begin(), fold_docs.end(), transformers[0], fold);
       }
     }
