@@ -118,6 +118,16 @@ Extractor::phase3_extract(canonical_schema::Sentence &sentence, canonical_schema
     }
   }
 
+  // Add Clark cluster for w_{i}.
+  if (_feature_flags.use_clark_cluster_features) {
+    unsigned int cluster;
+    if (_clark_clusters.get_cluster(utf8, &cluster, nullptr)) {
+      ss << "cc[i]=" << cluster;
+      features(ss.str());
+      ss.str("");
+    }
+  }
+
   // Add word embedding values for w_{i}
   if (_feature_flags.use_word_embeddings_features) {
     const double *embeddings = _word_embeddings.get_embeddings(utf8);

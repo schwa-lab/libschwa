@@ -114,10 +114,12 @@ ModelParams::ModelParams(config::Group &group, const std::string &name, const st
     tag_encoding(*this, "tag-encoding", 'E', "Sequence tag encoding scheme to use", "bmewo"),
     feature_hashing(*this, "feature-hashing", 'H', "Number of bits to use for feature hashing", config::Flags::OPTIONAL),
     brown_clusters_path(*this, "brown-cluster-path", "Absolute path to the Brown clusters file", "lex-data/brown-clusters/english-wikitext.c1000"),
+    clark_clusters_path(*this, "clark-cluster-path", "Absolute path to the Clark clusters file", "lex-data/clark-clusters/rcv1.200"),
     gazetteer_path(*this, "gazetteer-path", "Absolute path to the country-related n-gram gazetter file", "lex-data/gazetteers/countries"),
     word_embeddings_path(*this, "word-embeddings-path", "Absolute path to the word embeddings file", "lex-data/word-embeddings/cw.50dim.unscalled.double"),
     word_embeddings_sigma(*this, "word-embeddings-sigma", "Scaling factor for scaling the embeddings values", lex::WordEmbeddings::DEFAULT_SIGMA),
     use_brown_cluster_features(*this, "use-brown-cluster-features", "Whether or not to use the Brown cluster features", true),
+    use_clark_cluster_features(*this, "use-clark-cluster-features", "Whether or not to use the Clark cluster features", true),
     use_context_aggregation_features(*this, "use-context-aggregation-features", "Whether or not to use the context aggregation features", false),
     use_extended_prediction_history_features(*this, "use-extended-prediction-history-features", "Whether or not to use the extended prediction-history features", true),
     use_gazetteer_features(*this, "use-gazetteer-features", "Whether or not to use the gazetteer features", true),
@@ -137,6 +139,7 @@ ModelParams::~ModelParams(void) { }
 // ============================================================================
 FeatureFlags::FeatureFlags(void) :
     use_brown_cluster_features(false),
+    use_clark_cluster_features(false),
     use_context_aggregation_features(false),
     use_extended_prediction_history_features(false),
     use_gazetteer_features(false),
@@ -157,6 +160,7 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
     _pool(4 * 1024 * 1024),
     _string_pool(_pool),
     _brown_clusters(_string_pool),
+    _clark_clusters(_string_pool),
     _gazetteer(_string_pool),
     _word_embeddings(_string_pool, params.word_embeddings_sigma()),
     _tag_encoding(params.tag_encoding.encoding())
@@ -165,6 +169,12 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
   if (params.use_brown_cluster_features()) {
     io::InputStream in(params.brown_clusters_path());
     _brown_clusters.load(in);
+  }
+
+  // Load the Clark clusters.
+  if (params.use_clark_cluster_features()) {
+    io::InputStream in(params.clark_clusters_path());
+    _clark_clusters.load(in);
   }
 
   // Load the gazetteer.
@@ -185,6 +195,7 @@ InputModel::InputModel(const std::string &path, ModelParams &params) :
 
   // Set the feature flags.
   _feature_flags.use_brown_cluster_features = params.use_brown_cluster_features();
+  _feature_flags.use_clark_cluster_features = params.use_clark_cluster_features();
   _feature_flags.use_context_aggregation_features = params.use_context_aggregation_features();
   _feature_flags.use_extended_prediction_history_features = params.use_extended_prediction_history_features();
   _feature_flags.use_gazetteer_features = params.use_gazetteer_features();
@@ -207,6 +218,7 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
     _pool(4 * 1024 * 1024),
     _string_pool(_pool),
     _brown_clusters(_string_pool),
+    _clark_clusters(_string_pool),
     _gazetteer(_string_pool),
     _word_embeddings(_string_pool, params.word_embeddings_sigma()),
     _tag_encoding(params.tag_encoding.encoding())
@@ -215,6 +227,12 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
   if (params.use_brown_cluster_features()) {
     io::InputStream in(params.brown_clusters_path());
     _brown_clusters.load(in);
+  }
+
+  // Load the Clark clusters.
+  if (params.use_clark_cluster_features()) {
+    io::InputStream in(params.clark_clusters_path());
+    _clark_clusters.load(in);
   }
 
   // Load the gazetteer.
@@ -235,6 +253,7 @@ OutputModel::OutputModel(const std::string &path, const ModelParams &params, con
 
   // Set the feature flags.
   _feature_flags.use_brown_cluster_features = params.use_brown_cluster_features();
+  _feature_flags.use_clark_cluster_features = params.use_clark_cluster_features();
   _feature_flags.use_context_aggregation_features = params.use_context_aggregation_features();
   _feature_flags.use_extended_prediction_history_features = params.use_extended_prediction_history_features();
   _feature_flags.use_gazetteer_features = params.use_gazetteer_features();
@@ -272,6 +291,7 @@ Extractor::Extractor(InputModel &model, bool is_second_stage, bool is_threaded) 
     _brown_cluster_path(nullptr),
     _brown_cluster_path_lengths(new unsigned int[_brown_clusters.npaths()]),
     _brown_cluster_feature(new char[8 + _brown_clusters.path_lengths().back() + 1]),
+    _clark_clusters(model.clark_clusters()),
     _gazetteer(model.gazetteer()),
     _gazetteer_matches(_gazetteer.ngazetteers()),
     _word_embeddings(model.word_embeddings()),
@@ -293,6 +313,7 @@ Extractor::Extractor(OutputModel &model, bool is_second_stage, bool is_threaded)
     _brown_cluster_path(nullptr),
     _brown_cluster_path_lengths(new unsigned int[_brown_clusters.npaths()]),
     _brown_cluster_feature(new char[8 + _brown_clusters.path_lengths().back() + 1]),
+    _clark_clusters(model.clark_clusters()),
     _gazetteer(model.gazetteer()),
     _gazetteer_matches(_gazetteer.ngazetteers()),
     _word_embeddings(model.word_embeddings()),

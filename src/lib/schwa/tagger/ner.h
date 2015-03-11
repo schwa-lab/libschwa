@@ -13,6 +13,7 @@
 #include <schwa/io/logging.h>
 #include <schwa/learn.h>
 #include <schwa/lex/brown-clusters.h>
+#include <schwa/lex/clark-clusters.h>
 #include <schwa/lex/gazetteer.h>
 #include <schwa/lex/word-embeddings.h>
 #include <schwa/third-party/re2/re2.h>
@@ -27,11 +28,13 @@ namespace schwa {
         config::OpSequenceTagEncoding tag_encoding;
         config::Op<unsigned int> feature_hashing;
         config::Op<std::string> brown_clusters_path;
+        config::Op<std::string> clark_clusters_path;
         config::Op<std::string> gazetteer_path;
         config::Op<std::string> word_embeddings_path;
         config::Op<double> word_embeddings_sigma;
 
         config::Op<bool> use_brown_cluster_features;
+        config::Op<bool> use_clark_cluster_features;
         config::Op<bool> use_context_aggregation_features;
         config::Op<bool> use_extended_prediction_history_features;
         config::Op<bool> use_gazetteer_features;
@@ -54,6 +57,7 @@ namespace schwa {
       class FeatureFlags {
       public:
         bool use_brown_cluster_features;
+        bool use_clark_cluster_features;
         bool use_context_aggregation_features;
         bool use_extended_prediction_history_features;
         bool use_gazetteer_features;
@@ -74,6 +78,7 @@ namespace schwa {
         Pool _pool;
         StringPool _string_pool;
         lex::BrownClusters _brown_clusters;
+        lex::ClarkClusters _clark_clusters;
         lex::Gazetteer _gazetteer;
         lex::WordEmbeddings _word_embeddings;
         SequenceTagEncoding _tag_encoding;
@@ -84,6 +89,7 @@ namespace schwa {
         virtual ~InputModel(void);
 
         const lex::BrownClusters &brown_clusters(void) const { return _brown_clusters; }
+        const lex::ClarkClusters &clark_clusters(void) const { return _clark_clusters; }
         const FeatureFlags &feature_flags(void) const { return _feature_flags; }
         const lex::Gazetteer &gazetteer(void) const { return _gazetteer; }
         SequenceTagEncoding tag_encoding(void) const { return _tag_encoding; }
@@ -99,6 +105,7 @@ namespace schwa {
         Pool _pool;
         StringPool _string_pool;
         lex::BrownClusters _brown_clusters;
+        lex::ClarkClusters _clark_clusters;
         lex::Gazetteer _gazetteer;
         lex::WordEmbeddings _word_embeddings;
         SequenceTagEncoding _tag_encoding;
@@ -109,6 +116,7 @@ namespace schwa {
         virtual ~OutputModel(void);
 
         const lex::BrownClusters &brown_clusters(void) const { return _brown_clusters; }
+        const lex::ClarkClusters &clark_clusters(void) const { return _clark_clusters; }
         const FeatureFlags &feature_flags(void) const { return _feature_flags; }
         const lex::Gazetteer &gazetteer(void) const { return _gazetteer; }
         SequenceTagEncoding tag_encoding(void) const { return _tag_encoding; }
@@ -149,6 +157,7 @@ namespace schwa {
         const uint8_t *_brown_cluster_path;
         unsigned int *const _brown_cluster_path_lengths;
         char *const _brown_cluster_feature;
+        const lex::ClarkClusters &_clark_clusters;
         const lex::Gazetteer &_gazetteer;                      //!< The country-related word n-gram gazetteer.
         std::vector<std::vector<uint8_t>> _gazetteer_matches;  //!< Token-indexed flags of gazetteer hit flags.
         const lex::WordEmbeddings &_word_embeddings;
